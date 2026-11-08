@@ -67,3 +67,24 @@ de produção falha enquanto faltarem (pré-visualização aceita marcadores).
 Opiniões do Google e do Instagram **não se copiam** (DL 57/2008, art. 8.º, al. cc); fica a nota agregada com
 ligação ao Google. Fotografias com pessoas: nenhuma (só mãos). A ficha do Google aponta para a Shopify
 abandonada: trocar quando o site estiver no ar.
+
+## 9. Estado a 8 nov 2026
+
+Feito e publicado em pré-visualização (https://renatovalente5.github.io/lfmobile/, noindex):
+
+- O site inteiro: início, loja com 7 categorias e 23 artigos do Instagram, fichas com carrinho,
+  reparações (6 serviços + pedido de orçamento pelo WhatsApp), retoma (formulário → WhatsApp),
+  contactos (mapa do Google só se o pedir), sobre, perguntas frequentes, envios e devoluções, e as
+  páginas legais da legal-comum (termos, privacidade, cookies, garantia, RAL, desistir).
+- O carrinho (`src/scripts/carrinho.js`) e o checkout em **modo «encomenda»** (sem Stripe): a
+  encomenda vai para o Worker `lfmobile-encomendas` (docs/ENCOMENDAS.md), que a regista e manda os
+  emails; a página «obrigado» mostra o resumo. Em modo «online» o mesmo checkout abre a Stripe.
+- Testes (`scripts/testar.mjs`) no CI antes de cada publicação; entre eles, a prova de que a
+  produção (`--producao`) constrói quando os dados legais estiverem preenchidos.
+- O painel (`renatovalente5/lfmobile-painel`) e o Worker das encomendas: construídos em paralelo
+  (ver os README de cada um).
+
+Por fazer no fim, com o cliente (os marcadores da §7): o email da loja, o nome ou firma e o NIF,
+os portes para o continente, a garantia dos recondicionados (18 meses por acordo, ou 3 anos), as
+chaves da Stripe (modo «online»), o domínio (lfmobile.pt estava livre a 8 nov) e, com ele, o
+Resend para os emails, o custom domain do painel e a abertura aos motores de busca.

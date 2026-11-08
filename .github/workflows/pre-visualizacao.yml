@@ -54,8 +54,15 @@ jobs:
           restore-keys: imagens-
       - name: Conferir as fotografias
         run: python scripts/imagens.py --verificar
+      - name: Preparar as imagens
+        run: python scripts/imagens.py
+      # O travão: as regras, os scripts do browser, e construções de ensaio numa cópia (a
+      # pré-visualização, a produção com os dados legais de faz-de-conta, as guardas). Se
+      # falhar, fica no ar a publicação anterior.
+      - name: Testar o gerador
+        run: node scripts/testar.mjs
       - name: Construir a pré-visualização
-        run: node scripts/build.mjs --base=/lfmobile
+        run: node scripts/build.mjs --base=/lfmobile --sem-imagens
       - name: Conferir o que sai
         run: |
           set -euo pipefail

@@ -59,8 +59,12 @@ jobs:
           restore-keys: imagens-
       - name: Conferir as fotografias
         run: python scripts/imagens.py --verificar
+      - name: Preparar as imagens
+        run: python scripts/imagens.py
+      - name: Testar o gerador
+        run: node scripts/testar.mjs
       - name: Construir
-        run: node scripts/build.mjs --producao
+        run: node scripts/build.mjs --producao --sem-imagens
       # O que o job «publicar» precisa, num ficheiro só: o site, o script do www e a
       # configuração do Worker. O job «publicar» não faz checkout: nenhum código do
       # repositório corre ao lado do token.
