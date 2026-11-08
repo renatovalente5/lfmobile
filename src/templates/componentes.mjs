@@ -84,7 +84,7 @@ export function promocaoAte(ctx, p) {
 // Cartão de artigo: a fotografia (quadrada, cortada pelo ponto de foco), a marca ou o estado em
 // letra pequena, o nome e o preço. O cartão inteiro leva ao artigo (a ligação do nome estende-se por
 // cima dele com ::after — nunca display:contents, que tira o foco do teclado).
-export function cartaoProduto(ctx, p, { tamanhos = '(min-width: 1100px) 22vw, (min-width: 700px) 30vw, 46vw', titulo = 'h3' } = {}) {
+export function cartaoProduto(ctx, p, { tamanhos = '(min-width: 1100px) 22vw, (min-width: 700px) 30vw, 46vw', titulo = 'h3', soGrade = false } = {}) {
   const pct = desconto(ctx, p);
   const segunda = p.fotos[1];
   const estado = estadoRotulo(p);
@@ -94,7 +94,9 @@ export function cartaoProduto(ctx, p, { tamanhos = '(min-width: 1100px) 22vw, (m
     p.novidade ? '<span class="selo selo--novidade">Novidade</span>' : '',
     disponibilidadeDe(p) === 'esgotado' ? '<span class="selo selo--esgotado">Esgotado</span>' : '',
   ].filter(Boolean).join('');
-  const etiqueta = estado || p.marca || '';
+  // Na categoria dos recondicionados o título já diz «recondicionado»: o cartão fica só com a grade.
+  const grade = soGrade ? linhasDe(p.caracteristicas).find((t) => /^grade\s/i.test(t)) : '';
+  const etiqueta = grade || estado || p.marca || '';
   return `<article class="cartao${disponibilidadeDe(p) === 'esgotado' ? ' cartao--esgotado' : ''}">
   <div class="cartao__foto">${imagem(ctx, p.fotos[0], { tamanhos, classe: 'cartao__img' })}${segunda ? imagem(ctx, segunda, { tamanhos, classe: 'cartao__img cartao__img--outra', alt: '' }) : ''}${selos ? `<div class="cartao__selos">${selos}</div>` : ''}</div>
   ${etiqueta ? `<p class="cartao__etiqueta">${esc(etiqueta)}</p>` : ''}
@@ -103,22 +105,18 @@ export function cartaoProduto(ctx, p, { tamanhos = '(min-width: 1100px) 22vw, (m
 </article>`;
 }
 
-/* Cartão de um serviço de reparação: o desenho, o nome, a frase, o que se faz e o botão que abre o
-   WhatsApp com o pedido escrito («Olá! Gostava de um orçamento para … »). */
+/* Cartão de um serviço de reparação: o desenho, o nome, o que se faz e o preço quando a loja o diz. O
+   cartão inteiro é a ligação para o pedido de orçamento da mesma página, com o equipamento já escolhido
+   (site.js, [data-equipamento]); sem JavaScript, salta para o formulário. Nada de um botão igual em cada
+   cartão (o Renato, 8 nov 2026: simples e direto). */
 export function cartaoServico(ctx, s, { titulo = 'h3' } = {}) {
   const itens = linhasDe(s.itens);
-  const texto = `Olá! Gostava de um orçamento para ${s.nome.toLowerCase()}. Equipamento: \nAvaria: `;
   return `<article class="servico" id="servico-${esc(s.slug)}">
   <span class="servico__icone">${iconeServico(s.icone)}</span>
-  <div class="servico__corpo">
-    <${titulo} class="servico__nome">${esc(s.nome)}</${titulo}>
-    ${s.resumo ? `<p class="servico__resumo">${esc(s.resumo)}</p>` : ''}
-    ${itens.length ? `<ul class="servico__itens">${itens.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
-    <div class="servico__pe">
-      ${s.preco ? `<span class="servico__preco">${esc(s.preco)}</span>` : ''}
-      ${ctx.site.contactos.whatsapp ? `<a class="botao botao--pequeno botao--contorno" href="${ctx.whatsapp(texto)}" target="_blank" rel="noopener">${icones.whatsapp}<span>Pedir orçamento</span></a>` : ''}
-    </div>
-  </div>
+  <${titulo} class="servico__nome"><a class="servico__ligacao" href="#orcamento" data-equipamento="${esc(s.nome)}"><span class="visualmente-escondido">Pedir orçamento: </span>${esc(s.nome)}</a></${titulo}>
+  ${itens.length ? `<ul class="servico__itens">${itens.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
+  ${s.preco ? `<p class="servico__preco">${esc(s.preco)}</p>` : ''}
+  <span class="servico__seta" aria-hidden="true">${icones.seta}</span>
 </article>`;
 }
 
@@ -161,7 +159,6 @@ export function faixaConfianca(ctx) {
   const itens = [];
   if (g.nota && g.ligacao) itens.push(`<li><a class="faixa__google" href="${esc(g.ligacao)}" target="_blank" rel="noopener">${icones.estrela}<strong>${esc(String(g.nota).replace('.', ','))}</strong><span>${g.opinioes ? `${g.opinioes} opiniões no Google` : 'no Google'}</span></a></li>`);
   itens.push(`<li>${icones.ferramentas}<span>Reparações desde 2020</span></li>`);
-  itens.push(`<li>${icones.documento}<span>Orçamento gratuito</span></li>`);
   itens.push(`<li>${icones.camiao}<span>Envios em 24/48 h úteis</span></li>`);
   if (ctx.site.parcerias?.digi) itens.push(`<li>${icones.certo}<span>Vendedor Oficial DIGI</span></li>`);
   return `<ul class="faixa" aria-label="Porquê a LF Mobile">${itens.join('')}</ul>`;
@@ -183,13 +180,13 @@ export function moradaHtml(ctx) {
 }
 
 /* O convite no fim das páginas que não são legais: uma linha e dois botões. */
-export function convite(ctx, { titulo = 'Uma dúvida? Fale connosco.', texto = 'Olá! Tenho uma dúvida.' } = {}) {
+export function convite(ctx, { titulo = 'Uma dúvida? Fale connosco.', texto = 'Olá! Tenho uma dúvida.', contactos = true } = {}) {
   const c = ctx.site.contactos;
   return `<aside class="convite" aria-label="Fale connosco">
   <p class="convite__titulo">${esc(titulo)}</p>
   <div class="convite__botoes">
     ${c.whatsapp ? `<a class="botao botao--whatsapp-suave" href="${ctx.whatsapp(texto)}" target="_blank" rel="noopener">${icones.whatsapp}<span>Falar no WhatsApp</span></a>` : ''}
-    <a class="botao botao--contorno" href="${ctx.url('/contactos/')}">Contactos</a>
+    ${contactos ? `<a class="botao botao--contorno" href="${ctx.url('/contactos/')}">Contactos</a>` : ''}
   </div>
 </aside>`;
 }

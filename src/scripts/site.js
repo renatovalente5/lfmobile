@@ -234,6 +234,20 @@
     });
   });
 
+  // ---------------------------------------------------------------- reparações: um serviço abre o pedido
+  /* Tocar num serviço (o cartão inteiro é a ligação para #orcamento) escolhe esse equipamento no pedido
+     de orçamento e leva até ele. O foco não vai para o campo: no telemóvel abria logo o teclado. */
+  $$('[data-equipamento]').forEach((a) => a.addEventListener('click', (e) => {
+    const tipo = $('#o-tipo');
+    const alvo = $('#orcamento');
+    if (!tipo || !alvo) return;
+    e.preventDefault();
+    if (Array.from(tipo.options).some((o) => o.value === a.dataset.equipamento)) tipo.value = a.dataset.equipamento;
+    tipo.dispatchEvent(new Event('change', { bubbles: true }));
+    alvo.scrollIntoView({ behavior: menosMovimento.matches ? 'auto' : 'smooth', block: 'start' });
+    history.replaceState(null, '', '#orcamento');
+  }));
+
   // ---------------------------------------------------------------- orçamento e retoma pelo WhatsApp
   /* Os dois formulários só escrevem a mensagem e abrem o WhatsApp: nada fica guardado no site
      (a política de privacidade promete isto). */

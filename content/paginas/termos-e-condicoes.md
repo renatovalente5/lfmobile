@@ -28,19 +28,17 @@ Os portes não estão incluídos no preço dos artigos e são por encomenda: {{p
 
 {{comoSeFazAEncomenda}}
 
-Enquanto a loja não tiver o pagamento no site ligado, a encomenda regista-se no site e confirmamos consigo, por email ou WhatsApp, o pagamento e a entrega; nesse caso a encomenda fica feita quando a confirmarmos consigo.
-
 Reservamo-nos o direito de corrigir erros manifestos de preço. Se isso acontecer, avisamos antes de confirmar a encomenda e pode desistir sem qualquer custo.
 
 ## Pagamento
 
-{{pagamento}}
+{{pagamento}}{{pagamentoStripe}}
 
-O pagamento no site é feito na página segura da Stripe, que não nos dá acesso aos dados do seu cartão. O NIF e as observações que escreve ficam só connosco.
+O NIF e as observações que escreve ficam só connosco.
 
 ## Prazos e entrega
 
-{{prazo}}
+{{prazo}} {{levantamento}}
 
 Se não conseguirmos cumprir o prazo, avisamos e pode resolver o contrato, recebendo de volta tudo o que pagou. Sem prazo combinado, a entrega não ultrapassa 30 dias a contar da confirmação e do pagamento.
 

@@ -5,7 +5,7 @@
   },
   "capa": {
     "titulo": "Reparamos, vendemos e cuidamos da sua tecnologia.",
-    "texto": "Orçamento gratuito, reparações rápidas e uma loja com telemóveis, acessórios e envios para todo o continente.",
+    "texto": "Reparações com orçamento gratuito, telemóveis novos e recondicionados e envios para todo o continente.",
     "botao": "Pedir orçamento",
     "ligacao": "/reparacoes/",
     "botao2": "Ver a loja",
@@ -14,22 +14,22 @@
   },
   "destaques": {
     "titulo": "Na loja",
-    "texto": "Novidades e artigos em destaque. Envio em 24 a 48 horas úteis ou levantamento na loja.",
+    "texto": "",
     "botao": "Ver toda a loja"
   },
   "reparacoes": {
     "titulo": "Do ecrã partido ao portátil que aquece.",
-    "texto": "Diagnóstico e orçamento gratuitos, peças de qualidade e garantia. Smartphones, tablets, computadores e consolas.",
+    "texto": "Diagnóstico e orçamento gratuitos, peças de qualidade e garantia.",
     "botao": "Pedir orçamento gratuito"
   },
   "retoma": {
     "titulo": "Tem um telemóvel parado?",
-    "texto": "Diga-nos o modelo e o estado e respondemos com uma proposta de retoma.",
+    "texto": "Diga-nos o modelo e o estado e respondemos com uma proposta.",
     "botao": "Pedir proposta"
   },
   "loja": {
     "titulo": "A loja",
-    "texto": "Na Rua das Marcadas, em São Roque, desde setembro de 2026. Reparações desde 2020.",
+    "texto": "",
     "foto": "loja-fachada"
   }
 }

@@ -12,7 +12,7 @@
       "Danos por água (limpeza por ultrassons)",
       "Microsoldadura"
     ],
-    "preco": "Orçamento gratuito"
+    "preco": ""
   },
   {
     "slug": "tablets",
@@ -24,7 +24,7 @@
       "Bateria",
       "Conector de carga"
     ],
-    "preco": "Orçamento gratuito"
+    "preco": ""
   },
   {
     "slug": "computadores",
@@ -37,7 +37,7 @@
       "Formatação e instalação do sistema",
       "Montagem e manutenção de PCs gaming"
     ],
-    "preco": "Orçamento gratuito"
+    "preco": ""
   },
   {
     "slug": "consolas",
@@ -48,7 +48,7 @@
       "Limpeza e manutenção da PlayStation 5",
       "Drift dos analógicos (substituição e calibração)"
     ],
-    "preco": "Orçamento gratuito"
+    "preco": ""
   },
   {
     "slug": "impressao-3d",
@@ -59,7 +59,7 @@
       "Peças de substituição e suportes",
       "Pequenos acessórios à medida"
     ],
-    "preco": "Orçamento gratuito"
+    "preco": ""
   },
   {
     "slug": "peliculas-e-capas",

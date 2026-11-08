@@ -99,3 +99,18 @@ botão, a entrega e a garantia numa linha cada); Sobre curto, com a fachada num 
 sem a coluna dos contactos e do horário; sem o aviso da cópia de segurança na retoma; os cantos dos
 botões (o mapa cortava o canto do botão que o retira). O pagamento nos termos e nas perguntas segue o
 modo da loja.
+
+## 11. As outras páginas, simples e diretas (8 nov 2026)
+
+O Renato: «melhora também as outras páginas, faz algo simples, moderno e intuitivo». Cada página ficou
+com um título, uma frase, o conteúdo e uma acção principal, sem repetir o que outra página diz:
+- sem migalhas nas páginas de primeiro nível (ficam na ficha do artigo; o JSON-LD continua em todas);
+- início: a faixa com quatro pontos, as reparações em azulejos com um botão, a retoma numa faixa só, a
+  loja com a morada e o horário numa coluna;
+- loja: sem o texto dos portes por cima e sem contagens nas categorias; nos recondicionados, o cartão
+  mostra só a grade;
+- reparações: o cartão inteiro leva ao pedido de orçamento com o equipamento escolhido; o pedido num
+  bloco, sem passos nem notas;
+- retoma: «Algum problema?» em vez de «Funciona tudo?»; envios: três cartões (envios, levantamento,
+  devoluções); encomenda: os títulos dos blocos dentro dos cartões;
+- os termos já não falam da Stripe nem do «enquanto o pagamento não estiver ligado» fora do modo certo.

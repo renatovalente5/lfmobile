@@ -254,14 +254,15 @@ fs.writeFileSync(path.join(SAIDA, 'assets', ficheiros.catalogo), catalogoBuf);
 fs.writeFileSync(path.join(SAIDA, 'assets', 'catalogo.json'), catalogoBuf);
 
 // ---------------------------------------------------------------- marcadores das páginas de texto
-/* Os portes da loja (por encomenda), como frase: «Enviamos para Portugal Continental por 5 €. O
-   levantamento na loja não tem custos.» */
+/* Os portes da loja (por encomenda), numa frase que se lê depois de «Portes:» ou de «são por
+   encomenda:» — «4,90 € para Portugal Continental (grátis a partir de 50 € em artigos). O levantamento
+   na loja não tem custos, e os artigos «só na loja» não se enviam.» */
 function textoPortes() {
   const p = site.entrega.portes || {};
   const zonas = site.entrega.zonas.filter((z) => z.morada);
-  const partes = zonas.map((z) => `${esc(z.curto)}: ${Number.isFinite(p[z.id]) ? euros(p[z.id]) : ctx.marcador(`os portes para ${z.curto}`)}`);
-  const gratis = Number.isFinite(p.gratisAPartirDe) ? ` Portes grátis a partir de ${euros(p.gratisAPartirDe)} em artigos.` : '';
-  return `Enviamos só para Portugal Continental. ${partes.join('; ')}.${gratis} O levantamento na loja, em ${esc(site.local.localidade)}, não tem custos. Os artigos marcados «só na loja» (as películas aplicadas na hora) não se enviam.`;
+  const partes = zonas.map((z) => (Number.isFinite(p[z.id]) ? `${euros(p[z.id])} para ${esc(z.curto)}` : ctx.marcador(`os portes para ${z.curto}`)));
+  const gratis = Number.isFinite(p.gratisAPartirDe) ? ` (grátis a partir de ${euros(p.gratisAPartirDe)} em artigos)` : '';
+  return `${partes.join('; ')}${gratis}. O levantamento na loja não tem custos, e os artigos «só na loja» não se enviam.`;
 }
 
 function identificacao() {
@@ -340,6 +341,7 @@ function resolverMarcadores(fonte, onde) {
     prazo: () => (site.entrega.prazo ? esc(site.entrega.prazo) : guardar(ctx.marcador('o prazo de entrega'))),
     pagamento: () => (!pagamentoOnline ? esc(PAGAMENTO_EM_MODO_ENCOMENDA) : site.entrega.pagamento ? esc(site.entrega.pagamento) : guardar(ctx.marcador('as formas de pagamento'))),
     levantamento: () => esc(site.entrega.levantamento || ''),
+    pagamentoStripe: () => (pagamentoOnline ? ' O pagamento no site é feito na página segura da Stripe, que não nos dá acesso aos dados do seu cartão.' : ''),
     portes: () => guardar(textoPortes()),
     botoesDesistencia: () => guardar(botoesDesistencia()),
     comoSeFazAEncomenda: () => guardar(pagamentoOnline

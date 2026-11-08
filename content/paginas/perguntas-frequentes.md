@@ -32,7 +32,7 @@ Junta os artigos ao carrinho e escolhe o envio ou o levantamento na loja. {{paga
 
 ## Enviam para onde?
 
-{{portes}}
+Só para Portugal Continental. Portes: {{portes}}
 
 ## Posso devolver um artigo?
 
