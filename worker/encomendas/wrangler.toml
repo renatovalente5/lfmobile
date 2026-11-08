@@ -1,0 +1,61 @@
+# O WORKER DAS ENCOMENDAS DA LF MOBILE (docs/ENCOMENDAS.md, §7).
+#
+# Corre-se SEMPRE com --config apontado a este ficheiro (memória wrangler-autoconfig-pasta-mae: da
+# pasta-mãe sem config, o wrangler inventa um Worker com o conteúdo de outro projecto). O wrangler
+# está instalado na mimices-painel:
+#   cd ~/Websites/mimices-painel && npx --no-install wrangler deploy --config ~/Websites/lfmobile/worker/encomendas/wrangler.toml
+name = "lfmobile-encomendas"
+main = "index.js"
+compatibility_date = "2026-09-01"
+
+[observability]
+enabled = true
+
+# As encomendas (encomenda.js diz as chaves). O título na Cloudflare é «lfmobile-encomendas-ORDERS»
+# (o título «ORDERS», sem prefixo, é o do Armazém dos Pneus). Criado com:
+#   wrangler kv namespace create lfmobile-encomendas-ORDERS --config …/wrangler.toml
+[[kv_namespaces]]
+binding = "ORDERS"
+id = "b1609f701d5f43e7ad515c939b39ca6d"
+
+# O travão do /checkout que vale em TODAS as localizações da Cloudflare (o de memória, em
+# index.js, só vale no seu isolate): 5 pedidos por minuto por IP. O namespace_id é único na
+# conta: 1001 e 1002 são do Carimbo, 1101 do Armazém dos Pneus.
+[[ratelimits]]
+name = "TRAVAO_CHECKOUT"
+namespace_id = "1102"
+simple = { limit = 5, period = 60 }
+
+[vars]
+# A pré-visualização no GitHub Pages; passa ao domínio quando o houver (e o catálogo, o logótipo
+# e as origens com ele).
+SITE_URL = "https://renatovalente5.github.io/lfmobile"
+CATALOGO_URL = "https://renatovalente5.github.io/lfmobile/assets/catalogo.json"
+# A mesma imagem do topo do site (o PNG, que todos os clientes de email mostram). Se o logótipo
+# mudar, o nome muda (leva a assinatura do ficheiro): copiar o novo do <img class="logo"> do
+# _site/index.html.
+LOGO_URL = "https://renatovalente5.github.io/lfmobile/assets/img/logo-b72d7bbaa1-128.png"
+# As origens que podem chamar /checkout e /encomenda. O localhost:4870 é o build local
+# (node scripts/build.mjs): sai quando houver domínio.
+ALLOWED_ORIGINS = "https://renatovalente5.github.io,http://localhost:4870"
+STORE_NAME = "LF Mobile"
+STORE_PHONE = "916 537 957"
+# O email do dono: recebe «Nova encomenda», «Encomenda paga» e os falhados, e é o reply-to dos
+# emails ao cliente. Vazio enquanto o dono não o der — e sem ele não se manda nada ao dono.
+STORE_EMAIL = ""
+# O remetente. onboarding@resend.dev só entrega ao dono da conta do Resend (o Renato): quando
+# houver domínio verificado no Resend, passa a «LF Mobile <encomendas@dominio>».
+MAIL_FROM = "LF Mobile <onboarding@resend.dev>"
+# A versão da API da Stripe, fixada (a mesma do Armazém dos Pneus). Não subir sem ler o changelog.
+STRIPE_API_VERSION = "2026-07-29.dahlia"
+# MODO = "encomenda" força o modo «encomenda» mesmo com o catálogo em «online» (travão de
+# emergência). Por omissão não está definido: vale o catálogo.
+
+# ---------------------------------------------------------------------------------------------
+# SEGREDOS — nunca aqui (o repositório é público). Instalar com, por exemplo:
+#   < ~/Websites/lfmobile/_cliente/segredos/PAINEL_SEGREDO npx --no-install wrangler secret put PAINEL_SEGREDO --config …
+#   PAINEL_SEGREDO        o mesmo do Worker do painel (openssl rand -hex 32)
+#   STRIPE_SECRET_KEY     sk_live_… ou rk_live_… da conta do cliente (quando a houver)
+#   STRIPE_WEBHOOK_SECRET whsec_… do endpoint /stripe/webhook
+#   RESEND_API_KEY        re_… da conta do Resend com o domínio verificado
+# ---------------------------------------------------------------------------------------------

@@ -1,0 +1,9 @@
+{
+  "name": "lfmobile-encomendas",
+  "private": true,
+  "type": "module",
+  "description": "O Worker das encomendas da LF Mobile (Cloudflare). Sem dependências: fetch puro.",
+  "scripts": {
+    "test": "node --test \"test/*.test.mjs\""
+  }
+}

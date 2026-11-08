@@ -40,7 +40,9 @@ catálogo publicado leva o `modo`; o Worker lê-o de lá (`MODO` nas vars só o 
   em falta como o primeiro valor sem acréscimo (a mesma regra de `carrinho.js`, `escolhasDe`).
 - `entrega`: `levantamento` ou `continente` (os ids de `site.entrega.zonas`). Com `continente`
   a morada, o código postal (`0000-000`) e a localidade são obrigatórios.
-- `nif`, `morada`, `codigoPostal`, `localidade`, `notas`: opcionais (ausentes, não vazios).
+- `nif`, `morada`, `codigoPostal`, `localidade`, `notas`: opcionais (ausentes, não vazios). O código
+  postal, além da forma `0000-000`, tem de ser do continente (começa por 1 a 8): o site só envia
+  para lá, e o Worker responde 400 com `campo: "codigoPostal"` e a frase a dizer isso.
 - `total_cents`: o que o site mostrou. É só para comparar: se o Worker chegar a outro total
   (um preço mudou entretanto) responde 409 `{ erro: 'Os preços mudaram. Veja o carrinho outra vez.' }`
   e o site redesenha.
@@ -133,6 +135,16 @@ Estados (`estado`), e quem os põe:
 Cada mudança acrescenta uma linha ao `historico` (`por`: `site`, `stripe` ou o email de quem
 marcou no painel; `nota` opcional).
 
+As transições que o painel pode pedir (o Worker recusa as outras com 409): `registada` →
+`paga` | `pronta` | `anulada`; `pendente` → `paga` | `anulada`; `paga` → `pronta` | `enviada` |
+`levantada` | `anulada`; `pronta` → `levantada` | `anulada`; `enviada` → `anulada`; `falhou` e
+`expirou` → `paga` | `anulada`; `levantada`, `anulada` e `reembolsada` são finais. `pronta` e
+`levantada` só com entrega `levantamento`; `enviada` só com `continente`. Marcar `paga` no
+painel avisa só o cliente.
+
+Campos que o Worker acrescenta à encomenda, além dos de cima: `avisos` (o resultado de cada email
+enviado), `stripe.multibanco` (entidade, referência, validade) e `stripe.reembolsado_cents`.
+
 ## 5. O que o painel usa (`Authorization: Bearer <PAINEL_SEGREDO>`; sem ele, 401; sem CORS)
 
 - `GET /painel/encomendas?estado=<…>&desde=<AAAA-MM-DD>&ate=<…>&q=<texto>` → `{ encomendas: [resumo…] }`,
@@ -144,7 +156,12 @@ marcou no painel; `nota` opcional).
   → a encomenda inteira depois de mudar. Só as transições do painel (tabela acima); outra, 409.
   Manda o email ao cliente que a transição pede (§6) — `"avisar": false` não manda.
 - `POST /painel/encomendas/<id>/nota` `{ "texto": "…", "por": "…" }` → acrescenta a `notas_painel`.
-- `GET /painel/saude` → `{ ok: true, modo, stripe: true|false, email: true|false }`.
+- `GET /painel/saude` → `{ ok, modo, stripe, webhook, email, dono, catalogo }` (booleanos; `catalogo` é
+  `"ok"` ou o erro de ler o catálogo publicado).
+
+A lista faz-se dos metadados das chaves do KV (sem ler cada encomenda, por causa do limite de
+subpedidos): uma mudança de estado pode levar até 60 s a aparecer na lista; a ficha é imediata.
+A lista traz também `pagina`, `paginas`, `total` e, em cada resumo, `linhas_a_mais`.
 
 O segredo `PAINEL_SEGREDO` é o mesmo nos dois Workers (um `wrangler secret put` em cada).
 
@@ -169,9 +186,15 @@ até lá `onboarding@resend.dev` só chega ao Renato — por isso os emails são
 
 ## 7. Vars do Worker (wrangler)
 
+O Worker está publicado desde 8 nov 2026 em `https://lfmobile-encomendas.renato-lima-valente-dcb.workers.dev`
+(KV `lfmobile-encomendas-ORDERS`; só o `PAINEL_SEGREDO` instalado; o README em `worker/encomendas/` diz
+o que falta ligar). Os testes: `cd worker/encomendas && npm test`.
+
 `SITE_URL` (a pré-visualização `https://renatovalente5.github.io/lfmobile`, depois o domínio),
 `ALLOWED_ORIGINS`, `MAIL_FROM`, `STORE_EMAIL`, `STORE_NAME = "LF Mobile"`, `STORE_PHONE`,
-`STRIPE_API_VERSION = "2026-07-29.dahlia"`. Segredos: `STRIPE_SECRET_KEY`,
+`STRIPE_API_VERSION = "2026-07-29.dahlia"`, `CATALOGO_URL` (por omissão `${SITE_URL}/assets/catalogo.json`),
+`LOGO_URL` (o PNG do logótipo para os emails: o Outlook não mostra WebP) e, opcional, `MODO = "encomenda"`
+como travão. Segredos: `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `PAINEL_SEGREDO`. Bindings: KV `ORDERS`, rate limit
 `TRAVAO_CHECKOUT`. `wrangler deploy --config worker/encomendas/wrangler.toml` sempre com
 `--config` (memória: wrangler-autoconfig-pasta-mae).
