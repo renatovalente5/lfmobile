@@ -4,10 +4,13 @@
    pormenores da marca (as histórias de «feedback», os rótulos «Antes/Depois») só em acentos pequenos:
    rótulos, estrelas, a linha fina do rodapé. As reparações numa secção escura, como o letreiro.
    Letra: Manrope (variável, 400–800), servida daqui, OFL.
-   Contrastes medidos (WCAG): tinta #121212 no branco 18,7:1 e no cinzento #F5F4F1 17,4:1; tinta-2
-   #5A5752 6,9:1 no branco; o dourado de texto #7A5E14 6,0:1 no branco; branco sobre o escuro #141414
-   17,9:1; o dourado claro #D4B06A sobre o escuro 9,1:1; o contorno dos campos #8B8782 3,4:1; o verde
-   do WhatsApp #1F6F47 com letra branca 6,1:1. */
+   Contrastes medidos (WCAG 2.x, 8 nov 2026, por conta e não a olho): tinta #121212 no branco 18,7:1 e
+   no cinzento #F5F4F1 17,0:1; tinta-2 #5A5752 7,2:1 e 6,5:1; tinta-3 #6B6761 (rótulos, datas, a nota
+   da chamada) 5,6:1 e 5,1:1 — era #8B8782, 3,6:1, abaixo dos 4,5:1 do texto; o dourado de texto
+   #7A5E14 6,1:1 no branco e 5,4:1 no fundo dourado do selo; branco sobre o escuro #141414 18,4:1; o
+   dourado claro #D4B06A sobre o escuro 9,0:1; o branco a 68–72% sobre o escuro 8,0–9,8:1; o contorno
+   dos campos #8B8782 3,6:1 (o mínimo de um componente é 3:1); o verde do WhatsApp #1F6F47 com letra
+   branca 6,1:1; o vermelho dos erros #9E2A2B 7,5:1 e 6,8:1. */
 
 @font-face { font-family: 'Manrope'; font-style: normal; font-weight: 400 800; font-display: swap;
   src: url('fontes/manrope-latin.woff2') format('woff2');
@@ -22,7 +25,7 @@
   --cinza-2: #ECEAE5;
   --tinta: #121212;
   --tinta-2: #5A5752;
-  --tinta-3: #8B8782;
+  --tinta-3: #6B6761;
   --linha: #E6E3DD;
   --linha-campo: #8B8782;
   --escuro: #141414;
