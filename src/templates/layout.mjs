@@ -54,12 +54,13 @@ function cabecalho(ctx, atual) {
 </header>`;
 }
 
-function redes(ctx, classe = 'redes') {
+/* As redes em ícones. No menu sem o WhatsApp, que já tem o botão «Falar no WhatsApp» logo acima. */
+function redes(ctx, classe = 'redes', { whatsapp = true } = {}) {
   const c = ctx.site.contactos;
   const r = [];
   if (c.instagram) r.push(`<a href="https://www.instagram.com/${esc(c.instagram)}/" target="_blank" rel="noopener">${icones.instagram}<span class="visualmente-escondido">Instagram</span></a>`);
   if (c.facebook) r.push(`<a href="https://www.facebook.com/${esc(c.facebook)}/" target="_blank" rel="noopener">${icones.facebook}<span class="visualmente-escondido">Facebook</span></a>`);
-  if (c.whatsapp) r.push(`<a href="https://wa.me/${numeroWhatsApp(c.whatsapp)}" target="_blank" rel="noopener">${icones.whatsapp}<span class="visualmente-escondido">WhatsApp</span></a>`);
+  if (c.whatsapp && whatsapp) r.push(`<a href="https://wa.me/${numeroWhatsApp(c.whatsapp)}" target="_blank" rel="noopener">${icones.whatsapp}<span class="visualmente-escondido">WhatsApp</span></a>`);
   return `<ul class="${classe}">${r.map((x) => `<li>${x}</li>`).join('')}</ul>`;
 }
 
@@ -85,7 +86,7 @@ function menu(ctx, atual) {
     </nav>
     <div class="menu__pe">
       ${c.whatsapp ? `<a class="botao botao--whatsapp-suave botao--largo" href="https://wa.me/${numeroWhatsApp(c.whatsapp)}" target="_blank" rel="noopener">${icones.whatsapp}<span>Falar no WhatsApp</span></a>` : ''}
-      ${redes(ctx, 'redes redes--menu')}
+      ${redes(ctx, 'redes redes--menu', { whatsapp: false })}
     </div>
   </div>
 </dialog>`;

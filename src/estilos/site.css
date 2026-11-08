@@ -298,7 +298,7 @@ a.extra { position: relative; }
 .loja__vazia { padding: 40px 0; color: var(--tinta-2); }
 
 /* ---------------------------------------------------------------- ficha de artigo */
-.produto { padding: 20px 0 48px; }
+.produto { padding-top: 20px; padding-bottom: 48px; }
 .produto__grelha { display: grid; gap: 28px; margin-top: 16px; }
 @media (min-width: 1000px) { .produto__grelha { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(36px, 5vw, 72px); align-items: start; } }
 @media (min-width: 1000px) { .galeria { position: sticky; top: calc(var(--topo) + 16px); } }
@@ -413,7 +413,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .passos-lista span { color: var(--tinta-2); font-size: .92rem; }
 
 /* ---------------------------------------------------------------- carrinho e checkout */
-.carrinho-pagina, .checkout, .obrigado { padding: 28px 0 48px; }
+.carrinho-pagina, .checkout, .obrigado { padding-top: 28px; padding-bottom: 48px; }
 .carrinho-pagina__grelha, .checkout__grelha { display: grid; gap: 24px; margin-top: 20px; }
 @media (min-width: 900px) { .carrinho-pagina__grelha, .checkout__grelha { grid-template-columns: minmax(0, 1.3fr) minmax(0, .9fr); gap: 40px; align-items: start; } }
 .carrinho-vazio { color: var(--tinta-2); padding: 24px 0; }
