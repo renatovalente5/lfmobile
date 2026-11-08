@@ -70,6 +70,9 @@ function parar(titulo, lista, { tecnico = false } = {}) {
   process.exit(1);
 }
 const existe = (rel) => fs.existsSync(path.join(RAIZ, rel));
+// Os ficheiros de uma pasta com a extensão dada, sem a extensão; uma pasta que não existe (o git não
+// guarda pastas vazias: media/video/ sem vídeos não chega ao CI) é uma lista vazia.
+const listar = (rel, ext) => (existe(rel) ? fs.readdirSync(path.join(RAIZ, rel)).filter((f) => f.endsWith(ext)).map((f) => f.slice(0, -ext.length)) : []);
 
 // ---------------------------------------------------------------- conteúdo e regras
 // As regras dos dados estão em src/lib/regras.mjs, o MESMO ficheiro que o painel usa (cópia byte a
@@ -85,7 +88,7 @@ const dadosRegras = {
   fotos: lerTexto('content/fotos.json'),
   artigos: Object.fromEntries(fs.readdirSync(path.join(CONTEUDO, 'produtos')).filter((f) => f.endsWith('.json')).map((f) => [f.slice(0, -5), lerTexto(`content/produtos/${f}`)])),
   ficheirosFotos: fs.readdirSync(path.join(RAIZ, 'media/fotos')).filter((f) => f.endsWith('.jpg')).map((f) => f.slice(0, -4)),
-  videos: fs.readdirSync(path.join(RAIZ, 'media/video')).filter((f) => f.endsWith('.mp4')).map((f) => f.slice(0, -4)),
+  videos: listar('media/video', '.mp4'),
 };
 const hoje = hojeEmLisboa();
 const listaRegras = R.problemas(dadosRegras, { hoje, producao });
@@ -180,7 +183,7 @@ const AVISO_ALT = 'GARANTIA LEGAL. Proteção da garantia legal mínima de dois 
 
 // vídeos: nome com resumo, para a cache de um ano nunca servir um vídeo antigo
 const ficheirosVideo = {};
-for (const f of fs.readdirSync(path.join(RAIZ, 'media/video')).filter((x) => x.endsWith('.mp4'))) {
+for (const f of listar('media/video', '.mp4').map((x) => `${x}.mp4`)) {
   const buf = fs.readFileSync(path.join(RAIZ, 'media/video', f));
   const nome = f.replace(/\.mp4$/, '');
   ficheirosVideo[nome] = `video/${nome}-${resumo(buf)}.mp4`;
