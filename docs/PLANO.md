@@ -88,3 +88,14 @@ Por fazer no fim, com o cliente (os marcadores da §7): o email da loja, o nome 
 os portes para o continente, a garantia dos recondicionados (18 meses por acordo, ou 3 anos), as
 chaves da Stripe (modo «online»), o domínio (lfmobile.pt estava livre a 8 nov) e, com ele, o
 Resend para os emails, o custom domain do painel e a abertura aos motores de busca.
+
+O Resend tem de estar ligado ANTES de abrir: os termos (em modo «encomenda» e em «online») prometem o
+email com o resumo da encomenda, e sem a chave o Worker não manda nenhum.
+
+## 10. Pedidos do Renato a 8 nov 2026 (feitos)
+
+Ficha só com o essencial (etiqueta marca · estado, uma ou duas frases, características sem repetir, o
+botão, a entrega e a garantia numa linha cada); Sobre curto, com a fachada num tamanho contido; rodapé
+sem a coluna dos contactos e do horário; sem o aviso da cópia de segurança na retoma; os cantos dos
+botões (o mapa cortava o canto do botão que o retira). O pagamento nos termos e nas perguntas segue o
+modo da loja.
