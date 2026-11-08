@@ -299,14 +299,16 @@ a.extra { position: relative; }
 
 /* ---------------------------------------------------------------- ficha de artigo */
 .produto { padding-top: 20px; padding-bottom: 48px; }
-.produto__grelha { display: grid; gap: 28px; margin-top: 16px; }
+.produto__grelha { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; margin-top: 16px; }
 @media (min-width: 1000px) { .produto__grelha { grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(36px, 5vw, 72px); align-items: start; } }
+.galeria { min-width: 0; }
 @media (min-width: 1000px) { .galeria { position: sticky; top: calc(var(--topo) + 16px); } }
 .galeria__pista { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; border-radius: var(--raio); scrollbar-width: none; }
 .galeria__pista::-webkit-scrollbar { display: none; }
 .galeria__foto { flex: 0 0 100%; scroll-snap-align: start; aspect-ratio: var(--forma, 1); background: var(--cinza); border-radius: var(--raio); overflow: hidden; display: grid; place-items: center; }
 .galeria__foto img { width: 100%; height: 100%; object-fit: contain; }
-.galeria__miniaturas { display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
+.galeria__miniaturas { position: relative; display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
+.galeria__miniaturas button { position: relative; }
 .galeria__miniaturas button { width: 64px; height: 64px; flex: none; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--linha); background: var(--cinza); }
 .galeria__miniaturas button[aria-current="true"] { border-color: var(--tinta); }
 .galeria__miniaturas img { width: 100%; height: 100%; object-fit: cover; }
@@ -490,8 +492,15 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .texto strong { color: var(--tinta); }
 .texto__foto img { width: 100%; border-radius: var(--raio); }
 .texto .quadro { overflow-x: auto; }
-.texto table, .destinatarios table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.texto table, .destinatarios { width: 100%; border-collapse: collapse; font-size: .92rem; }
 .texto th, .texto td, .destinatarios th, .destinatarios td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linha); vertical-align: top; }
+@media (max-width: 699.98px) {
+  .destinatarios, .destinatarios tbody, .destinatarios tr, .destinatarios td { display: block; }
+  .destinatarios thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .destinatarios tr { padding: 12px 0; border-bottom: 1px solid var(--linha); }
+  .destinatarios td { border: 0; padding: 2px 0; }
+  .destinatarios td:first-child { font-weight: 700; color: var(--tinta); }
+}
 .texto th { color: var(--tinta); }
 .formulario-legal { white-space: pre-wrap; font: inherit; color: var(--tinta-2); padding: 18px; border-radius: var(--raio-m); background: var(--cinza); }
 .aviso-garantia img { width: 100%; max-width: 520px; height: auto; border: 1px solid var(--linha); border-radius: var(--raio-m); }
