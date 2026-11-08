@@ -1,0 +1,30 @@
+# Os testes do Worker das encomendas (worker/encomendas/), a cada mudança nele. Só testes: o Worker
+# publica-se à mão, da pasta do site, com `wrangler deploy --config worker/encomendas/wrangler.toml`
+# (ver worker/encomendas/README.md), porque os segredos ficam na conta Cloudflare do Renato.
+name: Testar o Worker das encomendas
+
+on:
+  push:
+    branches: [main]
+    paths: ['worker/encomendas/**', '.github/workflows/worker.yml']
+  pull_request:
+    paths: ['worker/encomendas/**']
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: Testar
+        working-directory: worker/encomendas
+        run: node --test "test/*.test.mjs"
