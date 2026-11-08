@@ -1,23 +1,19 @@
 titulo: Sobre a LF Mobile
 tituloSeo: Sobre a LF Mobile, em São Roque
-descricao: Reparações desde 2020, loja aberta em São Roque, Oliveira de Azeméis, em setembro de 2026. Atendimento próximo, reparações de qualidade e preços justos.
+descricao: Reparamos, vendemos e compramos tecnologia em São Roque, Oliveira de Azeméis. Reparações desde 2020 e loja aberta desde setembro de 2026.
 foto: loja-fachada
+modelo: sobre
 ---
-A LF Mobile nasceu da vontade de perceber como os equipamentos funcionam e de encontrar solução quando algo parece não ter reparação. Começámos em 2020, a reparar telemóveis, e em setembro de 2026 abrimos a loja na Rua das Marcadas, em São Roque, Oliveira de Azeméis.
+Reparamos, vendemos e compramos tecnologia em {{localidade}}, {{concelho}}, com atendimento próximo e preços justos.
 
-O objectivo é simples: atendimento próximo e transparente, reparações de qualidade, preços justos e soluções rápidas.
+## Reparações desde 2020
 
-## O que fazemos
+Telemóveis, tablets, computadores e consolas.
 
-- Reparamos smartphones, tablets, portáteis, computadores e consolas, com diagnóstico e orçamento gratuitos.
-- Vendemos telemóveis novos e recondicionados, tablets, smartwatches, auriculares, películas e acessórios.
-- Compramos o seu telemóvel usado e encomendamos o modelo que não tivermos na loja.
-- Somos Vendedor Oficial DIGI.
+## Loja desde setembro de 2026
 
-## Onde estamos
+{{morada}}.
 
-{{morada}}, em {{localidade}}, {{concelho}}. Enviamos para todo o Portugal Continental.
+## Orçamento gratuito
 
-## Horário
-
-{{horario}}
+Dizemos o que tem e quanto custa antes de reparar.

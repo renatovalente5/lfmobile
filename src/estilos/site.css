@@ -70,7 +70,7 @@ input, select, textarea { font: inherit; color: inherit; }
 .saltar { position: absolute; left: 12px; top: -60px; z-index: 100; padding: 10px 14px; background: var(--tinta); color: var(--branco); border-radius: var(--raio-p); }
 .saltar:focus { top: 12px; }
 /* o anel do foco: só para o teclado */
-:focus-visible { outline: 2px solid var(--tinta); outline-offset: 3px; border-radius: 4px; }
+:focus-visible { outline: 2px solid var(--tinta); outline-offset: 3px; }
 html[data-entrada="ponteiro"] :focus:not(:focus-visible) { outline: none; }
 html[data-entrada="ponteiro"] :is(a, button, summary, input, select, textarea):focus { outline: none; }
 mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; border-radius: 4px; font-style: italic; }
@@ -86,7 +86,7 @@ mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; borde
 .nota { color: var(--tinta-2); font-size: .92rem; }
 
 /* ---------------------------------------------------------------- botões */
-.botao { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 10px 20px; border-radius: var(--raio-m); font-weight: 700; font-size: .98rem; text-decoration: none; border: 1.5px solid transparent; transition: background-color .15s, color .15s, border-color .15s, transform .15s; -webkit-tap-highlight-color: transparent; }
+.botao { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 10px 20px; border-radius: var(--raio-m); font-weight: 700; font-size: .98rem; text-decoration: none; border: 1px solid transparent; transition: background-color .15s, color .15s, border-color .15s, transform .15s; -webkit-tap-highlight-color: transparent; }
 .botao:active { transform: translateY(1px); }
 .botao--cheio { background: var(--tinta); color: var(--branco); }
 @media (hover: hover) { .botao--cheio:hover { background: #2B2B2B; color: var(--branco); } }
@@ -243,7 +243,7 @@ dialog::backdrop { background: rgba(18, 18, 18, .4); -webkit-backdrop-filter: bl
 .passos-casa { display: grid; gap: 14px; margin-top: 32px; counter-reset: passo; }
 @media (min-width: 760px) { .passos-casa { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } }
 .passos-casa li { display: flex; gap: 14px; align-items: flex-start; }
-.passos-casa__n { display: inline-flex; flex: none; width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 999px; border: 1.5px solid var(--ouro-claro); color: var(--ouro-claro); font-weight: 800; }
+.passos-casa__n { display: inline-flex; flex: none; width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 999px; border: 1px solid var(--ouro-claro); color: var(--ouro-claro); font-weight: 800; }
 .passos-casa strong { display: block; font-weight: 700; }
 .passos-casa span:not(.passos-casa__n) { color: rgba(255, 255, 255, .7); font-size: .92rem; }
 .passos-casa--escuros .passos-casa__n { border-color: var(--tinta); color: var(--tinta); }
@@ -310,10 +310,10 @@ a.extra { position: relative; }
 .galeria__pista::-webkit-scrollbar { display: none; }
 .galeria__foto { flex: 0 0 100%; scroll-snap-align: start; aspect-ratio: var(--forma, 1); background: var(--cinza); border-radius: var(--raio); overflow: hidden; display: grid; place-items: center; }
 .galeria__foto img { width: 100%; height: 100%; object-fit: contain; }
-.galeria__miniaturas { position: relative; display: flex; gap: 8px; margin-top: 10px; overflow-x: auto; scrollbar-width: none; }
+.galeria__miniaturas { position: relative; display: flex; gap: 8px; margin: 6px -4px 0; padding: 4px; overflow-x: auto; scrollbar-width: none; }
 .galeria__miniaturas button { position: relative; }
-.galeria__miniaturas button { width: 64px; height: 64px; flex: none; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--linha); background: var(--cinza); }
-.galeria__miniaturas button[aria-current="true"] { border-color: var(--tinta); }
+.galeria__miniaturas button { width: 64px; height: 64px; flex: none; border-radius: 12px; overflow: hidden; border: 1px solid var(--linha); background: var(--cinza); }
+.galeria__miniaturas button[aria-current="true"] { border-color: var(--tinta); outline: 2px solid var(--tinta); outline-offset: 2px; }
 .galeria__miniaturas img { width: 100%; height: 100%; object-fit: cover; }
 .produto__selos { display: flex; gap: 6px; margin-bottom: 10px; }
 .produto__nome { font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.3rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.1; margin: 6px 0 12px; }
@@ -333,7 +333,7 @@ a.extra { position: relative; }
 .comprar__total:empty { display: none; }
 .comprar__erro { color: var(--vermelho); font-weight: 600; font-size: .92rem; }
 .comprar__nota { display: flex; gap: 8px; align-items: flex-start; font-size: .9rem; color: var(--tinta-2); }
-.quantidade { display: inline-flex; align-items: center; border: 1.5px solid var(--linha-campo); border-radius: var(--raio-m); background: var(--papel); height: 46px; }
+.quantidade { display: inline-flex; align-items: center; border: 1px solid var(--linha-campo); border-radius: var(--raio-m); background: var(--papel); height: 46px; }
 .quantidade button { width: 42px; height: 100%; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--raio-m); }
 .quantidade button:disabled { opacity: .35; cursor: default; }
 .quantidade input { width: 44px; text-align: center; border: 0; background: none; font-weight: 700; -moz-appearance: textfield; appearance: textfield; }
@@ -343,7 +343,7 @@ a.extra { position: relative; }
 .escolha__lista { display: flex; flex-wrap: wrap; gap: 8px; }
 .escolha__opcao { position: relative; }
 .escolha__opcao input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
-.escolha__opcao span { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 14px; border-radius: 999px; border: 1.5px solid var(--linha-campo); background: var(--papel); font-weight: 600; font-size: .95rem; }
+.escolha__opcao span { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--linha-campo); background: var(--papel); font-weight: 600; font-size: .95rem; }
 .escolha__opcao input:checked + span { background: var(--tinta); color: var(--branco); border-color: var(--tinta); }
 .escolha__opcao input:focus-visible + span { outline: 2px solid var(--tinta); outline-offset: 2px; }
 .escolha__mais { font-weight: 500; opacity: .8; }
@@ -390,7 +390,7 @@ a.extra { position: relative; }
 .campo label, .formulario legend, .checkout__bloco legend { font-weight: 700; font-size: .95rem; }
 .campo__opcional { font-weight: 500; color: var(--tinta-3); }
 .campo__ajuda, .formulario__nota { font-size: .86rem; color: var(--tinta-2); }
-.campo input, .campo select, .campo textarea { width: 100%; min-height: 46px; padding: 10px 14px; border: 1.5px solid var(--linha-campo); border-radius: var(--raio-m); background: var(--papel); }
+.campo input, .campo select, .campo textarea { width: 100%; min-height: 46px; padding: 10px 14px; border: 1px solid var(--linha-campo); border-radius: var(--raio-m); background: var(--papel); }
 .campo textarea { min-height: 96px; resize: vertical; }
 .campo input[aria-invalid="true"], .campo textarea[aria-invalid="true"], .campo select[aria-invalid="true"] { border-color: var(--vermelho); }
 .campos-lado { display: grid; gap: 16px; }
@@ -441,8 +441,8 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .resumo__nota { font-size: .86rem; color: var(--tinta-2); }
 .entrega-escolha { display: grid; gap: 8px; }
 .entrega-escolha legend, .checkout__bloco legend { margin-bottom: 8px; }
-.opcao-entrega { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 12px 14px; border-radius: var(--raio-m); border: 1.5px solid var(--linha); background: var(--papel); cursor: pointer; }
-.opcao-entrega:has(input:checked) { border-color: var(--tinta); }
+.opcao-entrega { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 12px 14px; border-radius: var(--raio-m); border: 1px solid var(--linha); background: var(--papel); cursor: pointer; }
+.opcao-entrega:has(input:checked) { border-color: var(--tinta); box-shadow: inset 0 0 0 1px var(--tinta); }
 .opcao-entrega input { width: 20px; height: 20px; margin: 0; accent-color: var(--tinta); }
 .opcao-entrega__nome { font-weight: 600; font-size: .95rem; }
 .opcao-entrega__preco { font-weight: 700; font-size: .92rem; white-space: nowrap; }
@@ -460,7 +460,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .obrigado__detalhe { width: 100%; text-align: left; padding: 18px; border-radius: var(--raio-m); background: var(--papel); display: grid; gap: 10px; }
 .obrigado__detalhe .totais p { padding: 4px 0; }
 .obrigado__botoes { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
-.referencia-mb { display: grid; gap: 4px; padding: 14px; border-radius: var(--raio-m); border: 1.5px dashed var(--linha-campo); font-variant-numeric: tabular-nums; }
+.referencia-mb { display: grid; gap: 4px; padding: 14px; border-radius: var(--raio-m); border: 1px dashed var(--linha-campo); font-variant-numeric: tabular-nums; }
 .referencia-mb strong { font-size: 1.15rem; letter-spacing: .04em; }
 
 /* ---------------------------------------------------------------- contactos */
@@ -480,7 +480,18 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .loja-cartao { padding: 26px; border-radius: var(--raio); border: 1px solid var(--linha); display: grid; gap: 14px; }
 .loja-cartao h2 { display: flex; align-items: center; gap: 8px; font-size: 1.2rem; font-weight: 800; }
 .loja-cartao__botoes { display: flex; flex-wrap: wrap; gap: 10px; }
-.fachada-mapa { border-radius: var(--raio); overflow: hidden; }
+/* O mapa (a fachada da legal-comum: só carrega com um clique). Antes de carregar, um cartão cinzento com
+   a frase e o botão; carregado, o iframe ocupa a moldura toda, com os cantos do site. O contentor não
+   recorta (overflow): recortava o canto do botão «Deixar de carregar o mapa» (o Renato, 8 nov 2026). O
+   CSS da legal-comum vem antes deste na folha, e estas regras, com o mesmo peso, ganham-lhe. */
+.fachada-mapa .fachada-mapa__moldura { min-height: 360px; padding: 24px; gap: 14px; border: 0; border-radius: var(--raio); background: var(--cinza); color: var(--tinta-2); }
+.fachada-mapa[data-estado="carregado"] .fachada-mapa__moldura { display: block; min-height: 0; padding: 0; background: none; }
+.fachada-mapa iframe { height: 360px; border-radius: var(--raio); }
+.fachada-mapa .fachada-mapa__texto { font-size: .95rem; }
+.fachada-mapa .fachada-mapa__carregar { min-height: 46px; padding: 10px 20px; border: 1px solid var(--tinta); border-radius: var(--raio-m); background: var(--papel); color: var(--tinta); font-size: .98rem; font-weight: 700; }
+@media (hover: hover) { .fachada-mapa .fachada-mapa__carregar:hover { background: var(--tinta); color: var(--branco); } }
+.fachada-mapa .fachada-mapa__retirar { min-height: 44px; margin-top: 4px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--tinta-2); font-size: .9rem; font-weight: 600; text-decoration: underline; text-underline-offset: .16em; }
+@media (hover: hover) { .fachada-mapa .fachada-mapa__retirar:hover { color: var(--tinta); } }
 
 /* ---------------------------------------------------------------- páginas de texto */
 .texto { max-width: 72ch; }
@@ -533,11 +544,26 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .erro__categorias { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 24px; }
 .erro__loja { display: flex; flex-wrap: wrap; gap: 10px; }
 
+/* ---------------------------------------------------------------- sobre */
+.sobre { padding-top: 28px; padding-bottom: 56px; }
+.sobre__grelha { display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; align-items: center; }
+@media (min-width: 900px) { .sobre__grelha { grid-template-columns: minmax(0, 1fr) minmax(0, 420px); gap: clamp(40px, 6vw, 96px); } }
+.sobre__abertura p { margin-top: 14px; font-size: clamp(1.1rem, 1rem + .4vw, 1.3rem); line-height: 1.5; color: var(--tinta-2); max-width: 40ch; }
+.sobre__factos { margin-top: 28px; border-top: 1px solid var(--linha); max-width: 520px; }
+.sobre__factos li { padding: 14px 0; border-bottom: 1px solid var(--linha); }
+.sobre__factos h2 { font-size: 1.02rem; font-weight: 800; letter-spacing: -.01em; }
+.sobre__factos p { margin-top: 2px; color: var(--tinta-2); font-size: .95rem; }
+.sobre__botoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+.sobre__foto img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--raio); }
+@media (min-width: 900px) { .sobre__foto img { aspect-ratio: 4 / 5; } }
+
 /* ---------------------------------------------------------------- rodapé */
 .rodape { margin-top: 56px; background: var(--cinza); padding: 48px 0 24px; }
 .rodape__corpo { max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); display: grid; gap: 32px; }
-@media (min-width: 760px) { .rodape__corpo { grid-template-columns: 1.3fr 1fr 1fr; } .rodape__nav { display: contents; } }
-@media (max-width: 759.98px) { .rodape__nav { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; } }
+/* A navegação do rodapé é uma grelha própria (Loja e Ajuda), sem display:contents no <nav>, que nalguns
+   browsers apaga o marco de navegação para os leitores de ecrã. */
+.rodape__nav { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (min-width: 760px) { .rodape__corpo { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); } .rodape__nav { gap: 32px; } }
 .rodape__marca { display: grid; gap: 14px; justify-items: start; }
 .rodape__logo-img { height: 64px; width: auto; }
 .rodape__frase { color: var(--tinta-2); max-width: 30ch; }
@@ -545,15 +571,9 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .rodape__coluna ul { display: grid; gap: 8px; }
 .rodape__coluna a { text-decoration: none; color: var(--tinta); }
 @media (hover: hover) { .rodape__coluna a:hover { text-decoration: underline; } }
-.rodape__contactos li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.rodape__contactos a { display: inline-flex; align-items: center; gap: 8px; }
-.rodape__contactos .icone { color: var(--tinta-2); width: 1.1em; height: 1.1em; }
-.rodape__sem-ligacao { display: inline-flex; align-items: center; gap: 8px; }
-.horario--rodape { margin-top: 14px; font-size: .9rem; }
-.horario--rodape div { border-bottom-color: var(--cinza-2); padding: 4px 0; }
 .rodape__fim { max-width: var(--largura); margin: 36px auto 0; padding: 18px var(--margem) 0; position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; font-size: .86rem; color: var(--tinta-2); }
 /* a linha fina dourada da marca, por cima da linha legal */
-.rodape__fim::before { content: ''; position: absolute; top: 0; left: var(--margem); right: var(--margem); height: 1.5px; background: linear-gradient(90deg, var(--ouro), rgba(201, 162, 76, .15)); }
+.rodape__fim::before { content: ''; position: absolute; top: 0; left: var(--margem); right: var(--margem); height: 1px; background: linear-gradient(90deg, var(--ouro), rgba(201, 162, 76, .15)); }
 .rodape__legal { display: flex; flex-wrap: wrap; gap: 6px 16px; }
 .rodape__legal a { color: var(--tinta-2); text-decoration: none; }
 @media (hover: hover) { .rodape__legal a:hover { color: var(--tinta); text-decoration: underline; } }

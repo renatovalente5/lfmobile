@@ -4,7 +4,7 @@
 // direita; no telemóvel, o menu abre numa folha.
 import { esc, numeroWhatsApp } from './util.mjs';
 import { icones } from './icones.mjs';
-import { livroBotao, categoriasComArtigos, horarioHtml } from './componentes.mjs';
+import { livroBotao, categoriasComArtigos } from './componentes.mjs';
 
 function logotipo(ctx, { alto = 40, classe = 'logo' } = {}) {
   const l = ctx.manifesto.logo;
@@ -93,18 +93,12 @@ function menu(ctx, atual) {
 }
 
 /* O RODAPÉ, como nos outros sites do Renato (memória rodape-com-logotipo): à esquerda o logótipo, a
-   frase e as redes; depois a Loja, a Ajuda e os Contactos (o WhatsApp só como ligação, o telefone com a
-   nota entre parênteses, o horário); em baixo as páginas legais numa linha, com o Livro de Reclamações
-   discreto. O pormenor da marca: a linha fina dourada por cima da linha legal (a das histórias de
-   «feedback» da LF Mobile). */
+   frase e as redes; depois a Loja e a Ajuda; em baixo as páginas legais numa linha, com o Livro de
+   Reclamações discreto. Sem o bloco dos contactos e do horário («Isto está a mais no rodapé», o Renato,
+   8 nov 2026): estão na página dos contactos, que a Ajuda e o menu levam. O pormenor da marca: a linha
+   fina dourada por cima da linha legal (a das histórias de «feedback» da LF Mobile). */
 function rodape(ctx) {
-  const c = ctx.site.contactos;
   const e = ctx.site.empresa || {};
-  const contactos = [];
-  if (c.whatsapp) contactos.push(`<li><a href="https://wa.me/${numeroWhatsApp(c.whatsapp)}" target="_blank" rel="noopener">${icones.whatsapp}<span>WhatsApp</span></a></li>`);
-  if (c.telefone) contactos.push(`<li><a href="tel:+${numeroWhatsApp(c.telefone)}">${icones.telefone}<span>${esc(ctx.numeroLegivel(c.telefone))}</span></a> ${ctx.notaChamada(c.telefone)}</li>`);
-  contactos.push(`<li>${c.email ? `<a href="mailto:${esc(c.email)}">${icones.email}<span>${esc(c.email)}</span></a>` : `<span class="rodape__sem-ligacao">${icones.email}${ctx.marcador('o email')}</span>`}</li>`);
-  contactos.push(`<li><a class="rodape__local" href="${ctx.url('/contactos/')}">${icones.local}<span>${e.morada ? `${esc(e.morada)}, ` : ''}${esc(ctx.site.local.localidade)}, ${esc(ctx.site.local.concelho)}</span></a></li>`);
   const ligacao = (caminho, texto) => `<li><a href="${ctx.url(caminho)}">${esc(texto)}</a></li>`;
   return `<footer class="rodape">
   <div class="rodape__corpo">
@@ -129,14 +123,10 @@ function rodape(ctx) {
           ${ligacao('/envios-e-devolucoes/', 'Envios e devoluções')}
           ${ligacao('/perguntas-frequentes/', 'Perguntas frequentes')}
           ${ligacao('/sobre-nos/', 'Sobre a LF Mobile')}
+          ${ligacao('/contactos/', 'Contactos')}
         </ul>
       </div>
     </nav>
-    <div class="rodape__coluna rodape__coluna--contactos">
-      <h2>Contactos</h2>
-      <ul class="rodape__contactos">${contactos.join('')}</ul>
-      ${horarioHtml(ctx, { classe: 'horario horario--rodape' })}
-    </div>
   </div>
   <div class="rodape__fim">
     <p class="rodape__direitos">© ${ctx.hoje.slice(0, 4)} ${esc(ctx.site.marca)}${e.nif ? ` · NIF ${esc(e.nif)}` : ''}</p>

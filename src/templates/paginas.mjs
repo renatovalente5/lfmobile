@@ -1,10 +1,10 @@
 // As páginas do site. Cada função devolve { caminho, titulo, descricao, conteudo, ... } e o
 // build.mjs veste-a com a moldura (layout.mjs).
-import { esc, euros, precoDe, markdown, inline, textoSimples, numeroWhatsApp, numeroLegivel, notaChamada, moradaCompleta } from './util.mjs';
+import { esc, euros, precoDe, markdown, inline, textoSimples, numeroWhatsApp, numeroLegivel, notaChamada } from './util.mjs';
 import { icones, iconeServico } from './icones.mjs';
 import { numeroPortugues, opcoesDe, temSuplementos, estadoDe, disponibilidadeDe, compravel, enviavel, linhasDe, GARANTIAS_USADOS } from '../lib/regras.mjs';
-import { imagem, preco, cartaoProduto, cartaoServico, migalhas, botaoSeta, desconto, promocaoAte, cabecaDePagina, convite, promocaoNota, faixaConfianca, horarioHtml, moradaHtml, estadoRotulo, disponibilidadeRotulo, categoriasComArtigos } from './componentes.mjs';
-import { fachadaMapa, textoGarantia } from '../../legal-comum/index.mjs';
+import { imagem, preco, cartaoProduto, cartaoServico, migalhas, botaoSeta, desconto, promocaoAte, cabecaDePagina, convite, promocaoNota, faixaConfianca, horarioHtml, moradaHtml, estadoRotulo, categoriasComArtigos } from './componentes.mjs';
+import { fachadaMapa, BOTAO_ENCOMENDA } from '../../legal-comum/index.mjs';
 
 const produtosDe = (ctx, cat) => ctx.produtos.filter((p) => p.categoria === cat);
 const categoriaDe = (ctx, slug) => ctx.categorias.find((c) => c.slug === slug);
@@ -17,6 +17,16 @@ const portesCurto = (ctx) => {
   const p = ctx.site.entrega.portes || {};
   return Number.isFinite(p.continente) ? `Portes de ${euros(p.continente)} para Portugal Continental` : 'Portes para Portugal Continental a confirmar';
 };
+/* A entrega numa linha, para a ficha: o envio com os portes, ou só o levantamento na loja. */
+const entregaNaFicha = (ctx, p) => {
+  if (!enviavel(p)) return `Só na loja, em ${ctx.site.local.localidade}: escolha o levantamento.`;
+  const pt = ctx.site.entrega.portes || {};
+  const portes = Number.isFinite(pt.continente) ? (pt.continente > 0 ? `portes de ${euros(pt.continente)}` : 'portes grátis') : 'portes a confirmar';
+  const gratis = Number.isFinite(pt.gratisAPartirDe) && pt.continente > 0 ? `, grátis acima de ${euros(pt.gratisAPartirDe)}` : '';
+  return `Envio para Portugal Continental (${portes}${gratis}) ou levantamento grátis na loja.`;
+};
+/* As categorias de equipamentos: na ficha, a etiqueta diz «Novo» (nos acessórios não faz falta). */
+const EQUIPAMENTOS = new Set(['telemoveis', 'recondicionados', 'tablets', 'smartwatches', 'audio', 'outros']);
 /* A garantia dos recondicionados e usados, como a loja a escolheu (18 meses por acordo, ou 3 anos). */
 const garantiaUsadosMeses = (ctx) => (GARANTIAS_USADOS.includes(ctx.site.garantias?.recondicionados) ? ctx.site.garantias.recondicionados : null);
 export const garantiaTexto = (ctx, p) => {
@@ -262,7 +272,8 @@ export function produto(ctx, p) {
     p.novidade ? '<span class="selo selo--novidade">Novidade</span>' : '',
   ].filter(Boolean).join('');
 
-  const caracteristicas = linhasDe(p.caracteristicas);
+  // A grade de um recondicionado já está na etiqueta por cima do nome: não se repete na lista.
+  const caracteristicas = linhasDe(p.caracteristicas).filter((t) => !/^grade\s/i.test(t));
   const inclui = linhasDe(p.inclui);
   const listas = `${caracteristicas.length ? `<div class="lista-ficha"><p class="lista-ficha__titulo">Características</p><ul>${caracteristicas.map((t) => `<li>${icones.certo}<span>${esc(t)}</span></li>`).join('')}</ul></div>` : ''}
   ${inclui.length ? `<div class="lista-ficha"><p class="lista-ficha__titulo">Inclui</p><ul>${inclui.map((t) => `<li>${icones.caixa}<span>${esc(t)}</span></li>`).join('')}</ul></div>` : ''}`;
@@ -290,7 +301,6 @@ export function produto(ctx, p) {
       </div>
       <p class="comprar__total" data-total aria-live="polite"></p>
       <p class="comprar__erro" data-erro role="alert" hidden></p>
-      ${disp === 'loja' ? `<p class="comprar__nota">${icones.loja}<span>Só na loja: aplica-se ou levanta-se em ${esc(ctx.site.local.localidade)}. Não se envia.</span></p>` : ''}
     </form>
     <noscript><p>${perguntar(`Olá! Gostava de encomendar: ${p.nome}.`)}</p></noscript>`;
   } else if (disp === 'esgotado') {
@@ -299,43 +309,42 @@ export function produto(ctx, p) {
       ${perguntar(`Olá! O artigo «${p.nome}» está esgotado. Avisam-me quando voltar a haver?`)}
     </div>`;
   } else {
+    // «Preço sob consulta» já está no lugar do preço: aí a caixa leva só o botão.
+    const frase = v.atual === null ? '' : estado === 'novo' ? 'Confirme a disponibilidade antes de comprar.' : 'Peça única: confirme a disponibilidade antes de comprar.';
     comprar = `<div class="comprar comprar--sem">
-      <p class="comprar__estado">${v.atual === null ? 'Preço e disponibilidade sob consulta' : 'Peça única: confirme a disponibilidade antes de comprar'}</p>
+      ${frase ? `<p class="comprar__estado">${frase}</p>` : ''}
       ${perguntar(`Olá! Este artigo ainda está disponível? ${p.nome} (${ctx.absoluto(caminho)})`)}
     </div>`;
   }
 
-  // --- a caixa de confiança: entrega, pagamento, garantia ----------------------------------------
+  /* --- por baixo do botão, só o essencial (o Renato, 8 nov 2026: «muita informação repetida, apenas
+     quero o essencial, simples e direto»): a entrega numa linha e a garantia com a ligação para a
+     página dela. O pagamento diz-se no carrinho, no início da encomenda (DL 24/2014); os prazos, os
+     portes e a desistência estão nas páginas de cada um. */
   const garantia = garantiaTexto(ctx, p);
-  const confianca = `<ul class="confianca">
-    <li>${icones.camiao}<span>${enviavel(p) ? `${esc(prazoCurto(ctx)) || ctx.marcador('o prazo de entrega')} ${esc(portesCurto(ctx))}. Levantamento na loja sem custos.` : `Levantamento na loja, em ${esc(ctx.site.local.localidade)}, sem custos.`}</span></li>
-    <li>${icones.cartao}<span>${ctx.site.pagamentos?.modo === 'online' ? 'Pagamento seguro: cartão, MB WAY ou Multibanco.' : 'Encomenda no site e paga na loja ou por MB WAY, depois de confirmarmos consigo.'}</span></li>
-    <li>${icones.escudo}<span>${garantia ? esc(garantia) : ctx.marcador('a garantia dos recondicionados (18 meses ou 3 anos)')}. <a href="${ctx.url('/garantia/')}">Saber mais</a></span></li>
+  const notas = `<ul class="confianca">
+    <li>${icones.camiao}<span>${esc(entregaNaFicha(ctx, p))}</span></li>
+    <li>${icones.escudo}<span>${garantia ? `<a href="${ctx.url('/garantia/')}">${esc(garantia)}</a>` : `${ctx.marcador('a garantia dos recondicionados (18 meses ou 3 anos)')} · <a href="${ctx.url('/garantia/')}">Garantia</a>`}</span></li>
   </ul>`;
 
-  const e = ctx.site.empresa;
-  /* Quem vende, com a morada postal e o email, à vista em cada ficha (Regulamento (UE) 2023/988,
-     art. 19.º): o fabricante do artigo, quando o painel o diz por inteiro (nome, morada e email);
-     senão, a loja. Sem morada ainda, a marca «por confirmar». */
+  /* O que a lei pede numa venda à distância, só quando o artigo o tem (Regulamento (UE) 2023/988,
+     art. 19.º): os avisos de segurança, a referência e o fabricante (nome, morada e email, quando o
+     painel os diz por inteiro). */
   const fab = fabricanteDoArtigo(p);
-  const vendedor = fab
-    ? [fab.nome, fab.morada, fab.email].map(esc).join(' · ')
-    : [e.nome ? esc(`${e.nome} (${ctx.site.marca})`) : esc(ctx.site.marca), e.morada ? esc(moradaCompleta(e)) : ctx.marcador('a morada postal da loja'), ctx.site.contactos.email ? esc(ctx.site.contactos.email) : ctx.marcador('o email')].filter(Boolean).join(' · ');
   const avisos = linhasDe(String(p.avisos || '').split(/\n+/));
-  const infoLegal = avisos.length || p.referencia ? `<div class="info-legal">
+  const infoLegal = avisos.length || p.referencia || fab ? `<div class="info-legal">
     ${avisos.length ? `<div class="info-legal__bloco"><p class="info-legal__titulo">Avisos de segurança</p><ul>${avisos.map((t) => `<li>${esc(t)}</li>`).join('')}</ul></div>` : ''}
     ${p.referencia ? `<p class="info-legal__linha"><strong>Referência:</strong> ${esc(p.referencia)}</p>` : ''}
+    ${fab ? `<p class="info-legal__linha"><strong>Fabricante:</strong> ${[fab.nome, fab.morada, fab.email].map(esc).join(' · ')}</p>` : ''}
   </div>` : '';
-  const acordeoes = `<div class="acordeoes">
-    <details><summary>${icones.camiao}Envios e levantamento</summary><div class="acordeoes__corpo"><p>${esc(ctx.site.entrega.prazo || '')}</p><p>${esc(ctx.site.entrega.levantamento || '')}</p><p><a href="${ctx.url('/envios-e-devolucoes/')}">Envios e devoluções</a></p></div></details>
-    <details><summary>${icones.escudo}Garantia e devoluções</summary><div class="acordeoes__corpo"><p>${esc(textoGarantia({ usados: estado !== 'novo' }))}</p><p>Pode desistir da compra no prazo de 14 dias depois de receber o artigo, sem dar razões. <a href="${ctx.url('/desistir/')}">Como desistir</a></p></div></details>
-  </div>
-  <p class="vendido-por">${icones.loja}<span><strong>${fab ? 'Fabricante' : 'Vendido por'}:</strong> ${vendedor}</span></p>`;
 
   const relacionados = ctx.produtos.filter((x) => x.slug !== p.slug)
     .sort((a, b) => (b.categoria === p.categoria) - (a.categoria === p.categoria) || (a.ordem ?? 500) - (b.ordem ?? 500)).slice(0, 4);
 
-  const etiqueta = estadoRotulo(p) || p.marca || c.nome;
+  // A marca (ou a categoria) e o estado: «Huawei · Novo», «Apple · Recondicionado · Grade A+». Os
+  // acessórios sem marca ficam só com a categoria.
+  const estadoTexto = estadoRotulo(p) || (EQUIPAMENTOS.has(p.categoria) ? 'Novo' : '');
+  const etiqueta = [p.marca || c.nome, estadoTexto].filter(Boolean).join(' · ');
   const conteudo = `<div class="contentor produto">
   ${m.html}
   <div class="produto__grelha">
@@ -346,13 +355,11 @@ export function produto(ctx, p) {
       <h1 class="produto__nome">${esc(p.nome)}</h1>
       ${preco(ctx, p, { grande: true })}
       ${promocaoNota(ctx, p)}
-      ${disponibilidadeRotulo(p) && disp !== 'esgotado' ? `<p class="produto__disp">${esc(disponibilidadeRotulo(p))}</p>` : ''}
       <div class="produto__resumo">${markdown(p.descricao, ctx.url)}</div>
       ${listas}
       ${comprar}
+      ${notas}
       ${infoLegal}
-      ${confianca}
-      ${acordeoes}
     </div>
   </div>
   <section class="relacionados" aria-labelledby="rel-titulo">
@@ -492,9 +499,6 @@ export function retoma(ctx) {
           <li><strong>Avaliação na loja</strong><span>Confirmamos o estado e o valor com o equipamento à frente.</span></li>
         </ol>
       </div>
-      <div class="retoma__cartao retoma__cartao--nota">
-        <p>${icones.info}<span>Antes de entregar, faça uma cópia de segurança, termine a sessão da sua conta (iCloud ou Google) e tire o cartão SIM.</span></p>
-      </div>
     </aside>
   </div>
 </div>`;
@@ -525,7 +529,7 @@ export function carrinho(ctx) {
       <div class="totais" data-totais aria-live="polite"></div>
       <p class="comprar__erro" data-erro-carrinho role="alert" hidden></p>
       <a class="botao botao--cheio botao--largo" href="${ctx.url('/checkout/')}" data-seguir>Continuar</a>
-      <p class="resumo__nota">${esc(prazoCurto(ctx) || '')} ${esc(ctx.site.entrega.levantamento || '')}</p>
+      <p class="resumo__nota">${ctx.site.pagamentos?.modo === 'online' ? 'Pagamento seguro: cartão, MB WAY ou Multibanco.' : 'Pagamento: combinamos consigo depois de confirmar a encomenda.'}</p>
     </aside>
   </div>
   <noscript><p class="nota">O carrinho precisa de JavaScript. Pode sempre encomendar pelo <a href="${ctx.whatsapp('Olá! Gostava de fazer uma encomenda.')}">WhatsApp</a>.</p></noscript>
@@ -563,7 +567,7 @@ export function checkout(ctx) {
       </fieldset>
       <label class="caixa caixa--termos"><input type="checkbox" name="termos" required><span>Li e aceito os <a href="${ctx.url('/termos-e-condicoes/')}" target="_blank" rel="noopener">termos e condições</a>. Posso desistir da compra em 14 dias.</span></label>
       <p class="comprar__erro" data-erro-checkout role="alert" hidden></p>
-      <button class="botao botao--cheio botao--largo" type="submit" data-botao-checkout>${online ? icones.cadeado : icones.certo}<span>${online ? 'Pagar agora' : 'Enviar encomenda'}</span></button>
+      <button class="botao botao--cheio botao--largo" type="submit" data-botao-checkout>${online ? icones.cadeado : icones.certo}<span>${online ? esc(BOTAO_ENCOMENDA) : 'Enviar encomenda'}</span></button>
       <p class="formulario__nota">${online ? 'Segue para a página segura da Stripe (cartão, MB WAY ou Multibanco). Pode desistir até pagar.' : 'Registamos a encomenda e confirmamos consigo o pagamento e a entrega, por email ou WhatsApp. A encomenda fica feita quando a confirmarmos.'}</p>
     </form>
     <aside class="checkout__resumo" aria-labelledby="c-resumo-titulo">
@@ -619,8 +623,33 @@ function comoPerguntas(html) {
     <div class="perguntas">${lista.map((x) => `<details class="pergunta"><summary><h2 class="pergunta__titulo" id="${x.id}">${x.titulo}</h2><span class="pergunta__sinal" aria-hidden="true"></span></summary><div class="pergunta__resposta">${x.corpo}</div></details>`).join('')}</div>`;
 }
 
+/* O SOBRE (modelo «sobre»): curto e direto, com a fotografia num tamanho contido (o Renato, 8 nov 2026:
+   «quero algo curto e direto, e a imagem não precisa de estar gigante»). O título, a frase de abertura
+   (o primeiro parágrafo), um facto por cada «##» do texto (o título e uma linha) e os botões «Como
+   chegar» e «Contactos»; a fachada ao lado, no computador, e por baixo, no telemóvel. */
+function paginaSobre(ctx, pag, m) {
+  const { intro, lista } = seccoes(pag.html);
+  const mapa = ctx.site.local?.mapa;
+  return `<div class="contentor sobre">
+  <div class="sobre__grelha">
+    <div class="sobre__texto">
+      ${m.html}
+      <h1 class="titulo-pagina">${esc(pag.titulo)}</h1>
+      ${intro ? `<div class="sobre__abertura">${intro}</div>` : ''}
+      ${lista.length ? `<ul class="sobre__factos">${lista.map((x) => `<li><h2 id="${x.id}">${x.titulo}</h2>${x.corpo}</li>`).join('')}</ul>` : ''}
+      <div class="sobre__botoes">
+        ${mapa ? `<a class="botao botao--cheio" href="${esc(mapa)}" target="_blank" rel="noopener">${icones.local}<span>Como chegar</span></a>` : ''}
+        <a class="botao botao--contorno" href="${ctx.url('/contactos/')}">Contactos</a>
+      </div>
+    </div>
+    ${pag.foto ? `<figure class="sobre__foto">${imagem(ctx, pag.foto, { tamanhos: '(min-width: 900px) 420px, 100vw', foco: '50% 55%' })}</figure>` : ''}
+  </div>
+</div>`;
+}
+
 export function texto(ctx, pag) {
   const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: pag.titulo, caminho: pag.caminho }]);
+  if (pag.modelo === 'sobre') return { caminho: pag.caminho, titulo: pag.tituloSeo || pag.titulo, descricao: pag.descricao, indexar: pag.indexar, jsonld: [m.ld], conteudo: paginaSobre(ctx, pag, m) };
   const legal = Boolean(pag.atualizado);
   const data = legal ? `Atualizado a ${new Date(`${pag.atualizado}T12:00:00Z`).toLocaleDateString('pt-PT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Lisbon' })}` : '';
   const corpo = pag.modelo === 'passos' ? comoPassos(pag.html) : pag.modelo === 'perguntas' ? comoPerguntas(pag.html) : pag.html;
@@ -660,7 +689,7 @@ export function contactos(ctx) {
     </section>`
     : `<section class="contacto-principal"><h2>WhatsApp</h2><p>${ctx.marcador('o número de WhatsApp')}</p></section>`;
   const coords = (ctx.site.local.coordenadas || '').replace(/\s/g, '');
-  const mapa = coords ? fachadaMapa({ src: `https://www.google.com/maps?q=${encodeURIComponent(coords)}&hl=pt-PT&z=16&output=embed`, titulo: `Mapa: ${ctx.site.marca} em ${ctx.site.local.localidade}`, chave: 'lfmobile-mapa', textoBotao: 'Carregar o mapa (Google)', texto: 'O mapa é do Google e só carrega se o pedir.', altura: 360, classe: 'fachada-mapa', id: 'mapa' }) : '';
+  const mapa = coords ? fachadaMapa({ src: `https://www.google.com/maps?q=${encodeURIComponent(coords)}&hl=pt-PT&z=16&output=embed`, titulo: `Mapa: ${ctx.site.marca} em ${ctx.site.local.localidade}`, chave: 'lfmobile-mapa', textoBotao: 'Carregar o mapa (Google)', texto: 'O mapa é do Google e só carrega se o pedir.', altura: 360, classe: 'fachada-mapa', id: 'mapa', comCss: false }) : '';
   const conteudo = `<div class="contentor contactos-pagina">
   ${cabecaDePagina(ctx, { migalhas: m.html, titulo: 'Contactos', sub: `${esc(ctx.site.local.localidade)}, ${esc(ctx.site.local.concelho)}. Fale connosco como preferir.` })}
   <div class="contactos-grelha">

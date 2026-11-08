@@ -26,7 +26,7 @@ import * as R from '../src/lib/regras.mjs';
 import * as paginas from '../src/templates/paginas.mjs';
 /* As peças legais comuns aos sites do Renato (a cópia em legal-comum/, instalada por
    _ferramentas/legal-comum/instalar.mjs; não se edita aqui). */
-import { livroCss, destinatariosHtml, CATALOGO_DESTINATARIOS, frasesPrivacidade, prazos as PRAZOS_LEGAIS, verificarIdentificacao, verificarPromocao, verificarProduto, AVISO_RETOMA, COMO_SE_FAZ_A_ENCOMENDA, formularioLivreResolucao, ralHtml, textoGarantia, fachadaMapaCss, VERSAO as LEGAL_COMUM_VERSAO } from '../legal-comum/index.mjs';
+import { livroCss, destinatariosHtml, CATALOGO_DESTINATARIOS, frasesPrivacidade, prazos as PRAZOS_LEGAIS, verificarIdentificacao, verificarPromocao, verificarProduto, AVISO_RETOMA, COMO_SE_FAZ_A_ENCOMENDA, BOTAO_ENCOMENDA, formularioLivreResolucao, ralHtml, textoGarantia, fachadaMapaCss, VERSAO as LEGAL_COMUM_VERSAO } from '../legal-comum/index.mjs';
 import { pecaLegal } from '../src/templates/componentes.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -301,6 +301,25 @@ function destinatariosComExtras() {
   return destinatariosHtml(CONFIG_PRIVACIDADE).replace('</tbody>', `${extra}\n</tbody>`);
 }
 
+/* O PAGAMENTO, como se diz nas páginas, segue o modo da loja (site.json, pagamentos.modo). Com o
+   pagamento no site ligado («online», a Stripe), o texto da loja e os passos da legal-comum, que acabam
+   no botão «Encomendar e pagar». Enquanto não está («encomenda», até a Stripe da LF Mobile se ligar, no
+   fim): a encomenda envia-se, e a disponibilidade, a entrega e a forma de pagamento combinam-se depois;
+   prometer o cartão ou o Multibanco seria falso. */
+const pagamentoOnline = site.pagamentos?.modo === 'online';
+const PAGAMENTO_EM_MODO_ENCOMENDA = 'Envia a encomenda no site e nós confirmamos consigo, por email ou WhatsApp, a disponibilidade, a entrega e a forma de pagamento. Só paga depois dessa confirmação.';
+function comoEncomendarSemPagamentoNoSite() {
+  const passos = [
+    'Escolhe os artigos e junta-os ao carrinho.',
+    'Antes de enviar, vê o resumo com os artigos, as quantidades, o preço total com IVA e os portes, e pode corrigir qualquer erro.',
+    'Envia a encomenda no botão «Enviar encomenda» e recebe por email o resumo do que encomendou.',
+    'Confirmamos consigo, por email ou WhatsApp, a disponibilidade, a entrega e a forma de pagamento. A encomenda fica feita com essa confirmação, que lhe enviamos por email com as condições inteiras.',
+    'O contrato é feito em português. Guardamos a encomenda e a confirmação durante 10 anos e pode pedir-nos uma cópia a qualquer momento.',
+    `As condições gerais podem ser guardadas e impressas: <a href="${esc(ctx.url('/termos-e-condicoes/'))}">condições gerais</a>.`,
+  ];
+  return `<ol class="como-encomendar" lang="pt">\n${passos.map((p) => `<li>${p}</li>`).join('\n')}\n</ol>`;
+}
+
 function resolverMarcadores(fonte, onde) {
   const c = site.contactos;
   const tokens = [];
@@ -319,11 +338,13 @@ function resolverMarcadores(fonte, onde) {
     'empresa.identificacao': () => guardar(identificacao()),
     'empresa.iva': () => (site.empresa.iva ? esc(site.empresa.iva) : guardar(ctx.marcador('se os preços incluem IVA'))),
     prazo: () => (site.entrega.prazo ? esc(site.entrega.prazo) : guardar(ctx.marcador('o prazo de entrega'))),
-    pagamento: () => (site.entrega.pagamento ? esc(site.entrega.pagamento) : guardar(ctx.marcador('as formas de pagamento'))),
+    pagamento: () => (!pagamentoOnline ? esc(PAGAMENTO_EM_MODO_ENCOMENDA) : site.entrega.pagamento ? esc(site.entrega.pagamento) : guardar(ctx.marcador('as formas de pagamento'))),
     levantamento: () => esc(site.entrega.levantamento || ''),
     portes: () => guardar(textoPortes()),
     botoesDesistencia: () => guardar(botoesDesistencia()),
-    comoSeFazAEncomenda: () => guardar(pecaLegal('como-encomendar', COMO_SE_FAZ_A_ENCOMENDA({ canal: 'site', pagamentos: ['cartão', 'MB WAY', 'Multibanco'], urlTermos: ctx.url('/termos-e-condicoes/') }))),
+    comoSeFazAEncomenda: () => guardar(pagamentoOnline
+      ? pecaLegal('como-encomendar', COMO_SE_FAZ_A_ENCOMENDA({ canal: 'site', pagamentos: ['cartão', 'MB WAY', 'Multibanco'], urlTermos: ctx.url('/termos-e-condicoes/') }))
+      : comoEncomendarSemPagamentoNoSite()),
     formularioLivreResolucao: () => guardar(pecaLegal('formulario-livre-resolucao', `<pre class="formulario-legal">${esc(formularioLivreResolucao({ nome: site.empresa.nome || `[${site.marca}]`, morada: site.empresa.morada ? moradaCompleta(site.empresa) : '[morada]', email: c.email || '[email]' }))}</pre>`)),
     avisoRetoma: () => guardar(pecaLegal('retoma', `<p>${esc(AVISO_RETOMA({ tipos: ['eee', 'pilhas', 'baterias'], como: { eee: 'diga-nos nas observações da encomenda ou pelo WhatsApp, e entregue-o na loja ou junte-o à devolução', pilhas: 'basta trazê-las à loja', baterias: 'diga-nos ao comprar e entregue-a na loja' } }))}</p>`)),
     garantiaRecondicionados: () => (garantiaUsados === 18

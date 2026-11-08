@@ -192,10 +192,11 @@ teste('a produção constrói com os dados legais preenchidos: aberta aos motore
   assert.ok(fs.existsSync(path.join(pasta, '_site/sitemap.xml')));
   for (const f of todosHtml(pasta)) assert.doesNotMatch(fs.readFileSync(f, 'utf8'), /por confirmar:/, f);
 });
-teste('em modo «online» o checkout diz «Pagar agora» e o catálogo leva o modo', () => {
+teste('em modo «online» o botão diz «Encomendar e pagar» (como os termos), e o catálogo leva o modo', () => {
   const pasta = copia('online', (p) => json(p, 'content/site.json', (s) => { s.pagamentos.modo = 'online'; }));
   assert.equal(construir(pasta).codigo, 0);
-  assert.match(fs.readFileSync(path.join(pasta, '_site/checkout/index.html'), 'utf8'), /Pagar agora/);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/checkout/index.html'), 'utf8'), /Encomendar e pagar/);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/termos-e-condicoes/index.html'), 'utf8'), /Encomendar e pagar/);
   assert.equal(JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets/catalogo.json'), 'utf8')).modo, 'online');
 });
 teste('um artigo sem nome sai do site e a construção avisa, sem parar (o resto da loja publica-se)', () => {
