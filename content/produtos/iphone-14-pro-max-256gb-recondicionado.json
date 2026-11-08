@@ -1,0 +1,42 @@
+{
+  "nome": "iPhone 14 Pro Max 256 GB",
+  "nomeCurto": "iPhone 14 Pro Max 256 GB",
+  "marca": "Apple",
+  "fotos": [
+    "iphone-14-pro-max-256gb-recondicionado-1",
+    "iphone-14-pro-max-256gb-recondicionado-2",
+    "iphone-14-pro-max-256gb-recondicionado-3",
+    "iphone-14-pro-max-256gb-recondicionado-4",
+    "iphone-14-pro-max-256gb-recondicionado-5",
+    "iphone-14-pro-max-256gb-recondicionado-6"
+  ],
+  "resumo": "Bateria nova, com marcas de uso visíveis.",
+  "descricao": "iPhone 14 Pro Max de 256 GB com bateria nova (100 %) e marcas de uso visíveis (grade C): o ecrã grande e as câmaras Pro a um preço muito abaixo do novo. Testado na loja.\n\nPeça única: confirme a disponibilidade pelo WhatsApp antes de comprar.",
+  "preco": 549.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "recondicionado",
+  "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "256 GB",
+    "Bateria a 100 %",
+    "Grade C",
+    "Testado na loja"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "recondicionados",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 110
+}

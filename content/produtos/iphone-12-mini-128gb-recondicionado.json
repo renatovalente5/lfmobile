@@ -1,0 +1,41 @@
+{
+  "nome": "iPhone 12 mini 128 GB",
+  "nomeCurto": "iPhone 12 mini 128 GB",
+  "marca": "Apple",
+  "fotos": [
+    "iphone-12-mini-128gb-recondicionado-1",
+    "iphone-12-mini-128gb-recondicionado-2",
+    "iphone-12-mini-128gb-recondicionado-3",
+    "iphone-12-mini-128gb-recondicionado-4",
+    "iphone-12-mini-128gb-recondicionado-5"
+  ],
+  "resumo": "Pequeno e rápido, em excelente estado.",
+  "descricao": "O iPhone mais pequeno dos últimos anos, em excelente estado (grade A+), com 128 GB e a bateria a 85 %. Testado na loja.\n\nPeça única: confirme a disponibilidade pelo WhatsApp antes de comprar.",
+  "preco": 199.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "recondicionado",
+  "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "128 GB",
+    "Bateria a 85 %",
+    "Grade A+",
+    "Testado na loja"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "recondicionados",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 120
+}

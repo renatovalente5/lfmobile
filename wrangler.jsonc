@@ -1,0 +1,36 @@
+// O SITE NA CLOUDFLARE: um Worker com os ficheiros que o build escreve em _site/, no domínio da
+// LF Mobile — QUANDO O HOUVER (o Renato compra-o no fim; o nome lfmobile.pt estava livre a 8 nov
+// 2026, mas é por confirmar). Até lá a pré-visualização vive no GitHub Pages (pre-visualizacao.yml).
+//
+// PORQUÊ: os termos do GitHub Pages proíbem usá-lo para uma loja online («not intended for or
+// allowed to be used … to run your online business, e-commerce site»), como na Mimices, na ithos
+// e na Pokóto Wood.
+//
+// PUBLICA-SE PELO CI (.github/workflows/publicar.yml, o job «publicar»), que é o que o painel
+// acompanha, e SEM AS ROTAS: o CI tira-as antes de publicar, e o token dele só publica Workers.
+// Os dois Custom Domains ligam-se UMA vez, com um `wrangler deploy --config ./wrangler.jsonc` à
+// mão, da pasta do site, depois de construir com --producao (nunca com o _site/ da
+// pré-visualização, nem a partir da pasta-mãe: a autoconfiguração do wrangler inventa um Worker
+// com o conteúdo de outro projecto). Os comentários são linhas inteiras: o CI tira-os assim.
+{
+  "name": "lfmobile-site",
+  "compatibility_date": "2026-09-01",
+  "main": "worker/www.js",
+  "assets": {
+    "directory": "./_site",
+    "binding": "ASSETS",
+    // O script corre primeiro em todos os pedidos: manda o www para o domínio sem www e
+    // responde aos vídeos por intervalos (o iPhone); o resto passa logo para os ficheiros.
+    "run_worker_first": true,
+    // Uma morada que não existe mostra a 404.html do site.
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  },
+  // O domínio é por confirmar (DOMINIO em scripts/build.mjs e worker/www.js dizem o mesmo nome).
+  "routes": [
+    { "pattern": "lfmobile.pt", "custom_domain": true },
+    { "pattern": "www.lfmobile.pt", "custom_domain": true }
+  ],
+  "workers_dev": false,
+  "preview_urls": false
+}

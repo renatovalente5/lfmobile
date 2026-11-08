@@ -1,0 +1,34 @@
+{
+  "nome": "Smartwatch Watch S11",
+  "nomeCurto": "Smartwatch Watch S11",
+  "marca": "",
+  "fotos": [
+    "smartwatch-watch-s11-1"
+  ],
+  "resumo": "Estilo e praticidade no pulso.",
+  "descricao": "Um smartwatch acessível com as notificações, o ritmo cardíaco e os passos no pulso. Novo.",
+  "preco": 64.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Novo"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "smartwatches",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 190
+}

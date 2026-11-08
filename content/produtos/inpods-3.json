@@ -1,0 +1,36 @@
+{
+  "nome": "InPods 3",
+  "nomeCurto": "InPods 3",
+  "marca": "",
+  "fotos": [
+    "inpods-3-1",
+    "inpods-3-2"
+  ],
+  "resumo": "Auriculares sem fios leves e práticos para o dia a dia.",
+  "descricao": "Auriculares sem fios leves e práticos, com caixa de carregamento, compatíveis com iOS e Android.",
+  "preco": 44.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Compatíveis com iOS e Android",
+    "Leves e confortáveis"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "audio",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 160
+}

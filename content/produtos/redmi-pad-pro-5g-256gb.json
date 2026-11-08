@@ -1,0 +1,36 @@
+{
+  "nome": "Redmi Pad Pro 5G 256 GB",
+  "nomeCurto": "Redmi Pad Pro 5G 256 GB",
+  "marca": "Xiaomi",
+  "fotos": [
+    "redmi-pad-pro-5g-256gb-1"
+  ],
+  "resumo": "Ecrã grande e ligação 5G para trabalhar em qualquer lado.",
+  "descricao": "Ecrã grande e fluido, 256 GB de armazenamento e ligação 5G para trabalhar e ver conteúdos em qualquer lado. Novo, com a garantia do fabricante.",
+  "preco": 295.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "256 GB de armazenamento",
+    "5G",
+    "Novo"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "tablets",
+  "destaque": true,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 60
+}

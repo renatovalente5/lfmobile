@@ -1,0 +1,41 @@
+{
+  "nome": "iPhone 11 64 GB",
+  "nomeCurto": "iPhone 11 64 GB",
+  "marca": "Apple",
+  "fotos": [
+    "iphone-11-64gb-recondicionado-1",
+    "iphone-11-64gb-recondicionado-2",
+    "iphone-11-64gb-recondicionado-3",
+    "iphone-11-64gb-recondicionado-4",
+    "iphone-11-64gb-recondicionado-5"
+  ],
+  "resumo": "Testado e pronto a usar, com sinais de uso ligeiros.",
+  "descricao": "iPhone 11 recondicionado, testado na loja, com a bateria a 90 % e sinais de uso ligeiros (grade B). Uma boa entrada no iPhone a um preço contido.\n\nPeça única: confirme a disponibilidade pelo WhatsApp antes de comprar.",
+  "preco": 169.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "recondicionado",
+  "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "64 GB",
+    "Bateria a 90 %",
+    "Grade B",
+    "Testado na loja"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "recondicionados",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 130
+}

@@ -1,0 +1,41 @@
+{
+  "nome": "iPhone 13 128 GB",
+  "nomeCurto": "iPhone 13 128 GB",
+  "marca": "Apple",
+  "fotos": [
+    "iphone-13-128gb-recondicionado-1",
+    "iphone-13-128gb-recondicionado-2",
+    "iphone-13-128gb-recondicionado-3",
+    "iphone-13-128gb-recondicionado-4",
+    "iphone-13-128gb-recondicionado-5"
+  ],
+  "resumo": "Excelente estado, com bateria saudável.",
+  "descricao": "iPhone 13 de 128 GB em excelente estado (grade A+), com a bateria a 89 %. Rápido, com óptimas câmaras e anos de actualizações pela frente. Testado na loja.\n\nPeça única: confirme a disponibilidade pelo WhatsApp antes de comprar.",
+  "preco": 279.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "recondicionado",
+  "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "128 GB",
+    "Bateria a 89 %",
+    "Grade A+",
+    "Testado na loja"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "recondicionados",
+  "destaque": true,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 30
+}

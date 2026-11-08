@@ -1,0 +1,36 @@
+{
+  "nome": "ZTE Blade V70 Max",
+  "nomeCurto": "ZTE Blade V70 Max",
+  "marca": "ZTE",
+  "fotos": [
+    "zte-blade-v70-max-1"
+  ],
+  "resumo": "Muito espaço e autonomia para quem usa o telemóvel o dia todo.",
+  "descricao": "Muito armazenamento (256 GB) e memória (14 GB, com 10 GB virtuais) para quem guarda tudo no telemóvel e quer autonomia para o dia inteiro. Peça-nos o preço e a disponibilidade pelo WhatsApp.",
+  "preco": null,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "256 GB de armazenamento",
+    "14 GB de RAM (4 GB + 10 GB virtual)",
+    "Novo"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "telemoveis",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 210
+}

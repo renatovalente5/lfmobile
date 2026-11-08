@@ -1,0 +1,79 @@
+{
+  "marca": "LF Mobile",
+  "descricao": "Reparação de smartphones, tablets, computadores e consolas, venda de telemóveis novos e recondicionados, acessórios e películas, em São Roque, Oliveira de Azeméis. Orçamento gratuito e envios para Portugal Continental.",
+  "assinatura": "Tecnologia à sua medida, em São Roque.",
+  "contactos": {
+    "whatsapp": "916 537 957",
+    "telefone": "916 537 957",
+    "email": "",
+    "instagram": "lfmobile.store",
+    "facebook": "p/LF-Mobile-61576225421851"
+  },
+  "horario": [
+    { "dias": "Segunda a sexta", "horas": "10:00–13:00 · 14:30–19:00" },
+    { "dias": "Sábado", "horas": "10:00–13:00" },
+    { "dias": "Domingos e feriados", "horas": "Encerrado" }
+  ],
+  "local": {
+    "localidade": "São Roque",
+    "concelho": "Oliveira de Azeméis",
+    "distrito": "Aveiro",
+    "mapa": "https://www.google.com/maps/place/LF+Mobile/@40.8814323,-8.473417,17z/data=!3m1!4b1!4m6!3m5!1s0xd23799c56cb4b9d:0x95eefbaa49e20eae!8m2!3d40.8814323!4d-8.473417!16s%2Fg%2F11nq10sm8x",
+    "coordenadas": "40.8814323,-8.473417"
+  },
+  "empresa": {
+    "nome": "",
+    "tipo": "",
+    "nif": "",
+    "morada": "Rua das Marcadas, 253",
+    "codigoPostal": "3720-684",
+    "localidade": "São Roque",
+    "concelho": "Oliveira de Azeméis",
+    "iva": "Os preços incluem IVA à taxa legal em vigor."
+  },
+  "aviso": {
+    "texto": "",
+    "ate": "",
+    "ligacao": ""
+  },
+  "entrega": {
+    "zonas": [
+      {
+        "id": "levantamento",
+        "nome": "Levantar na loja, em São Roque",
+        "curto": "Levantamento na loja (grátis)",
+        "morada": false
+      },
+      {
+        "id": "continente",
+        "nome": "Envio para Portugal Continental",
+        "curto": "Portugal Continental",
+        "morada": true
+      }
+    ],
+    "portes": {
+      "continente": null,
+      "gratisAPartirDe": null
+    },
+    "prazo": "Os envios seguem em 24 a 48 horas úteis depois de a encomenda estar confirmada e paga, só para Portugal Continental. O levantamento na loja fica pronto no próprio dia, no horário de abertura.",
+    "pagamento": "Pode pagar com cartão, MB WAY ou Multibanco, numa página segura. Se preferir, encomenda e paga na loja ao levantar.",
+    "levantamento": "Na loja, na Rua das Marcadas, 253, em São Roque, no horário de abertura. Avisamos quando estiver pronto."
+  },
+  "pagamentos": {
+    "modo": "encomenda"
+  },
+  "garantias": {
+    "recondicionados": null
+  },
+  "google": {
+    "nota": "5,0",
+    "opinioes": 20,
+    "ligacao": "https://www.google.com/maps/place/LF+Mobile/@40.8814323,-8.473417,17z/data=!4m8!3m7!1s0xd23799c56cb4b9d:0x95eefbaa49e20eae!8m2!3d40.8814323!4d-8.473417!9m1!1b1!16s%2Fg%2F11nq10sm8x"
+  },
+  "parcerias": {
+    "digi": true
+  },
+  "fidelidade": {
+    "texto": "Cartão das películas de hidrogel: na 6.ª película, oferecemos uma. Peça o seu na loja."
+  }
+}

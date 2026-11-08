@@ -1,0 +1,36 @@
+{
+  "nome": "GUESS Wireless Earbuds",
+  "nomeCurto": "GUESS Wireless Earbuds",
+  "marca": "GUESS",
+  "fotos": [
+    "guess-wireless-earbuds-1"
+  ],
+  "resumo": "Auriculares Bluetooth GUESS com caixa de carregamento.",
+  "descricao": "Auriculares Bluetooth GUESS com caixa de carregamento, até 4,5 horas de reprodução e carregamento USB-C.",
+  "preco": 44.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Caixa de carregamento",
+    "Até 4,5 horas de reprodução",
+    "Carregamento USB-C"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "audio",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 180
+}

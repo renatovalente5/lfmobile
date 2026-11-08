@@ -1,0 +1,38 @@
+{
+  "nome": "InPods Pro 2",
+  "nomeCurto": "InPods Pro 2",
+  "marca": "",
+  "fotos": [
+    "inpods-pro-2-1",
+    "inpods-pro-2-2",
+    "inpods-pro-2-3"
+  ],
+  "resumo": "Design moderno, conforto e qualidade de som.",
+  "descricao": "Auriculares sem fios com controlo táctil, até 5 horas de autonomia e ligação Bluetooth estável. Leves e confortáveis para o dia a dia.",
+  "preco": 44.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Controlo táctil",
+    "Até 5 horas de autonomia",
+    "Bluetooth rápido e estável"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "audio",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 150
+}

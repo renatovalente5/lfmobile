@@ -1,0 +1,37 @@
+{
+  "nome": "Micflip — localizador para passaporte",
+  "nomeCurto": "Micflip — localizador para passaporte",
+  "marca": "Micflip",
+  "fotos": [
+    "micflip-localizador-passaporte-1"
+  ],
+  "resumo": "Porta-passaporte com localização pela rede Find My da Apple.",
+  "descricao": "Um porta-passaporte com localizador integrado: aparece na app Encontrar da Apple, toca para o ajudar a encontrá-lo e tem bateria para muito tempo, com carregamento por cabo.",
+  "preco": 46.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Localização com Apple Find My",
+    "Alerta sonoro",
+    "Bateria duradoura",
+    "Carregamento por cabo"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "acessorios",
+  "destaque": true,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 50
+}

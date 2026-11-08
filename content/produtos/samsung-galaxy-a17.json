@@ -1,0 +1,35 @@
+{
+  "nome": "Samsung Galaxy A17",
+  "nomeCurto": "Samsung Galaxy A17",
+  "marca": "Samsung",
+  "fotos": [
+    "samsung-galaxy-a17-1"
+  ],
+  "resumo": "Design moderno e tudo o que precisa para estar sempre ligado.",
+  "descricao": "O Galaxy A17 traz o essencial da Samsung a um preço acessível: ecrã grande, boa bateria e as câmaras para o dia a dia. Peça-nos o preço e a disponibilidade pelo WhatsApp.",
+  "preco": null,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "Novo",
+    "Garantia do fabricante"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "telemoveis",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 200
+}

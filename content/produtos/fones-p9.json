@@ -1,0 +1,54 @@
+{
+  "nome": "Auscultadores P9",
+  "nomeCurto": "Auscultadores P9",
+  "marca": "",
+  "fotos": [
+    "fones-p9-1",
+    "fones-p9-2",
+    "fones-p9-3",
+    "fones-p9-4"
+  ],
+  "resumo": "Som, conforto e estilo, sem gastar uma fortuna.",
+  "descricao": "Auscultadores Bluetooth confortáveis, com redução de ruído e boa autonomia, compatíveis com iPhone e Android. Disponíveis em preto e prateado.",
+  "preco": 59.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Compatíveis com iPhone e Android",
+    "Bluetooth rápido e estável",
+    "Redução de ruído",
+    "Confortáveis para utilização prolongada"
+  ],
+  "inclui": [],
+  "opcoes": [
+    {
+      "nome": "Cor",
+      "valores": [
+        {
+          "nome": "Preto",
+          "suplemento": 0
+        },
+        {
+          "nome": "Prateado",
+          "suplemento": 0
+        }
+      ]
+    }
+  ],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "audio",
+  "destaque": true,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 40
+}

@@ -1,0 +1,35 @@
+{
+  "nome": "Huawei Band 11 Pro",
+  "nomeCurto": "Huawei Band 11 Pro",
+  "marca": "Huawei",
+  "fotos": [
+    "huawei-band-11-pro-1"
+  ],
+  "resumo": "Mais funções e conforto para acompanhar o dia.",
+  "descricao": "A pulseira inteligente da Huawei com mais funções: ecrã maior, GPS e o acompanhamento do sono, do ritmo cardíaco e do exercício. Nova e selada.",
+  "preco": 74.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Novo, selado",
+    "Stock limitado"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "smartwatches",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 90
+}

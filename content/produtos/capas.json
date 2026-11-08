@@ -1,0 +1,34 @@
+{
+  "nome": "Capas para telemóvel",
+  "nomeCurto": "Capas para telemóvel",
+  "marca": "",
+  "fotos": [
+    "capas-1"
+  ],
+  "resumo": "Modelos para os telemóveis mais comuns. Pergunte pelo seu.",
+  "descricao": "Capas para os telemóveis mais comuns, em vários modelos e cores. Diga-nos o seu telemóvel pelo WhatsApp e mostramos o que temos.",
+  "preco": null,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "Vários modelos e cores"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "acessorios",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 220
+}

@@ -1,0 +1,35 @@
+{
+  "nome": "OPPO A5x",
+  "nomeCurto": "OPPO A5x",
+  "marca": "OPPO",
+  "fotos": [
+    "oppo-a5x-1"
+  ],
+  "resumo": "Um smartphone simples e fiável para o dia a dia.",
+  "descricao": "Um smartphone equilibrado para quem quer um telemóvel novo, fiável e sem complicações: boa bateria, ecrã grande e Android actualizado. Novo, na caixa.",
+  "preco": 139.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Novo, na caixa",
+    "Garantia do fabricante"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "telemoveis",
+  "destaque": true,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 70
+}
