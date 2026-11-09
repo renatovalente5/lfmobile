@@ -35,7 +35,6 @@ export const PAGINAS_MENU = [
 ];
 
 function cabecalho(ctx, atual) {
-  const c = ctx.site.contactos;
   // a página em que se está (e as suas filhas: uma ficha de artigo marca «Loja»)
   const emLoja = atual.startsWith('/loja/') || atual.startsWith('/produtos/');
   const marca = (caminho) => ((caminho === '/loja/' ? emLoja : atual === caminho) ? ' aria-current="page"' : '');
@@ -46,7 +45,6 @@ function cabecalho(ctx, atual) {
       <ul>${PAGINAS_MENU.map(([caminho, nome]) => `<li><a href="${ctx.url(caminho)}"${marca(caminho)}>${esc(nome)}</a></li>`).join('')}</ul>
     </nav>
     <div class="topo__direita">
-      ${c.whatsapp ? `<a class="topo__whatsapp" href="https://wa.me/${numeroWhatsApp(c.whatsapp)}" target="_blank" rel="noopener">${icones.whatsapp}<span class="topo__whatsapp-texto">WhatsApp</span></a>` : ''}
       <a class="topo__carrinho" href="${ctx.url('/carrinho/')}" data-abrir="carrinho" aria-haspopup="dialog">${icones.carrinho}<span class="visualmente-escondido">Carrinho</span><span class="topo__conta" data-conta hidden></span></a>
       <button class="topo__menu" type="button" data-abrir="menu" aria-haspopup="dialog">${icones.menu}<span class="visualmente-escondido">Menu</span></button>
     </div>
@@ -157,6 +155,17 @@ function gavetaCarrinho() {
 </dialog>`;
 }
 
+/* O WHATSAPP FLUTUANTE: um botão redondo no canto de baixo à direita, que aparece quando se desce na
+   página (html[data-whatsapp="sim"], site.js). Foi o Renato que o pediu a 8 nov 2026, e saiu da barra de cima. Só a
+   ligação, sem o número (memória whatsapp-so-ligacao). Não aparece no carrinho, na encomenda nem no
+   «obrigado»: aí o que importa é acabar a encomenda, e o botão tapava o resumo no telemóvel. */
+const SEM_WHATSAPP_FLUTUANTE = ['pagina-carrinho', 'pagina-checkout', 'pagina-obrigado'];
+function whatsappFlutuante(ctx, classe) {
+  const n = ctx.site.contactos?.whatsapp;
+  if (!n || SEM_WHATSAPP_FLUTUANTE.some((k) => String(classe).split(/\s+/).includes(k))) return '';
+  return `<a class="whatsapp-flutuante" href="https://wa.me/${numeroWhatsApp(n)}" target="_blank" rel="noopener" data-whatsapp-flutuante>${icones.whatsapp}<span class="visualmente-escondido">Falar connosco no WhatsApp</span></a>`;
+}
+
 export function pagina(ctx, { titulo, descricao, caminho, conteudo, partilha, tipo = 'website', jsonld = [], classe = '', indexar = true, semMoldura = false }) {
   const tituloCompleto = titulo.includes(ctx.site.marca) ? titulo : `${titulo} | ${ctx.site.marca}`;
   const cartao = partilha || ctx.manifesto.partilha._site;
@@ -200,6 +209,7 @@ ${cabecalho(ctx, caminho)}
 ${conteudo}
 </main>
 ${rodape(ctx)}
+${whatsappFlutuante(ctx, classe)}
 ${gavetaCarrinho()}
 ${menu(ctx, caminho)}
 </body>

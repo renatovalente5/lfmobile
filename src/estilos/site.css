@@ -131,11 +131,8 @@ html[data-rolado="sim"] .topo { border-bottom-color: var(--linha); box-shadow: 0
 }
 @media (hover: hover) and (min-width: 900px) { .topo__nav a:hover { color: var(--tinta); background: var(--cinza); } }
 .topo__direita { display: flex; align-items: center; gap: 6px; margin-left: auto; }
-.topo__whatsapp, .topo__carrinho, .topo__menu { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 999px; color: var(--tinta); text-decoration: none; font-weight: 600; transition: background-color .15s; }
-.topo__whatsapp .icone { color: var(--verde); }
-.topo__whatsapp-texto { display: none; }
-@media (min-width: 560px) { .topo__whatsapp-texto { display: inline; } }
-@media (hover: hover) { .topo__whatsapp:hover, .topo__carrinho:hover, .topo__menu:hover { background: var(--cinza); } }
+.topo__carrinho, .topo__menu { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 999px; color: var(--tinta); text-decoration: none; font-weight: 600; transition: background-color .15s; }
+@media (hover: hover) { .topo__carrinho:hover, .topo__menu:hover { background: var(--cinza); } }
 .topo__conta { position: absolute; top: 4px; right: 2px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--ouro); color: var(--tinta); font-size: .7rem; font-weight: 800; line-height: 18px; text-align: center; }
 @media (min-width: 900px) { .topo__menu { display: none; } }
 
@@ -549,7 +546,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 @media (min-width: 900px) { .sobre__foto img { aspect-ratio: 4 / 5; } }
 
 /* ---------------------------------------------------------------- rodapé */
-.rodape { margin-top: 56px; background: var(--cinza); padding: 48px 0 24px; }
+.rodape { margin-top: 56px; background: var(--cinza); padding: 48px 0 104px; }
 .rodape__corpo { max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); display: grid; gap: 32px; }
 /* A navegação do rodapé é uma grelha própria (Loja e Ajuda), sem display:contents no <nav>, que nalguns
    browsers apaga o marco de navegação para os leitores de ecrã. */
@@ -570,6 +567,18 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 @media (hover: hover) { .rodape__legal a:hover { color: var(--tinta); text-decoration: underline; } }
 .rodape__legal .lr-discreto { color: var(--tinta-2); }
 @media (max-width: 559.98px) { .rodape__legal { display: grid; grid-template-columns: 1fr 1fr; } }
+
+/* ---------------------------------------------------------------- WhatsApp flutuante */
+/* Um botão redondo no canto de baixo à direita, que aparece quando se desce na página (html[data-whatsapp],
+   site.js). Escondido também com visibility, que o tira do Tab, e só depois de acabar o esbatido. O
+   verde com o desenho branco: 6,1:1. */
+.whatsapp-flutuante { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 40; display: inline-flex; align-items: center; justify-content: center; width: 56px; height: 56px; border-radius: 999px; background: var(--verde); color: var(--branco); box-shadow: 0 1px 3px rgba(18, 18, 18, .2), 0 8px 24px rgba(18, 18, 18, .22); opacity: 0; visibility: hidden; transform: translateY(12px) scale(.96); transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s, background-color .15s; -webkit-tap-highlight-color: transparent; }
+html[data-whatsapp="sim"] .whatsapp-flutuante { opacity: 1; visibility: visible; transform: none; transition: opacity .2s ease, transform .2s ease, visibility 0s, background-color .15s; }
+.whatsapp-flutuante .icone { width: 28px; height: 28px; }
+@media (hover: hover) { .whatsapp-flutuante:hover { background: var(--verde-escuro); } }
+@media (min-width: 900px) { .whatsapp-flutuante { right: 28px; bottom: 28px; } }
+@media (prefers-reduced-motion: reduce) { .whatsapp-flutuante, html[data-whatsapp="sim"] .whatsapp-flutuante { transform: none; } }
+@media print { .whatsapp-flutuante { display: none; } }
 
 /* ---------------------------------------------------------------- vídeo (ficha) */
 .video { position: relative; width: 100%; height: 100%; }

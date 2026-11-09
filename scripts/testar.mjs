@@ -173,6 +173,17 @@ teste('a ficha de um artigo comprável tem o formulário do carrinho; a de um «
   assert.match(pel, /data-comprar="pelicula-hidrogel"/);
   assert.match(pel, /Só na loja/);
 });
+teste('o WhatsApp é um botão flutuante (fora da barra de cima), e não aparece no carrinho nem na encomenda', () => {
+  const pasta = copia('whatsapp');
+  assert.equal(construir(pasta).codigo, 0);
+  const ler = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  for (const pagina of ['index.html', 'loja/index.html', 'produtos/fones-p9/index.html', 'reparacoes/index.html', 'contactos/index.html']) {
+    const html = ler(pagina);
+    assert.match(html, /class="whatsapp-flutuante" href="https:\/\/wa\.me\/351\d{9}"/, pagina);
+    assert.doesNotMatch(html.slice(html.indexOf('<header'), html.indexOf('</header>')), /wa\.me/, `${pagina}: o WhatsApp voltou à barra de cima`);
+  }
+  for (const pagina of ['carrinho/index.html', 'checkout/index.html', 'obrigado/index.html']) assert.doesNotMatch(ler(pagina), /data-whatsapp-flutuante/, pagina);
+});
 teste('a produção pára sem os dados legais, e diz quais', () => {
   const pasta = copia('producao-falha');
   const r = construir(pasta, '--producao');

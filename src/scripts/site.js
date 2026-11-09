@@ -17,10 +17,13 @@
   addEventListener('pointerdown', () => { raiz.dataset.entrada = 'ponteiro'; }, { capture: true, passive: true });
   addEventListener('keydown', (e) => { if (!e.metaKey && !e.ctrlKey) delete raiz.dataset.entrada; }, { capture: true });
 
-  // ---------------------------------------------------------------- a barra ao descer
+  // ---------------------------------------------------------------- a barra e o WhatsApp ao descer
   // No topo a barra não tem chão; ao descer ganha a linha e a sombra (site.css). O estado vive na
   // raiz (html[data-rolado]), onde a linha do <head> já o escreveu antes da primeira pintura. Dois
   // limiares (40 a descer, 8 a subir) só contra a tremura de uma página parada na linha.
+  // O botão flutuante do WhatsApp aparece um pouco mais abaixo (html[data-whatsapp], 200 a descer e
+  // 120 a subir): quando a pessoa já está a ler a página, não logo ao primeiro toque.
+  const flutuante = $('[data-whatsapp-flutuante]');
   if ($('[data-topo]')) {
     let pedido = false;
     const decidir = () => {
@@ -28,6 +31,10 @@
       const y = scrollY;
       const agora = raiz.dataset.rolado === 'sim';
       raiz.dataset.rolado = (y >= 40 ? true : y <= 8 ? false : agora) ? 'sim' : 'nao';
+      if (flutuante) {
+        const visivel = raiz.dataset.whatsapp === 'sim';
+        raiz.dataset.whatsapp = (y >= 200 ? true : y <= 120 ? false : visivel) ? 'sim' : 'nao';
+      }
     };
     addEventListener('scroll', () => { if (!pedido) { pedido = true; requestAnimationFrame(decidir); } }, { passive: true });
     addEventListener('pageshow', decidir);
