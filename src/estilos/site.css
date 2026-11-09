@@ -259,7 +259,7 @@ dialog::backdrop { background: rgba(18, 18, 18, .4); -webkit-backdrop-filter: bl
 .horario div { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px solid var(--linha); font-size: .95rem; }
 .horario div:last-child { border-bottom: 0; }
 .horario dt { color: var(--tinta-2); }
-.horario dd { font-weight: 600; text-align: right; }
+.horario dd { font-weight: 600; text-align: right; white-space: nowrap; }
 .loja-casa__botoes { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; margin-top: 24px; }
 
 /* ---------------------------------------------------------------- cabeça das páginas, migalhas, chips */
@@ -452,34 +452,70 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .referencia-mb strong { font-size: 1.15rem; letter-spacing: .04em; }
 
 /* ---------------------------------------------------------------- contactos */
-.contactos-grelha { display: grid; gap: 24px; }
-@media (min-width: 900px) { .contactos-grelha { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px; align-items: start; } }
-.contactos-coluna { display: grid; gap: 20px; }
-.contacto-principal { padding: 26px; border-radius: var(--raio); background: var(--cinza); display: grid; gap: 10px; justify-items: start; }
-.contacto-principal__icone { display: inline-flex; width: 48px; height: 48px; align-items: center; justify-content: center; border-radius: 14px; background: var(--papel); color: var(--verde); }
-.contacto-principal__icone .icone { width: 26px; height: 26px; }
-.contacto-principal h2 { font-size: 1.3rem; font-weight: 800; }
-.contacto-principal p { color: var(--tinta-2); }
-.contactos-lista { display: grid; }
-.contacto { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--linha); }
-.contacto__icone { display: inline-flex; flex: none; width: 42px; height: 42px; align-items: center; justify-content: center; border-radius: 12px; background: var(--cinza); color: var(--tinta); }
-.contacto__nome { font-size: .8rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--tinta-3); margin-bottom: 2px; }
+/* Três cartões para falar connosco (o WhatsApp à cabeça), a loja com o mapa e as redes numa linha. */
+.contactos-cartoes { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+@media (min-width: 760px) { .contactos-cartoes { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; } }
+.contacto-cartao { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 22px; border-radius: var(--raio); border: 1px solid var(--linha); background: var(--papel); }
+.contacto-cartao--whatsapp { border-color: transparent; background: var(--cinza); }
+.contacto-cartao__icone { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; margin-bottom: 6px; border-radius: 13px; background: var(--cinza); color: var(--tinta); }
+.contacto-cartao--whatsapp .contacto-cartao__icone { background: var(--papel); color: var(--verde); }
+.contacto-cartao__icone .icone { width: 24px; height: 24px; }
+.contacto-cartao__nome { font-size: 1.1rem; font-weight: 800; letter-spacing: -.01em; }
+.contacto-cartao__valor { font-size: 1.05rem; font-weight: 600; overflow-wrap: anywhere; }
+.contacto-cartao__valor a { text-decoration: none; }
+@media (hover: hover) { .contacto-cartao__valor a:hover { text-decoration: underline; } }
+.contacto-cartao__texto { color: var(--tinta-2); font-size: .92rem; }
+.contacto-cartao .botao { margin-top: auto; }
+.contacto-cartao--whatsapp .contacto-cartao__texto { margin-bottom: 10px; }
+/* No telemóvel os cartões são linhas compactas: o desenho à esquerda, o nome e o contacto ao lado; o botão do WhatsApp por baixo, a toda a largura. */
+@media (max-width: 759.98px) {
+  .contacto-cartao { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 14px; row-gap: 2px; align-items: center; padding: 16px 18px; }
+  .contacto-cartao__icone { grid-row: span 2; margin-bottom: 0; }
+  .contacto-cartao__texto, .contacto-cartao__valor { grid-column: 2; }
+  .contacto-cartao .botao { grid-column: 1 / -1; margin-top: 12px; }
+  .contacto-cartao--whatsapp .contacto-cartao__texto { margin-bottom: 0; }
+}
 .chamada, .nota-chamada { font-size: .8em; color: var(--tinta-3); }
-.loja-cartao { padding: 26px; border-radius: var(--raio); border: 1px solid var(--linha); display: grid; gap: 14px; }
-.loja-cartao h2 { display: flex; align-items: center; gap: 8px; font-size: 1.2rem; font-weight: 800; }
-.loja-cartao__botoes { display: flex; flex-wrap: wrap; gap: 10px; }
-/* O mapa (a fachada da legal-comum: só carrega com um clique). Antes de carregar, um cartão cinzento com
-   a frase e o botão; carregado, o iframe ocupa a moldura toda, com os cantos do site. O contentor não
-   recorta (overflow): recortava o canto do botão «Deixar de carregar o mapa» (o Renato, 8 nov 2026). O
-   CSS da legal-comum vem antes deste na folha, e estas regras, com o mesmo peso, ganham-lhe. */
-.fachada-mapa .fachada-mapa__moldura { min-height: 360px; padding: 24px; gap: 14px; border: 0; border-radius: var(--raio); background: var(--cinza); color: var(--tinta-2); }
-.fachada-mapa[data-estado="carregado"] .fachada-mapa__moldura { display: block; min-height: 0; padding: 0; background: none; }
-.fachada-mapa iframe { height: 360px; border-radius: var(--raio); }
-.fachada-mapa .fachada-mapa__texto { font-size: .95rem; }
-.fachada-mapa .fachada-mapa__carregar { min-height: 46px; padding: 10px 20px; border: 1px solid var(--tinta); border-radius: var(--raio-m); background: var(--papel); color: var(--tinta); font-size: .98rem; font-weight: 700; }
-@media (hover: hover) { .fachada-mapa .fachada-mapa__carregar:hover { background: var(--tinta); color: var(--branco); } }
-.fachada-mapa .fachada-mapa__retirar { min-height: 44px; margin-top: 4px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--tinta-2); font-size: .9rem; font-weight: 600; text-decoration: underline; text-underline-offset: .16em; }
-@media (hover: hover) { .fachada-mapa .fachada-mapa__retirar:hover { color: var(--tinta); } }
+
+.contactos-loja { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 40px; align-items: center; }
+@media (min-width: 900px) { .contactos-loja { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 64px); } }
+.contactos-loja__titulo { font-size: clamp(1.4rem, 1.2rem + .8vw, 1.8rem); font-weight: 800; letter-spacing: -.02em; margin-bottom: 12px; }
+.contactos-loja__rotulo { margin: 24px 0 6px; font-size: .8rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-3); }
+.contactos-loja .horario { max-width: 380px; }
+.contactos-redes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }
+.contactos-redes .pilula { gap: 8px; min-height: 44px; padding: 8px 16px; }
+.contactos-redes .icone { width: 1.1em; height: 1.1em; }
+
+/* O mapa da loja: um SVG feito pelo site (scripts/mapa.mjs, dados do OpenStreetMap), escrito na página,
+   por isso aparece logo. O desenho recorta-se ao centro (slice): mais largo no computador, quadrado no
+   telemóvel. A ligação cobre o mapa inteiro e leva ao Google Maps; o crédito do OpenStreetMap fica por
+   cima dela, no canto. Os cantos arredondados são do próprio desenho (clip-path), não do contentor, que
+   não recorta nada. */
+.mapa-loja { position: relative; margin: 0; aspect-ratio: 16 / 10; }
+@media (max-width: 699.98px) { .mapa-loja { aspect-ratio: 1 / 1; } }
+.mapa-loja__desenho { display: block; width: 100%; height: 100%; border-radius: var(--raio); clip-path: inset(0 round var(--raio)); background: #F2F0EB; }
+.mapa-loja__fundo { fill: #F2F0EB; }
+.mapa-zona--mato { fill: #E1E9D5; }
+.mapa-zona--campo { fill: #ECEDDF; }
+.mapa-zona--cemiterio { fill: #E3E7DD; }
+.mapa-zona--parque { fill: #DCEAD2; }
+.mapa-zona--agua { fill: #CFE0F0; }
+.mapa-loja__rios path { fill: none; stroke: #B7D0EA; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.mapa-loja__caminhos path { fill: none; stroke: #D8D2C6; stroke-width: 2.5; stroke-dasharray: 6 5; stroke-linecap: round; }
+.mapa-loja__contornos path { fill: none; stroke: #D9D4CA; stroke-linecap: round; stroke-linejoin: round; }
+.mapa-loja__ruas path { fill: none; stroke: #FFFFFF; stroke-linecap: round; stroke-linejoin: round; }
+.mapa-loja__nomes text { fill: #6B6761; font-weight: 600; paint-order: stroke; stroke: #FFFFFF; stroke-width: 5px; stroke-linejoin: round; }
+.mapa-loja__nomes .mapa-loja__nome--loja { fill: #121212; font-weight: 800; }
+.mapa-loja__sombra { fill: rgba(18, 18, 18, .2); }
+.mapa-loja__gota { fill: #121212; stroke: #FFFFFF; stroke-width: 3; }
+.mapa-loja__ponto { fill: #C9A24C; }
+.mapa-loja__etiqueta rect { fill: #FFFFFF; stroke: #E6E3DD; stroke-width: 1.5; }
+.mapa-loja__etiqueta text { fill: #121212; font-size: 19px; font-weight: 800; }
+.mapa-loja__ligacao { position: absolute; inset: 0; border-radius: var(--raio); color: var(--tinta); text-decoration: none; }
+.mapa-loja__abrir { position: absolute; left: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 18px; border-radius: 999px; background: var(--papel); box-shadow: 0 1px 2px rgba(18, 18, 18, .08), 0 6px 18px rgba(18, 18, 18, .14); font-weight: 700; transition: background-color .15s, color .15s; }
+@media (hover: hover) { .mapa-loja__ligacao:hover .mapa-loja__abrir { background: var(--tinta); color: var(--branco); } }
+.mapa-loja__credito { position: absolute; right: 12px; bottom: 10px; z-index: 1; font-size: .72rem; }
+.mapa-loja__credito a { padding: 2px 6px; border-radius: 6px; background: rgba(255, 255, 255, .85); color: var(--tinta-2); text-decoration: none; }
 
 /* ---------------------------------------------------------------- páginas de texto */
 .texto { max-width: 72ch; }

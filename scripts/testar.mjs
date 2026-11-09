@@ -184,6 +184,17 @@ teste('o WhatsApp é um botão flutuante (fora da barra de cima), e não aparece
   }
   for (const pagina of ['carrinho/index.html', 'checkout/index.html', 'obrigado/index.html']) assert.doesNotMatch(ler(pagina), /data-whatsapp-flutuante/, pagina);
 });
+teste('os contactos têm o mapa desenhado dentro da página (sem o Google, sem cookies), com o crédito do OpenStreetMap', () => {
+  const pasta = copia('mapa');
+  assert.equal(construir(pasta).codigo, 0);
+  const ler = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  const html = ler('contactos/index.html');
+  assert.match(html, /<svg class="mapa-loja__desenho"[^>]*role="img"/);
+  assert.match(html, /class="mapa-loja__ligacao" href="https:\/\/www\.google\.com\/maps\//);
+  assert.match(html, /© OpenStreetMap/);
+  assert.doesNotMatch(html, /<iframe|maps\?q=|data-fachada-mapa/);
+  for (const pagina of ['politica-de-cookies/index.html', 'politica-de-privacidade/index.html']) assert.doesNotMatch(ler(pagina), /lfmobile-mapa|Carregar o mapa/, pagina);
+});
 teste('a produção pára sem os dados legais, e diz quais', () => {
   const pasta = copia('producao-falha');
   const r = construir(pasta, '--producao');

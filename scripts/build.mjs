@@ -26,7 +26,7 @@ import * as R from '../src/lib/regras.mjs';
 import * as paginas from '../src/templates/paginas.mjs';
 /* As peças legais comuns aos sites do Renato (a cópia em legal-comum/, instalada por
    _ferramentas/legal-comum/instalar.mjs; não se edita aqui). */
-import { livroCss, destinatariosHtml, CATALOGO_DESTINATARIOS, frasesPrivacidade, prazos as PRAZOS_LEGAIS, verificarIdentificacao, verificarPromocao, verificarProduto, AVISO_RETOMA, COMO_SE_FAZ_A_ENCOMENDA, BOTAO_ENCOMENDA, formularioLivreResolucao, ralHtml, textoGarantia, fachadaMapaCss, VERSAO as LEGAL_COMUM_VERSAO } from '../legal-comum/index.mjs';
+import { livroCss, destinatariosHtml, CATALOGO_DESTINATARIOS, frasesPrivacidade, prazos as PRAZOS_LEGAIS, verificarIdentificacao, verificarPromocao, verificarProduto, AVISO_RETOMA, COMO_SE_FAZ_A_ENCOMENDA, BOTAO_ENCOMENDA, formularioLivreResolucao, ralHtml, textoGarantia, VERSAO as LEGAL_COMUM_VERSAO } from '../legal-comum/index.mjs';
 import { pecaLegal } from '../src/templates/componentes.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -191,11 +191,11 @@ for (const f of listar('media/video', '.mp4').map((x) => `${x}.mp4`)) {
 }
 
 // CSS e JS: um ficheiro cada, com o resumo no nome
-/* A folha de estilos leva o CSS do Livro de Reclamações e o da fachada do mapa (legal-comum), ANTES do
-   site.css: as regras do rodapé (.rodape__legal a) ganham, e o Livro fica com a letra e a cor das
-   ligações vizinhas. */
+/* A folha de estilos leva o CSS do Livro de Reclamações (legal-comum), ANTES do site.css: as regras do
+   rodapé (.rodape__legal a) ganham, e o Livro fica com a letra e a cor das ligações vizinhas. (A fachada
+   do mapa do Google saiu a 8 nov 2026: o mapa dos contactos é desenhado pelo site, scripts/mapa.mjs.) */
 const css = Buffer.concat([
-  Buffer.from(`/* legal-comum v${LEGAL_COMUM_VERSAO}: o Livro de Reclamações e a fachada do mapa */\n${livroCss()}\n${fachadaMapaCss({ classe: 'fachada-mapa', altura: 360 })}\n`),
+  Buffer.from(`/* legal-comum v${LEGAL_COMUM_VERSAO}: o Livro de Reclamações */\n${livroCss()}\n`),
   fs.readFileSync(path.join(RAIZ, 'src/estilos/site.css')),
 ]);
 const js = Buffer.from(['site.js', 'carrinho.js'].map((f) => `// ${f}\n${fs.readFileSync(path.join(RAIZ, 'src/scripts', f), 'utf8')}`).join('\n'));
@@ -215,6 +215,8 @@ const ctx = {
   whatsapp: (texto) => `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`,
   numeroLegivel, custoChamada, notaChamada,
   marcador: (desc) => `<mark class="por-confirmar">[por confirmar: ${esc(desc)}]</mark>`,
+  // o mapa da loja (scripts/mapa.mjs), escrito dentro da página dos contactos: aparece logo, sem pedidos
+  mapaLoja: existe('media/mapa/loja.svg') ? fs.readFileSync(path.join(RAIZ, 'media/mapa/loja.svg'), 'utf8').trim() : '',
 };
 
 // ---------------------------------------------------------------- catálogo do carrinho e do Worker
@@ -286,12 +288,14 @@ function botoesDesistencia() {
 
 /* Quem recebe dados (destinatariosHtml, da legal-comum): a Cloudflare (o alojamento e o Worker das
    encomendas; na pré-visualização, o GitHub Pages), o GitHub (o código e a publicação), a Stripe (os
-   pagamentos), o Resend (os emails das encomendas), a Meta (WhatsApp, Instagram, Facebook), o Google
-   (o mapa, só se o pedir) e o Renato, que mantém o site e o painel (RGPD, art. 28.º). */
+   pagamentos), o Resend (os emails das encomendas), a Meta (WhatsApp, Instagram, Facebook) e o Renato,
+   que mantém o site e o painel (RGPD, art. 28.º). O mapa dos contactos é desenhado pelo
+   próprio site (scripts/mapa.mjs) e não manda nada a ninguém. */
 const CONFIG_PRIVACIDADE = {
   alojamento: 'cloudflare', dns: dominio ? 'cloudflare' : undefined,
-  mapas: 'google', whatsapp: true, instagram: true, facebookPage: true,
-  pagamentos: 'stripe', envioEmails: 'resend',
+  whatsapp: true, instagram: true, facebookPage: true,
+  // a Stripe só recebe dados com o pagamento no site ligado (modo «online»)
+  pagamentos: site.pagamentos?.modo === 'online' ? 'stripe' : undefined, envioEmails: 'resend',
   manutencao: { nome: 'Renato Valente', papel: 'subcontratante' },
   repositorioPublico: true,
 };
@@ -342,6 +346,10 @@ function resolverMarcadores(fonte, onde) {
     pagamento: () => (!pagamentoOnline ? esc(PAGAMENTO_EM_MODO_ENCOMENDA) : site.entrega.pagamento ? esc(site.entrega.pagamento) : guardar(ctx.marcador('as formas de pagamento'))),
     levantamento: () => esc(site.entrega.levantamento || ''),
     pagamentoStripe: () => (pagamentoOnline ? ' O pagamento no site é feito na página segura da Stripe, que não nos dá acesso aos dados do seu cartão.' : ''),
+    pagamentoNaStripe: () => (pagamentoOnline ? ' O pagamento é feito na página da Stripe, para onde segue a partir da encomenda.' : ''),
+    'privacidade.pagamento': () => esc(pagamentoOnline
+      ? 'O pagamento é feito na Stripe, na página dela: a Stripe recebe o seu email e o valor, e trata os dados do cartão ou do MB WAY segundo a sua própria política; nós nunca vemos os dados do cartão. O NIF e as observações não são enviados para a Stripe.'
+      : 'O pagamento combina-se consigo depois de confirmarmos a encomenda: o site não recebe dados de pagamento.'),
     portes: () => guardar(textoPortes()),
     botoesDesistencia: () => guardar(botoesDesistencia()),
     comoSeFazAEncomenda: () => guardar(pagamentoOnline

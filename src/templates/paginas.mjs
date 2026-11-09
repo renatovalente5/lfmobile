@@ -4,7 +4,7 @@ import { esc, euros, precoDe, markdown, inline, textoSimples, numeroWhatsApp, nu
 import { icones, iconeServico } from './icones.mjs';
 import { numeroPortugues, opcoesDe, temSuplementos, estadoDe, disponibilidadeDe, compravel, enviavel, linhasDe, GARANTIAS_USADOS } from '../lib/regras.mjs';
 import { imagem, preco, cartaoProduto, cartaoServico, migalhas, botaoSeta, desconto, promocaoAte, cabecaDePagina, convite, promocaoNota, faixaConfianca, horarioHtml, moradaHtml, estadoRotulo, categoriasComArtigos } from './componentes.mjs';
-import { fachadaMapa, BOTAO_ENCOMENDA } from '../../legal-comum/index.mjs';
+import { BOTAO_ENCOMENDA } from '../../legal-comum/index.mjs';
 
 const produtosDe = (ctx, cat) => ctx.produtos.filter((p) => p.categoria === cat);
 const categoriaDe = (ctx, slug) => ctx.categorias.find((c) => c.slug === slug);
@@ -645,51 +645,50 @@ export function texto(ctx, pag) {
   return { caminho: pag.caminho, titulo: pag.tituloSeo || pag.titulo, descricao: pag.descricao, indexar: pag.indexar, jsonld: [m.ld], conteudo };
 }
 
-/* Os contactos: o WhatsApp à cabeça (é por lá que se pedem orçamentos; só a ligação, sem o número), a
-   morada com o horário e o mapa (carregado só com consentimento: legal-comum, fachadaMapa), e os outros
-   caminhos. O telefone leva a nota da chamada entre parênteses (DL 59/2021). */
+/* OS CONTACTOS (8 nov 2026, «melhora a página de contactos»): três cartões para falar connosco (o WhatsApp
+   à cabeça, só a ligação; o telefone com a nota da chamada; o email), a loja com o mapa visível logo ao
+   abrir (desenhado pelo próprio site, scripts/mapa.mjs: sem o Google, sem cookies, sem esperar), a
+   morada e o horário, e as redes numa linha. Tocar no mapa abre o Google Maps (a ligação «Como chegar»). */
 export function contactos(ctx) {
   const c = ctx.site.contactos;
   const e = ctx.site.empresa;
   const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: 'Contactos', caminho: '/contactos/' }]);
   const tel = numeroPortugues(c.telefone);
-  const linha = (icone, nome, corpo) => `<li class="contacto"><span class="contacto__icone">${icone}</span><div><h2 class="contacto__nome">${nome}</h2>${corpo}</div></li>`;
-  const outros = [];
-  if (tel) outros.push(linha(icones.telefone, 'Telefone', `<p><a href="tel:+351${tel}">${esc(numeroLegivel(tel))}</a> ${notaChamada(tel)}</p>`));
-  outros.push(linha(icones.email, 'Email', c.email ? `<p><a href="mailto:${esc(c.email)}">${esc(c.email)}</a></p>` : `<p>${ctx.marcador('o email da loja')}</p>`));
-  if (c.instagram) outros.push(linha(icones.instagram, 'Instagram', `<p><a href="https://www.instagram.com/${esc(c.instagram)}/" target="_blank" rel="noopener">@${esc(c.instagram)}</a></p>`));
-  if (c.facebook) outros.push(linha(icones.facebook, 'Facebook', `<p><a href="https://www.facebook.com/${esc(c.facebook)}/" target="_blank" rel="noopener">${esc(ctx.site.marca)}</a></p>`));
+  const cartoes = [];
+  cartoes.push(c.whatsapp
+    ? `<li class="contacto-cartao contacto-cartao--whatsapp"><span class="contacto-cartao__icone">${icones.whatsapp}</span><h2 class="contacto-cartao__nome">WhatsApp</h2><p class="contacto-cartao__texto">É por aqui que respondemos mais depressa.</p><a class="botao botao--whatsapp" href="${ctx.whatsapp('Olá!')}" target="_blank" rel="noopener">Enviar mensagem</a></li>`
+    : `<li class="contacto-cartao"><h2 class="contacto-cartao__nome">WhatsApp</h2><p>${ctx.marcador('o número de WhatsApp')}</p></li>`);
+  if (tel) cartoes.push(`<li class="contacto-cartao"><span class="contacto-cartao__icone">${icones.telefone}</span><h2 class="contacto-cartao__nome">Telefone</h2><p class="contacto-cartao__valor"><a href="tel:+351${tel}">${esc(numeroLegivel(tel))}</a></p><p class="contacto-cartao__texto">${notaChamada(tel)}</p></li>`);
+  cartoes.push(`<li class="contacto-cartao"><span class="contacto-cartao__icone">${icones.email}</span><h2 class="contacto-cartao__nome">Email</h2><p class="contacto-cartao__valor">${c.email ? `<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>` : ctx.marcador('o email da loja')}</p></li>`);
+
+  const mapaUrl = ctx.site.local.mapa;
+  const mapa = ctx.mapaLoja
+    ? `<figure class="mapa-loja">
+      ${ctx.mapaLoja}
+      ${mapaUrl ? `<a class="mapa-loja__ligacao" href="${esc(mapaUrl)}" target="_blank" rel="noopener"><span class="mapa-loja__abrir">${icones.local}<span>Como chegar</span><span class="visualmente-escondido"> (abre o Google Maps)</span></span></a>` : ''}
+      <figcaption class="mapa-loja__credito"><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a></figcaption>
+    </figure>`
+    : (mapaUrl ? `<p><a class="botao botao--cheio" href="${esc(mapaUrl)}" target="_blank" rel="noopener">Como chegar${icones.externo}</a></p>` : '');
+
+  const redes = [];
+  if (c.instagram) redes.push(`<li><a class="pilula" href="https://www.instagram.com/${esc(c.instagram)}/" target="_blank" rel="noopener">${icones.instagram}<span>@${esc(c.instagram)}</span></a></li>`);
+  if (c.facebook) redes.push(`<li><a class="pilula" href="https://www.facebook.com/${esc(c.facebook)}/" target="_blank" rel="noopener">${icones.facebook}<span>Facebook</span></a></li>`);
   const g = ctx.site.google || {};
-  if (g.ligacao) outros.push(linha(icones.estrela, 'Opiniões', `<p><a href="${esc(g.ligacao)}" target="_blank" rel="noopener">${g.nota ? `${esc(String(g.nota).replace('.', ','))} no Google` : 'No Google'}${g.opinioes ? ` · ${g.opinioes} opiniões` : ''}</a></p>`));
-  const principal = c.whatsapp
-    ? `<section class="contacto-principal" aria-labelledby="contacto-whatsapp">
-      <span class="contacto-principal__icone">${icones.whatsapp}</span>
-      <h2 id="contacto-whatsapp">WhatsApp</h2>
-      <p>É por aqui que respondemos mais depressa.</p>
-      <a class="botao botao--whatsapp" href="${ctx.whatsapp('Olá!')}" target="_blank" rel="noopener">${icones.whatsapp}<span>Enviar uma mensagem</span></a>
-    </section>`
-    : `<section class="contacto-principal"><h2>WhatsApp</h2><p>${ctx.marcador('o número de WhatsApp')}</p></section>`;
-  const coords = (ctx.site.local.coordenadas || '').replace(/\s/g, '');
-  const mapa = coords ? fachadaMapa({ src: `https://www.google.com/maps?q=${encodeURIComponent(coords)}&hl=pt-PT&z=16&output=embed`, titulo: `Mapa: ${ctx.site.marca} em ${ctx.site.local.localidade}`, chave: 'lfmobile-mapa', textoBotao: 'Carregar o mapa (Google)', texto: 'O mapa é do Google e só carrega se o pedir.', altura: 360, classe: 'fachada-mapa', id: 'mapa', comCss: false }) : '';
+  if (g.ligacao) redes.push(`<li><a class="pilula" href="${esc(g.ligacao)}" target="_blank" rel="noopener">${icones.estrela}<span>${g.nota ? `${esc(String(g.nota).replace('.', ','))} no Google` : 'Opiniões no Google'}${g.opinioes ? ` · ${g.opinioes} opiniões` : ''}</span></a></li>`);
+
   const conteudo = `<div class="contentor contactos-pagina">
   ${cabecaDePagina(ctx, { titulo: 'Contactos' })}
-  <div class="contactos-grelha">
-    <div class="contactos-coluna">
-      ${principal}
-      <ul class="contactos-lista">${outros.join('')}</ul>
+  <ul class="contactos-cartoes">${cartoes.join('')}</ul>
+  <section class="contactos-loja" aria-labelledby="loja-titulo">
+    ${mapa}
+    <div class="contactos-loja__dados">
+      <h2 class="contactos-loja__titulo" id="loja-titulo">A loja</h2>
+      ${moradaHtml(ctx)}
+      <h3 class="contactos-loja__rotulo">Horário</h3>
+      ${horarioHtml(ctx)}
     </div>
-    <div class="contactos-coluna">
-      <section class="loja-cartao" aria-labelledby="loja-cartao-titulo">
-        <h2 id="loja-cartao-titulo">${icones.loja}A loja</h2>
-        ${moradaHtml(ctx)}
-        ${horarioHtml(ctx)}
-        <div class="loja-cartao__botoes">
-          ${ctx.site.local.mapa ? `<a class="botao botao--contorno" href="${esc(ctx.site.local.mapa)}" target="_blank" rel="noopener">Como chegar${icones.externo}</a>` : ''}
-        </div>
-      </section>
-      ${mapa}
-    </div>
-  </div>
+  </section>
+  ${redes.length ? `<ul class="contactos-redes" aria-label="Redes sociais e opiniões">${redes.join('')}</ul>` : ''}
 </div>`;
   return { caminho: '/contactos/', titulo: 'Contactos', descricao: `Fale com a ${ctx.site.marca}: WhatsApp, ${tel ? 'telefone, ' : ''}email, Instagram e Facebook. ${e.morada ? `${e.morada}, ` : ''}${ctx.site.local.localidade}, ${ctx.site.local.concelho}.`, jsonld: [m.ld, organizacao(ctx)], conteudo };
 }

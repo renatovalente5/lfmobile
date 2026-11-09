@@ -19,7 +19,7 @@ Quando faz uma encomenda no site, tratamos o nome, o email, o telemóvel, a mora
 - registar, confirmar, preparar e entregar a encomenda, e emitir a factura (fundamento: execução de um contrato e obrigação legal);
 - tratar de uma garantia, de uma desistência ou de uma reclamação (fundamento: obrigação legal).
 
-Esses dados ficam no servidor das encomendas, na Cloudflare, dentro da União Europeia. O pagamento é feito na Stripe, na página dela: a Stripe recebe o seu email e o valor, e trata os dados do cartão ou do MB WAY segundo a sua própria política; nós nunca vemos os dados do cartão. O NIF e as observações não são enviados para a Stripe.
+Esses dados ficam no servidor das encomendas, na Cloudflare, dentro da União Europeia. {{privacidade.pagamento}}
 
 ## O que tratamos quando nos contacta
 
@@ -40,13 +40,13 @@ E os fornecedores que usamos para o site, os pagamentos, os emails e as conversa
 
 {{privacidade.destinatarios}}
 
-O WhatsApp, o Instagram, o Facebook e a Stripe têm as suas próprias políticas de privacidade.
+Cada um destes serviços tem a sua própria política de privacidade.
 
 ## Redes sociais, mapa e ficheiros do site
 
 {{privacidade.frases}}
 
-O mapa da página de contactos é do Google e só carrega se carregar no botão; só aí o Google recebe o seu endereço IP.
+O mapa da página de contactos é desenhado pelo próprio site, com dados do OpenStreetMap: vê-lo não envia nada a ninguém. «Como chegar» abre o Google Maps, e só então o Google recebe o seu endereço IP.
 
 ## Ligações para outros sites
 

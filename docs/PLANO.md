@@ -114,3 +114,16 @@ com um título, uma frase, o conteúdo e uma acção principal, sem repetir o qu
 - retoma: «Algum problema?» em vez de «Funciona tudo?»; envios: três cartões (envios, levantamento,
   devoluções); encomenda: os títulos dos blocos dentro dos cartões;
 - os termos já não falam da Stripe nem do «enquanto o pagamento não estiver ligado» fora do modo certo.
+
+## 12. Os contactos e o mapa (9 nov 2026)
+
+O Renato: «Melhora a página de contactos. E o mapa demora a carregar quando abro a página, meio que já
+devia estar carregado.» O mapa do Google põe cookies e só podia carregar depois de a pessoa o pedir (o
+site não tem aviso de cookies). Passou a ser um mapa desenhado pelo próprio site: `scripts/mapa.mjs`
+faz uma consulta ao Overpass (as ruas, o rio e as zonas à volta da loja, do OpenStreetMap), desenha um
+SVG e guarda-o em `media/mapa/loja.svg`; o gerador escreve-o dentro da página. Aparece logo, não manda
+nada a ninguém e leva o crédito «© OpenStreetMap» (ODbL). Tocar no mapa abre o Google Maps («Como
+chegar»). Só se volta a correr o script se a loja mudar de sítio (`local.coordenadas`, que o painel
+não edita). A página ficou com três cartões (WhatsApp, telefone, email), a loja (o mapa, a morada e o
+horário) e as redes numa linha. As políticas de cookies e de privacidade deixaram de falar do mapa do
+Google; as frases da Stripe só aparecem com o pagamento no site ligado.
