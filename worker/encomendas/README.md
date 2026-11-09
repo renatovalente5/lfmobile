@@ -15,15 +15,18 @@ Publicado em `https://lfmobile-encomendas.renato-lima-valente-dcb.workers.dev` (
   número e a chave; em modo **online** abre a página segura da Stripe (em português) e devolve o URL.
 - `GET /encomenda?e=<id>&c=<chave>` (ou `?s=<sessão Stripe>`) — o que a página «obrigado» mostra,
   sem dados pessoais.
+- `POST /cupao` — o carrinho confere um código de cupão (os cupões vivem no KV: `cupoes.js`; o
+  contrato no §8 do `docs/ENCOMENDAS.md`).
 - `POST /stripe/webhook` — os eventos da Stripe, com assinatura verificada e idempotência por
   evento (`evt:`); um webhook que falhe a enviar emails responde 500 para a Stripe reentregar.
 - `/painel/…` com `Authorization: Bearer <PAINEL_SEGREDO>` — a lista (feita dos metadados das
   chaves do KV, sem ler cada encomenda), a ficha, mudar o estado (só as transições do painel;
   as outras dão 409), as notas, a saúde.
 
-Ficheiros: `index.js` (rotas, CORS, travão, checkout, webhook), `contas.js` (preços e
-validações), `encomenda.js` (KV, ids, estados, vistas), `catalogo.js`, `stripe.js`, `email.js` +
-`email-html.js`, `painel.js`, `http.js`. Sem dependências npm.
+Ficheiros: `index.js` (rotas, CORS, travão, checkout, cupão, webhook), `contas.js` (preços, portes
+pelo peso, modelo do telemóvel, desconto e validações), `cupoes.js` (as regras, os usos, o painel),
+`encomenda.js` (KV, ids, estados, vistas), `catalogo.js`, `stripe.js`, `email.js` + `email-html.js`,
+`painel.js`, `http.js`. Sem dependências npm.
 
 O modo vem do catálogo (`site.json` → `pagamentos.modo`); a var `MODO = "encomenda"` força o
 modo «encomenda» como travão de emergência.
@@ -38,7 +41,9 @@ Os testes cobrem as contas (promoções, acréscimos das escolhas, portes gráti
 portes `null`), as validações, a forma da encomenda no KV, os dois modos, o CORS, o travão, o
 `GET /encomenda`, as rotas do painel e as transições proibidas, o webhook (pago, Multibanco,
 expirado, reembolsado, repetido, Resend em baixo) e os emails (texto e HTML, nunca «obrigação de
-pagar»). Lêem o `_site/assets/catalogo.json` gerado, se existir; senão a cópia `test/catalogo.json`.
+pagar»), e ainda os portes da Nacex pelo peso, o modelo das películas e os cupões (a regra, o
+`/cupao`, o `/checkout` com o desconto, a Stripe, os usos e o painel). Lêem a cópia congelada
+`test/catalogo.json` (o catálogo v3), nunca o `_site/` do conteúdo de agora.
 
 Para testar em local contra o Worker a correr: `wrangler dev --config worker/encomendas/wrangler.toml`
 (arrancar, testar com `curl`, parar — um `wrangler dev` deixado a correr morre a meio de edições).
