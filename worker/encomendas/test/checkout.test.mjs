@@ -27,8 +27,10 @@ test('modo «encomenda»: regista, devolve o número e a chave, grava a encomend
   assert.equal(enc.modo, 'encomenda');
   assert.equal(enc.estado, 'registada');
   assert.equal(enc.entrega, 'levantamento');
-  assert.deepEqual(enc.linhas, [{ produto: 'fones-p9', nome: 'Auscultadores P9', qtd: 2, opcoes: [1], escolhas: ['Cor: Prateado'], unidade_cents: 5990, total_cents: 11980 }]);
+  assert.deepEqual(enc.linhas, [{ produto: 'fones-p9', nome: 'Auscultadores P9', qtd: 2, opcoes: [1], escolhas: ['Cor: Prateado'], categoria: 'audio', unidade_cents: 5990, total_cents: 11980 }]);
   assert.equal(enc.artigos_cents, 11980);
+  assert.equal(enc.peso_kg, 0.6, 'dois auscultadores de 0,3 kg');
+  assert.equal('cupao' in enc, false, 'sem cupão, sem os campos do cupão');
   assert.equal(enc.portes_cents, 0);
   assert.equal(enc.portes_por_confirmar, false);
   assert.equal(enc.total_cents, 11980);

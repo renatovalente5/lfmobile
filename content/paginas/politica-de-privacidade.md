@@ -1,6 +1,6 @@
 titulo: Política de privacidade
 descricao: Que dados pessoais tratamos, para quê e por quanto tempo: as encomendas, os pedidos de orçamento e de retoma, e o que este site guarda no seu browser.
-atualizado: 2026-11-08
+atualizado: 2026-11-09
 ---
 ## Quem trata os seus dados
 
@@ -8,9 +8,9 @@ atualizado: 2026-11-08
 
 ## O que este site guarda no seu browser
 
-**O carrinho** (os artigos, as escolhas e a entrega) fica guardado no armazenamento local do seu browser, para não se perder se fechar a página. Não sai do seu aparelho e apaga-se ao esvaziar o carrinho ou ao limpar os dados do site no browser.
+**O carrinho** (os artigos, as escolhas, o modelo do telemóvel nas películas, a entrega e o código do cupão) fica guardado no armazenamento local do seu browser, para não se perder se fechar a página. Não sai do seu aparelho e apaga-se ao esvaziar o carrinho ou ao limpar os dados do site no browser.
 
-Os pedidos de orçamento e de retoma não ficam guardados neste site: o que escreve nesses formulários serve apenas para compor a mensagem, no seu próprio aparelho, e passa para o WhatsApp quando carrega no botão. É você que a envia.
+Os pedidos de reparação e a simulação da retoma não ficam guardados neste site: o que escolhe e escreve serve apenas para compor a mensagem, no seu próprio aparelho, e passa para o WhatsApp quando carrega no botão. É você que a envia.
 
 ## O que tratamos numa encomenda
 
@@ -19,7 +19,7 @@ Quando faz uma encomenda no site, tratamos o nome, o email, o telemóvel, a mora
 - registar, confirmar, preparar e entregar a encomenda, e emitir a factura (fundamento: execução de um contrato e obrigação legal);
 - tratar de uma garantia, de uma desistência ou de uma reclamação (fundamento: obrigação legal).
 
-Esses dados ficam no servidor das encomendas, na Cloudflare, dentro da União Europeia. {{privacidade.pagamento}}
+Esses dados ficam no servidor das encomendas, na Cloudflare, dentro da União Europeia. Quando usa um cupão que só vale uma vez por cliente, guardamos também um código feito a partir do seu email (e não o email), para saber que já foi usado. {{privacidade.pagamento}}
 
 ## O que tratamos quando nos contacta
 
@@ -50,7 +50,7 @@ O mapa da página de contactos é desenhado pelo próprio site, com dados do Ope
 
 ## Ligações para outros sites
 
-As ligações para o Instagram, o Facebook, o WhatsApp, o Google e a DIGI levam a sites que não são nossos. Este site não carrega nada deles enquanto não carregar numa ligação ou num botão.
+As ligações para o Instagram, o Facebook, o WhatsApp e o Google levam a sites que não são nossos. Este site não carrega nada deles enquanto não carregar numa ligação ou num botão.
 
 ## Os seus direitos
 

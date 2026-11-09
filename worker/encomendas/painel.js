@@ -7,6 +7,9 @@
  *   GET  /painel/encomendas/<id>
  *   POST /painel/encomendas/<id>/estado   { estado, nota?, por, avisar? }
  *   POST /painel/encomendas/<id>/nota     { texto, por }
+ *   GET    /painel/cupoes                 os cupões, com os usos
+ *   PUT    /painel/cupoes/<CÓDIGO>        cria ou muda um cupão (a regra: cupoes.js, validarRegra)
+ *   DELETE /painel/cupoes/<CÓDIGO>        apaga um cupão (as encomendas que o usaram ficam como estão)
  */
 
 import { json, lerCorpoJson } from './http.js';
@@ -14,6 +17,7 @@ import { lerEncomenda, gravarEncomenda, mudarEstado, razaoParaNao, resumoDeMetad
 import { lerCatalogo, modoDe } from './catalogo.js';
 import { avisar } from './email.js';
 import { limpar } from './contas.js';
+import { listarCupoes, validarRegra, gravarCupao, apagarCupao, normalizarCodigo } from './cupoes.js';
 
 const POR_PAGINA = 200;
 /* As transições do painel que avisam o cliente (§6). «levantada» não manda nada. */
@@ -27,6 +31,9 @@ export async function rotaPainel(request, env, url, caminho) {
   const resto = caminho.slice('/painel'.length);
   if (resto === '/saude') return request.method === 'GET' ? saude(env) : json({ erro: 'Método não permitido.' }, 405);
   if (resto === '/encomendas') return request.method === 'GET' ? listar(env, url) : json({ erro: 'Método não permitido.' }, 405);
+  if (resto === '/cupoes') return request.method === 'GET' ? json({ cupoes: await listarCupoes(env) }) : json({ erro: 'Método não permitido.' }, 405);
+  const rc = /^\/cupoes\/([^/]+)$/.exec(resto);
+  if (rc) return cupao(request, env, decodeURIComponent(rc[1]));
   const r = /^\/encomendas\/([^/]+)(?:\/(estado|nota))?$/.exec(resto);
   if (!r) return json({ erro: 'Rota desconhecida.' }, 404);
   const id = r[1];
@@ -38,6 +45,22 @@ export async function rotaPainel(request, env, url, caminho) {
   }
   if (request.method !== 'POST') return json({ erro: 'Método não permitido.' }, 405);
   return r[2] === 'estado' ? mudar(request, env, id) : anotar(request, env, id);
+}
+
+/* ---------------------------------------------------------------- os cupões */
+
+async function cupao(request, env, codigoUrl) {
+  const codigo = normalizarCodigo(codigoUrl);
+  if (!codigo) return json({ erro: 'Código inválido.' }, 404);
+  if (request.method === 'DELETE') return (await apagarCupao(env, codigo)) ? json({ ok: true }) : json({ erro: 'Cupão não encontrado.' }, 404);
+  if (request.method !== 'PUT') return json({ erro: 'Método não permitido.' }, 405);
+  const { corpo, resposta } = await lerCorpoJson(request);
+  if (resposta) return resposta;
+  let categorias = null;
+  try { const cat = await lerCatalogo(env); if (Array.isArray(cat.categorias)) categorias = cat.categorias.map((k) => k.slug); } catch (_) { /* sem catálogo, não se confere a lista */ }
+  const r = validarRegra({ ...corpo, codigo }, { categorias });
+  if (r.erro) return json({ erro: r.erro, campo: r.campo }, 400);
+  return json(await gravarCupao(env, r.regra));
 }
 
 /* ---------------------------------------------------------------- saúde */

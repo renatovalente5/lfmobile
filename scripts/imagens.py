@@ -4,6 +4,11 @@
 Lê:
   media/fotos/*.jpg        as fotografias (cada uma tem de estar em content/fotos.json, com o
                            texto alternativo e o ponto de foco)
+  media/recortes/*.png     o RECORTE de uma fotografia (o mesmo nome, sem o fundo, com
+                           transparência): os cartões da loja mostram-no num fundo claro igual
+                           para todos, como numa loja de electrónica. Feito no Mac (o «isolar
+                           objecto» do macOS, scripts/recortar.swift) ou desenhado; uma
+                           fotografia sem recorte aparece inteira.
   media/video/*.jpg        a imagem de capa de cada vídeo
   media/marca/logo.png     o logótipo, com transparência (o PNG «sem fundo» da própria LF Mobile)
   content/produtos/*.json  para saber a primeira fotografia de cada artigo (o cartão de partilha)
@@ -26,6 +31,7 @@ from PIL import Image, ImageOps, features
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 FOTOS = os.path.join(RAIZ, 'media', 'fotos')
+RECORTES = os.path.join(RAIZ, 'media', 'recortes')
 VIDEO = os.path.join(RAIZ, 'media', 'video')
 CAPA = os.path.join(RAIZ, 'media', 'capa')
 MARCA = os.path.join(RAIZ, 'media', 'marca')
@@ -40,6 +46,7 @@ PARTILHA = (1200, 630)
 FUNDO = (255, 255, 255)          # o branco do site: o logótipo é preto e assenta em branco
 FORMATOS = ('avif', 'webp') if features.check('avif') else ('webp',)
 VERSAO = f'v2-lf-{LARGURAS}-{QUALIDADE_AVIF}-{QUALIDADE_WEBP}-{PARTILHA}'
+LARGURAS_RECORTE = [240, 360, 480, 720, 960]
 
 
 def resumo(*caminhos, extra=''):
@@ -69,6 +76,21 @@ def guardar(im, destino, formato):
     else:
         im.save(tmp, 'JPEG', quality=84, optimize=True, progressive=True)
     os.replace(tmp, destino)
+
+
+def versoes_recorte(nome, origem):
+    """O recorte (PNG com transparência) em WebP e AVIF, com a transparência, nas larguras dos
+    cartões e da ficha (nunca se aumenta)."""
+    im = abrir(origem).convert('RGBA')
+    h = resumo(origem, extra='recorte')
+    larguras = [w for w in LARGURAS_RECORTE if w < im.width] + [im.width]
+    for w in larguras:
+        alto = round(im.height * w / im.width)
+        reduzida = im if w == im.width else im.resize((w, alto), Image.LANCZOS)
+        for fmt in FORMATOS:
+            guardar(reduzida, os.path.join(CACHE, f'recorte-{nome}-{h}-{w}.{fmt}'), fmt)
+    return {'largura': im.width, 'altura': im.height, 'resumo': h, 'larguras': larguras,
+            'formatos': list(FORMATOS)}
 
 
 def versoes(nome, origem):
@@ -109,22 +131,29 @@ def para_o_painel(nome, origem, tipo):
     return os.path.basename(destino)
 
 
-def cartao_produto(nome, origem):
-    """Cartão de partilha de um artigo: a fotografia num quadrado ao centro, sobre branco.
-    O WhatsApp mostra a miniatura QUADRADA e cortada ao centro (x 285–915 num 1200×630): o
-    artigo tem de caber aí inteiro."""
-    h = resumo(origem, __file__, extra='cartao')
+def cartao_produto(nome, origem, recorte=None):
+    """Cartão de partilha de um artigo: a fotografia num quadrado ao centro, sobre branco — ou,
+    havendo o recorte, o artigo sem fundo ao centro do quadrado. O WhatsApp mostra a miniatura
+    QUADRADA e cortada ao centro (x 285–915 num 1200×630): o artigo tem de caber aí inteiro."""
+    h = resumo(*([origem, recorte] if recorte else [origem]), __file__, extra='cartao')
     destino = os.path.join(CACHE, f'{nome}-{h}-partilha.jpg')
     if not os.path.exists(destino):
-        im = abrir(origem).convert('RGB')
         lado = PARTILHA[1]
-        # corta ao centro um quadrado e reduz a 630×630
-        menor = min(im.width, im.height)
-        x = (im.width - menor) // 2
-        y = (im.height - menor) // 2
-        quadrado = im.crop((x, y, x + menor, y + menor)).resize((lado, lado), Image.LANCZOS)
         cartao = Image.new('RGB', PARTILHA, FUNDO)
-        cartao.paste(quadrado, ((PARTILHA[0] - lado) // 2, 0))
+        if recorte:
+            r = abrir(recorte).convert('RGBA')
+            r.thumbnail((round(lado * 0.86), round(lado * 0.86)), Image.LANCZOS)
+            fundo = Image.new('RGBA', PARTILHA, FUNDO + (255,))
+            fundo.alpha_composite(r, ((PARTILHA[0] - r.width) // 2, (lado - r.height) // 2))
+            cartao = fundo.convert('RGB')
+        else:
+            im = abrir(origem).convert('RGB')
+            # corta ao centro um quadrado e reduz a 630×630
+            menor = min(im.width, im.height)
+            x = (im.width - menor) // 2
+            y = (im.height - menor) // 2
+            quadrado = im.crop((x, y, x + menor, y + menor)).resize((lado, lado), Image.LANCZOS)
+            cartao.paste(quadrado, ((PARTILHA[0] - lado) // 2, 0))
         guardar(cartao, destino, 'jpg')
     return os.path.basename(destino)
 
@@ -222,7 +251,7 @@ def principal():
         print('fotografias conferidas:', len(json.load(open(INDICE, encoding='utf-8'))))
         return
     os.makedirs(CACHE, exist_ok=True)
-    manifesto = {'fotos': {}, 'posters': {}, 'capa': {}, 'partilha': {}, 'logo': None}
+    manifesto = {'fotos': {}, 'recortes': {}, 'posters': {}, 'capa': {}, 'partilha': {}, 'logo': None}
     origens = {}
     for f in sorted(os.listdir(FOTOS)):
         nome, ext = os.path.splitext(f)
@@ -231,6 +260,13 @@ def principal():
         origens[nome] = os.path.join(FOTOS, f)
         manifesto['fotos'][nome] = versoes(nome, origens[nome])
         manifesto['fotos'][nome]['painel'] = [para_o_painel(nome, origens[nome], t) for t in PAINEL]
+    # os recortes: só os de uma fotografia que existe (o mesmo nome)
+    recortes = {}
+    for f in sorted(glob.glob(os.path.join(RECORTES, '*.png'))):
+        nome = os.path.splitext(os.path.basename(f))[0]
+        if nome in origens:
+            recortes[nome] = f
+            manifesto['recortes'][nome] = versoes_recorte(nome, f)
     for f in sorted(glob.glob(os.path.join(VIDEO, '*.jpg'))):
         nome = 'video-' + os.path.splitext(os.path.basename(f))[0]
         manifesto['posters'][nome] = versoes(nome, f)
@@ -244,7 +280,7 @@ def principal():
         p = json.load(open(f, encoding='utf-8'))
         fotos = p.get('fotos') or []
         if fotos and fotos[0] in origens:
-            manifesto['partilha'][slug] = cartao_produto(slug, origens[fotos[0]])
+            manifesto['partilha'][slug] = cartao_produto(slug, origens[fotos[0]], recortes.get(fotos[0]))
     logo = os.path.join(MARCA, 'logo.png')
     if os.path.exists(logo):
         manifesto['logo'] = logotipo(logo)
@@ -256,6 +292,10 @@ def principal():
             for w in d['larguras']:
                 for fmt in d['formatos']:
                     vivos.add(f'{nome}-{d["resumo"]}-{w}.{fmt}')
+    for nome, d in manifesto['recortes'].items():
+        for w in d['larguras']:
+            for fmt in d['formatos']:
+                vivos.add(f'recorte-{nome}-{d["resumo"]}-{w}.{fmt}')
     vivos.update(manifesto['partilha'].values())
     for d in manifesto['fotos'].values():
         for f in d['painel']:
@@ -269,7 +309,7 @@ def principal():
             os.remove(os.path.join(CACHE, f))
     with open(os.path.join(CACHE, 'manifesto.json'), 'w', encoding='utf-8') as f:
         json.dump(manifesto, f, ensure_ascii=False, indent=1)
-    print(f'imagens: {len(manifesto["fotos"])} fotografias, {len(manifesto["posters"])} capas de vídeo, '
+    print(f'imagens: {len(manifesto["fotos"])} fotografias, {len(manifesto["recortes"])} recortes, {len(manifesto["posters"])} capas de vídeo, '
           f'{len(manifesto["capa"])} imagens do filme da capa, {len(manifesto["partilha"])} cartões de partilha')
 
 

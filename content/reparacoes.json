@@ -1,0 +1,1276 @@
+{
+  "confirmado": false,
+  "tipos": [
+    {
+      "id": "ecra",
+      "nome": "Ecrã",
+      "titulo": "Substituição do ecrã",
+      "icone": "ecra",
+      "resumo": "Vidro partido, riscas, manchas ou um toque que já não responde.",
+      "sintomas": [
+        "Vidro estalado ou partido",
+        "Riscas, manchas ou pontos pretos",
+        "Ecrã preto ou a piscar",
+        "Toque que não responde ou toca sozinho"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note",
+        "ipad",
+        "galaxy-tab",
+        "apple-watch",
+        "galaxy-watch"
+      ],
+      "niveis": [
+        {
+          "id": "compativel",
+          "nome": "Ecrã compatível",
+          "texto": "Boa qualidade de imagem e de toque, ao melhor preço."
+        },
+        {
+          "id": "original",
+          "nome": "Ecrã original",
+          "texto": "A peça da marca, com as cores e o brilho de origem."
+        }
+      ],
+      "foto": "reparacao-ecra-iphone"
+    },
+    {
+      "id": "bateria",
+      "nome": "Bateria",
+      "titulo": "Troca da bateria",
+      "icone": "bateria",
+      "resumo": "Não chega ao fim do dia, desliga sozinho ou está inchada.",
+      "sintomas": [
+        "Descarrega depressa",
+        "Desliga-se com bateria",
+        "Aviso de manutenção da bateria",
+        "Bateria inchada (o ecrã ou a traseira levantam)"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note",
+        "ipad",
+        "galaxy-tab",
+        "apple-watch",
+        "galaxy-watch"
+      ]
+    },
+    {
+      "id": "traseira",
+      "nome": "Traseira",
+      "titulo": "Vidro ou tampa traseira",
+      "icone": "traseira",
+      "resumo": "Vidro de trás estilhaçado ou tampa partida.",
+      "sintomas": [
+        "Vidro traseiro estalado",
+        "Pedaços de vidro a soltar-se",
+        "Tampa partida ou descolada"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note"
+      ],
+      "foto": "reparacao-vidro-traseiro-iphone"
+    },
+    {
+      "id": "camara-traseira",
+      "nome": "Câmara traseira",
+      "titulo": "Câmara traseira",
+      "icone": "camara",
+      "resumo": "Fotografias desfocadas, a tremer, ou a câmara não abre.",
+      "sintomas": [
+        "Fotografias desfocadas ou manchadas",
+        "A câmara treme ou faz ruído",
+        "Ecrã preto ao abrir a câmara"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note",
+        "ipad",
+        "galaxy-tab"
+      ]
+    },
+    {
+      "id": "camara-frontal",
+      "nome": "Câmara frontal",
+      "titulo": "Câmara frontal",
+      "icone": "camara-frontal",
+      "resumo": "As selfies e as videochamadas não funcionam bem.",
+      "sintomas": [
+        "Selfies desfocadas",
+        "Câmara frontal preta",
+        "Videochamadas sem imagem"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note",
+        "ipad",
+        "galaxy-tab"
+      ]
+    },
+    {
+      "id": "vidro-camara",
+      "nome": "Vidro da câmara",
+      "titulo": "Vidro da câmara",
+      "icone": "lente",
+      "resumo": "O vidro que tapa as lentes está partido ou riscado.",
+      "sintomas": [
+        "Vidro das lentes estalado",
+        "Fotografias com manchas ou reflexos"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note"
+      ]
+    },
+    {
+      "id": "conector",
+      "nome": "Carregamento",
+      "titulo": "Porta de carregamento",
+      "icone": "conector",
+      "resumo": "Só carrega com o cabo torto, ou já não carrega.",
+      "sintomas": [
+        "Não carrega ou carrega devagar",
+        "O cabo fica solto",
+        "O computador não reconhece o telemóvel"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note",
+        "ipad",
+        "galaxy-tab"
+      ]
+    },
+    {
+      "id": "botoes",
+      "nome": "Botões",
+      "titulo": "Botões",
+      "icone": "botoes",
+      "resumo": "Botão de ligar, do volume ou de silêncio que não responde.",
+      "sintomas": [
+        "Botão preso ou afundado",
+        "Não liga nem desliga pelo botão",
+        "Volume que não muda"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note",
+        "ipad",
+        "galaxy-tab"
+      ]
+    },
+    {
+      "id": "som",
+      "nome": "Som",
+      "titulo": "Altifalante e microfone",
+      "icone": "som",
+      "resumo": "Não se ouve bem nas chamadas, ou do outro lado não o ouvem.",
+      "sintomas": [
+        "Som baixo ou rouco",
+        "Não se ouve nas chamadas",
+        "Do outro lado não o ouvem"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note",
+        "ipad",
+        "galaxy-tab"
+      ]
+    },
+    {
+      "id": "face-id",
+      "nome": "Face ID",
+      "titulo": "Face ID",
+      "icone": "rosto",
+      "resumo": "O iPhone já não o reconhece pela cara.",
+      "sintomas": [
+        "«O Face ID não está disponível»",
+        "Não configura o Face ID"
+      ],
+      "familias": [
+        "iphone"
+      ],
+      "excluir": [
+        "iphone-8",
+        "iphone-8-plus",
+        "iphone-se-2020",
+        "iphone-se-2022"
+      ]
+    },
+    {
+      "id": "liquidos",
+      "nome": "Líquidos",
+      "titulo": "Danos por líquidos",
+      "icone": "agua",
+      "resumo": "Caiu à água? Desligue-o e traga-o quanto antes.",
+      "sintomas": [
+        "Não liga depois de molhar",
+        "Manchas no ecrã",
+        "Som abafado ou sem carregar"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note",
+        "ipad",
+        "galaxy-tab",
+        "apple-watch",
+        "galaxy-watch"
+      ],
+      "orcamento": true
+    },
+    {
+      "id": "software",
+      "nome": "Software e dados",
+      "titulo": "Software e dados",
+      "icone": "software",
+      "resumo": "Lento, bloqueado, a reiniciar, ou quer passar os dados para outro.",
+      "sintomas": [
+        "Fica preso no logótipo",
+        "Reinicia sozinho",
+        "Passar fotografias e contactos para um telemóvel novo"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note",
+        "ipad",
+        "galaxy-tab",
+        "apple-watch",
+        "galaxy-watch"
+      ]
+    },
+    {
+      "id": "diagnostico",
+      "nome": "Diagnóstico",
+      "titulo": "Diagnóstico",
+      "icone": "diagnostico",
+      "resumo": "Não sabe o que tem? Vemos e dizemos-lhe o que é e quanto custa.",
+      "sintomas": [
+        "Avaria que não sabe explicar",
+        "Mais do que um problema ao mesmo tempo"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note",
+        "ipad",
+        "galaxy-tab",
+        "apple-watch",
+        "galaxy-watch"
+      ],
+      "gratis": true
+    }
+  ],
+  "precos": {
+    "iphone-17-pro-max": {
+      "ecra": {
+        "compativel": 406,
+        "original": 634
+      },
+      "bateria": 119.95,
+      "traseira": 169.95,
+      "camara-frontal": 39.95,
+      "som": 139.95,
+      "software": 24.95
+    },
+    "iphone-17-pro": {
+      "ecra": {
+        "compativel": 376
+      },
+      "traseira": 169.95,
+      "camara-frontal": 39.95,
+      "som": 139.95,
+      "software": 24.95
+    },
+    "iphone-air": {
+      "ecra": {
+        "compativel": 357
+      },
+      "traseira": 169.95,
+      "camara-frontal": 39.95,
+      "som": 149.95,
+      "software": 24.95
+    },
+    "iphone-17": {
+      "ecra": {
+        "compativel": 306
+      },
+      "bateria": 119.95,
+      "traseira": 169.95,
+      "camara-frontal": 39.95,
+      "conector": 139.95,
+      "som": 139.95,
+      "software": 24.95
+    },
+    "iphone-16e": {
+      "ecra": {
+        "compativel": 152
+      },
+      "bateria": 99.95,
+      "traseira": 199.95,
+      "camara-frontal": 39.95,
+      "conector": 129.95,
+      "som": 129.95,
+      "software": 24.95
+    },
+    "iphone-16-pro-max": {
+      "ecra": {
+        "compativel": 315
+      },
+      "bateria": 99.95,
+      "traseira": 399.95,
+      "camara-frontal": 39.95,
+      "conector": 139.95,
+      "botoes": 139.95,
+      "som": 129.95,
+      "software": 24.95
+    },
+    "iphone-16-pro": {
+      "ecra": {
+        "compativel": 263
+      },
+      "bateria": 99.95,
+      "traseira": 359.95,
+      "camara-frontal": 39.95,
+      "conector": 129.95,
+      "botoes": 149.95,
+      "som": 129.95,
+      "software": 24.95
+    },
+    "iphone-16-plus": {
+      "ecra": {
+        "compativel": 234
+      },
+      "bateria": 99.95,
+      "traseira": 329.95,
+      "camara-frontal": 39.95,
+      "conector": 129.95,
+      "botoes": 139.95,
+      "som": 129.95,
+      "software": 24.95
+    },
+    "iphone-16": {
+      "ecra": {
+        "compativel": 215
+      },
+      "bateria": 99.95,
+      "traseira": 279.95,
+      "camara-frontal": 39.95,
+      "conector": 129.95,
+      "botoes": 139.95,
+      "som": 129.95,
+      "software": 24.95
+    },
+    "iphone-15-pro-max": {
+      "ecra": {
+        "compativel": 225,
+        "original": 529
+      },
+      "bateria": 89.95,
+      "traseira": 259.95,
+      "camara-frontal": 39.95,
+      "conector": 119.95,
+      "botoes": 129.95,
+      "som": 119.95,
+      "software": 24.95
+    },
+    "iphone-15-pro": {
+      "ecra": {
+        "compativel": 205,
+        "original": 458
+      },
+      "bateria": 89.95,
+      "traseira": 269.95,
+      "camara-frontal": 39.95,
+      "conector": 119.95,
+      "botoes": 129.95,
+      "som": 119.95,
+      "software": 24.95
+    },
+    "iphone-15-plus": {
+      "ecra": {
+        "compativel": 197,
+        "original": 309
+      },
+      "bateria": 89.95,
+      "traseira": 259.95,
+      "camara-frontal": 39.95,
+      "conector": 119.95,
+      "botoes": 119.95,
+      "som": 119.95,
+      "software": 24.95
+    },
+    "iphone-15": {
+      "ecra": {
+        "compativel": 186,
+        "original": 305
+      },
+      "bateria": 89.95,
+      "traseira": 229.95,
+      "camara-frontal": 39.95,
+      "conector": 119.95,
+      "botoes": 119.95,
+      "som": 119.95,
+      "software": 24.95
+    },
+    "iphone-14-pro-max": {
+      "ecra": {
+        "compativel": 196,
+        "original": 422
+      },
+      "bateria": 79.95,
+      "traseira": 249.95,
+      "camara-frontal": 39.95,
+      "conector": 119.95,
+      "botoes": 34.95,
+      "som": 109.95,
+      "software": 24.95
+    },
+    "iphone-14-pro": {
+      "ecra": {
+        "compativel": 193,
+        "original": 348
+      },
+      "bateria": 79.95,
+      "traseira": 249.95,
+      "camara-frontal": 39.95,
+      "conector": 119.95,
+      "botoes": 34.95,
+      "som": 109.95,
+      "software": 24.95
+    },
+    "iphone-14-plus": {
+      "ecra": {
+        "compativel": 172,
+        "original": 287
+      },
+      "bateria": 79.95,
+      "traseira": 199.95,
+      "camara-frontal": 39.95,
+      "conector": 109.95,
+      "botoes": 109.95,
+      "som": 109.95,
+      "software": 24.95
+    },
+    "iphone-14": {
+      "ecra": {
+        "compativel": 149,
+        "original": 214
+      },
+      "bateria": 79.95,
+      "traseira": 219.95,
+      "camara-frontal": 39.95,
+      "conector": 109.95,
+      "botoes": 109.95,
+      "som": 109.95,
+      "software": 24.95
+    },
+    "iphone-se-2022": {
+      "ecra": {
+        "compativel": 77
+      },
+      "bateria": 49.95,
+      "traseira": 99.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "som": 59.95,
+      "software": 24.95
+    },
+    "iphone-13-pro-max": {
+      "ecra": {
+        "compativel": 165,
+        "original": 327
+      },
+      "bateria": 69.95,
+      "traseira": 239.95,
+      "camara-frontal": 39.95,
+      "conector": 109.95,
+      "botoes": 99.95,
+      "som": 89.95,
+      "software": 24.95
+    },
+    "iphone-13-pro": {
+      "ecra": {
+        "compativel": 157,
+        "original": 306
+      },
+      "bateria": 69.95,
+      "traseira": 239.95,
+      "camara-frontal": 39.95,
+      "conector": 109.95,
+      "botoes": 99.95,
+      "som": 89.95,
+      "software": 24.95
+    },
+    "iphone-13": {
+      "ecra": {
+        "compativel": 138,
+        "original": 203
+      },
+      "bateria": 69.95,
+      "traseira": 199.95,
+      "camara-frontal": 79.95,
+      "conector": 109.95,
+      "botoes": 89.95,
+      "som": 89.95,
+      "software": 24.95
+    },
+    "iphone-13-mini": {
+      "ecra": {
+        "compativel": 140,
+        "original": 201
+      },
+      "bateria": 69.95,
+      "traseira": 179.95,
+      "camara-frontal": 39.95,
+      "conector": 99.95,
+      "botoes": 89.95,
+      "som": 89.95,
+      "software": 24.95
+    },
+    "iphone-12-pro-max": {
+      "ecra": {
+        "compativel": 141,
+        "original": 250
+      },
+      "bateria": 59.95,
+      "traseira": 199.95,
+      "camara-frontal": 39.95,
+      "conector": 99.95,
+      "botoes": 79.95,
+      "som": 79.95,
+      "face-id": 249.95,
+      "software": 24.95
+    },
+    "iphone-12-pro": {
+      "ecra": {
+        "compativel": 130,
+        "original": 180
+      },
+      "bateria": 59.95,
+      "traseira": 199.95,
+      "camara-frontal": 39.95,
+      "conector": 99.95,
+      "botoes": 129.95,
+      "som": 79.95,
+      "face-id": 249.95,
+      "software": 24.95
+    },
+    "iphone-12": {
+      "ecra": {
+        "compativel": 130,
+        "original": 180
+      },
+      "bateria": 59.95,
+      "traseira": 169.95,
+      "camara-frontal": 39.95,
+      "conector": 99.95,
+      "botoes": 129.95,
+      "som": 79.95,
+      "face-id": 249.95,
+      "software": 24.95
+    },
+    "iphone-12-mini": {
+      "ecra": {
+        "compativel": 135,
+        "original": 189
+      },
+      "bateria": 59.95,
+      "traseira": 159.95,
+      "camara-frontal": 39.95,
+      "conector": 89.95,
+      "botoes": 129.95,
+      "som": 79.95,
+      "face-id": 249.95,
+      "software": 24.95
+    },
+    "iphone-se-2020": {
+      "ecra": {
+        "compativel": 77
+      },
+      "bateria": 49.95,
+      "traseira": 99.95,
+      "camara-frontal": 49.95,
+      "conector": 53.95,
+      "botoes": 49.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "iphone-11-pro-max": {
+      "ecra": {
+        "compativel": 120,
+        "original": 186
+      },
+      "bateria": 59.95,
+      "traseira": 139.95,
+      "camara-frontal": 39.95,
+      "conector": 79.95,
+      "botoes": 69.95,
+      "som": 69.95,
+      "face-id": 199.95,
+      "software": 24.95
+    },
+    "iphone-11-pro": {
+      "ecra": {
+        "compativel": 114,
+        "original": 142
+      },
+      "bateria": 59.95,
+      "traseira": 139.95,
+      "camara-frontal": 39.95,
+      "conector": 79.95,
+      "botoes": 69.95,
+      "som": 69.95,
+      "face-id": 199.95,
+      "software": 24.95
+    },
+    "iphone-11": {
+      "ecra": {
+        "compativel": 94,
+        "original": 129
+      },
+      "bateria": 59.95,
+      "traseira": 119.95,
+      "camara-frontal": 39.95,
+      "conector": 69.95,
+      "botoes": 69.95,
+      "som": 69.95,
+      "face-id": 199.95,
+      "software": 24.95
+    },
+    "iphone-xs-max": {
+      "ecra": {
+        "compativel": 102
+      },
+      "bateria": 59.95,
+      "traseira": 119.95,
+      "camara-frontal": 49.95,
+      "conector": 69.95,
+      "botoes": 69.95,
+      "som": 59.95,
+      "face-id": 149.95,
+      "software": 24.95
+    },
+    "iphone-xs": {
+      "ecra": {
+        "compativel": 95
+      },
+      "bateria": 59.95,
+      "traseira": 109.95,
+      "camara-frontal": 39.95,
+      "conector": 69.95,
+      "botoes": 69.95,
+      "som": 59.95,
+      "face-id": 149.95,
+      "software": 24.95
+    },
+    "iphone-xr": {
+      "ecra": {
+        "compativel": 84,
+        "original": 109
+      },
+      "bateria": 49.95,
+      "traseira": 99.95,
+      "camara-frontal": 39.95,
+      "conector": 69.95,
+      "botoes": 59.95,
+      "som": 49.95,
+      "face-id": 149.95,
+      "software": 24.95
+    },
+    "iphone-x": {
+      "ecra": {
+        "compativel": 90
+      },
+      "bateria": 49.95,
+      "traseira": 109.95,
+      "camara-frontal": 39.95,
+      "conector": 69.95,
+      "botoes": 59.95,
+      "som": 49.95,
+      "face-id": 149.95,
+      "software": 24.95
+    },
+    "iphone-8-plus": {
+      "ecra": {
+        "compativel": 73
+      },
+      "bateria": 49.95,
+      "traseira": 99.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "botoes": 59.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "iphone-8": {
+      "ecra": {
+        "compativel": 77
+      },
+      "bateria": 49.95,
+      "traseira": 99.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "botoes": 49.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "galaxy-s26-ultra": {
+      "ecra": {
+        "compativel": 277
+      }
+    },
+    "galaxy-s26-plus": {
+      "ecra": {
+        "compativel": 207
+      }
+    },
+    "galaxy-s26": {
+      "ecra": {
+        "compativel": 157
+      }
+    },
+    "galaxy-s25-ultra": {
+      "ecra": {
+        "compativel": 323
+      },
+      "bateria": 79.95,
+      "traseira": 119.95,
+      "camara-frontal": 129.95,
+      "conector": 79.95,
+      "software": 24.95
+    },
+    "galaxy-s25-edge": {
+      "ecra": {
+        "compativel": 308
+      }
+    },
+    "galaxy-s25-plus": {
+      "ecra": {
+        "compativel": 258
+      },
+      "bateria": 69.95,
+      "traseira": 119.95,
+      "camara-frontal": 39.95,
+      "conector": 79.95,
+      "software": 24.95
+    },
+    "galaxy-s25": {
+      "ecra": {
+        "compativel": 226
+      },
+      "bateria": 69.95,
+      "traseira": 119.95,
+      "camara-frontal": 129.95,
+      "conector": 79.95,
+      "software": 24.95
+    },
+    "galaxy-s25-fe": {
+      "ecra": {
+        "compativel": 198
+      },
+      "conector": 49.95
+    },
+    "galaxy-s24-ultra": {
+      "ecra": {
+        "compativel": 332
+      },
+      "bateria": 59.95,
+      "traseira": 99.95,
+      "camara-frontal": 39.95,
+      "conector": 69.95,
+      "som": 69.95,
+      "software": 24.95
+    },
+    "galaxy-s24-plus": {
+      "ecra": {
+        "compativel": 206
+      },
+      "bateria": 59.95,
+      "som": 69.95,
+      "software": 24.95
+    },
+    "galaxy-s24": {
+      "ecra": {
+        "compativel": 167
+      },
+      "bateria": 49.95,
+      "traseira": 99.95,
+      "camara-frontal": 39.95,
+      "conector": 69.95,
+      "som": 69.95,
+      "software": 24.95
+    },
+    "galaxy-s24-fe": {
+      "ecra": {
+        "compativel": 167
+      },
+      "bateria": 69.95
+    },
+    "galaxy-s23-ultra": {
+      "ecra": {
+        "compativel": 335
+      },
+      "bateria": 49.95,
+      "traseira": 89.95,
+      "camara-frontal": 39.95,
+      "conector": 69.95,
+      "software": 24.95
+    },
+    "galaxy-s23-plus": {
+      "ecra": {
+        "compativel": 243
+      },
+      "bateria": 49.95,
+      "traseira": 89.95,
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "galaxy-s23": {
+      "ecra": {
+        "compativel": 230
+      },
+      "bateria": 49.95,
+      "traseira": 89.95,
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "galaxy-s23-fe": {
+      "ecra": {
+        "compativel": 174
+      },
+      "bateria": 59.95,
+      "software": 24.95
+    },
+    "galaxy-s22-ultra": {
+      "ecra": {
+        "compativel": 313
+      },
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "camara-frontal": 39.95,
+      "conector": 59.95,
+      "som": 59.95,
+      "software": 24.95
+    },
+    "galaxy-s22-plus": {
+      "ecra": {
+        "compativel": 242
+      },
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "som": 59.95,
+      "software": 24.95
+    },
+    "galaxy-s22": {
+      "ecra": {
+        "compativel": 241
+      },
+      "bateria": 59.95,
+      "traseira": 79.95,
+      "software": 24.95
+    },
+    "galaxy-s21-ultra": {
+      "ecra": {
+        "compativel": 313
+      },
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "som": 49.95,
+      "software": 24.95
+    },
+    "galaxy-s21-plus": {
+      "ecra": {
+        "compativel": 247
+      },
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "camara-frontal": 39.95,
+      "conector": 69.95,
+      "software": 24.95
+    },
+    "galaxy-s21": {
+      "ecra": {
+        "compativel": 232
+      },
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "galaxy-s21-fe": {
+      "ecra": {
+        "compativel": 190
+      },
+      "bateria": 49.95,
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "galaxy-s20-ultra": {
+      "ecra": {
+        "compativel": 269
+      },
+      "bateria": 49.95,
+      "camara-traseira": 149.95,
+      "conector": 79.95,
+      "som": 59.95,
+      "software": 24.95
+    },
+    "galaxy-s20-plus": {
+      "ecra": {
+        "compativel": 248
+      },
+      "bateria": 49.95,
+      "traseira": 89.95,
+      "camara-traseira": 149.95,
+      "conector": 69.95,
+      "software": 24.95
+    },
+    "galaxy-s20": {
+      "ecra": {
+        "compativel": 246
+      },
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "camara-frontal": 69.95,
+      "conector": 59.95,
+      "software": 24.95
+    },
+    "galaxy-s20-fe": {
+      "ecra": {
+        "compativel": 164
+      },
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "camara-frontal": 39.95,
+      "conector": 59.95,
+      "botoes": 34.95,
+      "som": 49.95,
+      "software": 24.95
+    },
+    "galaxy-z-flip6": {
+      "ecra": {
+        "compativel": 405
+      },
+      "traseira": 119.95
+    },
+    "galaxy-z-fold5": {
+      "vidro-camara": 39.95,
+      "conector": 89.95,
+      "software": 24.95
+    },
+    "galaxy-z-flip5": {
+      "ecra": {
+        "compativel": 409
+      },
+      "bateria": 69.95,
+      "camara-frontal": 39.95,
+      "conector": 79.95,
+      "software": 24.95
+    },
+    "galaxy-z-fold4": {
+      "bateria": 69.95,
+      "traseira": 119.95,
+      "camara-frontal": 49.95,
+      "conector": 69.95,
+      "software": 24.95
+    },
+    "galaxy-z-flip4": {
+      "ecra": {
+        "compativel": 375
+      },
+      "bateria": 69.95,
+      "camara-frontal": 39.95,
+      "conector": 69.95,
+      "software": 24.95
+    },
+    "galaxy-z-fold3": {
+      "traseira": 109.95,
+      "camara-frontal": 59.95,
+      "conector": 79.95,
+      "botoes": 59.95,
+      "software": 24.95
+    },
+    "galaxy-z-flip3": {
+      "ecra": {
+        "compativel": 389
+      },
+      "bateria": 59.95,
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "conector": 79.95,
+      "software": 24.95
+    },
+    "galaxy-a17": {
+      "ecra": {
+        "compativel": 88
+      },
+      "vidro-camara": 39.95
+    },
+    "galaxy-a56": {
+      "ecra": {
+        "compativel": 106
+      },
+      "traseira": 79.95,
+      "vidro-camara": 39.95,
+      "conector": 60,
+      "software": 24.95
+    },
+    "galaxy-a36": {
+      "ecra": {
+        "compativel": 131
+      },
+      "traseira": 69.95,
+      "vidro-camara": 39.95,
+      "conector": 60,
+      "software": 24.95
+    },
+    "galaxy-a26": {
+      "ecra": {
+        "compativel": 108
+      },
+      "vidro-camara": 39.95,
+      "conector": 60,
+      "software": 24.95
+    },
+    "galaxy-a16": {
+      "ecra": {
+        "compativel": 86
+      },
+      "bateria": 59.95,
+      "traseira": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 44.95
+    },
+    "galaxy-a55": {
+      "ecra": {
+        "compativel": 110
+      },
+      "bateria": 59.95,
+      "vidro-camara": 39.95,
+      "software": 24.95
+    },
+    "galaxy-a35": {
+      "ecra": {
+        "compativel": 105
+      },
+      "bateria": 59.95,
+      "software": 24.95
+    },
+    "galaxy-a25": {
+      "ecra": {
+        "compativel": 98
+      },
+      "bateria": 49.95,
+      "vidro-camara": 39.95,
+      "software": 24.95
+    },
+    "galaxy-a15": {
+      "ecra": {
+        "compativel": 84
+      },
+      "bateria": 59.95,
+      "traseira": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "galaxy-a05s": {
+      "ecra": {
+        "compativel": 62
+      },
+      "bateria": 59.95,
+      "vidro-camara": 39.95,
+      "software": 24.95
+    },
+    "galaxy-a54": {
+      "ecra": {
+        "compativel": 133
+      },
+      "bateria": 59.95,
+      "traseira": 79.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "som": 49.95,
+      "software": 24.95
+    },
+    "galaxy-a34": {
+      "ecra": {
+        "compativel": 127
+      },
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "galaxy-a14": {
+      "ecra": {
+        "compativel": 85
+      },
+      "bateria": 49.95,
+      "traseira": 49.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "galaxy-a53": {
+      "ecra": {
+        "compativel": 134
+      },
+      "bateria": 49.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "galaxy-a33": {
+      "ecra": {
+        "compativel": 138
+      },
+      "bateria": 49.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "galaxy-a23": {
+      "ecra": {
+        "compativel": 84
+      },
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "botoes": 39.95,
+      "software": 24.95
+    },
+    "galaxy-a13": {
+      "ecra": {
+        "compativel": 79
+      },
+      "traseira": 49.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "botoes": 39.95,
+      "som": 49.95,
+      "software": 24.95
+    },
+    "galaxy-a52s": {
+      "ecra": {
+        "compativel": 139
+      },
+      "bateria": 59.95,
+      "software": 24.95
+    },
+    "galaxy-a52": {
+      "ecra": {
+        "compativel": 130
+      },
+      "bateria": 49.95,
+      "traseira": 69.95,
+      "vidro-camara": 39.95,
+      "software": 24.95
+    },
+    "galaxy-a32": {
+      "ecra": {
+        "compativel": 115
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "galaxy-a22": {
+      "ecra": {
+        "compativel": 68
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "galaxy-a12": {
+      "ecra": {
+        "compativel": 69
+      },
+      "bateria": 59.95,
+      "vidro-camara": 39.95,
+      "software": 24.95
+    },
+    "galaxy-a51": {
+      "ecra": {
+        "compativel": 120
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "galaxy-note20-ultra": {
+      "ecra": {
+        "compativel": 261
+      },
+      "bateria": 49.95,
+      "traseira": 149.95,
+      "camara-traseira": 149.95,
+      "software": 24.95
+    },
+    "galaxy-note20": {
+      "ecra": {
+        "compativel": 232
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "galaxy-note10-plus": {
+      "ecra": {
+        "compativel": 296
+      },
+      "bateria": 49.95,
+      "traseira": 99.95,
+      "camara-traseira": 99.95,
+      "conector": 89.95,
+      "som": 59.95,
+      "software": 24.95
+    },
+    "galaxy-note10": {
+      "ecra": {
+        "compativel": 279
+      },
+      "bateria": 49.95,
+      "traseira": 89.95,
+      "software": 24.95
+    }
+  }
+}

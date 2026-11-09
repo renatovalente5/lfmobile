@@ -1,0 +1,33 @@
+{
+  "nome": "Película de vidro mate",
+  "nomeCurto": "Película de vidro mate",
+  "marca": "",
+  "fotos": [
+    "pelicula-vidro-mate-1"
+  ],
+  "resumo": "Sem reflexos nem dedadas, com um toque suave.",
+  "descricao": "Vidro temperado com acabamento mate, que tira os reflexos e disfarça as dedadas. Se a levantar na loja, aplicamo-la na hora.",
+  "preco": null,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [],
+  "inclui": [],
+  "opcoes": [],
+  "pedeModelo": true,
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "peliculas",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 63
+}

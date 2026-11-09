@@ -1,0 +1,33 @@
+{
+  "nome": "Película para a câmara",
+  "nomeCurto": "Película para a câmara",
+  "marca": "",
+  "fotos": [
+    "pelicula-camara-1"
+  ],
+  "resumo": "Vidro para as lentes da câmara traseira.",
+  "descricao": "Protege as lentes da câmara traseira dos riscos, sem mudar as fotografias. Se a levantar na loja, aplicamo-la na hora.",
+  "preco": null,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [],
+  "inclui": [],
+  "opcoes": [],
+  "pedeModelo": true,
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "peliculas",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 64
+}

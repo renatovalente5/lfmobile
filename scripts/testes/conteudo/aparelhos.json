@@ -1,0 +1,72 @@
+{
+  "marcas": [
+    {
+      "id": "apple",
+      "nome": "Apple"
+    },
+    {
+      "id": "samsung",
+      "nome": "Samsung"
+    }
+  ],
+  "familias": [
+    {
+      "id": "iphone",
+      "marca": "apple",
+      "nome": "iPhone",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "galaxy-s",
+      "marca": "samsung",
+      "nome": "Galaxy S",
+      "tipo": "telemovel"
+    }
+  ],
+  "modelos": [
+    {
+      "id": "iphone-15-pro",
+      "nome": "iPhone 15 Pro",
+      "familia": "iphone",
+      "ano": 2023,
+      "capacidades": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-13",
+      "nome": "iPhone 13",
+      "familia": "iphone",
+      "ano": 2021,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "galaxy-s24",
+      "nome": "Galaxy S24",
+      "familia": "galaxy-s",
+      "ano": 2024,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    }
+  ],
+  "outrasMarcas": [
+    {
+      "nome": "Xiaomi",
+      "modelos": [
+        "Redmi Note 13"
+      ]
+    }
+  ]
+}

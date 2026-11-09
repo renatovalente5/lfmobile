@@ -1,0 +1,2040 @@
+{
+  "marcas": [
+    {
+      "id": "apple",
+      "nome": "Apple"
+    },
+    {
+      "id": "samsung",
+      "nome": "Samsung"
+    }
+  ],
+  "familias": [
+    {
+      "id": "iphone",
+      "marca": "apple",
+      "nome": "iPhone",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "ipad",
+      "marca": "apple",
+      "nome": "iPad",
+      "tipo": "tablet"
+    },
+    {
+      "id": "apple-watch",
+      "marca": "apple",
+      "nome": "Apple Watch",
+      "tipo": "relogio"
+    },
+    {
+      "id": "galaxy-s",
+      "marca": "samsung",
+      "nome": "Galaxy S",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "galaxy-z",
+      "marca": "samsung",
+      "nome": "Galaxy Z",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "galaxy-a",
+      "marca": "samsung",
+      "nome": "Galaxy A",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "galaxy-note",
+      "marca": "samsung",
+      "nome": "Galaxy Note",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "galaxy-tab",
+      "marca": "samsung",
+      "nome": "Galaxy Tab",
+      "tipo": "tablet"
+    },
+    {
+      "id": "galaxy-watch",
+      "marca": "samsung",
+      "nome": "Galaxy Watch",
+      "tipo": "relogio"
+    }
+  ],
+  "modelos": [
+    {
+      "id": "iphone-duo",
+      "nome": "iPhone Duo",
+      "familia": "iphone",
+      "ano": 2026,
+      "desenho": "iphone-duo"
+    },
+    {
+      "id": "iphone-18-pro-max",
+      "nome": "iPhone 18 Pro Max",
+      "familia": "iphone",
+      "ano": 2026,
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-18-pro",
+      "nome": "iPhone 18 Pro",
+      "familia": "iphone",
+      "ano": 2026,
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-17e",
+      "nome": "iPhone 17e",
+      "familia": "iphone",
+      "ano": 2026,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-17-pro-max",
+      "nome": "iPhone 17 Pro Max",
+      "familia": "iphone",
+      "ano": 2025,
+      "capacidades": [
+        256,
+        512,
+        1024,
+        2048
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-17-pro",
+      "nome": "iPhone 17 Pro",
+      "familia": "iphone",
+      "ano": 2025,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-air",
+      "nome": "iPhone Air",
+      "familia": "iphone",
+      "ano": 2025,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-17",
+      "nome": "iPhone 17",
+      "familia": "iphone",
+      "ano": 2025,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-16e",
+      "nome": "iPhone 16e",
+      "familia": "iphone",
+      "ano": 2025,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-16-pro-max",
+      "nome": "iPhone 16 Pro Max",
+      "familia": "iphone",
+      "ano": 2024,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-16-pro",
+      "nome": "iPhone 16 Pro",
+      "familia": "iphone",
+      "ano": 2024,
+      "capacidades": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-16-plus",
+      "nome": "iPhone 16 Plus",
+      "familia": "iphone",
+      "ano": 2024,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-16",
+      "nome": "iPhone 16",
+      "familia": "iphone",
+      "ano": 2024,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-15-pro-max",
+      "nome": "iPhone 15 Pro Max",
+      "familia": "iphone",
+      "ano": 2023,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-15-pro",
+      "nome": "iPhone 15 Pro",
+      "familia": "iphone",
+      "ano": 2023,
+      "capacidades": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-15-plus",
+      "nome": "iPhone 15 Plus",
+      "familia": "iphone",
+      "ano": 2023,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-15",
+      "nome": "iPhone 15",
+      "familia": "iphone",
+      "ano": 2023,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-14-pro-max",
+      "nome": "iPhone 14 Pro Max",
+      "familia": "iphone",
+      "ano": 2022,
+      "capacidades": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-14-pro",
+      "nome": "iPhone 14 Pro",
+      "familia": "iphone",
+      "ano": 2022,
+      "capacidades": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "desenho": "iphone-ilha"
+    },
+    {
+      "id": "iphone-14-plus",
+      "nome": "iPhone 14 Plus",
+      "familia": "iphone",
+      "ano": 2022,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-14",
+      "nome": "iPhone 14",
+      "familia": "iphone",
+      "ano": 2022,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-se-2022",
+      "nome": "iPhone SE (2022)",
+      "familia": "iphone",
+      "ano": 2022,
+      "capacidades": [
+        64,
+        128,
+        256
+      ],
+      "desenho": "iphone-botao"
+    },
+    {
+      "id": "iphone-13-pro-max",
+      "nome": "iPhone 13 Pro Max",
+      "familia": "iphone",
+      "ano": 2021,
+      "capacidades": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-13-pro",
+      "nome": "iPhone 13 Pro",
+      "familia": "iphone",
+      "ano": 2021,
+      "capacidades": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-13",
+      "nome": "iPhone 13",
+      "familia": "iphone",
+      "ano": 2021,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-13-mini",
+      "nome": "iPhone 13 mini",
+      "familia": "iphone",
+      "ano": 2021,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-12-pro-max",
+      "nome": "iPhone 12 Pro Max",
+      "familia": "iphone",
+      "ano": 2020,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-12-pro",
+      "nome": "iPhone 12 Pro",
+      "familia": "iphone",
+      "ano": 2020,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-12",
+      "nome": "iPhone 12",
+      "familia": "iphone",
+      "ano": 2020,
+      "capacidades": [
+        64,
+        128,
+        256
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-12-mini",
+      "nome": "iPhone 12 mini",
+      "familia": "iphone",
+      "ano": 2020,
+      "capacidades": [
+        64,
+        128,
+        256
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-se-2020",
+      "nome": "iPhone SE (2020)",
+      "familia": "iphone",
+      "ano": 2020,
+      "capacidades": [
+        64,
+        128,
+        256
+      ],
+      "desenho": "iphone-botao"
+    },
+    {
+      "id": "iphone-11-pro-max",
+      "nome": "iPhone 11 Pro Max",
+      "familia": "iphone",
+      "ano": 2019,
+      "capacidades": [
+        64,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-11-pro",
+      "nome": "iPhone 11 Pro",
+      "familia": "iphone",
+      "ano": 2019,
+      "capacidades": [
+        64,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-11",
+      "nome": "iPhone 11",
+      "familia": "iphone",
+      "ano": 2019,
+      "capacidades": [
+        64,
+        128,
+        256
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-xs-max",
+      "nome": "iPhone XS Max",
+      "familia": "iphone",
+      "ano": 2018,
+      "capacidades": [
+        64,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-xs",
+      "nome": "iPhone XS",
+      "familia": "iphone",
+      "ano": 2018,
+      "capacidades": [
+        64,
+        256,
+        512
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-xr",
+      "nome": "iPhone XR",
+      "familia": "iphone",
+      "ano": 2018,
+      "capacidades": [
+        64,
+        128,
+        256
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-x",
+      "nome": "iPhone X",
+      "familia": "iphone",
+      "ano": 2017,
+      "capacidades": [
+        64,
+        256
+      ],
+      "desenho": "iphone-entalhe"
+    },
+    {
+      "id": "iphone-8-plus",
+      "nome": "iPhone 8 Plus",
+      "familia": "iphone",
+      "ano": 2017,
+      "capacidades": [
+        64,
+        128,
+        256
+      ],
+      "desenho": "iphone-botao"
+    },
+    {
+      "id": "iphone-8",
+      "nome": "iPhone 8",
+      "familia": "iphone",
+      "ano": 2017,
+      "capacidades": [
+        64,
+        128,
+        256
+      ],
+      "desenho": "iphone-botao"
+    },
+    {
+      "id": "ipad-pro-13-m5",
+      "nome": "iPad Pro 13″ (M5)",
+      "familia": "ipad",
+      "ano": 2025,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-11-m5",
+      "nome": "iPad Pro 11″ (M5)",
+      "familia": "ipad",
+      "ano": 2025,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-air-13-m3",
+      "nome": "iPad Air 13″ (M3)",
+      "familia": "ipad",
+      "ano": 2025,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-air-11-m3",
+      "nome": "iPad Air 11″ (M3)",
+      "familia": "ipad",
+      "ano": 2025,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-a16",
+      "nome": "iPad (A16)",
+      "familia": "ipad",
+      "ano": 2025,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-13-m4",
+      "nome": "iPad Pro 13″ (M4)",
+      "familia": "ipad",
+      "ano": 2024,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-11-m4",
+      "nome": "iPad Pro 11″ (M4)",
+      "familia": "ipad",
+      "ano": 2024,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-air-13-m2",
+      "nome": "iPad Air 13″ (M2)",
+      "familia": "ipad",
+      "ano": 2024,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-air-11-m2",
+      "nome": "iPad Air 11″ (M2)",
+      "familia": "ipad",
+      "ano": 2024,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-mini-a17-pro",
+      "nome": "iPad mini (A17 Pro)",
+      "familia": "ipad",
+      "ano": 2024,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-12-9-6-geracao",
+      "nome": "iPad Pro 12,9″ (6.ª geração)",
+      "familia": "ipad",
+      "ano": 2022,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-11-4-geracao",
+      "nome": "iPad Pro 11″ (4.ª geração)",
+      "familia": "ipad",
+      "ano": 2022,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-10-geracao",
+      "nome": "iPad (10.ª geração)",
+      "familia": "ipad",
+      "ano": 2022,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-air-5-geracao",
+      "nome": "iPad Air (5.ª geração)",
+      "familia": "ipad",
+      "ano": 2022,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-12-9-5-geracao",
+      "nome": "iPad Pro 12,9″ (5.ª geração)",
+      "familia": "ipad",
+      "ano": 2021,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-11-3-geracao",
+      "nome": "iPad Pro 11″ (3.ª geração)",
+      "familia": "ipad",
+      "ano": 2021,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-mini-6-geracao",
+      "nome": "iPad mini (6.ª geração)",
+      "familia": "ipad",
+      "ano": 2021,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-9-geracao",
+      "nome": "iPad (9.ª geração)",
+      "familia": "ipad",
+      "ano": 2021,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-air-4-geracao",
+      "nome": "iPad Air (4.ª geração)",
+      "familia": "ipad",
+      "ano": 2020,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-12-9-4-geracao",
+      "nome": "iPad Pro 12,9″ (4.ª geração)",
+      "familia": "ipad",
+      "ano": 2020,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-11-2-geracao",
+      "nome": "iPad Pro 11″ (2.ª geração)",
+      "familia": "ipad",
+      "ano": 2020,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-8-geracao",
+      "nome": "iPad (8.ª geração)",
+      "familia": "ipad",
+      "ano": 2020,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-7-geracao",
+      "nome": "iPad (7.ª geração)",
+      "familia": "ipad",
+      "ano": 2019,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-air-3-geracao",
+      "nome": "iPad Air (3.ª geração)",
+      "familia": "ipad",
+      "ano": 2019,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-mini-5-geracao",
+      "nome": "iPad mini (5.ª geração)",
+      "familia": "ipad",
+      "ano": 2019,
+      "desenho": "tablet"
+    },
+    {
+      "id": "apple-watch-series-11",
+      "nome": "Apple Watch Series 11",
+      "familia": "apple-watch",
+      "ano": 2025,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-ultra-3",
+      "nome": "Apple Watch Ultra 3",
+      "familia": "apple-watch",
+      "ano": 2025,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-se-3-geracao",
+      "nome": "Apple Watch SE (3.ª geração)",
+      "familia": "apple-watch",
+      "ano": 2025,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-series-10",
+      "nome": "Apple Watch Series 10",
+      "familia": "apple-watch",
+      "ano": 2024,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-ultra-2",
+      "nome": "Apple Watch Ultra 2",
+      "familia": "apple-watch",
+      "ano": 2023,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-series-9",
+      "nome": "Apple Watch Series 9",
+      "familia": "apple-watch",
+      "ano": 2023,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-series-8",
+      "nome": "Apple Watch Series 8",
+      "familia": "apple-watch",
+      "ano": 2022,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-ultra",
+      "nome": "Apple Watch Ultra",
+      "familia": "apple-watch",
+      "ano": 2022,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-se-2-geracao",
+      "nome": "Apple Watch SE (2.ª geração)",
+      "familia": "apple-watch",
+      "ano": 2022,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-series-7",
+      "nome": "Apple Watch Series 7",
+      "familia": "apple-watch",
+      "ano": 2021,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-series-6",
+      "nome": "Apple Watch Series 6",
+      "familia": "apple-watch",
+      "ano": 2020,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-se",
+      "nome": "Apple Watch SE",
+      "familia": "apple-watch",
+      "ano": 2020,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-series-5",
+      "nome": "Apple Watch Series 5",
+      "familia": "apple-watch",
+      "ano": 2019,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-series-4",
+      "nome": "Apple Watch Series 4",
+      "familia": "apple-watch",
+      "ano": 2018,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-s26-ultra",
+      "nome": "Galaxy S26 Ultra",
+      "familia": "galaxy-s",
+      "ano": 2026,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s26-plus",
+      "nome": "Galaxy S26+",
+      "familia": "galaxy-s",
+      "ano": 2026,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s26",
+      "nome": "Galaxy S26",
+      "familia": "galaxy-s",
+      "ano": 2026,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s26-fe",
+      "nome": "Galaxy S26 FE",
+      "familia": "galaxy-s",
+      "ano": 2026,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s25-ultra",
+      "nome": "Galaxy S25 Ultra",
+      "familia": "galaxy-s",
+      "ano": 2025,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s25-edge",
+      "nome": "Galaxy S25 Edge",
+      "familia": "galaxy-s",
+      "ano": 2025,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s25-plus",
+      "nome": "Galaxy S25+",
+      "familia": "galaxy-s",
+      "ano": 2025,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s25",
+      "nome": "Galaxy S25",
+      "familia": "galaxy-s",
+      "ano": 2025,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s25-fe",
+      "nome": "Galaxy S25 FE",
+      "familia": "galaxy-s",
+      "ano": 2025,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s24-ultra",
+      "nome": "Galaxy S24 Ultra",
+      "familia": "galaxy-s",
+      "ano": 2024,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s24-plus",
+      "nome": "Galaxy S24+",
+      "familia": "galaxy-s",
+      "ano": 2024,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s24",
+      "nome": "Galaxy S24",
+      "familia": "galaxy-s",
+      "ano": 2024,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s24-fe",
+      "nome": "Galaxy S24 FE",
+      "familia": "galaxy-s",
+      "ano": 2024,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s23-ultra",
+      "nome": "Galaxy S23 Ultra",
+      "familia": "galaxy-s",
+      "ano": 2023,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s23-plus",
+      "nome": "Galaxy S23+",
+      "familia": "galaxy-s",
+      "ano": 2023,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s23",
+      "nome": "Galaxy S23",
+      "familia": "galaxy-s",
+      "ano": 2023,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s23-fe",
+      "nome": "Galaxy S23 FE",
+      "familia": "galaxy-s",
+      "ano": 2023,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s22-ultra",
+      "nome": "Galaxy S22 Ultra",
+      "familia": "galaxy-s",
+      "ano": 2022,
+      "capacidades": [
+        128,
+        256,
+        512,
+        1024
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s22-plus",
+      "nome": "Galaxy S22+",
+      "familia": "galaxy-s",
+      "ano": 2022,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s22",
+      "nome": "Galaxy S22",
+      "familia": "galaxy-s",
+      "ano": 2022,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s21-ultra",
+      "nome": "Galaxy S21 Ultra",
+      "familia": "galaxy-s",
+      "ano": 2021,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s21-plus",
+      "nome": "Galaxy S21+",
+      "familia": "galaxy-s",
+      "ano": 2021,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s21",
+      "nome": "Galaxy S21",
+      "familia": "galaxy-s",
+      "ano": 2021,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s21-fe",
+      "nome": "Galaxy S21 FE",
+      "familia": "galaxy-s",
+      "ano": 2022,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s20-ultra",
+      "nome": "Galaxy S20 Ultra",
+      "familia": "galaxy-s",
+      "ano": 2020,
+      "capacidades": [
+        128,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s20-plus",
+      "nome": "Galaxy S20+",
+      "familia": "galaxy-s",
+      "ano": 2020,
+      "capacidades": [
+        128,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s20",
+      "nome": "Galaxy S20",
+      "familia": "galaxy-s",
+      "ano": 2020,
+      "capacidades": [
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-s20-fe",
+      "nome": "Galaxy S20 FE",
+      "familia": "galaxy-s",
+      "ano": 2020,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-z-fold8-ultra",
+      "nome": "Galaxy Z Fold8 Ultra",
+      "familia": "galaxy-z",
+      "ano": 2026,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "galaxy-fold"
+    },
+    {
+      "id": "galaxy-z-fold8",
+      "nome": "Galaxy Z Fold8",
+      "familia": "galaxy-z",
+      "ano": 2026,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "galaxy-fold"
+    },
+    {
+      "id": "galaxy-z-flip8",
+      "nome": "Galaxy Z Flip8",
+      "familia": "galaxy-z",
+      "ano": 2026,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy-flip"
+    },
+    {
+      "id": "galaxy-z-trifold",
+      "nome": "Galaxy Z TriFold",
+      "familia": "galaxy-z",
+      "ano": 2025,
+      "capacidades": [
+        512,
+        1024
+      ],
+      "desenho": "galaxy-fold"
+    },
+    {
+      "id": "galaxy-z-fold7",
+      "nome": "Galaxy Z Fold7",
+      "familia": "galaxy-z",
+      "ano": 2025,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "galaxy-fold"
+    },
+    {
+      "id": "galaxy-z-flip7",
+      "nome": "Galaxy Z Flip7",
+      "familia": "galaxy-z",
+      "ano": 2025,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy-flip"
+    },
+    {
+      "id": "galaxy-z-flip7-fe",
+      "nome": "Galaxy Z Flip7 FE",
+      "familia": "galaxy-z",
+      "ano": 2025,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy-flip"
+    },
+    {
+      "id": "galaxy-z-fold6",
+      "nome": "Galaxy Z Fold6",
+      "familia": "galaxy-z",
+      "ano": 2024,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "galaxy-fold"
+    },
+    {
+      "id": "galaxy-z-flip6",
+      "nome": "Galaxy Z Flip6",
+      "familia": "galaxy-z",
+      "ano": 2024,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy-flip"
+    },
+    {
+      "id": "galaxy-z-fold5",
+      "nome": "Galaxy Z Fold5",
+      "familia": "galaxy-z",
+      "ano": 2023,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "galaxy-fold"
+    },
+    {
+      "id": "galaxy-z-flip5",
+      "nome": "Galaxy Z Flip5",
+      "familia": "galaxy-z",
+      "ano": 2023,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy-flip"
+    },
+    {
+      "id": "galaxy-z-fold4",
+      "nome": "Galaxy Z Fold4",
+      "familia": "galaxy-z",
+      "ano": 2022,
+      "capacidades": [
+        256,
+        512,
+        1024
+      ],
+      "desenho": "galaxy-fold"
+    },
+    {
+      "id": "galaxy-z-flip4",
+      "nome": "Galaxy Z Flip4",
+      "familia": "galaxy-z",
+      "ano": 2022,
+      "capacidades": [
+        128,
+        256,
+        512
+      ],
+      "desenho": "galaxy-flip"
+    },
+    {
+      "id": "galaxy-z-fold3",
+      "nome": "Galaxy Z Fold3",
+      "familia": "galaxy-z",
+      "ano": 2021,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy-fold"
+    },
+    {
+      "id": "galaxy-z-flip3",
+      "nome": "Galaxy Z Flip3",
+      "familia": "galaxy-z",
+      "ano": 2021,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy-flip"
+    },
+    {
+      "id": "galaxy-a57",
+      "nome": "Galaxy A57",
+      "familia": "galaxy-a",
+      "ano": 2026,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a37",
+      "nome": "Galaxy A37",
+      "familia": "galaxy-a",
+      "ano": 2026,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a17",
+      "nome": "Galaxy A17",
+      "familia": "galaxy-a",
+      "ano": 2025,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a07",
+      "nome": "Galaxy A07",
+      "familia": "galaxy-a",
+      "ano": 2025,
+      "capacidades": [
+        64,
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a56",
+      "nome": "Galaxy A56",
+      "familia": "galaxy-a",
+      "ano": 2025,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a36",
+      "nome": "Galaxy A36",
+      "familia": "galaxy-a",
+      "ano": 2025,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a26",
+      "nome": "Galaxy A26",
+      "familia": "galaxy-a",
+      "ano": 2025,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a16",
+      "nome": "Galaxy A16",
+      "familia": "galaxy-a",
+      "ano": 2024,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a06",
+      "nome": "Galaxy A06",
+      "familia": "galaxy-a",
+      "ano": 2024,
+      "capacidades": [
+        64,
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a55",
+      "nome": "Galaxy A55",
+      "familia": "galaxy-a",
+      "ano": 2024,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a35",
+      "nome": "Galaxy A35",
+      "familia": "galaxy-a",
+      "ano": 2024,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a25",
+      "nome": "Galaxy A25",
+      "familia": "galaxy-a",
+      "ano": 2023,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a15",
+      "nome": "Galaxy A15",
+      "familia": "galaxy-a",
+      "ano": 2023,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a05s",
+      "nome": "Galaxy A05s",
+      "familia": "galaxy-a",
+      "ano": 2023,
+      "capacidades": [
+        64,
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a54",
+      "nome": "Galaxy A54",
+      "familia": "galaxy-a",
+      "ano": 2023,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a34",
+      "nome": "Galaxy A34",
+      "familia": "galaxy-a",
+      "ano": 2023,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a24",
+      "nome": "Galaxy A24",
+      "familia": "galaxy-a",
+      "ano": 2023,
+      "capacidades": [
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a14",
+      "nome": "Galaxy A14",
+      "familia": "galaxy-a",
+      "ano": 2023,
+      "capacidades": [
+        64,
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a53",
+      "nome": "Galaxy A53",
+      "familia": "galaxy-a",
+      "ano": 2022,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a33",
+      "nome": "Galaxy A33",
+      "familia": "galaxy-a",
+      "ano": 2022,
+      "capacidades": [
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a23",
+      "nome": "Galaxy A23",
+      "familia": "galaxy-a",
+      "ano": 2022,
+      "capacidades": [
+        64,
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a13",
+      "nome": "Galaxy A13",
+      "familia": "galaxy-a",
+      "ano": 2022,
+      "capacidades": [
+        64,
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a52s",
+      "nome": "Galaxy A52s",
+      "familia": "galaxy-a",
+      "ano": 2021,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a52",
+      "nome": "Galaxy A52",
+      "familia": "galaxy-a",
+      "ano": 2021,
+      "capacidades": [
+        128,
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a32",
+      "nome": "Galaxy A32",
+      "familia": "galaxy-a",
+      "ano": 2021,
+      "capacidades": [
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a22",
+      "nome": "Galaxy A22",
+      "familia": "galaxy-a",
+      "ano": 2021,
+      "capacidades": [
+        64,
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a12",
+      "nome": "Galaxy A12",
+      "familia": "galaxy-a",
+      "ano": 2020,
+      "capacidades": [
+        64,
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-a51",
+      "nome": "Galaxy A51",
+      "familia": "galaxy-a",
+      "ano": 2019,
+      "capacidades": [
+        128
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-note20-ultra",
+      "nome": "Galaxy Note20 Ultra",
+      "familia": "galaxy-note",
+      "ano": 2020,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-note20",
+      "nome": "Galaxy Note20",
+      "familia": "galaxy-note",
+      "ano": 2020,
+      "capacidades": [
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-note10-plus",
+      "nome": "Galaxy Note10+",
+      "familia": "galaxy-note",
+      "ano": 2019,
+      "capacidades": [
+        256,
+        512
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-note10",
+      "nome": "Galaxy Note10",
+      "familia": "galaxy-note",
+      "ano": 2019,
+      "capacidades": [
+        256
+      ],
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-tab-s11-ultra",
+      "nome": "Galaxy Tab S11 Ultra",
+      "familia": "galaxy-tab",
+      "ano": 2025,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s11",
+      "nome": "Galaxy Tab S11",
+      "familia": "galaxy-tab",
+      "ano": 2025,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s10-fe-plus",
+      "nome": "Galaxy Tab S10 FE+",
+      "familia": "galaxy-tab",
+      "ano": 2025,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s10-fe",
+      "nome": "Galaxy Tab S10 FE",
+      "familia": "galaxy-tab",
+      "ano": 2025,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s10-ultra",
+      "nome": "Galaxy Tab S10 Ultra",
+      "familia": "galaxy-tab",
+      "ano": 2024,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s10-plus",
+      "nome": "Galaxy Tab S10+",
+      "familia": "galaxy-tab",
+      "ano": 2024,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s9-fe-plus",
+      "nome": "Galaxy Tab S9 FE+",
+      "familia": "galaxy-tab",
+      "ano": 2023,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s9-fe",
+      "nome": "Galaxy Tab S9 FE",
+      "familia": "galaxy-tab",
+      "ano": 2023,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s9-ultra",
+      "nome": "Galaxy Tab S9 Ultra",
+      "familia": "galaxy-tab",
+      "ano": 2023,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s9-plus",
+      "nome": "Galaxy Tab S9+",
+      "familia": "galaxy-tab",
+      "ano": 2023,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s9",
+      "nome": "Galaxy Tab S9",
+      "familia": "galaxy-tab",
+      "ano": 2023,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s8-ultra",
+      "nome": "Galaxy Tab S8 Ultra",
+      "familia": "galaxy-tab",
+      "ano": 2022,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s8-plus",
+      "nome": "Galaxy Tab S8+",
+      "familia": "galaxy-tab",
+      "ano": 2022,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s8",
+      "nome": "Galaxy Tab S8",
+      "familia": "galaxy-tab",
+      "ano": 2022,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s7-fe",
+      "nome": "Galaxy Tab S7 FE",
+      "familia": "galaxy-tab",
+      "ano": 2021,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s7-plus",
+      "nome": "Galaxy Tab S7+",
+      "familia": "galaxy-tab",
+      "ano": 2020,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s7",
+      "nome": "Galaxy Tab S7",
+      "familia": "galaxy-tab",
+      "ano": 2020,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s6-lite",
+      "nome": "Galaxy Tab S6 Lite",
+      "familia": "galaxy-tab",
+      "ano": 2020,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-a9-plus",
+      "nome": "Galaxy Tab A9+",
+      "familia": "galaxy-tab",
+      "ano": 2023,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-a9",
+      "nome": "Galaxy Tab A9",
+      "familia": "galaxy-tab",
+      "ano": 2023,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-a8",
+      "nome": "Galaxy Tab A8",
+      "familia": "galaxy-tab",
+      "ano": 2021,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-a7-lite",
+      "nome": "Galaxy Tab A7 Lite",
+      "familia": "galaxy-tab",
+      "ano": 2021,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-a7",
+      "nome": "Galaxy Tab A7",
+      "familia": "galaxy-tab",
+      "ano": 2020,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-watch-ultra",
+      "nome": "Galaxy Watch Ultra",
+      "familia": "galaxy-watch",
+      "ano": 2024,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch8-classic",
+      "nome": "Galaxy Watch8 Classic",
+      "familia": "galaxy-watch",
+      "ano": 2025,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch8",
+      "nome": "Galaxy Watch8",
+      "familia": "galaxy-watch",
+      "ano": 2025,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch7",
+      "nome": "Galaxy Watch7",
+      "familia": "galaxy-watch",
+      "ano": 2024,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch6-classic",
+      "nome": "Galaxy Watch6 Classic",
+      "familia": "galaxy-watch",
+      "ano": 2023,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch6",
+      "nome": "Galaxy Watch6",
+      "familia": "galaxy-watch",
+      "ano": 2023,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch5-pro",
+      "nome": "Galaxy Watch5 Pro",
+      "familia": "galaxy-watch",
+      "ano": 2022,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch5",
+      "nome": "Galaxy Watch5",
+      "familia": "galaxy-watch",
+      "ano": 2022,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch4-classic",
+      "nome": "Galaxy Watch4 Classic",
+      "familia": "galaxy-watch",
+      "ano": 2021,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch4",
+      "nome": "Galaxy Watch4",
+      "familia": "galaxy-watch",
+      "ano": 2021,
+      "desenho": "relogio"
+    }
+  ],
+  "outrasMarcas": [
+    {
+      "nome": "Xiaomi",
+      "modelos": [
+        "Xiaomi 15T Pro",
+        "Xiaomi 15T",
+        "Xiaomi 15",
+        "Xiaomi 14T Pro",
+        "Xiaomi 14T",
+        "Xiaomi 14",
+        "Xiaomi 13T",
+        "Redmi Note 14 Pro+",
+        "Redmi Note 14 Pro",
+        "Redmi Note 14",
+        "Redmi Note 13 Pro",
+        "Redmi Note 13",
+        "Redmi 14C",
+        "Redmi 13C",
+        "Redmi A3",
+        "POCO X7 Pro",
+        "POCO X6 Pro",
+        "POCO F7",
+        "POCO F6",
+        "POCO M6 Pro"
+      ]
+    },
+    {
+      "nome": "OPPO",
+      "modelos": [
+        "OPPO Reno14",
+        "OPPO Reno13",
+        "OPPO Reno12",
+        "OPPO Find X8 Pro",
+        "OPPO A80",
+        "OPPO A60",
+        "OPPO A40",
+        "OPPO A5x",
+        "OPPO A5 Pro"
+      ]
+    },
+    {
+      "nome": "Huawei",
+      "modelos": [
+        "Huawei nova 13",
+        "Huawei nova 12",
+        "Huawei nova 11",
+        "Huawei nova 10",
+        "Huawei Pura 70",
+        "Huawei P30",
+        "Huawei P30 lite",
+        "Huawei P40 lite"
+      ]
+    },
+    {
+      "nome": "Honor",
+      "modelos": [
+        "Honor 400",
+        "Honor 400 Lite",
+        "Honor 200",
+        "Honor 200 Lite",
+        "Honor Magic7 Pro",
+        "Honor Magic6 Pro",
+        "Honor X8b",
+        "Honor X7b",
+        "Honor X6b"
+      ]
+    },
+    {
+      "nome": "Google",
+      "modelos": [
+        "Pixel 10 Pro",
+        "Pixel 10",
+        "Pixel 9a",
+        "Pixel 9 Pro",
+        "Pixel 9",
+        "Pixel 8a",
+        "Pixel 8 Pro",
+        "Pixel 8",
+        "Pixel 7a",
+        "Pixel 7"
+      ]
+    },
+    {
+      "nome": "Motorola",
+      "modelos": [
+        "Motorola edge 60",
+        "Motorola edge 50 Pro",
+        "Motorola edge 50",
+        "Motorola razr 50",
+        "moto g85",
+        "moto g84",
+        "moto g55",
+        "moto g54",
+        "moto g35",
+        "moto g24",
+        "moto g15"
+      ]
+    },
+    {
+      "nome": "OnePlus",
+      "modelos": [
+        "OnePlus 13",
+        "OnePlus 12",
+        "OnePlus Nord 4",
+        "OnePlus Nord CE4",
+        "OnePlus Nord CE4 Lite"
+      ]
+    },
+    {
+      "nome": "realme",
+      "modelos": [
+        "realme 14 Pro",
+        "realme 12 Pro",
+        "realme 12",
+        "realme C67",
+        "realme C61",
+        "realme Note 60"
+      ]
+    },
+    {
+      "nome": "vivo",
+      "modelos": [
+        "vivo V40",
+        "vivo Y36",
+        "vivo Y28"
+      ]
+    },
+    {
+      "nome": "Nokia",
+      "modelos": [
+        "Nokia G42",
+        "Nokia G22",
+        "Nokia C32"
+      ]
+    },
+    {
+      "nome": "Sony",
+      "modelos": [
+        "Xperia 1 VI",
+        "Xperia 10 VI",
+        "Xperia 10 V"
+      ]
+    },
+    {
+      "nome": "TCL",
+      "modelos": [
+        "TCL 50 SE",
+        "TCL 40 SE",
+        "TCL 505"
+      ]
+    },
+    {
+      "nome": "ZTE",
+      "modelos": [
+        "ZTE Blade V70",
+        "ZTE Blade V50",
+        "ZTE Blade A54"
+      ]
+    }
+  ]
+}

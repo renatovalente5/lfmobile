@@ -1,5 +1,6 @@
 /* LF Mobile — o comportamento das páginas (sem dependências).
-   O carrinho e a encomenda estão em carrinho.js; os dois vão no mesmo ficheiro, este primeiro.
+   O carrinho e a encomenda estão em carrinho.js, os filtros da loja em loja.js, as reparações em
+   reparacoes.js e o simulador da retoma em retoma.js; vão todos no mesmo ficheiro, este primeiro.
    (A base é o site.js da Mimices.) */
 (function () {
   'use strict';
@@ -7,22 +8,26 @@
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const menosMovimento = window.matchMedia('(prefers-reduced-motion: reduce)');
   const hojeLisboa = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Lisbon', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const sem = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const euros = (v) => `${v.toLocaleString('pt-PT', { minimumFractionDigits: Number.isInteger(v) ? 0 : 2, maximumFractionDigits: 2 })} €`;
   const ICONE_PAUSA = '<svg class="icone" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M9 6.5v11M15 6.5v11"/></svg>';
   const ICONE_TOCAR = '<svg class="icone" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10.5-6.5L8 5.5Z"/></svg>';
+  const ICONE_FERRAMENTA = '<svg class="icone" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M14.5 6.5a3.5 3.5 0 0 0 4.4 4.4L9 20.8a1.8 1.8 0 0 1-2.6-2.6l9.9-9.9a3.5 3.5 0 0 0-1.8-1.8Z"/></svg>';
+  const ICONE_PAGINA = '<svg class="icone" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  const raiz = document.documentElement;
+  raiz.classList.add('js');
 
   // ---------------------------------------------------------------- o anel do foco
   // Um toque ou um clique escondem o anel do foco (o CSS, em html[data-entrada="ponteiro"]); uma
   // tecla volta a mostrá-lo, para quem navega pelo teclado.
-  const raiz = document.documentElement;
   addEventListener('pointerdown', () => { raiz.dataset.entrada = 'ponteiro'; }, { capture: true, passive: true });
   addEventListener('keydown', (e) => { if (!e.metaKey && !e.ctrlKey) delete raiz.dataset.entrada; }, { capture: true });
 
   // ---------------------------------------------------------------- a barra e o WhatsApp ao descer
-  // No topo a barra não tem chão; ao descer ganha a linha e a sombra (site.css). O estado vive na
-  // raiz (html[data-rolado]), onde a linha do <head> já o escreveu antes da primeira pintura. Dois
-  // limiares (40 a descer, 8 a subir) só contra a tremura de uma página parada na linha.
-  // O botão flutuante do WhatsApp aparece um pouco mais abaixo (html[data-whatsapp], 200 a descer e
-  // 120 a subir): quando a pessoa já está a ler a página, não logo ao primeiro toque.
+  // Ao descer, a barra ganha a sombra (html[data-rolado]); o botão flutuante do WhatsApp aparece um
+  // pouco mais abaixo (html[data-whatsapp], 200 a descer e 120 a subir). Dois limiares contra a
+  // tremura de uma página parada na linha.
   const flutuante = $('[data-whatsapp-flutuante]');
   if ($('[data-topo]')) {
     let pedido = false;
@@ -41,18 +46,54 @@
     decidir();
   }
 
-  // ---------------------------------------------------------------- aviso do topo com data
-  // O site só muda quando se publica; o aviso «até 15 de dezembro» sai sozinho no dia 16.
-  $$('.aviso[data-ate]').forEach((a) => { if (hojeLisboa() > a.dataset.ate) a.hidden = true; });
+  // ---------------------------------------------------------------- a faixa do topo
+  // O site só muda quando se publica: o aviso (ou a campanha) «até dia X» sai sozinho no dia seguinte.
+  $$('.faixa-topo[data-ate]').forEach((a) => {
+    if (hojeLisboa() > a.dataset.ate) { const t = $('.faixa-topo__texto', a); if (t) t.hidden = true; }
+  });
+  /* A loja aberta agora (computador): o horário da página (#horario-loja) e a hora de Lisboa. */
+  const estadoLoja = $('[data-estado-loja]');
+  const horario = (() => { try { return JSON.parse(($('#horario-loja') || {}).textContent || '[]'); } catch (_) { return []; } })();
+  if (estadoLoja && horario.length) {
+    const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
+    const agoraLisboa = () => {
+      const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Lisbon', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).map((x) => [x.type, x.value]));
+      return { dia: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday), hora: `${p.hour}:${p.minute}` };
+    };
+    const blocos = (d) => horario.filter((h) => h.dias.includes(d)).sort((a, b) => a.abre.localeCompare(b.abre));
+    const pintar = () => {
+      const { dia, hora } = agoraLisboa();
+      const hoje = blocos(dia);
+      const aberto = hoje.find((h) => hora >= h.abre && hora < h.fecha);
+      let texto;
+      if (aberto) texto = `Loja aberta · fecha às ${aberto.fecha}`;
+      else {
+        const depois = hoje.find((h) => hora < h.abre);
+        if (depois) texto = `Loja fechada · abre às ${depois.abre}`;
+        else {
+          for (let i = 1; i <= 7; i++) {
+            const d = (dia + i) % 7;
+            const b = blocos(d)[0];
+            if (b) { texto = `Loja fechada · abre ${i === 1 ? 'amanhã' : DIAS[d] === 'sábado' || DIAS[d] === 'domingo' ? `no ${DIAS[d]}` : `na ${DIAS[d]}`} às ${b.abre}`; break; }
+          }
+        }
+      }
+      if (!texto) return;
+      estadoLoja.textContent = texto;
+      estadoLoja.dataset.aberta = aberto ? 'sim' : 'nao';
+      estadoLoja.hidden = false;
+    };
+    pintar();
+    setInterval(pintar, 60000);
+  }
 
-  // ---------------------------------------------------------------- menu e gaveta do carrinho
+  // ---------------------------------------------------------------- menu, procura e carrinho (folhas)
   // A página por trás fica trancada pelo CSS (html:has(dialog[open])): derivado do próprio
-  // diálogo, nunca de uma classe que se põe e tira (um «close» perdido deixava-a presa).
+  // diálogo, nunca de uma classe que se põe e tira.
   const dialogos = $$('dialog');
   dialogos.forEach((d) => {
     if (d.open) d.close(); // o Chrome repõe o «open» ao voltar atrás: abre-se outra vez à mão
     d.addEventListener('click', (e) => { if (e.target === d) d.close(); }); // clique no fundo
-    // por delegação: o conteúdo da gaveta é desenhado depois, pelo carrinho.js
     d.addEventListener('click', (e) => {
       if (e.target.closest('[data-fechar]')) { d.close(); return; }
       const a = e.target.closest('a[href]');
@@ -63,11 +104,10 @@
     const d = document.getElementById(id);
     if (!d || d.open) return;
     d.showModal();
-    /* O showModal() põe o foco no primeiro elemento que o aceita, e o Safari do iPhone mostra-o com
-       o anel do foco mesmo depois de um toque. O foco vai para o corpo (tabindex=-1, sem anel): quem
-       usa o teclado continua a entrar nos links com o Tab. */
-    const corpo = d.querySelector('.menu__corpo, .gaveta__corpo');
-    if (corpo) corpo.focus({ preventScroll: true });
+    /* O foco vai para o corpo (tabindex=-1, sem anel): o Safari do iPhone mostrava o anel no primeiro
+       elemento depois de um toque. A procura é a excepção: o campo recebe logo o foco (o teclado). */
+    const campo = id === 'procurar' && $('input[type="search"]', d);
+    if (campo) campo.focus(); else { const corpo = d.querySelector('.menu__corpo, .gaveta__corpo, .folha-procura__corpo'); if (corpo) corpo.focus({ preventScroll: true }); }
     d._origem = origem || null;
     if (id === 'carrinho' && window.LFCarrinho) window.LFCarrinho.desenharGaveta();
   }
@@ -77,19 +117,78 @@
     e.preventDefault();
     abrir(b.dataset.abrir, b);
   }));
-  // uma ligação desligada (o «Finalizar» com o carrinho bloqueado) não vai a lado nenhum
   document.addEventListener('click', (e) => {
     const a = e.target.closest('a[aria-disabled="true"]');
     if (a) e.preventDefault();
   });
 
+  // ---------------------------------------------------------------- a procura
+  /* Os resultados vêm do índice (assets/busca-*.json), lido no primeiro toque no campo: artigos,
+     modelos para reparar e páginas. Todas as palavras têm de aparecer (sem acentos). As setas
+     percorrem os resultados e o Enter abre o escolhido; sem nenhum escolhido, a loja com ?q=. */
+  let indiceP = null;
+  const indice = (url) => (indiceP = indiceP || fetch(url).then((r) => (r.ok ? r.json() : null)).catch(() => { indiceP = null; return null; }));
+  const marcar = (texto, palavras) => {
+    let h = esc(texto);
+    for (const p of palavras.filter((x) => x.length > 1)) {
+      const i = sem(h).indexOf(p);
+      if (i >= 0) h = `${h.slice(0, i)}<mark>${h.slice(i, i + p.length)}</mark>${h.slice(i + p.length)}`;
+    }
+    return h;
+  };
+  $$('form[data-busca]').forEach((form) => {
+    const input = $('input', form);
+    const caixa = $('[data-busca-resultados]', form);
+    const atalhos = form.closest('dialog') && $('[data-busca-atalhos]', form.closest('dialog'));
+    let itens = [];
+    let atual = -1;
+    const fechar = () => { caixa.hidden = true; atual = -1; input.removeAttribute('aria-activedescendant'); };
+    const pintarAtual = () => itens.forEach((a, i) => a.setAttribute('aria-selected', String(i === atual)));
+    const procurar = async () => {
+      const q = sem(input.value).trim();
+      if (atalhos) atalhos.hidden = Boolean(q);
+      if (q.length < 2) { fechar(); return; }
+      const ind = await indice(form.dataset.busca);
+      if (!ind) return;
+      const palavras = q.split(/\s+/).filter(Boolean);
+      const bate = (x) => palavras.every((p) => x.t.includes(p));
+      const artigos = ind.artigos.filter(bate).slice(0, 6);
+      const modelos = ind.modelos.filter(bate).slice(0, 5);
+      const paginas = ind.paginas.filter(bate).slice(0, 3);
+      const grupo = (titulo, lista, fazer) => (lista.length ? `<div class="busca__grupo"><p class="busca__titulo">${titulo}</p>${lista.map(fazer).join('')}</div>` : '');
+      const html = grupo('Artigos', artigos, (a) => `<a class="busca__item" href="${esc(a.u)}"><span class="busca__img"><img src="${esc(a.f)}" alt="" loading="lazy"></span><span class="busca__nome">${marcar(a.n, palavras)}<small>${esc(a.c)}</small></span>${a.p !== null ? `<span class="busca__preco">${euros(a.p)}</span>` : ''}</a>`)
+        + grupo('Reparar', modelos, (m) => `<a class="busca__item" href="${esc(m.u)}"><span class="busca__img">${ICONE_FERRAMENTA}</span><span class="busca__nome">Reparação ${marcar(m.n, palavras)}<small>Ver os preços</small></span></a>`)
+        + grupo('Páginas', paginas, (p) => `<a class="busca__item" href="${esc(p.u)}"><span class="busca__img">${ICONE_PAGINA}</span><span class="busca__nome">${esc(p.n)}</span></a>`);
+      caixa.innerHTML = html || `<p class="busca__nada">Não encontrámos «${esc(input.value.trim())}». <a href="${esc(form.action)}?q=${encodeURIComponent(input.value.trim())}">Ver a loja toda</a></p>`;
+      itens = $$('.busca__item', caixa);
+      itens.forEach((a, i) => { a.id = `${input.id}-r${i}`; a.setAttribute('role', 'option'); });
+      atual = -1;
+      caixa.hidden = false;
+    };
+    let espera;
+    input.addEventListener('focus', () => { indice(form.dataset.busca); if (input.value.trim().length > 1) procurar(); });
+    input.addEventListener('input', () => { clearTimeout(espera); espera = setTimeout(procurar, 90); });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') { if (!caixa.hidden) { e.preventDefault(); fechar(); } return; }
+      if (!itens.length || caixa.hidden) return;
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        atual = (atual + (e.key === 'ArrowDown' ? 1 : -1) + itens.length) % itens.length;
+        pintarAtual();
+        input.setAttribute('aria-activedescendant', itens[atual].id);
+        itens[atual].scrollIntoView({ block: 'nearest' });
+      }
+    });
+    form.addEventListener('submit', (e) => {
+      if (atual >= 0 && itens[atual]) { e.preventDefault(); location.href = itens[atual].href; }
+    });
+    document.addEventListener('click', (e) => { if (!form.contains(e.target)) fechar(); });
+  });
+
   // ---------------------------------------------------------------- WhatsApp
-  /* O número vem da própria página (a ligação do cabeçalho ou do rodapé): o site.json é a única
-     fonte, e os formulários não precisam de o repetir. ABRIR: no telemóvel a própria página segue
-     para o wa.me, que é uma ligação universal (abre logo a aplicação). No computador, um separador
-     novo (o WhatsApp Web ou a aplicação), e o site fica onde estava; se o browser recusar o
-     separador, abre-se aqui mesmo. Sem «noopener» nas opções do window.open: com ele o browser
-     devolve SEMPRE null. O window.open tem de ser chamado dentro do toque, sem esperas antes. */
+  /* O número vem da própria página (uma ligação do WhatsApp): o site.json é a única fonte. No
+     telemóvel a própria página segue para o wa.me (abre logo a aplicação); no computador, um
+     separador novo. O window.open tem de ser chamado dentro do toque, sem esperas antes. */
   const numeroWhatsApp = () => {
     const a = $('a[href^="https://wa.me/"]');
     const m = a && /wa\.me\/(\d+)/.exec(a.getAttribute('href'));
@@ -102,12 +201,9 @@
     const janela = window.open(url, '_blank');
     if (janela) { try { janela.opener = null; } catch (_) { /* já é de outra origem */ } } else location.href = url;
   }
-  window.LFSite = { abrirWhatsApp, numeroWhatsApp };
+  window.LFSite = { abrirWhatsApp, numeroWhatsApp, abrir, esc, sem, euros };
 
   // ---------------------------------------------------------------- vídeos
-  // Sem som e em ciclo. Começam sozinhos quando aparecem no ecrã — excepto com «reduzir
-  // movimento» ou «poupar dados» (ou se o telemóvel recusar); aí ficam na imagem de capa, com o
-  // botão de ver à vista. Tocar no vídeo pára-o.
   const poupar = navigator.connection && navigator.connection.saveData;
   const automatico = !menosMovimento.matches && !poupar;
   $$('[data-video]').forEach((v) => {
@@ -123,10 +219,7 @@
       rotulo.textContent = tocar ? 'Ver o vídeo' : 'Parar o vídeo';
       v.classList.toggle('video--parado', tocar && (!automatico || escolhaDaPessoa || recusado));
     };
-    const alternar = () => {
-      escolhaDaPessoa = true;
-      if (video.paused) video.play().catch(() => {}); else video.pause();
-    };
+    const alternar = () => { escolhaDaPessoa = true; if (video.paused) video.play().catch(() => {}); else video.pause(); };
     video.addEventListener('play', desenhar);
     video.addEventListener('pause', desenhar);
     botao.addEventListener('click', alternar);
@@ -141,18 +234,35 @@
   });
 
   // ---------------------------------------------------------------- loja: a categoria aberta à vista
-  // No telemóvel a fila das categorias desliza: a categoria aberta fica centrada, sem mexer na página.
-  const fila = $('.chips ul');
-  const aberta = fila && $('[aria-current]', fila);
+  const filaChips = $('.chips ul');
+  const aberta = filaChips && $('[aria-current]', filaChips);
   if (aberta) {
     const centrar = () => {
-      if (fila.scrollWidth <= fila.clientWidth) return;
+      if (filaChips.scrollWidth <= filaChips.clientWidth) return;
       const li = aberta.parentElement;
-      fila.scrollLeft = li.offsetLeft - (fila.clientWidth - li.offsetWidth) / 2;
+      filaChips.scrollLeft = li.offsetLeft - (filaChips.clientWidth - li.offsetWidth) / 2;
     };
     centrar();
     if (document.fonts) document.fonts.ready.then(centrar);
   }
+
+  // ---------------------------------------------------------------- filas de artigos: as setas
+  $$('.fila').forEach((f) => {
+    const pista = $('[data-fila]', f);
+    const ant = $('[data-fila-anterior]', f);
+    const seg = $('[data-fila-seguinte]', f);
+    if (!pista || !ant || !seg) return;
+    const passo = () => pista.clientWidth * 0.85;
+    const pintar = () => {
+      ant.disabled = pista.scrollLeft <= 4;
+      seg.disabled = pista.scrollLeft + pista.clientWidth >= pista.scrollWidth - 4;
+    };
+    ant.addEventListener('click', () => pista.scrollBy({ left: -passo(), behavior: menosMovimento.matches ? 'auto' : 'smooth' }));
+    seg.addEventListener('click', () => pista.scrollBy({ left: passo(), behavior: menosMovimento.matches ? 'auto' : 'smooth' }));
+    pista.addEventListener('scroll', pintar, { passive: true });
+    addEventListener('resize', pintar);
+    pintar();
+  });
 
   // ---------------------------------------------------------------- galeria da ficha
   $$('[data-galeria]').forEach((g) => {
@@ -184,8 +294,7 @@
   });
 
   // ---------------------------------------------------------------- erros nos formulários
-  /* A frase do erro aparece junto ao campo que falta: por baixo do botão ficava fora do ecrã,
-     porque a página salta para o campo. */
+  /* A frase do erro aparece junto ao campo que falta: por baixo do botão ficava fora do ecrã. */
   function errar(erro, campo, texto) {
     erro.textContent = texto;
     const sitio = campo && campo.closest('.campo');
@@ -193,22 +302,37 @@
     erro.hidden = false;
     if (campo) { campo.setAttribute('aria-invalid', 'true'); campo.focus(); }
   }
-  const rotuloDe = (form, campo) => {
-    const l = campo.id && $(`label[for="${campo.id}"]`, form);
-    const fonte = l || (campo.closest('fieldset') && $('legend', campo.closest('fieldset')));
-    return fonte ? fonte.textContent.replace(/\(opcional\)/i, '').replace(/\s+/g, ' ').trim() : 'este campo';
-  };
-  /* O primeiro campo obrigatório por preencher (um grupo de rádios conta como um). */
-  function campoEmFalta(form) {
-    for (const c of $$('[required]', form)) {
-      if (c.type === 'radio') { if (!$(`input[name="${c.name}"]:checked`, form)) return c; continue; }
-      if (c.type === 'checkbox') { if (!c.checked) return c; continue; }
-      if (!String(c.value || '').trim()) return c;
+  window.LFSite.errar = errar;
+
+  // ---------------------------------------------------------------- o modelo do telemóvel (películas)
+  /* A marca escolhe as sugestões do modelo (o <datalist>, que o telemóvel mostra por cima do
+     teclado); o modelo escreve-se sempre à mão quando não está na lista. Uma página que chega com
+     ?modelo=Marca|Modelo (das reparações) já o traz escolhido. */
+  const modelosPorMarca = (() => { try { return JSON.parse(($('#dados-modelos') || {}).textContent || '{}'); } catch (_) { return {}; } })();
+  $$('[data-escolha-modelo]').forEach((f) => {
+    const marca = $('[data-modelo-marca]', f);
+    const nome = $('[data-modelo-nome]', f);
+    const lista = $('[data-modelo-lista]', f);
+    const encher = () => { lista.innerHTML = (modelosPorMarca[marca.value] || []).map((m) => `<option value="${esc(m)}"></option>`).join(''); };
+    marca.addEventListener('change', () => { encher(); if (nome.value && !(modelosPorMarca[marca.value] || []).includes(nome.value)) nome.value = ''; });
+    const pedido = new URLSearchParams(location.search).get('modelo');
+    if (pedido && pedido.includes('|')) {
+      const [m, n] = pedido.split('|');
+      if (Array.from(marca.options).some((o) => o.value === m)) { marca.value = m; encher(); nome.value = n.slice(0, 60); }
     }
-    return null;
+  });
+  /* O modelo como vai para o carrinho: «Samsung Galaxy A55» (a marca só quando o nome não a tem). */
+  function modeloEscrito(form) {
+    const f = $('[data-escolha-modelo]', form);
+    if (!f) return '';
+    const marca = $('[data-modelo-marca]', f).value.trim();
+    const nome = $('[data-modelo-nome]', f).value.trim().replace(/\s+/g, ' ');
+    if (!nome) return '';
+    const comMarca = !marca || marca === 'Outra' || sem(nome).startsWith(sem(marca)) || (marca === 'Apple' && /^i(phone|pad)/i.test(nome)) ? nome : `${marca} ${nome}`;
+    return comMarca.slice(0, 80);
   }
 
-  // ---------------------------------------------------------------- juntar ao carrinho
+  // ---------------------------------------------------------------- juntar ao carrinho (a ficha)
   $$('form[data-comprar]').forEach((form) => {
     const slug = form.dataset.comprar;
     const erro = $('[data-erro]', form);
@@ -225,6 +349,7 @@
     form.addEventListener('input', mostrarTotal);
     form.addEventListener('change', mostrarTotal);
     form.addEventListener('input', (e) => { if (e.target.hasAttribute('aria-invalid')) e.target.removeAttribute('aria-invalid'); erro.hidden = true; });
+    form.addEventListener('change', (e) => { if (e.target.hasAttribute('aria-invalid')) e.target.removeAttribute('aria-invalid'); erro.hidden = true; });
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       erro.hidden = true;
@@ -232,66 +357,80 @@
       for (const f of $$('[data-escolha]', form)) {
         if (!$('input:checked', f)) { errar(erro, $('input', f), `Escolha: ${$('legend', f).textContent.trim()}.`); return; }
       }
+      const fm = $('[data-escolha-modelo]', form);
+      if (fm) {
+        if (!$('[data-modelo-marca]', fm).value) { errar(erro, $('[data-modelo-marca]', fm), 'Escolha a marca do seu telemóvel.'); return; }
+        if (!$('[data-modelo-nome]', fm).value.trim()) { errar(erro, $('[data-modelo-nome]', fm), 'Escreva o modelo do seu telemóvel.'); return; }
+      }
       if (!window.LFCarrinho) { errar(erro, null, 'O carrinho não carregou. Recarregue a página e tente outra vez.'); return; }
-      const q = quantidade();
-      await window.LFCarrinho.juntar({ produto: slug, opcoes: escolhas(), qtd: q });
+      await window.LFCarrinho.juntar({ produto: slug, opcoes: escolhas(), qtd: quantidade(), modelo: modeloEscrito(form) });
       qtdInput.value = 1;
       mostrarTotal();
       abrir('carrinho', $('button[type="submit"]', form));
     });
   });
-
-  // ---------------------------------------------------------------- reparações: um serviço abre o pedido
-  /* Tocar num serviço (o cartão inteiro é a ligação para #orcamento) escolhe esse equipamento no pedido
-     de orçamento e leva até ele. O foco não vai para o campo: no telemóvel abria logo o teclado. */
-  $$('[data-equipamento]').forEach((a) => a.addEventListener('click', (e) => {
-    const tipo = $('#o-tipo');
-    const alvo = $('#orcamento');
-    if (!tipo || !alvo) return;
+  /* O botão do cartão (os artigos sem escolhas): junta um ao carrinho e abre a gaveta. */
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-juntar]');
+    if (!b || !window.LFCarrinho) return;
     e.preventDefault();
-    if (Array.from(tipo.options).some((o) => o.value === a.dataset.equipamento)) tipo.value = a.dataset.equipamento;
-    tipo.dispatchEvent(new Event('change', { bubbles: true }));
-    alvo.scrollIntoView({ behavior: menosMovimento.matches ? 'auto' : 'smooth', block: 'start' });
-    history.replaceState(null, '', '#orcamento');
-  }));
+    await window.LFCarrinho.juntar({ produto: b.dataset.juntar, opcoes: [], qtd: 1 });
+    b.dataset.feito = '';
+    setTimeout(() => { delete b.dataset.feito; }, 1200);
+    abrir('carrinho', b);
+  });
 
-  // ---------------------------------------------------------------- orçamento e retoma pelo WhatsApp
-  /* Os dois formulários só escrevem a mensagem e abrem o WhatsApp: nada fica guardado no site
-     (a política de privacidade promete isto). */
-  const valores = (form, nome) => $$(`input[name="${nome}"]:checked`, form).map((i) => i.value);
-  const texto = (form, nome) => String((form.elements[nome] || {}).value || '').trim().replace(/\s+/g, ' ');
-  const MENSAGENS = {
-    orcamento: (f) => [
-      'Olá! Queria um orçamento para uma reparação.', '',
-      `Equipamento: ${texto(f, 'tipo')}`,
-      `Marca e modelo: ${texto(f, 'modelo')}`,
-      `O que se passa: ${texto(f, 'avaria')}`,
-      texto(f, 'nome') ? `Nome: ${texto(f, 'nome')}` : '',
-    ],
-    retoma: (f) => [
-      'Olá! Quero vender o meu telemóvel (retoma).', '',
-      `Marca: ${texto(f, 'marca')}`,
-      `Modelo: ${texto(f, 'modelo')}`,
-      `Estado: ${valores(f, 'estado')[0] || ''}`,
-      `Problemas: ${valores(f, 'problemas').join(', ') || 'funciona tudo'}`,
-      `Acompanha: ${valores(f, 'acompanha').join(', ') || 'só o equipamento'}`,
-      texto(f, 'notas') ? `Notas: ${texto(f, 'notas')}` : '',
-    ],
-  };
-  $$('form[data-whatsapp-form]').forEach((form) => {
-    const compor = MENSAGENS[form.dataset.whatsappForm];
-    const erro = $('[data-erro]', form);
-    if (!compor || !erro) return;
-    form.addEventListener('input', (e) => { if (e.target.hasAttribute('aria-invalid')) e.target.removeAttribute('aria-invalid'); erro.hidden = true; });
-    form.addEventListener('change', () => { erro.hidden = true; });
+  // ---------------------------------------------------------------- a escolha rápida do modelo (capa)
+  /* A marca filtra os grupos da lista dos modelos; «Ver preços» abre a página do modelo escolhido
+     (sem modelo, a página das reparações). */
+  $$('form[data-rapido]').forEach((form) => {
+    const marca = $('[data-rapido-marca]', form);
+    const modelo = $('[data-rapido-modelo]', form);
+    const filtrar = () => {
+      $$('optgroup', modelo).forEach((g) => { g.hidden = g.dataset.marca !== marca.value; g.disabled = g.dataset.marca !== marca.value; });
+      const sel = modelo.selectedOptions[0];
+      if (sel && sel.parentElement.tagName === 'OPTGROUP' && sel.parentElement.disabled) modelo.value = '';
+    };
+    marca.addEventListener('change', filtrar);
+    filtrar();
+    modelo.addEventListener('change', () => { if (modelo.value) form.requestSubmit(); });
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      erro.hidden = true;
-      $$('[aria-invalid]', form).forEach((i) => i.removeAttribute('aria-invalid'));
-      const falta = campoEmFalta(form);
-      if (falta) { errar(erro, falta, `${falta.type === 'radio' || falta.tagName === 'SELECT' ? 'Escolha' : 'Preencha'}: ${rotuloDe(form, falta)}.`); return; }
-      if (!numeroWhatsApp()) { errar(erro, null, 'O número de WhatsApp ainda não está no site.'); return; }
-      abrirWhatsApp(compor(form).filter((l, i, arr) => l !== '' || i < arr.length).join('\n').replace(/\n+$/, ''));
+      location.href = modelo.value ? `${form.dataset.rapido}${modelo.value}/` : `${form.dataset.rapido}#escolher`;
     });
+  });
+
+  // ---------------------------------------------------------------- os problemas (separadores)
+  /* A grelha dos problemas: tocar num mostra a explicação dele por baixo (os outros escondem-se).
+     Um endereço com #problema-ecra (ou #ecra) abre esse. */
+  $$('[data-problemas]').forEach((s) => {
+    const abas = $$('[data-problema]', s);
+    const paineis = $$('[data-painel]', s);
+    if (!abas.length) return;
+    const escolher = (id, { foco = false, rolar = false } = {}) => {
+      abas.forEach((a) => { const sim = a.dataset.problema === id; a.setAttribute('aria-selected', String(sim)); a.tabIndex = sim ? 0 : -1; if (sim && foco) a.focus(); });
+      paineis.forEach((p) => { p.hidden = p.dataset.painel !== id; });
+      if (rolar) { const p = paineis.find((x) => x.dataset.painel === id); if (p && p.getBoundingClientRect().top > innerHeight * 0.75) p.scrollIntoView({ behavior: menosMovimento.matches ? 'auto' : 'smooth', block: 'nearest' }); }
+    };
+    abas.forEach((a, i) => {
+      a.addEventListener('click', (e) => { e.preventDefault(); escolher(a.dataset.problema, { rolar: true }); history.replaceState(null, '', `#problema-${a.dataset.problema}`); });
+      a.addEventListener('keydown', (e) => {
+        const d = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+        if (!d) return;
+        e.preventDefault();
+        escolher(abas[(i + d + abas.length) % abas.length].dataset.problema, { foco: true });
+      });
+    });
+    const pedido = (location.hash || '').replace(/^#(problema-)?/, '');
+    escolher(abas.some((a) => a.dataset.problema === pedido) ? pedido : abas[0].dataset.problema);
+    /* «Ver o preço para o meu modelo» leva à escolha do modelo (na mesma página, quando a há). */
+    $$('[data-ir-escolher]', s).forEach((b) => b.addEventListener('click', (e) => {
+      const alvo = $('#escolher');
+      if (!alvo) return;
+      e.preventDefault();
+      alvo.scrollIntoView({ behavior: menosMovimento.matches ? 'auto' : 'smooth', block: 'start' });
+      const campo = $('[data-seletor-procura]', alvo);
+      if (campo && !telemovel.matches) campo.focus({ preventScroll: true });
+    }));
   });
 })();

@@ -1,44 +1,58 @@
 [
   {
-    "slug": "telemoveis",
-    "nome": "Telemóveis",
-    "titulo": "Telemóveis novos",
-    "resumo": "Novos, selados e com a garantia do fabricante."
+    "slug": "iphone",
+    "nome": "iPhone",
+    "titulo": "iPhone",
+    "resumo": "iPhone novos e selados, com a garantia da Apple.",
+    "peso": 0.5
+  },
+  {
+    "slug": "samsung",
+    "nome": "Samsung",
+    "titulo": "Samsung Galaxy",
+    "resumo": "Galaxy novos e selados, com a garantia da Samsung.",
+    "peso": 0.5
   },
   {
     "slug": "recondicionados",
     "nome": "Recondicionados",
-    "titulo": "Telemóveis recondicionados",
-    "resumo": "Testados na loja, com a bateria e o estado em cada ficha."
+    "titulo": "iPhone e Samsung recondicionados",
+    "resumo": "Testados na loja, com a bateria e o estado em cada ficha.",
+    "peso": 0.4
   },
   {
     "slug": "tablets",
     "nome": "Tablets",
-    "titulo": "Tablets",
-    "resumo": "Para estudar, trabalhar e ver filmes."
+    "titulo": "iPad e Galaxy Tab",
+    "resumo": "Para estudar, trabalhar e ver filmes.",
+    "peso": 1
   },
   {
     "slug": "smartwatches",
     "nome": "Smartwatches",
-    "titulo": "Smartwatches e pulseiras",
-    "resumo": "Relógios e pulseiras inteligentes para o dia a dia e o desporto."
+    "titulo": "Smartwatches",
+    "resumo": "Relógios inteligentes para o dia a dia e o desporto.",
+    "peso": 0.3
   },
   {
     "slug": "audio",
     "nome": "Áudio",
     "titulo": "Auriculares e auscultadores",
-    "resumo": "Sem fios, para iPhone e Android."
+    "resumo": "Sem fios, para iPhone e Samsung.",
+    "peso": 0.3
+  },
+  {
+    "slug": "peliculas",
+    "nome": "Películas",
+    "titulo": "Películas para qualquer telemóvel",
+    "resumo": "Escolha o tipo e diga-nos o modelo do seu telemóvel.",
+    "peso": 0.1
   },
   {
     "slug": "acessorios",
     "nome": "Acessórios",
-    "titulo": "Acessórios e películas",
-    "resumo": "Películas aplicadas na loja, capas, localizadores e mais."
-  },
-  {
-    "slug": "outros",
-    "nome": "Outros",
-    "titulo": "Outros artigos",
-    "resumo": "O que vai chegando à loja."
+    "titulo": "Capas e acessórios",
+    "resumo": "Capas, localizadores e o que faz falta ao dia a dia.",
+    "peso": 0.2
   }
 ]

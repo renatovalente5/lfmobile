@@ -1,7 +1,8 @@
 /* AS CONTAS E AS VALIDAÇÕES DO /checkout.
  *
- * O site manda só os artigos (o id, as escolhas, a quantidade), a entrega e o que mostrou como
- * total. O Worker refaz TUDO do seu lado com o catálogo publicado: nunca se cobra o que o browser
+ * O site manda só os artigos (o id, as escolhas, o modelo do telemóvel nas películas, a
+ * quantidade), a entrega, o código do cupão e o que mostrou como total. O Worker refaz TUDO do seu
+ * lado com o catálogo publicado (e o cupão com o que está no KV): nunca se cobra o que o browser
  * diz. As regras são as mesmas do carrinho (src/scripts/carrinho.js) e das regras do site
  * (src/lib/regras.mjs: precoDe, opcoesDe, compravel, enviavel, nifValido), para o carrinho e o
  * Worker nunca discordarem — quando discordam (um preço mudou entretanto) o Worker responde 409
@@ -53,16 +54,33 @@ export class ErroDoPedido extends Error {
 }
 
 const nomeDe = (p) => (p && (p.nomeCurto || p.nome)) || '';
+const kg = (x) => `${String(x).replace('.', ',')} kg`;
+
+/* OS PORTES PELO PESO (catálogo v3: portes[zona] é a lista dos escalões [{ ate: kg, preco: € }]; a
+   mesma conta de regras.mjs, portesDoPeso, e do carrinho): o primeiro escalão que aguenta a
+   encomenda, ou null (mais pesada do que o último: combina-se). Um catálogo antigo (v2: um número
+   por zona) vale como um escalão só, sem limite. */
+export function escaloesDe(v) {
+  if (typeof v === 'number' && Number.isFinite(v)) return [{ ate: Infinity, preco: v }];
+  if (!Array.isArray(v)) return [];
+  return v.filter((e) => e && typeof e.ate === 'number' && typeof e.preco === 'number' && Number.isFinite(e.preco)).sort((a, b) => a.ate - b.ate);
+}
+export const escalaoDoPeso = (peso, v) => escaloesDe(v).find((e) => peso <= e.ate + 1e-9) || null;
+
+/* O modelo do telemóvel que a pessoa escreveu (as películas): limpo e cortado; vazio, ''. */
+export const limparModelo = (m) => String(m == null ? '' : m).replace(/[\u0000-\u001F\u007F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
 
 /* As linhas da encomenda já com os preços de hoje, e os totais. Lança ErroDoPedido quando um
-   artigo não existe, não se compra, não se envia para a entrega escolhida, ou a quantidade
-   não presta. `zona` é a zona de entrega escolhida (de cat.zonas). */
-export function contas(cat, linhas, zona, hoje = hojeLisboa()) {
+   artigo não existe, não se compra, não se envia para a entrega escolhida, não tem o modelo que
+   pede, ou a quantidade não presta. `zona` é a zona de entrega escolhida (de cat.zonas); `cupao`,
+   a regra do cupão já conferida (cupoes.js) ou null. */
+export function contas(cat, linhas, zona, hoje = hojeLisboa(), { cupao = null } = {}) {
   if (!Array.isArray(linhas) || !linhas.length) throw new ErroDoPedido('O carrinho está vazio.');
   if (linhas.length > MAX_LINHAS) throw new ErroDoPedido('O carrinho tem artigos a mais. Divida a encomenda em duas.');
   const envio = Boolean(zona && zona.morada);
   const saida = [];
   let artigos_cents = 0;
+  let peso = 0;
   for (const l of linhas) {
     if (!l || typeof l !== 'object' || typeof l.produto !== 'string') throw new ErroDoPedido('Um artigo do carrinho não se reconhece. Veja o carrinho outra vez.');
     const p = Object.prototype.hasOwnProperty.call(cat.produtos || {}, l.produto) ? cat.produtos[l.produto] : null;
@@ -73,31 +91,60 @@ export function contas(cat, linhas, zona, hoje = hojeLisboa()) {
     if (!Number.isInteger(l.qtd) || l.qtd < 1 || l.qtd > MAX_QTD) throw new ErroDoPedido(`A quantidade de cada artigo vai de 1 a ${MAX_QTD}.`);
     if (l.opcoes !== undefined && (!Array.isArray(l.opcoes) || !l.opcoes.every((x) => Number.isInteger(x) && x >= 0))) throw new ErroDoPedido('As escolhas de um artigo não se reconhecem. Veja o carrinho outra vez.');
     const escolhas = escolhasDe(p, l.opcoes);
+    // O modelo do telemóvel: obrigatório nos artigos que o pedem (as películas); nos outros ignora-se.
+    const modelo = p.pedeModelo ? limparModelo(l.modelo) : '';
+    if (p.pedeModelo && !modelo) throw new ErroDoPedido(`Falta dizer o modelo do telemóvel para «${nomeDe(p)}». Junte-a outra vez ao carrinho, a partir da ficha.`);
     const unidade_cents = centimos(base) + escolhas.reduce((s, x) => s + centimos(x.suplemento), 0);
     const total_cents = unidade_cents * l.qtd;
     artigos_cents += total_cents;
+    peso += (typeof p.peso === 'number' && Number.isFinite(p.peso) && p.peso > 0 ? p.peso : 0.3) * l.qtd;
     saida.push({
       produto: l.produto,
       nome: p.nome,
       qtd: l.qtd,
       opcoes: escolhas.map((x) => x.indice),
-      escolhas: escolhas.map((x) => `${x.grupo}: ${x.valor}`),
+      escolhas: [...escolhas.map((x) => `${x.grupo}: ${x.valor}`), ...(modelo ? [`Modelo: ${modelo}`] : [])],
+      ...(modelo ? { modelo } : {}),
+      categoria: p.categoria || '',
       unidade_cents,
       total_cents,
     });
   }
-  // Os portes (carrinho.js, contas): zero no levantamento; grátis a partir de X em artigos;
-  // por confirmar (null) quando o dono ainda não os definiu no painel.
+  // O desconto do cupão (cupoes.js, descontoDoCupao), sobre os artigos (ou só os das categorias dele).
+  const desc = cupao ? descontoDoCupao(cupao, saida, artigos_cents) : { cents: 0, portes: false };
+  // Os portes (carrinho.js, contas): zero no levantamento; grátis a partir de X em artigos ou com o
+  // cupão de portes grátis; pelo peso da encomenda (o escalão da Nacex); por confirmar (null) quando
+  // não há escalão que a aguente, ou o dono ainda não os definiu.
   let portes_cents = 0;
   let portes_por_confirmar = false;
+  let escalao = null;
   if (envio) {
-    const v = (cat.portes || {})[zona.id];
     const gratis = (cat.portes || {}).gratisAPartirDe;
-    if (typeof gratis === 'number' && artigos_cents >= centimos(gratis)) portes_cents = 0;
-    else if (typeof v === 'number') portes_cents = centimos(v);
+    escalao = escalaoDoPeso(peso, (cat.portes || {})[zona.id]);
+    if (desc.portes || (typeof gratis === 'number' && artigos_cents >= centimos(gratis))) portes_cents = 0;
+    else if (escalao) portes_cents = centimos(escalao.preco);
     else portes_por_confirmar = true;
   }
-  return { linhas: saida, artigos_cents, portes_cents, portes_por_confirmar, total_cents: artigos_cents + portes_cents };
+  const peso_kg = Math.round(peso * 1000) / 1000;
+  return {
+    linhas: saida, artigos_cents, desconto_cents: desc.cents, ...(cupao ? { cupao: cupao.codigo, cupao_portes: desc.portes } : {}),
+    peso_kg, escalao_kg: escalao && Number.isFinite(escalao.ate) ? escalao.ate : null,
+    portes_cents, portes_por_confirmar, total_cents: artigos_cents - desc.cents + portes_cents,
+  };
+}
+
+/* O DESCONTO DE UM CUPÃO (a mesma conta do carrinho, carrinho.js, descontoDo): em cêntimos, sobre os
+   artigos (ou só os das categorias do cupão); a percentagem arredonda ao cêntimo; o valor fixo
+   nunca passa dos artigos a que se aplica; o de portes grátis tira os portes (desconto zero nos
+   artigos). → { cents, portes } */
+export function descontoDoCupao(regra, linhas, artigos_cents) {
+  const cats = Array.isArray(regra.categorias) ? regra.categorias : [];
+  const base = linhas.filter((l) => !cats.length || cats.includes(l.categoria)).reduce((s, l) => s + l.total_cents, 0);
+  if (regra.tipo === 'portes') return { cents: 0, portes: true };
+  if (regra.tipo === 'percentagem') return { cents: Math.round((base * regra.valor) / 100), portes: false };
+  if (regra.tipo === 'valor') return { cents: Math.min(centimos(regra.valor), base), portes: false };
+  void artigos_cents;
+  return { cents: 0, portes: false };
 }
 
 /* ---------------------------------------------------------------- os dados do cliente */
@@ -165,16 +212,19 @@ export function validarCliente(bruto, { envio }) {
 
 /* O pedido inteiro do /checkout: a zona, as contas, o cliente, os termos. Devolve o que a
    encomenda vai levar; lança ErroDoPedido com a frase para o site. */
-export function validarPedido(corpo, cat, modo, hoje = hojeLisboa()) {
+export function validarPedido(corpo, cat, modo, hoje = hojeLisboa(), { cupao = null } = {}) {
   if (!corpo || typeof corpo !== 'object' || Array.isArray(corpo)) throw new ErroDoPedido('Pedido inválido.');
   const zonas = Array.isArray(cat.zonas) ? cat.zonas : [];
   const zona = zonas.find((z) => z && z.id === corpo.entrega);
   if (!zona) throw new ErroDoPedido('Escolha a forma de entrega.', { campo: 'entrega' });
-  const c = contas(cat, corpo.linhas, zona, hoje);
+  const c = contas(cat, corpo.linhas, zona, hoje, { cupao });
   // Portes por definir com envio: em modo «online» não há como cobrá-los, por isso não se segue;
   // em modo «encomenda» a encomenda segue com portes_por_confirmar e o email di-lo.
   if (c.portes_por_confirmar && modo === 'online') {
-    throw new ErroDoPedido('Os portes para esta entrega ainda não estão definidos. Escolha o levantamento na loja ou fale connosco pelo WhatsApp.', { campo: 'entrega' });
+    const e = escaloesDe((cat.portes || {})[zona.id]);
+    throw new ErroDoPedido(e.length
+      ? `A encomenda pesa mais de ${kg(e[e.length - 1].ate)}: escolha o levantamento na loja ou fale connosco pelo WhatsApp para combinar o envio.`
+      : 'Os portes para esta entrega ainda não estão definidos. Escolha o levantamento na loja ou fale connosco pelo WhatsApp.', { campo: 'entrega' });
   }
   const cliente = validarCliente(corpo.cliente, { envio: Boolean(zona.morada) });
   if (corpo.termos !== true) throw new ErroDoPedido('Para continuar, aceite os termos e condições.', { campo: 'termos' });

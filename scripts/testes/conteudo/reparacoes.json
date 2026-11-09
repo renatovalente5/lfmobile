@@ -1,0 +1,68 @@
+{
+  "confirmado": false,
+  "tipos": [
+    {
+      "id": "ecra",
+      "nome": "Ecrã",
+      "titulo": "Substituição do ecrã",
+      "icone": "ecra",
+      "resumo": "Vidro partido ou riscas.",
+      "sintomas": [
+        "Vidro estalado"
+      ],
+      "familias": [
+        "iphone",
+        "galaxy-s"
+      ],
+      "niveis": [
+        {
+          "id": "compativel",
+          "nome": "Ecrã compatível",
+          "texto": "Ao melhor preço."
+        },
+        {
+          "id": "original",
+          "nome": "Ecrã original",
+          "texto": "A peça da marca."
+        }
+      ]
+    },
+    {
+      "id": "bateria",
+      "nome": "Bateria",
+      "titulo": "Troca da bateria",
+      "icone": "bateria",
+      "resumo": "Não chega ao fim do dia.",
+      "sintomas": [],
+      "familias": [
+        "iphone",
+        "galaxy-s"
+      ]
+    },
+    {
+      "id": "diagnostico",
+      "nome": "Diagnóstico",
+      "titulo": "Diagnóstico",
+      "icone": "diagnostico",
+      "resumo": "Vemos e dizemos o que tem.",
+      "sintomas": [],
+      "familias": [
+        "iphone",
+        "galaxy-s"
+      ],
+      "gratis": true
+    }
+  ],
+  "precos": {
+    "iphone-13": {
+      "ecra": {
+        "compativel": 129.9,
+        "original": 199.9
+      },
+      "bateria": 69.9
+    },
+    "galaxy-s24": {
+      "bateria": 59.9
+    }
+  }
+}

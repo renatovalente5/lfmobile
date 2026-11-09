@@ -95,9 +95,27 @@ export async function verificarAssinatura(corpo, cabecalho, segredo, agoraSegund
 
 /* ---------------------------------------------------------------- a Checkout Session */
 
+/* O CUPÃO NA STRIPE: um cupão de uso único com o desconto que ESTE Worker calculou (os nossos artigos
+   vão como price_data, sem produto fixo, por isso as regras do cupão — o mínimo, as categorias, os
+   usos — são nossas: cupoes.js). Aparece na página da Stripe como «Cupão X −5,00 €». O amount_off
+   aplica-se ao subtotal; o total dá o mesmo (artigos − desconto + portes). */
+export async function criarCupaoDaSessao(env, enc) {
+  const params = {
+    amount_off: enc.desconto_cents,
+    currency: 'eur',
+    duration: 'once',
+    max_redemptions: 1,
+    name: `Cupão ${enc.cupao}`.slice(0, 40),
+    redeem_by: Math.floor(Date.now() / 1000) + DURACAO_SESSAO_SEGUNDOS + 600,
+    metadata: { encomenda: enc.encomenda, cupao: enc.cupao },
+  };
+  return stripeFetch(env, '/coupons', { body: params, idempotencyKey: `cup_${enc.encomenda}` });
+}
+
 /* A página segura da Stripe para esta encomenda. Os artigos vão como line_items com o preço que
    ESTE Worker calculou; os portes, quando os há, são mais uma linha (a morada já foi recolhida
-   no site, e a Stripe só restringe por país: Madeira e Açores são Portugal). */
+   no site, e a Stripe só restringe por país: Madeira e Açores são Portugal); o desconto do cupão,
+   um cupão de uso único (criarCupaoDaSessao). */
 export async function criarSessao(env, enc, zona) {
   const site = siteUrl(env);
   const params = {
@@ -133,6 +151,10 @@ export async function criarSessao(env, enc, zona) {
     });
   }
   if (zona && zona.nome) params.custom_text = { submit: { message: zona.nome } };
+  if (enc.desconto_cents > 0) {
+    const cupao = await criarCupaoDaSessao(env, enc);
+    params.discounts = [{ coupon: cupao.id }];
+  }
   return stripeFetch(env, '/checkout/sessions', { body: params, idempotencyKey: `chk_${enc.encomenda}` });
 }
 

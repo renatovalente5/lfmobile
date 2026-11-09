@@ -1,8 +1,8 @@
-// Peças repetidas: imagens, preços, cartões de artigo e de serviço, migalhas, botões, a faixa de
-// confiança, o horário, e as peças legais comuns.
+// Peças repetidas: imagens (com o recorte), preços, cartões de artigo, selos, migalhas, botões, o
+// horário e as peças legais comuns.
 import { esc, euros, precoDe, dataPorExtenso, numeroWhatsApp } from './util.mjs';
-import { icones, iconeServico } from './icones.mjs';
-import { temSuplementos, estadoDe, disponibilidadeDe, compravel, ESTADOS, linhasDe } from '../lib/regras.mjs';
+import { icones } from './icones.mjs';
+import { temSuplementos, estadoDe, disponibilidadeDe, compravel, opcoesDe, ESTADOS, linhasDe } from '../lib/regras.mjs';
 import { livroReclamacoes, VERSAO as LEGAL_COMUM_VERSAO } from '../../legal-comum/index.mjs';
 
 /* AS PEÇAS DA BIBLIOTECA legal-comum (a cópia está em legal-comum/, instalada por
@@ -17,29 +17,35 @@ export const pecaLegal = (nome, html) => `<!-- legal-comum:${nome} v${LEGAL_COMU
 export const livroBotao = () => pecaLegal('livro', livroReclamacoes());
 
 /* A nota legal da promoção, por baixo do preço da ficha (DL 70/2007, art. 5.º): o período e o preço mais
-   baixo dos 30 dias anteriores ao início — que é, por lei, o preço riscado. Só com a data de início. */
+   baixo dos 30 dias anteriores ao início — que é, por lei, o preço riscado. Só com a data de início
+   (as campanhas têm-na sempre). */
 export function promocaoNota(ctx, p) {
   const v = precoDe(p, ctx.hoje);
   const desde = typeof p.promocaoDesde === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.promocaoDesde) ? p.promocaoDesde : '';
   if (!v.anterior || !v.ate || !desde) return '';
   const mesmoAno = desde.slice(0, 4) === v.ate.slice(0, 4);
-  return `<p class="preco__promocao">Promoção de ${dataPorExtenso(desde, !mesmoAno)} a ${dataPorExtenso(v.ate, true)} · preço mais baixo nos 30 dias anteriores: ${euros(v.anterior)}</p>`;
+  return `<p class="preco__promocao">${p.campanha ? `${esc(campanhaDe(ctx, p)?.nome || 'Campanha')}: ` : 'Promoção '}de ${dataPorExtenso(desde, !mesmoAno)} a ${dataPorExtenso(v.ate, true)} · preço mais baixo nos 30 dias anteriores: ${euros(v.anterior)}</p>`;
 }
+export const campanhaDe = (ctx, p) => (p && p.campanha ? ctx.campanhas.find((c) => c.slug === p.campanha) || null : null);
 
-// <picture> com AVIF + WebP em várias larguras. «tamanhos» é o atributo sizes: diz ao browser
-// a largura em que a imagem vai aparecer, para escolher a versão certa.
-export function imagem(ctx, nome, { tamanhos = '100vw', classe = '', prioridade = false, alt, foco, proporcao } = {}) {
-  const m = ctx.manifesto.fotos[nome] || ctx.manifesto.posters[nome];
+// <picture> com AVIF + WebP em várias larguras. «tamanhos» é o atributo sizes: diz ao browser a
+// largura em que a imagem vai aparecer, para escolher a versão certa. Com «recorte», usa o recorte
+// da fotografia (sem fundo) quando o há.
+export function imagem(ctx, nome, { tamanhos = '100vw', classe = '', prioridade = false, alt, foco, proporcao, recorte = false } = {}) {
+  const r = recorte ? ctx.manifesto.recortes?.[nome] : null;
+  const m = r || ctx.manifesto.fotos[nome] || ctx.manifesto.posters[nome];
   if (!m) throw new Error(`imagem «${nome}» não existe em media/fotos (nem é a capa de um vídeo)`);
   const info = ctx.fotos[nome] || {};
   const texto = alt ?? info.alt ?? '';
-  const ponto = foco ?? info.foco ?? '50% 50%';
-  const srcset = (fmt) => m.larguras.map((w) => `${ctx.asset(`img/${nome}-${m.resumo}-${w}.${fmt}`)} ${w}w`).join(', ');
+  const base = r ? `recorte-${nome}` : nome;
+  const ponto = r ? '50% 50%' : (foco ?? info.foco ?? '50% 50%');
+  const srcset = (fmt) => m.larguras.map((w) => `${ctx.asset(`img/${base}-${m.resumo}-${w}.${fmt}`)} ${w}w`).join(', ');
   const fontes = m.formatos.filter((f) => f !== 'webp').map((f) => `<source type="image/${f}" srcset="${srcset(f)}" sizes="${tamanhos}">`).join('');
-  const meio = m.larguras.find((w) => w >= 720) || m.larguras[m.larguras.length - 1];
+  const meio = m.larguras.find((w) => w >= (r ? 480 : 720)) || m.larguras[m.larguras.length - 1];
   const estilo = [ponto !== '50% 50%' ? `object-position:${ponto}` : '', proporcao ? `aspect-ratio:${proporcao}` : ''].filter(Boolean).join(';');
-  return `<picture class="${esc(classe)}">${fontes}<img src="${ctx.asset(`img/${nome}-${m.resumo}-${meio}.webp`)}" srcset="${srcset('webp')}" sizes="${tamanhos}" width="${m.largura}" height="${m.altura}" alt="${esc(texto)}"${prioridade ? ' fetchpriority="high"' : ' loading="lazy"'} decoding="async"${estilo ? ` style="${estilo}"` : ''}></picture>`;
+  return `<picture class="${esc([classe, r ? 'recorte' : ''].filter(Boolean).join(' '))}">${fontes}<img src="${ctx.asset(`img/${base}-${m.resumo}-${meio}.webp`)}" srcset="${srcset('webp')}" sizes="${tamanhos}" width="${m.largura}" height="${m.altura}" alt="${esc(texto)}"${prioridade ? ' fetchpriority="high"' : ' loading="lazy"'} decoding="async"${estilo ? ` style="${estilo}"` : ''}></picture>`;
 }
+export const temRecorte = (ctx, nome) => Boolean(ctx.manifesto.recortes?.[nome]);
 
 /* O estado de um artigo, como se mostra: «Recondicionado · Grade A+» (a grade vem das
    características, se lá estiver). Um artigo novo não leva etiqueta. */
@@ -48,6 +54,16 @@ export function estadoRotulo(p) {
   if (estado === 'novo') return '';
   const grade = linhasDe(p.caracteristicas).find((t) => /^grade\s/i.test(t));
   return grade ? `${ESTADOS[estado]} · ${grade}` : ESTADOS[estado];
+}
+
+/* A linha das especificações do cartão: a capacidade, a bateria e a grade, quando as características
+   as dizem («128 GB · Bateria a 89 % · Grade A+»). */
+export function especificacoes(p) {
+  const l = linhasDe(p.caracteristicas);
+  const cap = l.find((t) => /\b\d+\s?(GB|TB)\b/i.test(t));
+  const bat = l.find((t) => /bateria/i.test(t));
+  const grade = l.find((t) => /^grade\s/i.test(t));
+  return [cap && cap.replace(/\s*de armazenamento/i, ''), bat, grade].filter(Boolean);
 }
 
 /* A disponibilidade, em palavras curtas (o cartão e a ficha). «Disponível» não se escreve: é o
@@ -81,42 +97,46 @@ export function promocaoAte(ctx, p) {
   return v.anterior && v.ate ? `Promoção até ${dataPorExtenso(v.ate)}` : '';
 }
 
-// Cartão de artigo: a fotografia (quadrada, cortada pelo ponto de foco), a marca ou o estado em
-// letra pequena, o nome e o preço. O cartão inteiro leva ao artigo (a ligação do nome estende-se por
-// cima dele com ::after — nunca display:contents, que tira o foco do teclado).
-export function cartaoProduto(ctx, p, { tamanhos = '(min-width: 1100px) 22vw, (min-width: 700px) 30vw, 46vw', titulo = 'h3', soGrade = false } = {}) {
-  const pct = desconto(ctx, p);
-  const segunda = p.fotos[1];
-  const estado = estadoRotulo(p);
-  const disp = disponibilidadeRotulo(p);
-  const selos = [
-    pct ? `<span class="selo selo--promocao">−${pct}%</span>` : '',
-    p.novidade ? '<span class="selo selo--novidade">Novidade</span>' : '',
-    disponibilidadeDe(p) === 'esgotado' ? '<span class="selo selo--esgotado">Esgotado</span>' : '',
-  ].filter(Boolean).join('');
-  // Na categoria dos recondicionados o título já diz «recondicionado»: o cartão fica só com a grade.
-  const grade = soGrade ? linhasDe(p.caracteristicas).find((t) => /^grade\s/i.test(t)) : '';
-  const etiqueta = grade || estado || p.marca || '';
-  return `<article class="cartao${disponibilidadeDe(p) === 'esgotado' ? ' cartao--esgotado' : ''}">
-  <div class="cartao__foto">${imagem(ctx, p.fotos[0], { tamanhos, classe: 'cartao__img' })}${segunda ? imagem(ctx, segunda, { tamanhos, classe: 'cartao__img cartao__img--outra', alt: '' }) : ''}${selos ? `<div class="cartao__selos">${selos}</div>` : ''}</div>
-  ${etiqueta ? `<p class="cartao__etiqueta">${esc(etiqueta)}</p>` : ''}
-  <${titulo} class="cartao__nome"><a class="cartao__ligacao" href="${ctx.url(`/produtos/${p.slug}/`)}">${esc(p.nome)}</a></${titulo}>
-  <div class="cartao__pe">${preco(ctx, p)}${disp && disp !== 'Esgotado' ? `<span class="cartao__disp">${esc(disp)}</span>` : ''}</div>
-</article>`;
-}
+/* Junta-se ao carrinho direto do cartão? Só quando não há nada para escolher na ficha. */
+export const juntaDoCartao = (p) => compravel(p) && !opcoesDe(p).length && p.pedeModelo !== true;
 
-/* Cartão de um serviço de reparação: o desenho, o nome, o que se faz e o preço quando a loja o diz. O
-   cartão inteiro é a ligação para o pedido de orçamento da mesma página, com o equipamento já escolhido
-   (site.js, [data-equipamento]); sem JavaScript, salta para o formulário. Nada de um botão igual em cada
-   cartão (o Renato, 8 nov 2026: simples e direto). */
-export function cartaoServico(ctx, s, { titulo = 'h3' } = {}) {
-  const itens = linhasDe(s.itens);
-  return `<article class="servico" id="servico-${esc(s.slug)}">
-  <span class="servico__icone">${iconeServico(s.icone)}</span>
-  <${titulo} class="servico__nome"><a class="servico__ligacao" href="#orcamento" data-equipamento="${esc(s.nome)}"><span class="visualmente-escondido">Pedir orçamento: </span>${esc(s.nome)}</a></${titulo}>
-  ${itens.length ? `<ul class="servico__itens">${itens.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
-  ${s.preco ? `<p class="servico__preco">${esc(s.preco)}</p>` : ''}
-  <span class="servico__seta" aria-hidden="true">${icones.seta}</span>
+/* O CARTÃO DE ARTIGO, como numa loja de electrónica: a imagem num poço claro (o recorte, sem fundo,
+   quando o há; senão a fotografia a encher o poço), os selos (o desconto, a campanha, a novidade), a
+   marca e o estado em letra pequena, o nome, as especificações numa linha e, em baixo, o preço e o
+   botão de juntar (ou «Escolher», quando há escolhas ou o modelo a dizer). O cartão inteiro leva ao
+   artigo (a ligação do nome estende-se por cima dele com ::after; o botão fica por cima dela). Os
+   data-* servem os filtros e a ordem da loja (loja.js). */
+export function cartaoProduto(ctx, p, { tamanhos = '(min-width: 1200px) 260px, (min-width: 700px) 30vw, 46vw', titulo = 'h3', comBotao = true } = {}) {
+  const pct = desconto(ctx, p);
+  const camp = campanhaDe(ctx, p);
+  const disp = disponibilidadeDe(p);
+  const v = precoDe(p, ctx.hoje);
+  const selos = [
+    pct ? `<span class="selo selo--desconto">−${pct}%</span>` : '',
+    camp ? `<span class="selo selo--campanha">${esc(camp.nome)}</span>` : '',
+    p.novidade ? '<span class="selo selo--novidade">Novidade</span>' : '',
+    disp === 'esgotado' ? '<span class="selo selo--esgotado">Esgotado</span>' : '',
+  ].filter(Boolean).join('');
+  const recorte = temRecorte(ctx, p.fotos[0]);
+  const estado = estadoDe(p);
+  const marca = [p.marca, estado !== 'novo' ? ESTADOS[estado] : ''].filter(Boolean).join(' · ');
+  const specs = especificacoes(p);
+  const dispTexto = disponibilidadeRotulo(p);
+  let botao = '';
+  if (comBotao && juntaDoCartao(p)) botao = `<button class="cartao__juntar" type="button" data-juntar="${esc(p.slug)}">${icones.carrinho}<span class="visualmente-escondido">Juntar ${esc(p.nomeCurto || p.nome)} ao carrinho</span><span class="cartao__juntar-mais" aria-hidden="true">+</span></button>`;
+  else if (comBotao && compravel(p)) botao = `<a class="cartao__escolher" href="${ctx.url(`/produtos/${p.slug}/`)}" tabindex="-1" aria-hidden="true">Escolher</a>`;
+  return `<article class="cartao${disp === 'esgotado' ? ' cartao--esgotado' : ''}" data-artigo="${esc(p.slug)}" data-categoria="${esc(p.categoria)}" data-marca="${esc((p.marca || '').toLowerCase())}" data-estado="${esc(estado)}" data-preco="${v.atual ?? ''}" data-ordem="${p.ordem ?? 500}" data-compravel="${compravel(p) ? 'sim' : 'nao'}" data-texto="${esc(`${p.nome} ${p.marca || ''} ${p.resumo || ''}`.toLowerCase())}">
+  <div class="cartao__foto${recorte ? ' cartao__foto--recorte' : ''}">${imagem(ctx, p.fotos[0], { tamanhos, classe: 'cartao__img', recorte: true })}</div>
+  ${selos ? `<div class="cartao__selos">${selos}</div>` : ''}
+  <div class="cartao__corpo">
+    ${marca ? `<p class="cartao__marca">${esc(marca)}</p>` : ''}
+    <${titulo} class="cartao__nome"><a class="cartao__ligacao" href="${ctx.url(`/produtos/${p.slug}/`)}">${esc(p.nome)}</a></${titulo}>
+    ${specs.length ? `<p class="cartao__specs">${specs.map(esc).join(' · ')}</p>` : ''}
+    <div class="cartao__pe">
+      <div class="cartao__precos">${preco(ctx, p)}${dispTexto && disp !== 'esgotado' ? `<span class="cartao__disp">${esc(dispTexto)}</span>` : ''}</div>
+      ${botao}
+    </div>
+  </div>
 </article>`;
 }
 
@@ -137,8 +157,8 @@ export function botaoSeta(href, texto, { classe = 'botao botao--contorno', exter
   return `<a class="${classe}" href="${esc(href)}"${externo ? ' target="_blank" rel="noopener"' : ''}><span>${esc(texto)}</span>${icones.seta}</a>`;
 }
 
-/* A CABEÇA DAS PÁGINAS: as migalhas, uma palavra pequena por cima (a categoria, «Reparações»), o
-   título e um subtítulo curto — ou, nas páginas legais, a data. À esquerda, como no resto do site. */
+/* A CABEÇA DAS PÁGINAS: as migalhas, uma palavra pequena por cima, o título e um subtítulo curto — ou,
+   nas páginas legais, a data. */
 export function cabecaDePagina(ctx, { migalhas = '', sobre = '', titulo, sub = '', data = '', extra = '' }) {
   return `<header class="cabeca">
   ${migalhas}
@@ -148,20 +168,6 @@ export function cabecaDePagina(ctx, { migalhas = '', sobre = '', titulo, sub = '
   ${data ? `<p class="cabeca__data">${esc(data)}</p>` : ''}
   ${extra}
 </header>`;
-}
-
-/* A FAIXA DE CONFIANÇA (por baixo da capa e no fim das fichas): o que a loja tem para mostrar sem
-   inventar nada — a nota do Google com a ligação para quem quiser conferir (o número é do dono, no
-   painel), as reparações desde 2020, os envios em 24/48 h, o orçamento gratuito e a DIGI. As opiniões
-   em si não se copiam para o site (DL 57/2008, art. 8.º, al. cc). */
-export function faixaConfianca(ctx) {
-  const g = ctx.site.google || {};
-  const itens = [];
-  if (g.nota && g.ligacao) itens.push(`<li><a class="faixa__google" href="${esc(g.ligacao)}" target="_blank" rel="noopener">${icones.estrela}<strong>${esc(String(g.nota).replace('.', ','))}</strong><span>${g.opinioes ? `${g.opinioes} opiniões no Google` : 'no Google'}</span></a></li>`);
-  itens.push(`<li>${icones.ferramentas}<span>Reparações desde 2020</span></li>`);
-  itens.push(`<li>${icones.camiao}<span>Envios em 24/48 h úteis</span></li>`);
-  if (ctx.site.parcerias?.digi) itens.push(`<li>${icones.certo}<span>Vendedor Oficial DIGI</span></li>`);
-  return `<ul class="faixa" aria-label="Porquê a LF Mobile">${itens.join('')}</ul>`;
 }
 
 /* O horário, como lista de linhas (dias e horas). */
@@ -185,13 +191,37 @@ export function convite(ctx, { titulo = 'Uma dúvida? Fale connosco.', texto = '
   return `<aside class="convite" aria-label="Fale connosco">
   <p class="convite__titulo">${esc(titulo)}</p>
   <div class="convite__botoes">
-    ${c.whatsapp ? `<a class="botao botao--whatsapp-suave" href="${ctx.whatsapp(texto)}" target="_blank" rel="noopener">${icones.whatsapp}<span>Falar no WhatsApp</span></a>` : ''}
+    ${c.whatsapp ? `<a class="botao botao--whatsapp" href="${ctx.whatsapp(texto)}" target="_blank" rel="noopener">${icones.whatsapp}<span>Falar no WhatsApp</span></a>` : ''}
     ${contactos ? `<a class="botao botao--contorno" href="${ctx.url('/contactos/')}">Contactos</a>` : ''}
   </div>
 </aside>`;
 }
 
-/* As categorias com artigos no site (a de «Outros» some sozinha quando não tem nada). */
+/* A nota «por confirmar» dos preços e valores que vieram do mercado (só na pré-visualização). */
+export const notaPorConfirmar = (ctx, texto) => `<p class="nota-confirmar">${icones.info}<span>${ctx.marcador(texto)}</span></p>`;
+
+/* Uma fila de cartões que desliza (telemóvel) com as setas (computador). */
+export function fila(ctx, produtos, { id, titulo, ligacao = '', textoLigacao = 'Ver todos', sub = '' }) {
+  if (!produtos.length) return '';
+  return `<section class="fila" aria-labelledby="${id}">
+  <div class="seccao__cabeca">
+    <div>
+      <h2 class="titulo-seccao" id="${id}">${esc(titulo)}</h2>
+      ${sub ? `<p class="seccao__texto">${esc(sub)}</p>` : ''}
+    </div>
+    <div class="fila__controlo">
+      ${ligacao ? `<a class="botao botao--texto" href="${ctx.url(ligacao)}">${esc(textoLigacao)}${icones.seta}</a>` : ''}
+      <button class="fila__seta" type="button" data-fila-anterior aria-label="Anteriores">${icones.setaEsq}</button>
+      <button class="fila__seta" type="button" data-fila-seguinte aria-label="Seguintes">${icones.seta}</button>
+    </div>
+  </div>
+  <div class="fila__pista" data-fila tabindex="0" role="region" aria-label="${esc(titulo)}">
+    ${produtos.map((p) => cartaoProduto(ctx, p)).join('\n')}
+  </div>
+</section>`;
+}
+
+/* As categorias com artigos no site. */
 export const categoriasComArtigos = (ctx) => ctx.categorias.filter((c) => ctx.produtos.some((p) => p.categoria === c.slug));
 
 /* A ligação do WhatsApp sem texto: o número da loja, em dígitos. */

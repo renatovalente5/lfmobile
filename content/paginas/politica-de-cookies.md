@@ -6,7 +6,7 @@ atualizado: 2026-11-09
 
 ## O que fica guardado no seu browser
 
-- **O carrinho** (os artigos, as escolhas e a entrega), no armazenamento local do browser, com o nome «lfmobile:carrinho». Serve para o carrinho não se perder se fechar a página. É estritamente necessário para o serviço que pediu, não sai do seu aparelho e não nos é enviado. Apaga-se ao esvaziar o carrinho, ou nas definições do browser (limpar os dados deste site).
+- **O carrinho** (os artigos, as escolhas, o modelo do telemóvel nas películas, a entrega e o código do cupão), no armazenamento local do browser, com o nome «lfmobile:carrinho». Serve para o carrinho não se perder se fechar a página. É estritamente necessário para o serviço que pediu, não sai do seu aparelho e não nos é enviado. Apaga-se ao esvaziar o carrinho, ou nas definições do browser (limpar os dados deste site).
 
 ## Conteúdo de outros sites
 

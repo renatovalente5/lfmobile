@@ -1,11 +1,12 @@
 /* LF Mobile — o carrinho e a encomenda.
-   O carrinho junta os artigos (com a escolha de cada um), soma os portes da entrega escolhida e,
-   no fim, envia a encomenda ao Worker (worker/): em modo «online» o Worker devolve a página segura
-   da Stripe; em modo «encomenda» regista a encomenda, manda os emails e devolve o número. No
-   armazenamento local fica só o carrinho (artigos, escolhas, quantidades, entrega) — nunca o nome,
-   o email ou a morada (a política de privacidade promete isto). Os preços nunca se guardam: lêem-se
-   sempre do catálogo publicado (assets/catalogo-*.json), para um preço mudado no painel valer logo;
-   e o Worker volta a calcular tudo do seu lado. (A base é o carrinho da Mimices.) */
+   O carrinho junta os artigos (com a escolha de cada um e, nas películas, o modelo do telemóvel),
+   soma os portes da entrega escolhida (pela Nacex, pelo peso da encomenda), aplica o cupão e, no
+   fim, envia a encomenda ao Worker (worker/): em modo «online» o Worker devolve a página segura da
+   Stripe; em modo «encomenda» regista a encomenda, manda os emails e devolve o número. No
+   armazenamento local fica só o carrinho (artigos, escolhas, modelos, quantidades, entrega e o
+   código do cupão) — nunca o nome, o email ou a morada (a política de privacidade promete isto). Os
+   preços nunca se guardam: lêem-se sempre do catálogo publicado (assets/catalogo-*.json); e o Worker
+   volta a calcular tudo do seu lado. As contas são em CÊNTIMOS, como no Worker (contas.js). */
 (function () {
   'use strict';
   const CHAVE = 'lfmobile:carrinho';
@@ -16,8 +17,9 @@
   const hojeLisboa = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Lisbon', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
   const euros = (v) => `${v.toLocaleString('pt-PT', { minimumFractionDigits: Number.isInteger(v) ? 0 : 2, maximumFractionDigits: 2 })} €`;
   const centimos = (c) => euros(Math.round(c) / 100);
+  const emCentimos = (v) => Math.round(v * 100);
+  const kg = (x) => `${String(x).replace('.', ',')} kg`;
   const ICONES = {
-    certo: '<svg class="icone" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>',
     mais: '<svg class="icone" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M12 5v14M5 12h14"/></svg>',
     menos: '<svg class="icone" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/></svg>',
     lixo: '<svg class="icone" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M10 11v6M14 11v6M5.5 7l1 12.2a1 1 0 0 0 1 .8h9a1 1 0 0 0 1-.8l1-12.2M9 7V4.5h6V7"/></svg>',
@@ -25,32 +27,35 @@
 
   // ---------------------------------------------------------------- estado
   const linhaValida = (l) => l && typeof l.produto === 'string' && Number.isInteger(l.qtd) && l.qtd > 0;
+  const limparModelo = (m) => String(m || '').replace(/[\u0000-\u001F\u007F]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
   function ler() {
     try {
       const e = JSON.parse(localStorage.getItem(CHAVE) || 'null');
-      if (e && e.v === 1 && Array.isArray(e.linhas)) {
-        e.linhas = e.linhas.filter(linhaValida).map((l) => ({ produto: l.produto, opcoes: Array.isArray(l.opcoes) ? l.opcoes.map(Number) : [], qtd: Math.min(MAX_QTD, l.qtd) }));
-        if (typeof e.zona !== 'string') e.zona = 'levantamento';
-        return e;
+      if (e && (e.v === 1 || e.v === 2) && Array.isArray(e.linhas)) {
+        return {
+          v: 2,
+          linhas: e.linhas.filter(linhaValida).map((l) => ({ produto: l.produto, opcoes: Array.isArray(l.opcoes) ? l.opcoes.map(Number) : [], qtd: Math.min(MAX_QTD, l.qtd), ...(l.modelo ? { modelo: limparModelo(l.modelo) } : {}) })),
+          zona: typeof e.zona === 'string' ? e.zona : 'levantamento',
+          cupao: e.cupao && typeof e.cupao.codigo === 'string' && e.cupao.regra ? e.cupao : null,
+        };
       }
     } catch (_) { /* armazenamento bloqueado ou estragado: começa vazio */ }
-    return { v: 1, linhas: [], zona: 'levantamento' };
+    return { v: 2, linhas: [], zona: 'levantamento', cupao: null };
   }
   let estado = ler();
   let anuncio = ''; // o que o leitor de ecrã diz depois de uma acção; nunca vai para o armazenamento
-  const chaveLinha = (l) => JSON.stringify([l.produto, l.opcoes || []]);
+  const chaveLinha = (l) => JSON.stringify([l.produto, l.opcoes || [], l.modelo || '']);
   function guardar() {
     try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (_) { /* modo privado sem armazenamento: o carrinho vive só nesta página */ }
     return desenharTudo();
   }
   function esvaziar() {
-    estado = { v: 1, linhas: [], zona: estado.zona };
+    estado = { v: 2, linhas: [], zona: estado.zona, cupao: null };
     try { localStorage.removeItem(CHAVE); } catch (_) { /* idem */ }
     return desenharTudo();
   }
   window.addEventListener('storage', (e) => { if (e.key === CHAVE) { estado = ler(); desenharTudo(); } });
-  // A página volta da memória do browser (o «voltar» depois da Stripe): lê-se outra vez o
-  // carrinho, que pode ter mudado noutro separador entretanto.
+  // A página volta da memória do browser (o «voltar» depois da Stripe): lê-se outra vez o carrinho.
   window.addEventListener('pageshow', (e) => { if (e.persisted) { estado = ler(); desenharTudo(); } });
 
   let catalogoP = null;
@@ -76,8 +81,8 @@
     if (p.precoAnterior && p.promocaoAte && hoje > p.promocaoAte) return { atual: p.precoAnterior, anterior: null };
     return { atual: p.preco, anterior: null };
   }
-  /* As escolhas de uma linha, com o valor escolhido em cada grupo (ou o primeiro sem acréscimo,
-     se a escolha já não existe: o artigo mudou no painel). */
+  /* As escolhas de uma linha, com o valor escolhido em cada grupo (ou o primeiro sem acréscimo, se a
+     escolha já não existe: o artigo mudou no painel). */
   function escolhasDe(p, l) {
     return (p.opcoes || []).map((g, i) => {
       let j = (l.opcoes || [])[i];
@@ -85,39 +90,71 @@
       return { grupo: g.nome, valor: g.valores[j].nome, suplemento: g.valores[j].suplemento || 0, indice: j };
     });
   }
+  /* Os portes pelo peso (regras.mjs, portesDoPeso): o primeiro escalão que aguenta a encomenda, ou
+     null (mais pesada do que o último: combina-se). */
+  const escaloes = (lista) => (Array.isArray(lista) ? lista.filter((e) => e && typeof e.ate === 'number' && typeof e.preco === 'number').sort((a, b) => a.ate - b.ate) : []);
+  const escalaoDo = (peso, lista) => escaloes(lista).find((x) => peso <= x.ate + 1e-9) || null;
+  /* O desconto do cupão (a mesma conta do Worker, worker/encomendas/cupoes.js): sobre os artigos
+     (ou só os das categorias do cupão), em cêntimos; o de portes grátis tira os portes. → { cents,
+     portes: bool, falta: texto | '' } */
+  function descontoDo(regra, validas, artigosCents) {
+    if (!regra) return { cents: 0, portes: false, falta: '' };
+    if (typeof regra.minimo === 'number' && artigosCents < emCentimos(regra.minimo)) return { cents: 0, portes: false, falta: `O cupão ${regra.codigo} é para compras a partir de ${euros(regra.minimo)}.` };
+    const cats = Array.isArray(regra.categorias) ? regra.categorias : [];
+    const base = validas.filter((d) => !cats.length || cats.includes(d.p.categoria)).reduce((s, d) => s + d.totalCents, 0);
+    if (regra.tipo === 'portes') return { cents: 0, portes: true, falta: '' };
+    if (!base) return { cents: 0, portes: false, falta: `O cupão ${regra.codigo} não se aplica a estes artigos.` };
+    if (regra.tipo === 'percentagem') return { cents: Math.round((base * regra.valor) / 100), portes: false, falta: '' };
+    if (regra.tipo === 'valor') return { cents: Math.min(emCentimos(regra.valor), base), portes: false, falta: '' };
+    return { cents: 0, portes: false, falta: '' };
+  }
   function contas(cat, linhas, zona) {
     const hoje = hojeLisboa();
-    let artigos = 0;
+    let artigosCents = 0;
+    let peso = 0;
     const detalhe = linhas.map((l) => {
       const p = cat.produtos[l.produto];
       if (!p) return { linha: l, p: null, ok: false };
       const escolhas = escolhasDe(p, l);
       const base = precoDe(p, hoje).atual;
-      const unidade = base === null ? null : base + escolhas.reduce((s, x) => s + x.suplemento, 0);
-      const total = unidade === null ? null : unidade * l.qtd;
-      const ok = Boolean(p.compravel) && unidade !== null;
-      if (ok) artigos += total;
-      return { linha: l, p, escolhas, unidade, total, ok, soLoja: p.enviavel === false };
+      const unidadeCents = base === null ? null : emCentimos(base) + escolhas.reduce((s, x) => s + emCentimos(x.suplemento), 0);
+      const totalCents = unidadeCents === null ? null : unidadeCents * l.qtd;
+      const semModelo = p.pedeModelo && !l.modelo;
+      const ok = Boolean(p.compravel) && unidadeCents !== null;
+      if (ok) { artigosCents += totalCents; peso += (typeof p.peso === 'number' ? p.peso : 0.3) * l.qtd; }
+      return { linha: l, p, escolhas, unidadeCents, totalCents, ok, soLoja: p.enviavel === false, semModelo };
     });
     const validas = detalhe.filter((d) => d.ok);
     const indisponiveis = detalhe.filter((d) => !d.ok);
     const soLoja = zona !== 'levantamento' ? validas.filter((d) => d.soLoja) : [];
-    let portes = 0;
+    const desc = descontoDo(estado.cupao && estado.cupao.regra, validas, artigosCents);
+    let portesCents = 0;
     let portesPorConfirmar = false;
+    let escalao = null;
     if (zona !== 'levantamento' && validas.length) {
-      const v = (cat.portes || {})[zona];
       const gratis = (cat.portes || {}).gratisAPartirDe;
-      if (typeof gratis === 'number' && artigos >= gratis) portes = 0;
-      else if (typeof v === 'number') portes = v; else portesPorConfirmar = true;
+      escalao = escalaoDo(peso, (cat.portes || {})[zona]);
+      if (desc.portes || (typeof gratis === 'number' && artigosCents >= emCentimos(gratis))) portesCents = 0;
+      else if (escalao) portesCents = emCentimos(escalao.preco); else portesPorConfirmar = true;
     }
-    return { detalhe, validas, indisponiveis, soLoja, artigos, portes, portesPorConfirmar, total: artigos + portes, unidades: validas.reduce((s, d) => s + d.linha.qtd, 0) };
+    return {
+      detalhe, validas, indisponiveis, soLoja, peso, escalao,
+      artigosCents, descontoCents: desc.cents, portesGratisCupao: desc.portes, cupaoFalta: desc.falta,
+      portesCents, portesPorConfirmar, totalCents: artigosCents - desc.cents + portesCents,
+      unidades: validas.reduce((s, d) => s + d.linha.qtd, 0),
+    };
   }
   /* O que impede de seguir para a encomenda (ou nada). */
   function bloqueio(cat, c, zona) {
     if (!c.validas.length) return c.indisponiveis.length ? 'Os artigos do carrinho já não estão disponíveis. Tire-os para continuar.' : 'O carrinho está vazio.';
     if (c.indisponiveis.length) return `${c.indisponiveis[0].p ? `«${c.indisponiveis[0].p.nomeCurto}»` : 'Um artigo'} já não está disponível. Tire-o do carrinho para continuar.`;
+    const sm = c.validas.find((d) => d.semModelo);
+    if (sm) return `Falta dizer o modelo do telemóvel para «${sm.p.nomeCurto}». Tire-a do carrinho e junte-a outra vez, a partir da ficha.`;
     if (c.soLoja.length) return `«${c.soLoja[0].p.nomeCurto}» só se levanta na loja: escolha o levantamento ou tire-o do carrinho.`;
-    if (zona !== 'levantamento' && c.portesPorConfirmar && cat.modo === 'online') return 'Os portes para esta entrega ainda não estão definidos. Escolha o levantamento na loja ou fale connosco pelo WhatsApp.';
+    if (zona !== 'levantamento' && c.portesPorConfirmar && cat.modo === 'online') {
+      const e = escaloes((cat.portes || {})[zona]);
+      return e.length ? `A encomenda pesa mais de ${kg(e[e.length - 1].ate)}: escolha o levantamento na loja ou fale connosco pelo WhatsApp para combinar o envio.` : 'Os portes para esta entrega ainda não estão definidos. Escolha o levantamento na loja ou fale connosco pelo WhatsApp.';
+    }
     return '';
   }
   const zonaValida = (cat) => {
@@ -126,8 +163,10 @@
   };
 
   // ---------------------------------------------------------------- API para o site.js
-  async function juntar({ produto, opcoes = [], qtd = 1 }) {
+  async function juntar({ produto, opcoes = [], qtd = 1, modelo = '' }) {
     const nova = { produto, opcoes: opcoes.map(Number), qtd: Math.max(1, Math.min(MAX_QTD, qtd)) };
+    const m = limparModelo(modelo);
+    if (m) nova.modelo = m;
     const igual = estado.linhas.find((l) => chaveLinha(l) === chaveLinha(nova));
     if (igual) igual.qtd = Math.min(MAX_QTD, igual.qtd + nova.qtd);
     else estado.linhas.push(nova);
@@ -138,7 +177,7 @@
     try {
       const cat = await catalogo();
       const c = contas(cat, [{ produto, opcoes, qtd }], 'levantamento');
-      return c.validas.length ? euros(c.artigos) : '';
+      return c.validas.length ? centimos(c.artigosCents) : '';
     } catch (_) { return ''; }
   }
 
@@ -151,16 +190,16 @@
     if (!d.p) {
       return `<li class="linha"><div></div><div><p class="linha__nome">Artigo que já não está à venda</p><p class="linha__indisponivel">Saiu da loja e não entra na encomenda.</p><div class="linha__fundo"><span></span>${tirar}</div></div></li>`;
     }
-    const extras = pormenores(d).map((t) => `<p class="linha__extra">${esc(t)}</p>`).join('');
-    const aviso = !d.ok ? '<p class="linha__indisponivel">Já não está disponível.</p>' : (d.soLoja ? '<p class="linha__extra">Só para levantar na loja.</p>' : '');
-    const preco = d.total === null ? '' : euros(d.total);
+    const extras = pormenores(d).map((t) => `<p class="linha__extra">${esc(t)}</p>`).join('') + (l.modelo ? `<p><span class="linha__modelo">Para: ${esc(l.modelo)}</span></p>` : '');
+    const aviso = !d.ok ? '<p class="linha__indisponivel">Já não está disponível.</p>' : (d.semModelo ? '<p class="linha__indisponivel">Falta o modelo do telemóvel.</p>' : (d.soLoja ? '<p class="linha__extra">Só para levantar na loja.</p>' : ''));
+    const preco = d.totalCents === null ? '' : centimos(d.totalCents);
     if (!editavel) {
       return `<li class="linha">
       <a class="linha__foto" href="${esc(d.p.url)}" tabindex="-1" aria-hidden="true"><img src="${esc(d.p.foto)}" alt="" width="56" height="56" loading="lazy"></a>
       <div>
         <p class="linha__nome"><a href="${esc(d.p.url)}">${esc(d.p.nome)}</a></p>
         ${extras}${aviso}
-        <div class="linha__fundo"><span class="linha__extra">${l.qtd} × ${d.unidade === null ? '' : euros(d.unidade)}</span><span class="linha__preco">${preco}</span></div>
+        <div class="linha__fundo"><span class="linha__extra">${l.qtd} × ${d.unidadeCents === null ? '' : centimos(d.unidadeCents)}</span><span class="linha__preco">${preco}</span></div>
       </div>
     </li>`;
     }
@@ -181,11 +220,16 @@
       </div>
     </li>`;
   }
-  function totaisHtml(c, zona) {
-    const portes = zona === 'levantamento' || (c.portes === 0 && !c.portesPorConfirmar) ? 'Grátis' : (c.portesPorConfirmar ? 'a confirmar' : euros(c.portes));
-    const total = zona !== 'levantamento' && c.portesPorConfirmar ? `${euros(c.artigos)} + portes` : euros(c.total);
-    return `<p><span>${c.unidades === 1 ? '1 artigo' : `${c.unidades} artigos`}</span><span>${euros(c.artigos)}</span></p>
-      <p><span>${zona === 'levantamento' ? 'Levantamento na loja' : 'Portes'}</span><span>${portes}</span></p>
+  function totaisHtml(cat, c, zona) {
+    const levant = zona === 'levantamento';
+    const t = cat.transportadora ? ` ${cat.transportadora}` : '';
+    const rotuloPortes = levant ? 'Levantamento na loja' : `Portes${t}${c.escalao ? ` · até ${kg(c.escalao.ate)}` : ''}`;
+    const portes = levant || (c.portesCents === 0 && !c.portesPorConfirmar) ? 'Grátis' : (c.portesPorConfirmar ? 'a combinar' : centimos(c.portesCents));
+    const total = !levant && c.portesPorConfirmar ? `${centimos(c.artigosCents - c.descontoCents)} + portes` : centimos(c.totalCents);
+    const cup = estado.cupao;
+    return `<p><span>${c.unidades === 1 ? '1 artigo' : `${c.unidades} artigos`}</span><span>${centimos(c.artigosCents)}</span></p>
+      ${cup && c.descontoCents ? `<p class="totais__desconto"><span>Cupão ${esc(cup.codigo)}</span><span>−${centimos(c.descontoCents)}</span></p>` : ''}
+      <p><span>${esc(rotuloPortes)}</span><span>${portes}${c.portesGratisCupao && !levant ? ' <small>(cupão)</small>' : ''}</span></p>
       <p class="totais__total"><span>Total</span><span>${total}</span></p>`;
   }
   // o preço dos portes ao lado de cada opção de entrega, para comparar antes de escolher
@@ -193,13 +237,70 @@
     $$('[data-preco-zona]', raiz).forEach((s) => {
       const z = s.dataset.precoZona;
       if (z === 'levantamento') { s.textContent = 'Grátis'; return; }
-      const v = (cat.portes || {})[z];
       const gratis = (cat.portes || {}).gratisAPartirDe;
-      if (typeof gratis === 'number' && c.artigos >= gratis && c.validas.length) { s.textContent = 'Grátis'; return; }
-      s.textContent = typeof v === 'number' ? euros(v) : 'a confirmar';
+      if (c.validas.length && (c.portesGratisCupao || (typeof gratis === 'number' && c.artigosCents >= emCentimos(gratis)))) { s.textContent = 'Grátis'; return; }
+      const e = escalaoDo(c.peso, (cat.portes || {})[z]);
+      s.textContent = e ? euros(e.preco) : (escaloes((cat.portes || {})[z]).length ? 'a combinar' : 'a confirmar');
     });
   }
   const rotuloSeguir = (cat) => (cat.modo === 'online' ? 'Finalizar e pagar' : 'Finalizar a encomenda');
+
+  // ---------------------------------------------------------------- o cupão
+  /* «Usar»: o Worker diz se o código existe e vale (POST /cupao), e devolve a regra (o tipo, o
+     valor, o mínimo, as categorias); o carrinho guarda o código e a regra e faz a conta. No fim, o
+     Worker confere tudo outra vez. */
+  function pintarCupoes(c) {
+    $$('[data-cupao]').forEach((caixa) => {
+      const estadoEl = $('[data-cupao-estado]', caixa);
+      const input = $('[data-cupao-codigo]', caixa);
+      const cup = estado.cupao;
+      if (cup) {
+        caixa.open = true;
+        if (document.activeElement !== input) input.value = cup.codigo;
+        const falta = c && c.cupaoFalta;
+        estadoEl.innerHTML = `${esc(falta || `Cupão ${cup.codigo}: ${cup.regra.descricao || 'aplicado'}.`)} <button type="button" data-cupao-tirar>Tirar</button>`;
+        estadoEl.dataset.tipo = falta ? 'erro' : 'ok';
+        estadoEl.hidden = false;
+      } else if (estadoEl.dataset.tipo !== 'erro') { estadoEl.hidden = true; }
+    });
+  }
+  async function usarCupao(caixa) {
+    const input = $('[data-cupao-codigo]', caixa);
+    const estadoEl = $('[data-cupao-estado]', caixa);
+    const codigo = String(input.value || '').trim().toUpperCase().replace(/\s+/g, '');
+    const mostrar = (t, tipo) => { estadoEl.textContent = t; estadoEl.dataset.tipo = tipo; estadoEl.hidden = false; };
+    if (!codigo) { mostrar('Escreva o código do cupão.', 'erro'); input.focus(); return; }
+    if (!api()) { mostrar('Os cupões ainda não estão ligados no site.', 'erro'); return; }
+    let cat;
+    try { cat = await catalogo(); } catch (_) { mostrar('Não conseguimos carregar o carrinho. Tente outra vez.', 'erro'); return; }
+    const zona = zonaValida(cat);
+    const c = contas(cat, estado.linhas, zona);
+    mostrar('A confirmar o cupão…', 'ok');
+    try {
+      const r = await fetch(`${api()}/cupao`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ codigo, entrega: zona, linhas: c.validas.map((d) => ({ produto: d.linha.produto, opcoes: d.escolhas.map((x) => x.indice), qtd: d.linha.qtd })) }),
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok || !j.cupao) { mostrar(j.erro || 'Este cupão não existe ou já não vale.', 'erro'); return; }
+      estado.cupao = { codigo: j.cupao.codigo, regra: j.cupao };
+      anuncio = `Cupão ${j.cupao.codigo} aplicado.`;
+      await guardar();
+    } catch (_) { mostrar('Não conseguimos confirmar o cupão. Verifique a ligação e tente outra vez.', 'erro'); }
+  }
+  document.addEventListener('click', (e) => {
+    const usar = e.target.closest('[data-cupao-usar]');
+    if (usar) { usarCupao(usar.closest('[data-cupao]')); return; }
+    if (e.target.closest('[data-cupao-tirar]')) {
+      estado.cupao = null;
+      $$('[data-cupao]').forEach((cx) => { const i = $('[data-cupao-codigo]', cx); i.value = ''; const s = $('[data-cupao-estado]', cx); s.hidden = true; s.dataset.tipo = ''; });
+      anuncio = 'Cupão tirado.';
+      guardar();
+    }
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.matches('[data-cupao-codigo]')) { e.preventDefault(); usarCupao(e.target.closest('[data-cupao]')); }
+  });
 
   // ---------------------------------------------------------------- gaveta
   async function desenharGaveta() {
@@ -222,10 +323,10 @@
         <label for="gaveta-zona">Entrega</label>
         <select id="gaveta-zona" data-zona>${cat.zonas.map((z) => `<option value="${esc(z.id)}"${z.id === zona ? ' selected' : ''}>${esc(z.curto)}</option>`).join('')}</select>
       </div>
-      <div class="totais" aria-live="polite">${totaisHtml(c, zona)}</div>
+      <div class="totais" aria-live="polite">${totaisHtml(cat, c, zona)}</div>
       ${b ? `<p class="comprar__erro" role="alert">${esc(b)}</p>` : ''}
       <div class="gaveta__acoes">
-        <a class="botao botao--cheio" href="${esc(cat.checkout)}"${b ? ' aria-disabled="true"' : ''}>${rotuloSeguir(cat)}</a>
+        <a class="botao botao--cheio" href="${esc(cat.carrinho)}">Ver o carrinho</a>
         <button class="botao botao--contorno" type="button" data-fechar>Continuar a ver</button>
       </div>`;
   }
@@ -252,7 +353,8 @@
     resumo.hidden = false;
     $$('input[name="entrega"]', resumo).forEach((r) => { r.checked = r.value === zona; });
     pintarPrecosDasZonas(resumo, cat, c);
-    $('[data-totais]', resumo).innerHTML = totaisHtml(c, zona);
+    $('[data-totais]', resumo).innerHTML = totaisHtml(cat, c, zona);
+    pintarCupoes(c);
     const erro = $('[data-erro-carrinho]', resumo);
     erro.textContent = b;
     erro.hidden = !b;
@@ -272,6 +374,7 @@
     if (!estado.linhas.length) {
       form.hidden = true;
       resumo.innerHTML = `<p class="carrinho-vazio">O carrinho está vazio. <a href="${esc(cat.loja)}">Ver a loja</a></p>`;
+      $$('[data-cupao]', checkout).forEach((x) => { x.hidden = true; });
       return;
     }
     const zona = zonaValida(cat);
@@ -279,8 +382,9 @@
     const b = bloqueio(cat, c, zona);
     form.hidden = false;
     resumo.innerHTML = `<ul class="linhas">${c.detalhe.map((d) => linhaHtml(d, { editavel: false })).join('')}</ul>
-      <div class="totais" aria-live="polite">${totaisHtml(c, zona)}</div>
+      <div class="totais" aria-live="polite">${totaisHtml(cat, c, zona)}</div>
       <p><a class="botao botao--texto" href="${esc(cat.carrinho)}">Alterar o carrinho</a></p>`;
+    pintarCupoes(c);
     $$('input[name="entrega"]', form).forEach((r) => { r.checked = r.value === zona; });
     pintarPrecosDasZonas(form, cat, c);
     const comMorada = Boolean((cat.zonas.find((z) => z.id === zona) || {}).morada);
@@ -352,11 +456,12 @@
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            linhas: c.validas.map((d) => ({ produto: d.linha.produto, opcoes: d.escolhas.map((x) => x.indice), qtd: d.linha.qtd })),
+            linhas: c.validas.map((d) => ({ produto: d.linha.produto, opcoes: d.escolhas.map((x) => x.indice), qtd: d.linha.qtd, ...(d.linha.modelo ? { modelo: d.linha.modelo } : {}) })),
             entrega: zona,
+            ...(estado.cupao ? { cupao: estado.cupao.codigo } : {}),
             cliente,
             termos: true,
-            total_cents: Math.round(c.total * 100),
+            total_cents: c.totalCents,
           }),
         });
         resposta = await r.json().catch(() => ({}));
@@ -370,6 +475,8 @@
       }
       botao.disabled = false;
       botao.lastElementChild.textContent = textoBotao;
+      // um cupão que já não vale sai do carrinho, e a conta refaz-se
+      if (resposta && resposta.campo === 'cupao') { estado.cupao = null; guardar(); }
       mostrarErro(resposta && typeof resposta.erro === 'string' && resposta.erro ? resposta.erro : 'Não conseguimos registar a encomenda. Tente outra vez ou fale connosco pelo WhatsApp.');
       if (resposta && resposta.campo && form.elements[resposta.campo]) { form.elements[resposta.campo].setAttribute('aria-invalid', 'true'); form.elements[resposta.campo].focus(); }
     });
@@ -407,7 +514,8 @@
         const levant = enc.entrega === 'levantamento';
         detalhe.innerHTML = `<p class="obrigado__numero"><span>Encomenda</span> <strong>${esc(enc.encomenda)}</strong></p>
           <div class="totais">${linhas}
-            <p><span>${levant ? 'Levantamento na loja' : 'Portes'}</span><span>${levant || enc.portes_cents === 0 ? 'Grátis' : (Number.isFinite(enc.portes_cents) ? centimos(enc.portes_cents) : 'a confirmar')}</span></p>
+            ${enc.desconto_cents ? `<p class="totais__desconto"><span>Cupão ${esc(enc.cupao || '')}</span><span>−${centimos(enc.desconto_cents)}</span></p>` : ''}
+            <p><span>${levant ? 'Levantamento na loja' : 'Portes'}</span><span>${levant || enc.portes_cents === 0 ? 'Grátis' : (Number.isFinite(enc.portes_cents) ? centimos(enc.portes_cents) : 'a combinar')}</span></p>
             <p class="totais__total"><span>Total</span><span>${Number.isFinite(enc.total_cents) ? centimos(enc.total_cents) : ''}</span></p>
           </div>`;
         detalhe.hidden = false;
@@ -436,9 +544,8 @@
   }
 
   // ---------------------------------------------------------------- acções nas linhas
-  // As linhas redesenham-se por inteiro: o botão onde estava o foco deixa de existir. Depois de
-  // redesenhar, o foco volta ao botão equivalente (o mesmo «+» da mesma linha), e quando a linha
-  // sai vai para o título — nunca fica perdido no <body>.
+  // As linhas redesenham-se por inteiro: depois de redesenhar, o foco volta ao botão equivalente (o
+  // mesmo «+» da mesma linha), e quando a linha sai vai para o título.
   document.addEventListener('click', async (e) => {
     const onde = e.target.closest('dialog') ? '#carrinho' : '[data-carrinho-pagina]';
     const tirar = e.target.closest('[data-tirar]');

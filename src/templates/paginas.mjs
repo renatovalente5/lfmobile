@@ -1,25 +1,33 @@
 // As páginas do site. Cada função devolve { caminho, titulo, descricao, conteudo, ... } e o
-// build.mjs veste-a com a moldura (layout.mjs).
-import { esc, euros, precoDe, markdown, inline, textoSimples, numeroWhatsApp, numeroLegivel, notaChamada } from './util.mjs';
-import { icones, iconeServico } from './icones.mjs';
-import { numeroPortugues, opcoesDe, temSuplementos, estadoDe, disponibilidadeDe, compravel, enviavel, linhasDe, GARANTIAS_USADOS } from '../lib/regras.mjs';
-import { imagem, preco, cartaoProduto, cartaoServico, migalhas, botaoSeta, desconto, promocaoAte, cabecaDePagina, convite, promocaoNota, faixaConfianca, horarioHtml, moradaHtml, estadoRotulo, categoriasComArtigos } from './componentes.mjs';
+// build.mjs veste-a com a moldura (layout.mjs). As reparações estão em reparacoes.mjs e a retoma em
+// retoma.mjs.
+import { esc, euros, precoDe, markdown, inline, textoSimples, numeroWhatsApp, numeroLegivel, notaChamada, dataPorExtenso } from './util.mjs';
+import { icones } from './icones.mjs';
+import { usarAparelho, spriteAparelhos } from './aparelhos.mjs';
+import { numeroPortugues, opcoesDe, temSuplementos, estadoDe, disponibilidadeDe, compravel, enviavel, linhasDe, GARANTIAS_USADOS, ESTADOS } from '../lib/regras.mjs';
+import { imagem, temRecorte, preco, cartaoProduto, migalhas, botaoSeta, desconto, promocaoAte, cabecaDePagina, convite, promocaoNota, horarioHtml, moradaHtml, estadoRotulo, especificacoes, categoriasComArtigos, campanhaDe, fila } from './componentes.mjs';
+import { grelhaDosProblemas } from './reparacoes.mjs';
 import { BOTAO_ENCOMENDA } from '../../legal-comum/index.mjs';
 
 const produtosDe = (ctx, cat) => ctx.produtos.filter((p) => p.categoria === cat);
+/* As categorias de equipamentos: na ficha, a etiqueta diz «Novo» (nos acessórios não faz falta). */
+const EQUIPAMENTOS = new Set(['iphone', 'samsung', 'recondicionados', 'tablets', 'smartwatches', 'audio']);
 const categoriaDe = (ctx, slug) => ctx.categorias.find((c) => c.slug === slug);
-const paragrafos = (t) => String(t || '').split(/\n{2,}/).map((p) => p.trim()).filter(Boolean).map((p) => `<p>${esc(p)}</p>`).join('');
 
+/* Os portes numa frase curta (a ficha, o carrinho): «Envio Nacex: 5,90 € até 5 kg». */
+export function portesCurtos(ctx) {
+  const e = ctx.escaloes;
+  const t = ctx.site.entrega.transportadora;
+  if (!e.length) return 'portes a confirmar';
+  return `${e.length > 1 ? 'desde ' : ''}${euros(e[0].preco)}${t ? ` pela ${esc(t)}` : ''}`;
+}
 /* A entrega numa linha, para a ficha: o envio com os portes, ou só o levantamento na loja. */
 const entregaNaFicha = (ctx, p) => {
   if (!enviavel(p)) return `Só na loja, em ${ctx.site.local.localidade}: escolha o levantamento.`;
-  const pt = ctx.site.entrega.portes || {};
-  const portes = Number.isFinite(pt.continente) ? (pt.continente > 0 ? `portes de ${euros(pt.continente)}` : 'portes grátis') : 'portes a confirmar';
-  const gratis = Number.isFinite(pt.gratisAPartirDe) && pt.continente > 0 ? `, grátis acima de ${euros(pt.gratisAPartirDe)}` : '';
-  return `Envio para Portugal Continental (${portes}${gratis}) ou levantamento grátis na loja.`;
+  const g = ctx.site.entrega.portes?.gratisAPartirDe;
+  const gratis = Number.isFinite(g) ? `, grátis acima de ${euros(g)}` : '';
+  return `Envio em 24/48 h (${portesCurtos(ctx)}${gratis}) ou levantamento grátis na loja.`;
 };
-/* As categorias de equipamentos: na ficha, a etiqueta diz «Novo» (nos acessórios não faz falta). */
-const EQUIPAMENTOS = new Set(['telemoveis', 'recondicionados', 'tablets', 'smartwatches', 'audio', 'outros']);
 /* A garantia dos recondicionados e usados, como a loja a escolheu (18 meses por acordo, ou 3 anos). */
 const garantiaUsadosMeses = (ctx) => (GARANTIAS_USADOS.includes(ctx.site.garantias?.recondicionados) ? ctx.site.garantias.recondicionados : null);
 export const garantiaTexto = (ctx, p) => {
@@ -30,85 +38,150 @@ export const garantiaTexto = (ctx, p) => {
   return null;
 };
 
+/* O desenho de uma categoria quando não há recorte de nenhum artigo dela. */
+const DESENHO_CATEGORIA = { iphone: 'iphone-ilha', samsung: 'galaxy', recondicionados: 'iphone-entalhe', tablets: 'tablet', smartwatches: 'relogio' };
+const ICONE_CATEGORIA = { audio: 'auriculares', peliculas: 'pelicula', acessorios: 'caixa' };
+function imagemDaCategoria(ctx, slug) {
+  const p = produtosDe(ctx, slug).find((x) => temRecorte(ctx, x.fotos[0]));
+  if (p) return imagem(ctx, p.fotos[0], { tamanhos: '120px', alt: '', recorte: true, classe: 'cat-fila__img' });
+  if (DESENHO_CATEGORIA[slug]) return usarAparelho(DESENHO_CATEGORIA[slug], 'cat-fila__desenho');
+  return `<span class="cat-fila__icone">${icones[ICONE_CATEGORIA[slug]] || icones.caixa}</span>`;
+}
+
+/* A ESCOLHA RÁPIDA da capa: a marca e o modelo em duas listas, e «Ver preços» abre a página do
+   modelo. Sem JavaScript, o botão leva às reparações. */
+function escolhaRapida(ctx, h) {
+  const { marcas, familias, modelos } = ctx.aparelhos;
+  return `<form class="rapido" action="${ctx.url('/reparacoes/')}" data-rapido="${esc(ctx.url('/reparacoes/'))}">
+  <div class="rapido__campos">
+    <div class="rapido__campo"><label for="rapido-marca">Marca</label>
+      <select id="rapido-marca" data-rapido-marca>${marcas.map((m) => `<option value="${esc(m.id)}">${esc(m.nome)}</option>`).join('')}</select></div>
+    <div class="rapido__campo rapido__campo--largo"><label for="rapido-modelo">Modelo</label>
+      <select id="rapido-modelo" name="modelo" data-rapido-modelo>
+        <option value="">Escolha o modelo…</option>
+        ${familias.map((f) => {
+    const lista = modelos.filter((m) => m.familia === f.id);
+    return lista.length ? `<optgroup label="${esc(f.nome)}" data-marca="${esc(f.marca)}">${lista.map((m) => `<option value="${esc(m.id)}">${esc(m.nome)}</option>`).join('')}</optgroup>` : '';
+  }).join('')}
+      </select></div>
+  </div>
+  <button class="botao botao--ouro" type="submit">${esc(h.capa.botao)}${icones.seta}</button>
+</form>`;
+}
+
 // ---------------------------------------------------------------- página inicial
 export function inicio(ctx) {
   const h = ctx.inicio;
+  const camp = ctx.campanhas[0];
 
-  /* A CAPA: as palavras à esquerda e uma fotografia da loja à direita, num cartão de cantos redondos
-     (o letreiro iluminado da LF Mobile). Nada por cima da fotografia: o texto tem o seu chão branco. */
-  const capa = `<section class="capa" aria-labelledby="capa-titulo">
-  <div class="capa__palavras">
-    <p class="capa__local">${icones.local}<span>${esc(ctx.site.local.localidade)} · ${esc(ctx.site.local.concelho)}</span></p>
-    <h1 class="capa__titulo" id="capa-titulo">${esc(h.capa.titulo)}</h1>
-    ${h.capa.texto ? `<p class="capa__texto">${esc(h.capa.texto)}</p>` : ''}
-    <div class="capa__botoes">
-      <a class="botao botao--cheio" href="${ctx.url(h.capa.ligacao || '/reparacoes/')}">${esc(h.capa.botao)}</a>
-      ${h.capa.botao2 ? `<a class="botao botao--contorno" href="${ctx.url(h.capa.ligacao2 || '/loja/')}">${esc(h.capa.botao2)}</a>` : ''}
+  /* O MOSAICO DA CAPA: o cartão grande e escuro com a escolha rápida do modelo para reparar (o que
+     a loja mais faz), a fotografia de uma reparação; ao lado, a retoma e — com uma campanha a correr
+     — a campanha, senão os recondicionados. */
+  const recond = produtosDe(ctx, 'recondicionados').filter((p) => precoDe(p, ctx.hoje).atual !== null);
+  const desde = recond.length ? Math.min(...recond.map((p) => precoDe(p, ctx.hoje).atual)) : null;
+  const fotoRecond = recond.find((p) => temRecorte(ctx, p.fotos[0]));
+  const terceiro = camp
+    ? `<a class="mosaico__cartao mosaico__cartao--campanha" href="${ctx.url(`/campanhas/${camp.slug}/`)}">
+      <span class="rotulo rotulo--ouro">${esc(camp.nome)}</span>
+      <strong class="mosaico__titulo">${esc(camp.titulo)}</strong>
+      ${camp.desconto ? `<span class="mosaico__grande">−${camp.desconto}%</span>` : ''}
+      <span class="mosaico__texto">Até ${dataPorExtenso(camp.ate)}.</span>
+      <span class="mosaico__seta">Ver a campanha${icones.seta}</span>
+    </a>`
+    : `<a class="mosaico__cartao mosaico__cartao--loja" href="${ctx.url('/loja/recondicionados/')}">
+      <span class="rotulo">Recondicionados</span>
+      <strong class="mosaico__titulo">${esc(categoriaDe(ctx, 'recondicionados')?.titulo || 'Recondicionados')}</strong>
+      ${desde !== null ? `<span class="mosaico__texto">Desde <b>${euros(desde)}</b>, testados na loja.</span>` : ''}
+      <span class="mosaico__seta">Ver os recondicionados${icones.seta}</span>
+      ${fotoRecond ? `<span class="mosaico__produto">${imagem(ctx, fotoRecond.fotos[0], { tamanhos: '200px', alt: '', recorte: true })}</span>` : ''}
+    </a>`;
+  const mosaico = `<section class="mosaico" aria-labelledby="capa-titulo">
+  <div class="mosaico__principal">
+    <div class="mosaico__palavras">
+      <p class="rotulo rotulo--claro">Reparação de iPhone e Samsung</p>
+      <h1 class="mosaico__h1" id="capa-titulo">${esc(h.capa.titulo)}</h1>
+      ${h.capa.texto ? `<p class="mosaico__sub">${esc(h.capa.texto)}</p>` : ''}
+      ${escolhaRapida(ctx, h)}
     </div>
+    ${h.capa.foto && ctx.manifesto.fotos[h.capa.foto] ? `<figure class="mosaico__foto">${imagem(ctx, h.capa.foto, { tamanhos: '(min-width: 1100px) 360px, (min-width: 700px) 40vw, 100vw', prioridade: true })}</figure>` : ''}
   </div>
-  <div class="capa__foto">${imagem(ctx, h.capa.foto, { tamanhos: '(min-width: 900px) 44vw, 100vw', prioridade: true, proporcao: '4 / 5' })}</div>
-</section>
-${faixaConfianca(ctx)}`;
+  <a class="mosaico__cartao mosaico__cartao--retoma" href="${ctx.url('/retoma/')}">
+    <span class="rotulo rotulo--ouro">Retoma</span>
+    <strong class="mosaico__titulo">${esc(h.retoma.titulo)}</strong>
+    ${h.retoma.texto ? `<span class="mosaico__texto">${esc(h.retoma.texto)}</span>` : ''}
+    <span class="mosaico__seta">${esc(h.retoma.botao)}${icones.seta}</span>
+    <span class="mosaico__desenhos" aria-hidden="true">${usarAparelho('galaxy', 'mosaico__d1')}${usarAparelho('iphone-ilha', 'mosaico__d2')}</span>
+  </a>
+  ${terceiro}
+</section>`;
 
-  /* OS DESTAQUES DA LOJA: os artigos marcados em destaque no painel (até oito); sem nenhum marcado,
-     os primeiros pela ordem da loja. */
+  /* AS CATEGORIAS numa fila redonda (como as lojas de electrónica): a imagem de um artigo dela, sem
+     fundo, ou o desenho do aparelho. */
+  const cats = categoriasComArtigos(ctx);
+  const filaCats = `<nav class="cat-fila" aria-label="Categorias da loja">
+  <ul>${cats.map((k) => `<li><a href="${ctx.url(`/loja/${k.slug}/`)}"><span class="cat-fila__poco">${imagemDaCategoria(ctx, k.slug)}</span><span class="cat-fila__nome">${esc(k.nome)}</span></a></li>`).join('')}
+  <li><a href="${ctx.url('/reparacoes/')}"><span class="cat-fila__poco cat-fila__poco--escuro"><span class="cat-fila__icone">${icones.ferramentas}</span></span><span class="cat-fila__nome">Reparações</span></a></li>
+  </ul>
+</nav>`;
+
+  /* OS DESTAQUES: os artigos marcados no painel (até doze); sem nenhum, os primeiros pela ordem. */
   const marcados = ctx.produtos.filter((p) => p.destaque === true);
-  const lista = (marcados.length ? marcados : ctx.produtos).slice(0, 8);
-  const destaques = lista.length ? `<section class="montra" aria-labelledby="destaques-titulo">
-  <div class="seccao__cabeca">
-    <div>
-      <h2 class="titulo-seccao" id="destaques-titulo">${esc(h.destaques.titulo)}</h2>
-      ${h.destaques.texto ? `<p class="seccao__texto">${esc(h.destaques.texto)}</p>` : ''}
-    </div>
-    ${botaoSeta(ctx.url('/loja/'), `${h.destaques.botao}`, { classe: 'botao botao--texto seccao__mais' })}
+  const destaques = fila(ctx, (marcados.length ? marcados : ctx.produtos).slice(0, 12), { id: 'destaques-titulo', titulo: h.destaques.titulo, sub: h.destaques.texto, ligacao: '/loja/', textoLigacao: h.destaques.botao });
+  const daCampanha = camp ? ctx.produtos.filter((p) => p.campanha === camp.slug) : [];
+  const filaCampanha = camp && daCampanha.length ? fila(ctx, daCampanha.slice(0, 12), { id: 'campanha-titulo', titulo: camp.titulo, sub: camp.desconto ? `${camp.desconto}% de desconto até ${dataPorExtenso(camp.ate)}.` : '', ligacao: `/campanhas/${camp.slug}/`, textoLigacao: 'Ver tudo' }) : '';
+
+  /* A RETOMA, numa faixa escura: a pergunta, os três passos e o botão. */
+  const faixaRetoma = `<section class="faixa-retoma" aria-labelledby="retoma-titulo">
+  <div class="faixa-retoma__texto">
+    <p class="rotulo rotulo--ouro">Retoma</p>
+    <h2 class="titulo-seccao" id="retoma-titulo">${esc(h.retoma.titulo)}</h2>
+    ${h.retoma.texto ? `<p class="faixa-retoma__sub">${esc(h.retoma.texto)}</p>` : ''}
+    <ol class="faixa-retoma__passos">
+      <li><span>1</span>Simule no site</li>
+      <li><span>2</span>Entregue na loja</li>
+      <li><span>3</span>Receba o valor</li>
+    </ol>
+    <a class="botao botao--ouro" href="${ctx.url('/retoma/')}">${esc(h.retoma.botao)}${icones.seta}</a>
   </div>
-  <div class="grelha">${lista.map((p) => cartaoProduto(ctx, p)).join('\n')}</div>
+  <div class="faixa-retoma__desenho" aria-hidden="true">${usarAparelho('iphone-ilha', 'faixa-retoma__a')}${usarAparelho('galaxy-fold', 'faixa-retoma__b')}</div>
+</section>`;
+
+  /* AS PELÍCULAS: os tipos (cada um leva à ficha, onde se diz o modelo). */
+  const pels = produtosDe(ctx, 'peliculas');
+  const faixaPeliculas = pels.length ? `<section class="faixa-peliculas" aria-labelledby="peliculas-titulo">
+  <div class="faixa-peliculas__texto">
+    <h2 class="titulo-seccao" id="peliculas-titulo">${esc(h.peliculas.titulo)}</h2>
+    ${h.peliculas.texto ? `<p class="seccao__texto">${esc(h.peliculas.texto)}</p>` : ''}
+    <a class="botao botao--cheio" href="${ctx.url('/loja/peliculas/')}">${esc(h.peliculas.botao)}${icones.seta}</a>
+  </div>
+  <ul class="faixa-peliculas__tipos">${pels.slice(0, 5).map((p) => `<li><a href="${ctx.url(`/produtos/${p.slug}/`)}"><span class="faixa-peliculas__img">${imagem(ctx, p.fotos[0], { tamanhos: '140px', alt: '', recorte: true })}</span><span class="faixa-peliculas__nome">${esc(p.nomeCurto || p.nome).replace(/^Película (de |para a )?/i, '')}</span>${precoDe(p, ctx.hoje).atual !== null ? `<span class="faixa-peliculas__preco">${euros(precoDe(p, ctx.hoje).atual)}</span>` : ''}</a></li>`).join('')}</ul>
 </section>` : '';
 
-  /* AS REPARAÇÕES, numa secção escura (a identidade da loja: letreiro preto, dourado nos pormenores):
-     os serviços em azulejos (o desenho e o nome, que levam ao serviço na página das reparações) e um
-     botão. Os passos e o resto estão na página das reparações. */
-  const servicos = ctx.servicos.slice(0, 6);
-  const reparacoes = `<section class="reparacoes-casa" aria-labelledby="reparacoes-titulo">
-  <div class="contentor">
-    <div class="seccao__cabeca seccao__cabeca--clara">
-      <div>
-        <p class="sobre-titulo">Reparações</p>
-        <h2 class="titulo-seccao" id="reparacoes-titulo">${esc(h.reparacoes.titulo)}</h2>
-        ${h.reparacoes.texto ? `<p class="seccao__texto">${esc(h.reparacoes.texto)}</p>` : ''}
-      </div>
-    </div>
-    <ul class="servicos-mini">${servicos.map((s) => `<li><a class="servico-mini" href="${ctx.url(`/reparacoes/#servico-${esc(s.slug)}`)}"><span class="servico-mini__icone">${iconeServico(s.icone)}</span><span class="servico-mini__nome">${esc(s.nome)}</span></a></li>`).join('')}</ul>
-    <div class="reparacoes-casa__botoes">
-      <a class="botao botao--claro" href="${ctx.url('/reparacoes/#orcamento')}">${esc(h.reparacoes.botao)}</a>
-    </div>
-  </div>
-</section>`;
-
-  /* A RETOMA, numa faixa: a pergunta, uma frase e o botão. */
-  const retomaCasa = `<section class="retoma-casa" aria-labelledby="retoma-titulo">
-  <span class="retoma-casa__icone">${icones.retoma}</span>
-  <div class="retoma-casa__texto">
-    <h2 class="titulo-seccao" id="retoma-titulo">${esc(h.retoma.titulo)}</h2>
-    ${h.retoma.texto ? `<p class="seccao__texto">${esc(h.retoma.texto)}</p>` : ''}
-  </div>
-  <a class="botao botao--cheio" href="${ctx.url('/retoma/')}">${esc(h.retoma.botao)}</a>
-</section>`;
+  /* A CONFIANÇA: a nota do Google (com a ligação, para quem quiser conferir) e o que a loja faz. As
+     opiniões em si não se copiam (DL 57/2008, art. 8.º, al. cc). */
+  const g = ctx.site.google || {};
+  const t = ctx.site.entrega.transportadora;
+  const confianca = `<ul class="confianca-faixa" aria-label="Porquê a LF Mobile">
+  ${g.nota && g.ligacao ? `<li><a class="confianca-faixa__caixa" href="${esc(g.ligacao)}" target="_blank" rel="noopener"><span class="confianca-faixa__icone confianca-faixa__icone--ouro">${icones.estrela}</span><span><strong>${esc(String(g.nota).replace('.', ','))} no Google</strong><small>${g.opinioes ? `${g.opinioes} opiniões` : 'Ver as opiniões'}</small></span></a></li>` : ''}
+  <li><div class="confianca-faixa__caixa"><span class="confianca-faixa__icone">${icones.ferramentas}</span><span><strong>Reparações desde 2020</strong><small>Diagnóstico e orçamento grátis</small></span></div></li>
+  <li><div class="confianca-faixa__caixa"><span class="confianca-faixa__icone">${icones.camiao}</span><span><strong>${t ? `Envios ${esc(t)} 24/48 h` : 'Envios 24/48 h'}</strong><small>${ctx.escaloes.length ? `Desde ${euros(ctx.escaloes[0].preco)}` : 'Portugal Continental'}</small></span></div></li>
+  <li><div class="confianca-faixa__caixa"><span class="confianca-faixa__icone">${icones.loja}</span><span><strong>Loja em ${esc(ctx.site.local.localidade)}</strong><small>Levantamento grátis</small></span></div></li>
+</ul>`;
 
   /* A LOJA: a fotografia da fachada, a morada, o horário e os botões. */
   const loja = `<section class="loja-casa" aria-labelledby="loja-titulo">
-  ${h.loja.foto ? `<div class="loja-casa__foto">${imagem(ctx, h.loja.foto, { tamanhos: '(min-width: 900px) 48vw, 100vw', proporcao: '4 / 3' })}</div>` : ''}
+  ${h.loja.foto && ctx.manifesto.fotos[h.loja.foto] ? `<div class="loja-casa__foto">${imagem(ctx, h.loja.foto, { tamanhos: '(min-width: 900px) 48vw, 100vw', proporcao: '4 / 3' })}</div>` : ''}
   <div class="loja-casa__texto">
-    <p class="sobre-titulo">A loja</p>
+    <p class="rotulo">A loja</p>
     <h2 class="titulo-seccao" id="loja-titulo">${esc(h.loja.titulo === 'A loja' ? `Em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}` : h.loja.titulo)}</h2>
     ${h.loja.texto ? `<p class="seccao__texto">${esc(h.loja.texto)}</p>` : ''}
     <div class="loja-casa__dados">
       <div><p class="loja-casa__rotulo">${icones.local}Morada</p>${moradaHtml(ctx)}</div>
       <div><p class="loja-casa__rotulo">${icones.relogio}Horário</p>${horarioHtml(ctx)}</div>
     </div>
-    <div class="loja-casa__botoes">
-      ${ctx.site.local.mapa ? `<a class="botao botao--contorno" href="${esc(ctx.site.local.mapa)}" target="_blank" rel="noopener">Como chegar${icones.externo}</a>` : ''}
-      <a class="botao botao--texto" href="${ctx.url('/contactos/')}">Contactos ${icones.seta}</a>
+    <div class="botoes">
+      ${ctx.site.local.mapa ? `<a class="botao botao--cheio" href="${esc(ctx.site.local.mapa)}" target="_blank" rel="noopener">${icones.local}<span>Como chegar</span></a>` : ''}
+      <a class="botao botao--contorno" href="${ctx.url('/contactos/')}">Contactos</a>
     </div>
   </div>
 </section>`;
@@ -120,9 +193,122 @@ ${faixaConfianca(ctx)}`;
     descricao: h.seo.descricao,
     classe: 'pagina-inicio',
     jsonld: [org, { '@context': 'https://schema.org', '@type': 'WebSite', '@id': ctx.absoluto('/#site'), name: ctx.site.marca, url: ctx.absoluto('/'), inLanguage: 'pt-PT', publisher: { '@id': ctx.absoluto('/#loja') } }],
-    conteudo: `<div class="contentor">${capa}</div>\n${destaques ? `<div class="contentor">${destaques}</div>` : ''}\n${reparacoes}\n<div class="contentor">${retomaCasa}\n${loja}</div>`,
+    conteudo: `${spriteAparelhos()}
+<div class="contentor inicio">
+  ${mosaico}
+  ${filaCats}
+  ${filaCampanha}
+  ${destaques}
+  ${grelhaDosProblemas(ctx, { titulo: h.reparacoes.titulo, texto: h.reparacoes.texto, ligacaoModelo: ctx.url('/reparacoes/#escolher') })}
+</div>
+<div class="contentor">${faixaRetoma}</div>
+<div class="contentor">
+  ${faixaPeliculas}
+  ${confianca}
+  ${loja}
+</div>`,
   };
 }
+
+
+// ---------------------------------------------------------------- loja e categorias
+/* OS FILTROS da loja (loja.js): a marca, o estado, o preço, e «compra-se no site». Só aparecem os
+   que dividem a lista (uma marca só, ou um estado só, não se filtra). */
+function filtros(ctx, lista) {
+  const marcas = [...new Set(lista.map((p) => (p.marca || '').trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
+  const semMarca = lista.some((p) => !(p.marca || '').trim());
+  const estados = [...new Set(lista.map((p) => estadoDe(p)))];
+  const precos = lista.map((p) => precoDe(p, ctx.hoje).atual).filter((v) => v !== null);
+  const FAIXAS = [[0, 50, 'Até 50 €'], [50, 200, '50 € a 200 €'], [200, 500, '200 € a 500 €'], [500, 100000, 'Mais de 500 €']].filter(([a, b]) => precos.some((v) => v >= a && v < b));
+  const grupos = [];
+  if (marcas.length + (semMarca ? 1 : 0) > 1) grupos.push(`<fieldset class="filtro"><legend>Marca</legend>${marcas.map((m) => `<label class="caixa"><input type="checkbox" name="marca" value="${esc(m.toLowerCase())}"><span>${esc(m)}</span></label>`).join('')}${semMarca ? '<label class="caixa"><input type="checkbox" name="marca" value=""><span>Outras</span></label>' : ''}</fieldset>`);
+  if (estados.length > 1) grupos.push(`<fieldset class="filtro"><legend>Estado</legend>${estados.map((e) => `<label class="caixa"><input type="checkbox" name="estado" value="${esc(e)}"><span>${esc(ESTADOS[e])}</span></label>`).join('')}</fieldset>`);
+  if (FAIXAS.length > 1) grupos.push(`<fieldset class="filtro"><legend>Preço</legend>${FAIXAS.map(([a, b, t]) => `<label class="caixa"><input type="checkbox" name="preco" value="${a}-${b}"><span>${esc(t)}</span></label>`).join('')}</fieldset>`);
+  if (lista.some((p) => compravel(p)) && lista.some((p) => !compravel(p))) grupos.push('<fieldset class="filtro"><legend>Compra</legend><label class="caixa"><input type="checkbox" name="compravel" value="sim"><span>Compra-se no site</span></label></fieldset>');
+  if (!grupos.length) return '';
+  return `<aside class="filtros" id="filtros" aria-label="Filtros" data-filtros>
+  <div class="filtros__topo"><p class="filtros__titulo">Filtrar</p><button class="filtros__fechar" type="button" data-fechar-filtros>${icones.fechar}<span class="visualmente-escondido">Fechar os filtros</span></button></div>
+  <form class="filtros__corpo" data-filtros-form>${grupos.join('')}</form>
+  <div class="filtros__pe"><button class="botao botao--contorno botao--pequeno" type="button" data-limpar-filtros>Limpar</button><button class="botao botao--cheio botao--pequeno filtros__ver" type="button" data-fechar-filtros>Ver os artigos</button></div>
+</aside>`;
+}
+
+export function loja(ctx, cat = null) {
+  const c = cat && categoriaDe(ctx, cat);
+  const lista = c ? produtosDe(ctx, cat) : ctx.produtos;
+  const caminho = c ? `/loja/${c.slug}/` : '/loja/';
+  const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: 'Loja', caminho: '/loja/' }, ...(c ? [{ nome: c.nome, caminho }] : [])]);
+  const chips = [{ slug: '', nome: 'Tudo' }, ...categoriasComArtigos(ctx)]
+    .map((k) => {
+      const href = ctx.url(k.slug ? `/loja/${k.slug}/` : '/loja/');
+      const atual = (k.slug || null) === (cat || null);
+      return `<li><a class="chip" href="${href}"${atual ? ' aria-current="page"' : ''}>${esc(k.nome)}</a></li>`;
+    }).join('');
+  const f = filtros(ctx, lista);
+  const conteudo = `<div class="contentor loja" data-loja>
+  <header class="loja-cabeca">
+    <h1 class="titulo-pagina">${esc(c ? c.titulo : 'Loja')}</h1>
+    ${c?.resumo ? `<p class="cabeca__sub">${esc(c.resumo)}</p>` : '<p class="cabeca__sub">iPhone e Samsung novos e recondicionados, películas para qualquer telemóvel, áudio e acessórios.</p>'}
+  </header>
+  <nav class="chips" aria-label="Categorias"><ul>${chips}</ul></nav>
+  <div class="loja-barra">
+    <p class="loja-barra__conta" data-conta-artigos aria-live="polite">${lista.length} ${lista.length === 1 ? 'artigo' : 'artigos'}</p>
+    <p class="loja-barra__procura" data-loja-procura hidden></p>
+    ${f ? `<button class="botao botao--contorno botao--pequeno loja-barra__filtrar" type="button" data-abrir-filtros aria-controls="filtros">${icones.filtro}<span>Filtrar</span></button>` : ''}
+    <label class="loja-barra__ordem"><span class="visualmente-escondido">Ordenar</span>${icones.ordenar}<select data-ordenar><option value="">Em destaque</option><option value="preco-asc">Preço: mais baixo</option><option value="preco-desc">Preço: mais alto</option><option value="nome">Nome</option></select></label>
+  </div>
+  <div class="loja-corpo${f ? '' : ' loja-corpo--sem-filtros'}">
+    ${f}
+    ${lista.length ? `<div class="grelha" data-grelha-loja>
+      ${lista.map((p) => cartaoProduto(ctx, p, { titulo: 'h2' })).join('\n')}
+    </div>` : `<p class="loja__vazia">Ainda não há artigos nesta categoria. <a href="${ctx.url('/loja/')}">Ver toda a loja</a></p>`}
+    <p class="loja__vazia" data-loja-vazia hidden>Nenhum artigo com estes filtros. <button class="botao botao--texto" type="button" data-limpar-filtros>Limpar os filtros</button></p>
+  </div>
+  ${convite(ctx, { titulo: 'Não encontra o que procura? Encomendamos para si.', texto: 'Olá! Gostava de encomendar um equipamento: ', contactos: false })}
+</div>`;
+  return {
+    caminho,
+    titulo: c ? c.titulo : 'Loja — iPhone, Samsung, películas e acessórios',
+    descricao: c ? textoSimples(c.resumo || c.titulo).slice(0, 158) : `iPhone e Samsung novos e recondicionados, películas para qualquer telemóvel, áudio e acessórios na ${ctx.site.marca}, em ${ctx.site.local.localidade}. Envios para Portugal Continental.`,
+    classe: 'pagina-loja',
+    jsonld: [m.ld, {
+      '@context': 'https://schema.org', '@type': 'ItemList',
+      itemListElement: lista.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: ctx.absoluto(`/produtos/${p.slug}/`), name: p.nome })),
+    }],
+    conteudo,
+  };
+}
+
+// ---------------------------------------------------------------- campanhas
+/* A PÁGINA DE UMA CAMPANHA (a que está a correr): a faixa escura com o nome, o desconto e as datas,
+   o texto, e os artigos que ela apanha. */
+export function campanha(ctx, c) {
+  const caminho = `/campanhas/${c.slug}/`;
+  const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: c.nome, caminho }]);
+  const lista = ctx.produtos.filter((p) => p.campanha === c.slug);
+  const conteudo = `<section class="camp-capa">
+  <div class="contentor camp-capa__dentro">
+    <p class="rotulo rotulo--ouro">${esc(c.nome)}</p>
+    <h1 class="camp-capa__titulo">${esc(c.titulo)}</h1>
+    ${c.texto ? `<p class="camp-capa__sub">${esc(c.texto)}</p>` : ''}
+    <p class="camp-capa__datas">${icones.relogio}De ${dataPorExtenso(c.desde)} a ${dataPorExtenso(c.ate, true)}</p>
+    ${c.desconto ? `<p class="camp-capa__desconto" aria-hidden="true">−${c.desconto}%</p>` : ''}
+  </div>
+</section>
+<div class="contentor campanha-pagina">
+  ${lista.length ? `<div class="grelha">${lista.map((p) => cartaoProduto(ctx, p, { titulo: 'h2' })).join('\n')}</div>` : `<p class="loja__vazia">${esc(c.nome)}: veja a <a href="${ctx.url('/loja/')}">loja</a>.</p>`}
+  <p class="nota">Os preços riscados são os mais baixos dos 30 dias anteriores à campanha. Os descontos não se juntam a outras promoções.</p>
+</div>`;
+  return {
+    caminho,
+    titulo: c.titulo,
+    descricao: `${c.faixa}. Na ${ctx.site.marca}, em ${ctx.site.local.localidade}, e no site.`.slice(0, 160),
+    classe: 'pagina-campanha',
+    jsonld: [m.ld],
+    conteudo,
+  };
+}
+
 
 /* O horário em openingHoursSpecification (o que o Google lê), a partir das linhas em texto: só as
    linhas que se percebem («Segunda a sexta», «Sábado», «10:00–13:00 · 14:30–19:00»); as outras ficam
@@ -178,39 +364,6 @@ export function organizacao(ctx) {
   return ld;
 }
 
-// ---------------------------------------------------------------- loja e categorias
-export function loja(ctx, cat = null) {
-  const c = cat && categoriaDe(ctx, cat);
-  const lista = c ? produtosDe(ctx, cat) : ctx.produtos;
-  const caminho = c ? `/loja/${c.slug}/` : '/loja/';
-  const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: 'Loja', caminho: '/loja/' }, ...(c ? [{ nome: c.nome, caminho }] : [])]);
-  const chips = [{ slug: '', nome: 'Tudo', n: ctx.produtos.length }, ...categoriasComArtigos(ctx).map((k) => ({ ...k, n: produtosDe(ctx, k.slug).length }))]
-    .map((k) => {
-      const href = ctx.url(k.slug ? `/loja/${k.slug}/` : '/loja/');
-      const atual = (k.slug || null) === (cat || null);
-      return `<li><a class="chip" href="${href}"${atual ? ' aria-current="page"' : ''}>${esc(k.nome)}</a></li>`;
-    }).join('');
-  /* Sem migalhas nem textos de entrega por cima: o título, a frase da categoria e as categorias, que já
-     dizem onde se está. Os portes e o prazo estão na ficha, no carrinho e nos envios. */
-  const conteudo = `<div class="contentor loja">
-  ${cabecaDePagina(ctx, { titulo: c ? c.titulo : 'Loja', sub: c?.resumo || '' })}
-  <nav class="chips" aria-label="Categorias"><ul>${chips}</ul></nav>
-  ${lista.length ? `<div class="grelha">
-    ${lista.map((p) => cartaoProduto(ctx, p, { titulo: 'h2', soGrade: cat === 'recondicionados' })).join('\n')}
-  </div>` : `<p class="loja__vazia">Ainda não há artigos nesta categoria. <a href="${ctx.url('/loja/')}">Ver toda a loja</a></p>`}
-  ${convite(ctx, { titulo: 'Não encontra o que procura? Encomendamos para si.', texto: 'Olá! Gostava de encomendar um equipamento: ', contactos: false })}
-</div>`;
-  return {
-    caminho,
-    titulo: c ? c.titulo : 'Loja — telemóveis, acessórios e tecnologia',
-    descricao: c ? textoSimples(c.resumo || c.titulo).slice(0, 158) : `Telemóveis novos e recondicionados, tablets, smartwatches, auriculares, películas e acessórios na ${ctx.site.marca}, em ${ctx.site.local.localidade}. Envios para Portugal Continental.`,
-    jsonld: [m.ld, {
-      '@context': 'https://schema.org', '@type': 'ItemList',
-      itemListElement: lista.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: ctx.absoluto(`/produtos/${p.slug}/`), name: p.nome })),
-    }],
-    conteudo,
-  };
-}
 
 /* ---------------------------------------------------------------- vídeo */
 function capaDoVideo(ctx, nome) {
@@ -230,6 +383,7 @@ export function video(ctx, nome) {
 </div>`;
 }
 
+
 // ---------------------------------------------------------------- ficha de artigo
 export function produto(ctx, p) {
   const c = categoriaDe(ctx, p.categoria);
@@ -245,30 +399,45 @@ export function produto(ctx, p) {
   if (p.video && ctx.ficheiros.videos[p.video]) itens.splice(1, 0, { video: p.video });
   const formas = p.fotos.map((f) => { const mm = ctx.manifesto.fotos[f]; return mm ? mm.largura / mm.altura : 1; });
   const forma = Math.max(0.7, Math.min(1.25, Math.min(...formas)));
+  const comRecorte = temRecorte(ctx, p.fotos[0]);
   const galeria = `<div class="galeria" data-galeria style="--forma:${forma.toFixed(3)}">
     <div class="galeria__pista" tabindex="0" role="region" aria-label="${p.video ? 'Fotografias e vídeo' : 'Fotografias'} de ${esc(p.nome)}">
       ${itens.map((it) => (it.video
     ? `<figure class="galeria__foto galeria__foto--video" id="video">${video(ctx, it.video)}</figure>`
-    : `<figure class="galeria__foto" id="foto-${it.n}">${imagem(ctx, it.foto, { tamanhos: '(min-width: 1000px) 46vw, 100vw', prioridade: it.n === 1 })}</figure>`)).join('\n')}
+    : `<figure class="galeria__foto${it.n === 1 && comRecorte ? ' galeria__foto--recorte' : ''}" id="foto-${it.n}">${imagem(ctx, it.foto, { tamanhos: '(min-width: 1000px) 46vw, 100vw', prioridade: it.n === 1, recorte: it.n === 1 })}</figure>`)).join('\n')}
     </div>
     ${itens.length > 1 ? `<ul class="galeria__miniaturas">${itens.map((it, i) => `<li>${it.video
     ? `<button class="galeria__mini-video" type="button" data-foto="${i}">${capaDoVideo(ctx, it.video)}<span class="galeria__tocar">${icones.tocar}</span><span class="visualmente-escondido">Vídeo</span></button>`
-    : `<button type="button" data-foto="${i}"${i === 0 ? ' aria-current="true"' : ''}>${imagem(ctx, it.foto, { tamanhos: '80px', alt: '', prioridade: true }).replace(' fetchpriority="high"', '')}<span class="visualmente-escondido">Fotografia ${it.n} de ${p.fotos.length}</span></button>`}</li>`).join('')}</ul>` : ''}
+    : `<button type="button" data-foto="${i}"${i === 0 ? ' aria-current="true"' : ''}${i === 0 && comRecorte ? ' class="galeria__mini-recorte"' : ''}>${imagem(ctx, it.foto, { tamanhos: '80px', alt: '', prioridade: true, recorte: i === 0 }).replace(' fetchpriority="high"', '')}<span class="visualmente-escondido">Fotografia ${it.n} de ${p.fotos.length}</span></button>`}</li>`).join('')}</ul>` : ''}
   </div>`;
 
+  const camp = campanhaDe(ctx, p);
   const selos = [
-    pct ? `<span class="selo selo--promocao">${esc(promocaoAte(ctx, p) || 'Promoção')}</span>` : '',
+    pct ? `<span class="selo selo--desconto">−${pct}%</span>` : '',
+    camp ? `<a class="selo selo--campanha" href="${ctx.url(`/campanhas/${camp.slug}/`)}">${esc(camp.nome)}</a>` : (pct ? `<span class="selo selo--promocao">${esc(promocaoAte(ctx, p) || 'Promoção')}</span>` : ''),
     p.novidade ? '<span class="selo selo--novidade">Novidade</span>' : '',
   ].filter(Boolean).join('');
 
-  // A grade de um recondicionado já está na etiqueta por cima do nome: não se repete na lista.
-  const caracteristicas = linhasDe(p.caracteristicas).filter((t) => !/^grade\s/i.test(t));
+  // A grade, a bateria e a capacidade já estão por cima do preço: não se repetem na lista.
+  const jaDitas = new Set(especificacoes(p));
+  const caracteristicas = linhasDe(p.caracteristicas).filter((t) => !/^grade\s/i.test(t) && !jaDitas.has(t) && !jaDitas.has(t.replace(/\s*de armazenamento/i, '')));
   const inclui = linhasDe(p.inclui);
   const listas = `${caracteristicas.length ? `<div class="lista-ficha"><p class="lista-ficha__titulo">Características</p><ul>${caracteristicas.map((t) => `<li>${icones.certo}<span>${esc(t)}</span></li>`).join('')}</ul></div>` : ''}
   ${inclui.length ? `<div class="lista-ficha"><p class="lista-ficha__titulo">Inclui</p><ul>${inclui.map((t) => `<li>${icones.caixa}<span>${esc(t)}</span></li>`).join('')}</ul></div>` : ''}`;
 
-  // --- o formulário: as escolhas (cor, capacidade), a quantidade e o botão -------------------------
+  // --- o formulário: as escolhas (cor, capacidade), o modelo, a quantidade e o botão ---------------
   const grupos = opcoesDe(p);
+  /* O MODELO DO TELEMÓVEL (as películas): a marca numa lista e o modelo escrito, com as sugestões
+     da marca escolhida (content/aparelhos.json); sem modelo não se junta ao carrinho. Uma página que
+     chega com ?modelo=Marca|Modelo (das reparações) já o traz escolhido (site.js). */
+  const blocoModelo = p.pedeModelo === true ? `<fieldset class="campo escolha-modelo" data-escolha-modelo>
+    <legend>O seu telemóvel</legend>
+    <div class="campos-lado">
+      <div class="campo"><label for="m-marca-${esc(p.slug)}">Marca</label><select id="m-marca-${esc(p.slug)}" name="marcaModelo" required data-modelo-marca><option value="">Escolha…</option>${ctx.marcasParaModelo.map((mm) => `<option>${esc(mm)}</option>`).join('')}<option value="Outra">Outra marca</option></select></div>
+      <div class="campo"><label for="m-modelo-${esc(p.slug)}">Modelo</label><input id="m-modelo-${esc(p.slug)}" name="modelo" type="text" list="m-lista-${esc(p.slug)}" maxlength="60" required autocomplete="off" placeholder="Ex.: iPhone 13, Galaxy A55" data-modelo-nome><datalist id="m-lista-${esc(p.slug)}" data-modelo-lista></datalist></div>
+    </div>
+    <p class="campo__ajuda">Cortamos a película para este modelo. Se não souber o nome, veja em Definições › Geral › Informações (iPhone) ou Definições › Acerca do telemóvel (Android).</p>
+  </fieldset>` : '';
   const blocoOpcoes = grupos.map((g, i) => `<fieldset class="campo escolha" data-escolha="${i}">
     <legend>${esc(g.nome)}</legend>
     <div class="escolha__lista">${g.valores.map((x, j) => `<label class="escolha__opcao"><input type="radio" name="opcao-${i}" value="${j}" required${j === g.valores.findIndex((y) => !y.suplemento) ? ' checked' : ''}><span>${esc(x.nome)}${x.suplemento ? ` <span class="escolha__mais">+ ${euros(x.suplemento)}</span>` : ''}</span></label>`).join('')}</div>
@@ -279,6 +448,7 @@ export function produto(ctx, p) {
   if (compravel(p)) {
     comprar = `<form class="comprar" data-comprar="${esc(p.slug)}" novalidate>
       ${blocoOpcoes}
+      ${blocoModelo}
       <div class="comprar__linha">
         <div class="quantidade" data-quantidade>
           <button type="button" data-menos>${icones.menos}<span class="visualmente-escondido">Menos um</span></button>
@@ -328,11 +498,12 @@ export function produto(ctx, p) {
   </div>` : '';
 
   const relacionados = ctx.produtos.filter((x) => x.slug !== p.slug)
-    .sort((a, b) => (b.categoria === p.categoria) - (a.categoria === p.categoria) || (a.ordem ?? 500) - (b.ordem ?? 500)).slice(0, 4);
+    .sort((a, b) => (b.categoria === p.categoria) - (a.categoria === p.categoria) || (a.ordem ?? 500) - (b.ordem ?? 500)).slice(0, 8);
 
   // A marca (ou a categoria) e o estado: «Huawei · Novo», «Apple · Recondicionado · Grade A+». Os
   // acessórios sem marca ficam só com a categoria.
   const estadoTexto = estadoRotulo(p) || (EQUIPAMENTOS.has(p.categoria) ? 'Novo' : '');
+  const specs = especificacoes(p);
   const etiqueta = [p.marca || c.nome, estadoTexto].filter(Boolean).join(' · ');
   const conteudo = `<div class="contentor produto">
   ${m.html}
@@ -342,8 +513,8 @@ export function produto(ctx, p) {
       ${selos ? `<div class="produto__selos">${selos}</div>` : ''}
       <p class="etiqueta">${esc(etiqueta)}</p>
       <h1 class="produto__nome">${esc(p.nome)}</h1>
-      ${preco(ctx, p, { grande: true })}
-      ${promocaoNota(ctx, p)}
+      ${specs.length ? `<ul class="produto__specs">${specs.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
+      <div class="produto__preco">${preco(ctx, p, { grande: true })}${promocaoNota(ctx, p)}</div>
       <div class="produto__resumo">${markdown(p.descricao, ctx.url)}</div>
       ${listas}
       ${comprar}
@@ -351,11 +522,9 @@ export function produto(ctx, p) {
       ${infoLegal}
     </div>
   </div>
-  <section class="relacionados" aria-labelledby="rel-titulo">
-    <h2 id="rel-titulo" class="titulo-seccao">Também lhe pode interessar</h2>
-    <div class="grelha">${relacionados.map((x) => cartaoProduto(ctx, x)).join('\n')}</div>
-  </section>
-</div>`;
+  ${fila(ctx, relacionados, { id: 'rel-titulo', titulo: 'Também lhe pode interessar' })}
+</div>
+${p.pedeModelo === true ? `<script type="application/json" id="dados-modelos">${JSON.stringify(ctx.modelosPorMarca).replace(/</g, '\\u003c')}</script>` : ''}`;
 
   const CONDICAO = { novo: 'https://schema.org/NewCondition', recondicionado: 'https://schema.org/RefurbishedCondition', usado: 'https://schema.org/UsedCondition' };
   const DISPONIVEL = { disponivel: 'https://schema.org/InStock', loja: 'https://schema.org/InStoreOnly', confirmar: 'https://schema.org/LimitedAvailability', esgotado: 'https://schema.org/OutOfStock' };
@@ -398,102 +567,20 @@ export function produto(ctx, p) {
   };
 }
 
-// ---------------------------------------------------------------- reparações
-export function reparacoes(ctx) {
-  const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: 'Reparações', caminho: '/reparacoes/' }]);
-  const c = ctx.site.contactos;
-  const tipos = ctx.servicos.map((s) => s.nome);
-  const conteudo = `<div class="contentor reparacoes">
-  ${cabecaDePagina(ctx, { titulo: 'Reparações', sub: 'Diagnóstico e orçamento gratuitos: dizemos o que tem e quanto custa antes de reparar.' })}
-  <div class="servicos">${ctx.servicos.map((s) => cartaoServico(ctx, s, { titulo: 'h2' })).join('\n')}</div>
-  <section class="orcamento" id="orcamento" aria-labelledby="orcamento-titulo">
-    <h2 id="orcamento-titulo" class="titulo-seccao">Peça um orçamento</h2>
-    <p class="orcamento__texto">Respondemos pelo WhatsApp com o preço e o prazo.</p>
-    <form class="formulario orcamento__form" data-whatsapp-form="orcamento" novalidate>
-      <div class="campos-lado">
-        <div class="campo"><label for="o-tipo">Equipamento</label><select id="o-tipo" name="tipo" required><option value="">Escolha…</option>${tipos.map((t) => `<option>${esc(t)}</option>`).join('')}<option>Outro</option></select></div>
-        <div class="campo"><label for="o-modelo">Marca e modelo</label><input id="o-modelo" name="modelo" type="text" maxlength="80" placeholder="Ex.: iPhone 13, PS5" required autocomplete="off"></div>
-      </div>
-      <div class="campo"><label for="o-avaria">O que se passa?</label><textarea id="o-avaria" name="avaria" rows="3" maxlength="400" placeholder="Ex.: o ecrã partiu e já não acende" required></textarea></div>
-      <div class="campo"><label for="o-nome">O seu nome <span class="campo__opcional">(opcional)</span></label><input id="o-nome" name="nome" type="text" maxlength="60" autocomplete="name"></div>
-      <p class="comprar__erro" data-erro role="alert" hidden></p>
-      ${c.whatsapp ? `<button class="botao botao--whatsapp" type="submit">${icones.whatsapp}<span>Enviar pelo WhatsApp</span></button>` : `<p>${ctx.marcador('o número de WhatsApp')}</p>`}
-    </form>
-  </section>
-</div>`;
-  return {
-    caminho: '/reparacoes/',
-    titulo: 'Reparação de telemóveis, tablets, computadores e consolas',
-    descricao: `Reparação de smartphones (ecrã, bateria, vidro traseiro, danos por água), tablets, portáteis, PCs e consolas em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}. Diagnóstico e orçamento gratuitos.`,
-    jsonld: [m.ld, {
-      '@context': 'https://schema.org', '@type': 'Service', name: 'Reparação de equipamentos electrónicos', provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },
-      hasOfferCatalog: { '@type': 'OfferCatalog', name: 'Reparações', itemListElement: ctx.servicos.map((s) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: s.nome, description: s.resumo || undefined } })) },
-    }],
-    conteudo,
-  };
-}
-
-// ---------------------------------------------------------------- retoma
-export function retoma(ctx) {
-  const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: 'Retoma', caminho: '/retoma/' }]);
-  const c = ctx.site.contactos;
-  const conteudo = `<div class="contentor retoma">
-  ${cabecaDePagina(ctx, { titulo: 'Vende-nos o seu telemóvel.', sub: 'Diga-nos o modelo e o estado e respondemos com uma proposta pelo WhatsApp.' })}
-  <div class="retoma__grelha">
-    <form class="formulario retoma__form" data-whatsapp-form="retoma" novalidate>
-      <div class="campos-lado">
-        <div class="campo"><label for="r-marca">Marca</label><input id="r-marca" name="marca" type="text" maxlength="40" placeholder="Ex.: Apple" required autocomplete="off"></div>
-        <div class="campo"><label for="r-modelo">Modelo</label><input id="r-modelo" name="modelo" type="text" maxlength="60" placeholder="Ex.: iPhone 12, 128 GB" required autocomplete="off"></div>
-      </div>
-      <fieldset class="campo escolha">
-        <legend>Estado geral</legend>
-        <div class="escolha__lista">
-          <label class="escolha__opcao"><input type="radio" name="estado" value="Como novo, sem marcas" required><span>Como novo</span></label>
-          <label class="escolha__opcao"><input type="radio" name="estado" value="Bom, com marcas ligeiras de uso"><span>Bom</span></label>
-          <label class="escolha__opcao"><input type="radio" name="estado" value="Com riscos ou amolgadelas visíveis"><span>Com marcas</span></label>
-          <label class="escolha__opcao"><input type="radio" name="estado" value="Partido ou avariado"><span>Partido ou avariado</span></label>
-        </div>
-      </fieldset>
-      <fieldset class="campo caixas">
-        <legend>Algum problema?</legend>
-        <label class="caixa"><input type="checkbox" name="problemas" value="Ecrã partido ou com riscos"><span>Ecrã partido ou riscado</span></label>
-        <label class="caixa"><input type="checkbox" name="problemas" value="Bateria fraca"><span>Bateria fraca</span></label>
-        <label class="caixa"><input type="checkbox" name="problemas" value="Não liga ou não carrega"><span>Não liga ou não carrega</span></label>
-        <label class="caixa"><input type="checkbox" name="problemas" value="Câmara, som ou botões com problemas"><span>Câmara, som ou botões</span></label>
-      </fieldset>
-      <fieldset class="campo caixas">
-        <legend>Acompanha</legend>
-        <label class="caixa"><input type="checkbox" name="acompanha" value="Caixa"><span>Caixa</span></label>
-        <label class="caixa"><input type="checkbox" name="acompanha" value="Carregador"><span>Carregador</span></label>
-        <label class="caixa"><input type="checkbox" name="acompanha" value="Factura"><span>Factura</span></label>
-      </fieldset>
-      <div class="campo"><label for="r-notas">Mais alguma coisa? <span class="campo__opcional">(opcional)</span></label><textarea id="r-notas" name="notas" rows="2" maxlength="300"></textarea></div>
-      <p class="comprar__erro" data-erro role="alert" hidden></p>
-      ${c.whatsapp ? `<button class="botao botao--whatsapp botao--largo" type="submit">${icones.whatsapp}<span>Enviar pelo WhatsApp</span></button>` : `<p>${ctx.marcador('o número de WhatsApp')}</p>`}
-      <p class="formulario__nota">Pode juntar fotografias na conversa.</p>
-    </form>
-    <aside class="retoma__lado">
-      <div class="retoma__cartao">
-        <p class="retoma__titulo">Como funciona</p>
-        <ol class="passos-lista">
-          <li><strong>Envia-nos os dados</strong><span>O modelo, o estado e o que acompanha.</span></li>
-          <li><strong>Recebe uma proposta</strong><span>Pelo WhatsApp, normalmente no próprio dia.</span></li>
-          <li><strong>Avaliação na loja</strong><span>Confirmamos o estado e o valor com o equipamento à frente.</span></li>
-        </ol>
-      </div>
-    </aside>
-  </div>
-</div>`;
-  return {
-    caminho: '/retoma/',
-    titulo: 'Retoma: vendemos e compramos telemóveis usados',
-    descricao: `Tem um telemóvel parado? Diga-nos o modelo e o estado e a ${ctx.site.marca}, em ${ctx.site.local.localidade}, responde com uma proposta de retoma.`,
-    jsonld: [m.ld],
-    conteudo,
-  };
-}
 
 // ---------------------------------------------------------------- carrinho e checkout
+/* O CUPÃO: o campo e o botão «Usar»; o carrinho pergunta ao Worker (POST /cupao) e mostra o
+   desconto nos totais. Fechado num <details> enquanto não há cupão (é o que quase ninguém usa). */
+const cupao = (onde) => `<details class="cupao" data-cupao>
+  <summary class="cupao__abrir">${icones.presente}<span>Tem um cupão?</span></summary>
+  <div class="cupao__linha">
+    <label class="visualmente-escondido" for="cupao-${onde}">Código do cupão</label>
+    <input id="cupao-${onde}" type="text" maxlength="30" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Código" data-cupao-codigo>
+    <button class="botao botao--contorno botao--pequeno" type="button" data-cupao-usar>Usar</button>
+  </div>
+  <p class="cupao__estado" data-cupao-estado role="status" hidden></p>
+</details>`;
+
 export function carrinho(ctx) {
   const conteudo = `<div class="contentor carrinho-pagina">
   <h1 class="titulo-pagina">Carrinho</h1>
@@ -508,6 +595,7 @@ export function carrinho(ctx) {
         <legend>Como quer receber?</legend>
         ${ctx.site.entrega.zonas.map((z, i) => `<label class="opcao-entrega"><input type="radio" name="entrega" value="${esc(z.id)}"${i === 0 ? ' checked' : ''}><span class="opcao-entrega__nome">${esc(z.nome)}</span><span class="opcao-entrega__preco" data-preco-zona="${esc(z.id)}"></span></label>`).join('\n')}
       </fieldset>
+      ${cupao('carrinho')}
       <div class="totais" data-totais aria-live="polite"></div>
       <p class="comprar__erro" data-erro-carrinho role="alert" hidden></p>
       <a class="botao botao--cheio botao--largo" href="${ctx.url('/checkout/')}" data-seguir>Continuar</a>
@@ -543,7 +631,7 @@ export function checkout(ctx) {
             <div class="campo"><label for="c-cp">Código postal</label><input id="c-cp" name="codigoPostal" type="text" autocomplete="postal-code" maxlength="8" placeholder="0000-000" inputmode="numeric" data-obrigatorio-envio></div>
             <div class="campo"><label for="c-local">Localidade</label><input id="c-local" name="localidade" type="text" autocomplete="address-level2" maxlength="60" data-obrigatorio-envio></div>
           </div>
-          <p class="formulario__nota">Enviamos só para Portugal Continental.</p>
+          <p class="formulario__nota">Enviamos só para Portugal Continental${ctx.site.entrega.transportadora ? `, pela ${esc(ctx.site.entrega.transportadora)}` : ''}.</p>
         </div>
         <div class="campo"><label for="c-notas">Observações <span class="campo__opcional">(opcional)</span></label><textarea id="c-notas" name="notas" rows="2" maxlength="500"></textarea></div>
       </fieldset>
@@ -555,6 +643,7 @@ export function checkout(ctx) {
     <aside class="checkout__resumo" aria-labelledby="c-resumo-titulo">
       <h2 id="c-resumo-titulo" class="resumo__titulo">A sua encomenda</h2>
       <div data-checkout-resumo><p class="carrinho-vazio">O carrinho está vazio. <a href="${ctx.url('/loja/')}">Ver a loja</a></p></div>
+      ${cupao('checkout')}
     </aside>
   </div>
   <noscript><p class="nota">A encomenda precisa de JavaScript. Pode sempre encomendar pelo <a href="${ctx.whatsapp('Olá! Gostava de fazer uma encomenda.')}">WhatsApp</a>.</p></noscript>
@@ -695,8 +784,8 @@ export function contactos(ctx) {
 
 export function erro404(ctx) {
   const conteudo = `<div class="contentor erro">
-  ${cabecaDePagina(ctx, { titulo: 'Esta página não existe', sub: 'Pode ter mudado de sítio, ou o endereço tem um erro.' })}
-  <p class="erro__loja">${botaoSeta(ctx.url('/loja/'), 'Ver toda a loja', { classe: 'botao botao--cheio' })} ${botaoSeta(ctx.url('/reparacoes/'), 'Reparações')}</p>
+  ${cabecaDePagina(ctx, { titulo: 'Esta página não existe', sub: 'Pode ter mudado de sítio, ou o endereço tem um erro. Experimente procurar lá em cima.' })}
+  <p class="erro__loja">${botaoSeta(ctx.url('/loja/'), 'Ver toda a loja', { classe: 'botao botao--cheio' })} ${botaoSeta(ctx.url('/reparacoes/'), 'Reparações')} ${botaoSeta(ctx.url('/retoma/'), 'Retoma')}</p>
 </div>`;
   return { caminho: '/404.html', titulo: 'Página não encontrada', descricao: 'Esta página não existe.', conteudo };
 }

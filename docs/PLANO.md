@@ -127,3 +127,122 @@ chegar»). Só se volta a correr o script se a loja mudar de sítio (`local.coor
 não edita). A página ficou com três cartões (WhatsApp, telefone, email), a loja (o mapa, a morada e o
 horário) e as redes numa linha. As políticas de cookies e de privacidade deixaram de falar do mapa do
 Google; as frases da Stripe só aparecem com o pagamento no site ligado.
+
+## 13. O site novo: loja de electrónica, reparações por modelo e retoma com simulação (9 nov 2026)
+
+O Renato esteve com o dono a 9 nov e deixou as notas no WhatsApp. O pedido: «Para a página das
+retomas ele quer um sistema como o da Fnac […] igual e melhor», «Para a página das reparações ele
+gosta de um sistema como a iServices tem», «ele apenas quer trabalhar com a Apple e Samsung. Mas
+[…] as películas de vidro já mete em qualquer telemóvel», «tens de deixar o utilizador escolher que
+modelo do telemóvel tem», «Ele quer um site mais de eletrónica e não apenas um site simples de AI
+generated, vais ter de caprichar», «campanhas, cupões para os clientes usarem na compra […] integrar
+com o Stripe». E das notas: Samsung também nas categorias; tirar a impressão 3D; vender películas
+(quem compra diz o modelo); tirar «Vendedor Oficial DIGI»; envios pela **Nacex**, duas tarifas:
+**pacote até 5 kg 5,90 €, até 30 kg 14,90 €**.
+
+### 13.1 O que se estudou
+
+- **Fnac, retoma Apple** (fnac.pt/retomas-apple): três passos (simular, entregar ou enviar,
+  receber por transferência, dinheiro ou cartão Fnac). A simulação: categoria → modelo →
+  capacidade → cor; o «valor estimado» aparece logo como «até X €» e desce a cada resposta
+  (funciona? estado geral A/B/C/D, ecrã, laterais, traseira, câmaras, bateria ≥ 85 %, dobrado ou
+  líquidos, etiqueta CE), com «este valor depende da avaliação presencial»; no fim, o «Find my
+  iPhone» desligado e os dados apagados numa caixa a marcar, e «Vender já». Num iPhone 13 128 GB:
+  até 190 €; «Bom (Valor B)» em vez de «Como novo» deu 170 €.
+- **iServices, reparações** (iservices.pt/problema): grelha de problemas (ecrã, bateria, botões,
+  câmaras, líquidos, antenas, Face ID, porta de ligação, sensores, traseira, som), cada um com a
+  explicação e os sintomas; escolha marca → categoria → modelo; a página do modelo com cada
+  reparação e o preço («Ecrã desde 138 €», «Bateria 69,95 €»); a página da reparação com dois
+  níveis (peça iServices 138 € «Best Seller» / original 203 €), os pontos de cada um e
+  «Selecionar loja»; por baixo, películas e capas para aquele modelo. Não há marcação com dia e
+  hora: acaba na loja ou em «Pedir orçamento».
+- **Stripe, descontos**: uma Checkout Session aceita UM desconto (`discounts: [{ coupon }]` ou
+  `[{ promotion_code }]`, ou a caixa `allow_promotion_codes`, nunca os dois). Os cupões da Stripe
+  só limitam artigos por id de produto, e os nossos artigos vão como `price_data` (sem produto
+  fixo): por isso as regras do cupão (mínimo, categorias, prazo, limite de usos) são nossas, e a
+  Stripe recebe o desconto já calculado.
+
+### 13.2 Decisões
+
+1. **Só Apple e Samsung** nos equipamentos: telemóveis, tablets e relógios à venda, reparações e
+   retoma. Os acessórios (áudio, capas, carregadores, localizadores) podem ser de outras marcas, e
+   as **películas servem qualquer telemóvel**. Saem do site: Huawei (Band 11, Band 11 Pro, Watch
+   D2), OPPO A5x, ZTE Blade V70 Max, Redmi Pad Pro, Blackview Tab 10 Pro e a Dolce Gusto; a
+   impressão 3D; os computadores e as consolas (não são Apple nem Samsung: voltam se o dono os
+   quiser); o «Vendedor Oficial DIGI».
+2. **Categorias da loja:** iPhone · Samsung · Recondicionados · Tablets · Smartwatches · Áudio ·
+   Películas · Acessórios.
+3. **Um ficheiro de modelos** (`content/aparelhos.json`): marcas, famílias (iPhone, iPad, Apple
+   Watch, Galaxy S, Z, A, Note, Tab, Watch) e cada modelo com as capacidades. Serve as reparações,
+   a retoma e a escolha do modelo nas películas. O dono acrescenta os modelos novos no painel.
+4. **Reparações como a iServices, e melhor** (`content/reparacoes.json`): os tipos de reparação
+   (com o desenho, a explicação, os sintomas e, no ecrã, dois níveis: compatível e original) e os
+   preços por modelo. `/reparacoes/`: escolher o equipamento (marca → família → modelo, com
+   procura) e a grelha dos problemas. `/reparacoes/<modelo>/`: as reparações daquele modelo com o
+   preço (ou «Orçamento grátis» quando não há preço), o nível a escolher, e «Marcar reparação»
+   com o resumo → WhatsApp com a mensagem pronta; por baixo, as películas e capas para aquele
+   modelo. Melhor do que a iServices: tudo numa página (sem ir a outra para escolher o nível), a
+   escolha fica por baixo do polegar no telemóvel, e a película escolhe já o modelo.
+5. **Retoma como a Fnac, e melhor** (`content/retoma.json`): o valor máximo de cada modelo e
+   capacidade, e as perguntas com o desconto de cada resposta (o dono muda os dois). `/retoma/`:
+   simulador por passos (marca → modelo → capacidade → estado, uma pergunta de cada vez, com o
+   valor a mexer ao lado ou na barra de baixo), o «Encontrar» desligado e os dados apagados, e o
+   resultado: valor estimado, como entregar (na loja, ou por envio combinado) e como receber →
+   WhatsApp com tudo escrito. Melhor do que a Fnac: Apple E Samsung, uma pergunta por ecrã no
+   telemóvel, sem «cor» (não muda o valor), o porquê de cada desconto à vista, e o valor a
+   aparecer desde a primeira escolha. Sem valor para um modelo: «avaliamos na loja».
+6. **Películas** (categoria própria): vidro temperado, privacidade, mate, câmara e hidrogel. Um
+   artigo com «pede o modelo» abre a escolha da marca (Apple, Samsung, Xiaomi, OPPO… ou outra) e
+   do modelo (sugestões, ou escrito à mão); sem modelo não se junta ao carrinho, e o modelo segue
+   na linha da encomenda até ao dono.
+7. **Envios Nacex por peso**: cada artigo tem o peso (ou o da categoria), e a encomenda paga
+   5,90 € até 5 kg e 14,90 € até 30 kg (acima, combina-se pelo WhatsApp). O levantamento na loja
+   continua grátis.
+8. **Campanhas** (`content/campanhas.json`, públicas): nome, datas, a frase da faixa do topo, e
+   um desconto em percentagem nas categorias, marcas ou artigos escolhidos. Uma campanha activa
+   põe a faixa, o cartão na página inicial, a etiqueta e o preço riscado nos artigos, e tem página
+   própria (`/campanhas/<nome>/`). A publicação de todas as noites liga-a e desliga-a nas datas.
+   O preço riscado é o preço normal do artigo; o painel lembra que tem de ser o mais baixo dos 30
+   dias anteriores (DL 70/2007, art. 5.º). Fica preparada a «Black Friday» (por publicar).
+9. **Cupões** (privados: no KV do Worker, nunca no repositório, que é público): código,
+   percentagem, valor fixo ou portes grátis, compra mínima, datas, limite de usos, uma vez por
+   cliente, e (opcional) só em certas categorias. No carrinho, «Tem um cupão?» pergunta ao Worker
+   e mostra o desconto; no `/checkout` o Worker confere tudo outra vez. Em modo «online» a Stripe
+   recebe um cupão de uso único com o valor calculado (aparece «Cupão X −5,00 €» na página dela);
+   em modo «encomenda» o desconto vai na encomenda e nos emails. Os usos contam-se quando a
+   encomenda fica registada (encomenda) ou paga (online).
+10. **Desenho de loja de electrónica**, à volta do logótipo que existe: barra de campanha, cabeçalho
+    com procura e menu de categorias, página inicial em mosaico (campanha, reparar, vender), filas
+    de artigos, os artigos sem o fundo da fotografia em cartões claros iguais, filtros e ordenação
+    na loja, desenhos próprios de cada tipo de aparelho nas reparações e na retoma. Preto, branco e
+    o dourado da marca; cantos redondos; Manrope.
+11. **Preços e valores**: o dono ainda não deu os preços das reparações nem os valores da retoma.
+    Ficam como referência do mercado (iServices e Fnac, 9 nov 2026) marcados «por confirmar» na
+    pré-visualização, como os dados legais. A produção não mostra nenhum por confirmar: sem a
+    confirmação do dono, a página diz «Orçamento grátis» / «avaliamos na loja».
+
+### 13.3 O que muda no Worker das encomendas
+
+Catálogo v3 (o peso, «pede o modelo», as campanhas já aplicadas ao preço com início e fim, as
+tarifas da Nacex); a linha da encomenda leva o modelo escrito pelo cliente; os portes pelo peso;
+`POST /cupao` (conferir um código para o carrinho) e o cupão no `/checkout`; `GET/PUT/DELETE
+/painel/cupoes` para o painel; os emails e o resumo com o desconto. O contrato está no
+`docs/ENCOMENDAS.md`.
+
+### 13.4 O que muda no painel (depois do site)
+
+Ecrãs novos: Campanhas, Cupões (fala com o Worker), Reparações (os preços por modelo numa
+tabela, os níveis, «Confirmo os preços»), Retoma (os valores por modelo e capacidade, os
+descontos de cada resposta, «Confirmo os valores»), Modelos (acrescentar o iPhone que sair). Na
+ficha do artigo: o peso e «pede o modelo». Em Dados da loja: a Nacex e as duas tarifas; sai a
+DIGI. Sai o ecrã Serviços. As regras novas entram no `regras.mjs` (copiado byte a byte).
+
+### 13.5 O que falta do dono
+
+- Os preços das reparações (com o nível original, onde o fizer) e os valores da retoma: uma folha
+  de cálculo com as referências do mercado ao lado, para ele escrever os dele.
+- Os preços das películas de vidro (a de hidrogel é 12,50 €).
+- Retoma: como paga (dinheiro, transferência, desconto numa compra?) e se recebe por envio.
+- Se as reparações e a retoma ficam mesmo só Apple e Samsung (perguntado no WhatsApp a 9 nov, sem
+  resposta), e se os computadores e as consolas saem de vez.
+- A conta da Stripe (já ficou de a criar) e o resto da §9.

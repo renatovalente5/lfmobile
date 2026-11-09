@@ -21,17 +21,26 @@ node scripts/build.mjs            # o site em _site/, para http://localhost:4870
 node scripts/build.mjs --base=/lfmobile   # como no GitHub Pages
 node scripts/build.mjs --producao         # como no domínio: pára se faltar um dado que a lei pede
 node scripts/testar.mjs           # os testes (regras, scripts, construções de ensaio)
+scripts/recortes.sh               # (num Mac) os recortes que faltam das fotografias novas dos artigos
 ```
 
 ## Onde está cada coisa
 
-- `content/` — o que o painel edita: `site.json` (contactos, horário, local, empresa, entrega,
-  pagamentos, garantias, Google, parcerias), `inicio.json`, `categorias.json`, `servicos.json`,
-  `fotos.json`, `produtos/<slug>.json`; e `paginas/*.md` (as páginas de texto e legais, só do Renato).
+- `content/` — o que o painel edita: `site.json` (contactos, horário, local, empresa, entrega com os
+  escalões da Nacex, pagamentos, garantias, Google), `inicio.json`, `categorias.json` (com o peso de
+  cada uma), `fotos.json`, `produtos/<slug>.json`, `aparelhos.json` (as marcas, as famílias e os
+  modelos Apple e Samsung), `reparacoes.json` (os tipos de reparação e os preços por modelo),
+  `retoma.json` (os valores e as perguntas do simulador) e `campanhas.json`; e `paginas/*.md` (as
+  páginas de texto e legais, só do Renato). Os cupões não estão aqui: vivem no KV do Worker das
+  encomendas (`docs/ENCOMENDAS.md`, §8).
 - `src/lib/regras.mjs` — as regras do conteúdo, partilhadas byte a byte com o painel.
-- `src/templates/` — a moldura (`layout.mjs`), as páginas (`paginas.mjs`), os componentes, os ícones.
-- `src/estilos/site.css`, `src/scripts/site.js` e `carrinho.js` — o estilo e o comportamento.
+- `src/templates/` — a moldura (`layout.mjs`), as páginas (`paginas.mjs`, `reparacoes.mjs`,
+  `retoma.mjs`), os componentes, os ícones e os desenhos dos aparelhos (`aparelhos.mjs`).
+- `src/estilos/site.css` e `src/scripts/` (`site.js`, `carrinho.js`, `loja.js`, `reparacoes.js`,
+  `retoma.js`) — o estilo e o comportamento.
 - `scripts/build.mjs` — o gerador; `scripts/imagens.py` — as imagens; `scripts/testar.mjs` — os testes.
 - `legal-comum/` — os textos e verificações legais comuns aos sites do Renato (cópia instalada).
-- `media/fotos/` — a biblioteca de fotografias (plana); `media/logo/`… ver `scripts/imagens.py`.
+- `media/fotos/` — a biblioteca de fotografias (plana); `media/recortes/` — o recorte (sem o fundo) da
+  primeira fotografia de cada artigo, feito no Mac (`scripts/recortes.sh`) ou desenhado (as películas);
+  `media/logo/`… ver `scripts/imagens.py`.
 - `_cliente/` (fora do git) — o material do cliente: a recolha do Instagram, o logótipo original, as notas.

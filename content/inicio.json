@@ -1,31 +1,36 @@
 {
   "seo": {
-    "titulo": "LF Mobile — Reparação de telemóveis e loja de tecnologia em São Roque, Oliveira de Azeméis",
-    "descricao": "Reparação de smartphones, tablets, computadores e consolas com orçamento gratuito. Telemóveis novos e recondicionados, acessórios e películas. Em São Roque, Oliveira de Azeméis, com envios para Portugal Continental."
+    "titulo": "LF Mobile — Reparação de iPhone e Samsung, telemóveis e películas em São Roque, Oliveira de Azeméis",
+    "descricao": "Reparação de iPhone e Samsung com o preço à vista, telemóveis novos e recondicionados, películas para qualquer telemóvel e retoma do seu usado. Em São Roque, Oliveira de Azeméis, com envios pela Nacex."
   },
   "capa": {
-    "titulo": "Reparamos, vendemos e cuidamos da sua tecnologia.",
-    "texto": "Reparações com orçamento gratuito, telemóveis novos e recondicionados e envios para todo o continente.",
-    "botao": "Pedir orçamento",
+    "titulo": "iPhone e Samsung, como novos outra vez.",
+    "texto": "Escolha o modelo e veja o preço da reparação. Orçamento grátis, na loja ou pelo WhatsApp.",
+    "botao": "Ver preços",
     "ligacao": "/reparacoes/",
     "botao2": "Ver a loja",
     "ligacao2": "/loja/",
-    "foto": "loja-letreiro"
+    "foto": "reparacao-ecra-iphone"
   },
   "destaques": {
-    "titulo": "Na loja",
+    "titulo": "Em destaque",
     "texto": "",
     "botao": "Ver toda a loja"
   },
   "reparacoes": {
-    "titulo": "Do ecrã partido ao portátil que aquece.",
-    "texto": "Diagnóstico e orçamento gratuitos, peças de qualidade e garantia.",
-    "botao": "Pedir orçamento gratuito"
+    "titulo": "O que se passa com o seu telemóvel?",
+    "texto": "Escolha o problema e o modelo: dizemos o preço e reparamos na loja.",
+    "botao": "Escolher o modelo"
   },
   "retoma": {
-    "titulo": "Tem um telemóvel parado?",
-    "texto": "Diga-nos o modelo e o estado e respondemos com uma proposta.",
-    "botao": "Pedir proposta"
+    "titulo": "Quanto vale o seu telemóvel?",
+    "texto": "Responda a meia dúzia de perguntas e veja o valor na hora. Recebe na loja.",
+    "botao": "Simular a retoma"
+  },
+  "peliculas": {
+    "titulo": "Películas para qualquer telemóvel",
+    "texto": "Vidro temperado, privacidade, mate ou hidrogel. Diga-nos o modelo e tratamos do resto.",
+    "botao": "Ver as películas"
   },
   "loja": {
     "titulo": "A loja",

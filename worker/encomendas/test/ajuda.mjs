@@ -1,6 +1,7 @@
-/* As peças comuns dos testes: o catálogo (o _site/assets/catalogo.json gerado, se existir; senão a
-   cópia test/catalogo.json), um KV de faz-de-conta, um env, uma rede de faz-de-conta (o catálogo,
-   a Stripe e o Resend respondem daqui; tudo o resto é proibido) e um pedido ao Worker. */
+/* As peças comuns dos testes: o catálogo (a cópia CONGELADA test/catalogo.json, na forma v3 do
+   scripts/build.mjs — nunca o _site/ do conteúdo de agora, que o dono muda no painel: memória
+   testes-do-site-com-conteudo-de-ensaio), um KV de faz-de-conta, um env, uma rede de faz-de-conta
+   (o catálogo, a Stripe e o Resend respondem daqui; tudo o resto é proibido) e um pedido ao Worker. */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -8,10 +9,7 @@ import { fileURLToPath } from 'node:url';
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 
 export function catalogoBase() {
-  for (const f of [path.resolve(AQUI, '../../../_site/assets/catalogo.json'), path.join(AQUI, 'catalogo.json')]) {
-    if (fs.existsSync(f)) return JSON.parse(fs.readFileSync(f, 'utf8'));
-  }
-  throw new Error('sem catálogo de teste');
+  return JSON.parse(fs.readFileSync(path.join(AQUI, 'catalogo.json'), 'utf8'));
 }
 
 /* Um KV com a API que o Worker usa (get, put com metadata, delete, list com prefixo e cursor). */

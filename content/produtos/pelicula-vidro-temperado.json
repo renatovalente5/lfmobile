@@ -1,0 +1,33 @@
+{
+  "nome": "Película de vidro temperado",
+  "nomeCurto": "Película de vidro temperado",
+  "marca": "",
+  "fotos": [
+    "pelicula-vidro-temperado-1"
+  ],
+  "resumo": "Vidro transparente, para proteger o ecrã de riscos e quedas.",
+  "descricao": "Vidro temperado transparente, cortado para o seu modelo. Se a levantar na loja, aplicamo-la na hora.",
+  "preco": null,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [],
+  "inclui": [],
+  "opcoes": [],
+  "pedeModelo": true,
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "peliculas",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 61
+}

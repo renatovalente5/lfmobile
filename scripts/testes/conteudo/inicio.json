@@ -27,6 +27,11 @@
     "texto": "Diga-nos o modelo e o estado e respondemos com uma proposta.",
     "botao": "Pedir proposta"
   },
+  "peliculas": {
+    "titulo": "Películas para qualquer telemóvel",
+    "texto": "Diga-nos o modelo.",
+    "botao": "Ver as películas"
+  },
   "loja": {
     "titulo": "A loja",
     "texto": "",

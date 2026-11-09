@@ -60,8 +60,18 @@
         "morada": true
       }
     ],
+    "transportadora": "Nacex",
     "portes": {
-      "continente": null,
+      "continente": [
+        {
+          "ate": 5,
+          "preco": 5.9
+        },
+        {
+          "ate": 30,
+          "preco": 14.9
+        }
+      ],
       "gratisAPartirDe": null
     },
     "prazo": "Os envios seguem em 24 a 48 horas úteis depois de a encomenda estar confirmada e paga, só para Portugal Continental.",
@@ -78,9 +88,6 @@
     "nota": "5,0",
     "opinioes": 20,
     "ligacao": "https://www.google.com/maps/place/LF+Mobile/@40.8814323,-8.473417,17z/data=!4m8!3m7!1s0xd23799c56cb4b9d:0x95eefbaa49e20eae!8m2!3d40.8814323!4d-8.473417!9m1!1b1!16s%2Fg%2F11nq10sm8x"
-  },
-  "parcerias": {
-    "digi": true
   },
   "fidelidade": {
     "texto": "Cartão das películas de hidrogel: na 6.ª película, oferecemos uma. Peça o seu na loja."

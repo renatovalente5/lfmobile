@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "black-friday",
+    "nome": "Black Friday",
+    "publicada": false,
+    "desde": "2026-11-23",
+    "ate": "2026-11-30",
+    "faixa": "Black Friday: 10% de desconto em películas, áudio e acessórios, até 30 de novembro",
+    "titulo": "Black Friday na LF Mobile",
+    "texto": "Até 30 de novembro, 10% de desconto nas películas, nos auriculares e nos acessórios. No site e na loja.",
+    "desconto": 10,
+    "categorias": [
+      "peliculas",
+      "audio",
+      "acessorios"
+    ],
+    "marcas": [],
+    "artigos": []
+  }
+]

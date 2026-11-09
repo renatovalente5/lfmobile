@@ -34,8 +34,11 @@
  *   site:       texto | objecto | null,               content/site.json
  *   inicio:     texto | objecto | null,               content/inicio.json
  *   categorias: texto | objecto | null,               content/categorias.json
- *   servicos:   texto | objecto | null,               content/servicos.json
  *   fotos:      texto | objecto | null,               content/fotos.json
+ *   aparelhos:  texto | objecto | null,               content/aparelhos.json (as marcas, as famílias e os modelos)
+ *   reparacoes: texto | objecto | null,               content/reparacoes.json (os tipos e os preços por modelo)
+ *   retoma:     texto | objecto | null,               content/retoma.json (os valores e as perguntas)
+ *   campanhas:  texto | objecto | null,               content/campanhas.json
  *   artigos:    { <nome>: texto | objecto | null },   content/produtos/<nome>.json
  *   ficheirosFotos: [nome],  os nomes (sem .jpg) dos ficheiros em media/fotos/
  *   videos:         [nome],  os nomes (sem .mp4) dos vídeos em media/video/
@@ -71,8 +74,11 @@ export const FICHEIROS = Object.freeze({
   site: 'content/site.json',
   inicio: 'content/inicio.json',
   categorias: 'content/categorias.json',
-  servicos: 'content/servicos.json',
   fotos: 'content/fotos.json',
+  aparelhos: 'content/aparelhos.json',
+  reparacoes: 'content/reparacoes.json',
+  retoma: 'content/retoma.json',
+  campanhas: 'content/campanhas.json',
 });
 export const PASTAS = Object.freeze({ artigos: 'content/produtos', fotos: 'media/fotos', videos: 'media/video' });
 export const ficheiroDoArtigo = (nome) => `${PASTAS.artigos}/${nome}.json`;
@@ -80,7 +86,9 @@ export const ficheiroDaFoto = (nome) => `${PASTAS.fotos}/${nome}.jpg`;
 
 /* As zonas de envio (as de content/site.json, entrega.zonas, menos o
    levantamento). A LF Mobile envia só para Portugal Continental (o dono, set 2026:
-   «Apenas Portugal Continental»). Os portes são da encomenda, não de cada artigo. */
+   «Apenas Portugal Continental»). Os portes são da encomenda, não de cada artigo: pela
+   Nacex, por escalões de PESO (o dono, 9 nov 2026: «pack até 5 kg 5,90 €, até 30 kg
+   14,90 €») — entrega.portes.<zona> é a lista dos escalões, [{ ate: kg, preco: € }]. */
 export const ZONAS_ENVIO = Object.freeze(['continente']);
 export const NOMES_ZONAS = Object.freeze({ continente: 'Portugal Continental' });
 
@@ -89,8 +97,8 @@ export const NOMES_ZONAS = Object.freeze({ continente: 'Portugal Continental' })
 export const CAMPOS_ARTIGO = Object.freeze([
   'nome', 'nomeCurto', 'marca', 'fotos', 'resumo', 'descricao',
   'preco', 'precoAnterior', 'promocaoDesde', 'promocaoAte',
-  'estado', 'disponibilidade', 'caracteristicas', 'inclui', 'opcoes', 'video',
-  'referencia', 'fabricante', 'avisos',
+  'estado', 'disponibilidade', 'caracteristicas', 'inclui', 'opcoes', 'pedeModelo', 'video',
+  'referencia', 'fabricante', 'avisos', 'peso',
   'categoria', 'destaque', 'novidade', 'publicado', 'ordem',
 ]);
 /* A informação legal de cada artigo, toda opcional e só mostrada na ficha quando está
@@ -101,8 +109,14 @@ export const CAMPOS_ARTIGO = Object.freeze([
 export const CAMPOS_FABRICANTE = Object.freeze(['nome', 'morada', 'email']);
 /* Sempre escritos pelo painel, com o valor explícito. Ausentes valem o valor por
    omissão (é o que o gerador faz). */
-export const BOOLEANOS_ARTIGO = Object.freeze(['destaque', 'novidade', 'publicado']);
-export const POR_OMISSAO = Object.freeze({ publicado: true, novidade: false, destaque: false, estado: 'novo', disponibilidade: 'disponivel', ordem: 500 });
+export const BOOLEANOS_ARTIGO = Object.freeze(['destaque', 'novidade', 'publicado', 'pedeModelo']);
+export const POR_OMISSAO = Object.freeze({ publicado: true, novidade: false, destaque: false, pedeModelo: false, estado: 'novo', disponibilidade: 'disponivel', ordem: 500 });
+/* «PEDE O MODELO» (as películas, 9 nov 2026: «A pessoa ao comprar a película tem de dizer qual é
+   o modelo do telemóvel»): a ficha pede a marca e o modelo (de qualquer marca, com sugestões ou
+   escrito à mão) e não junta ao carrinho sem ele; o modelo segue na linha da encomenda.
+   O PESO (kg) decide o escalão dos portes; vazio, vale o da categoria (categorias.json, peso) e,
+   sem esse, PESO_POR_OMISSAO. */
+export const PESO_POR_OMISSAO = 0.3;
 
 /* O estado de um artigo (novo, recondicionado, usado) muda a garantia que a ficha diz e o que o
    Google lê (itemCondition). A disponibilidade decide o botão da ficha:
@@ -124,6 +138,7 @@ export const NOMES_CAMPOS = Object.freeze({
   estado: 'Estado', disponibilidade: 'Disponibilidade', caracteristicas: 'Características', inclui: 'O que inclui', opcoes: 'Escolhas', video: 'Vídeo',
   referencia: 'Referência', fabricante: 'Fabricante', avisos: 'Avisos de segurança',
   categoria: 'Categoria', destaque: 'Em destaque na página inicial', novidade: 'Novidade', publicado: 'Publicado no site', ordem: 'Posição na lista',
+  pedeModelo: 'Pede o modelo do telemóvel', peso: 'Peso (kg)',
 });
 
 /* ------------------------------------------------------------------ */
@@ -131,7 +146,7 @@ export const NOMES_CAMPOS = Object.freeze({
 /* ------------------------------------------------------------------ */
 
 /* Os números: [mínimo, máximo]. */
-export const LIMITES = Object.freeze({ preco: [0.01, 100000], suplemento: [0, 10000], portes: [0, 10000], ordem: [0, 9999], opinioes: [0, 100000] });
+export const LIMITES = Object.freeze({ preco: [0.01, 100000], suplemento: [0, 10000], portes: [0, 10000], ordem: [0, 9999], opinioes: [0, 100000], peso: [0.01, 30], escalao: [0.1, 1000], desconto: [1, 90], reparacao: [0.01, 5000], retoma: [1, 5000], fator: [0, 1], ano: [2000, 2100] });
 /* Tamanhos máximos dos textos, em caracteres. */
 export const TAMANHOS = Object.freeze({
   nome: 120, nomeCurto: 40, marca: 60, resumo: 300, descricao: 6000,
@@ -145,8 +160,12 @@ export const TAMANHOS = Object.freeze({
   avisoTexto: 140, prazo: 400, pagamento: 400, levantamento: 300,
   nota: 4, fidelidade: 200,
   catNome: 40, catTitulo: 80, catResumo: 2000,
-  servicos: 12, servicoNome: 60, servicoResumo: 300, servicoItens: 12, servicoItem: 100, servicoPreco: 60,
   inicioCurto: 60, inicioTitulo: 120, inicioTexto: 600,
+  transportadora: 40, escaloes: 6,
+  modeloNome: 60, modelos: 400, capacidades: 8, outrasMarcas: 30, modelosDaMarca: 60,
+  tipoNome: 40, tipoTitulo: 80, tipoResumo: 200, sintomas: 8, sintoma: 120, niveis: 3, nivelNome: 40, nivelTexto: 160,
+  pergunta: 120, perguntaAjuda: 240, respostas: 6, resposta: 60, respostaAjuda: 80, perguntas: 12, opcoesRetoma: 6, opcaoRetoma: 80,
+  campanhas: 20, campanhaNome: 60, campanhaFaixa: 140, campanhaTitulo: 120, campanhaTexto: 600,
 });
 /* O que o Worker do painel aceita gravar (recusa acima); aqui só se lembra, a
    partir de 80 %. */
@@ -157,9 +176,12 @@ export const TECTOS = Object.freeze({ artigoBytes: 64 * 1024, siteBytes: 64 * 10
    certificações que a loja não nos mostrou. */
 export const RE_ALEGACOES = /\b(ecol[óo]gic[oa]s?|sustent[áa]ve(l|is)|sustentabilidade|amig[oa]s? do ambiente|eco-?friendly|biodegrad[áa]ve(l|is)|neutr[oa]s? em carbono|certificad[oa]s?)\b/i;
 
-/* Os desenhos que um serviço pode ter (a grelha de ícones do painel; o site desenha-os em
-   src/templates/icones.mjs). */
-export const ICONES_SERVICO = Object.freeze(['telemovel', 'tablet', 'portatil', 'computador', 'consola', 'impressora3d', 'bateria', 'ecra', 'agua', 'ferramentas', 'camiao', 'presente']);
+/* Os desenhos que um tipo de reparação pode ter (a grelha de ícones do painel; o site
+   desenha-os em src/templates/icones.mjs). */
+export const ICONES_REPARACAO = Object.freeze(['ecra', 'bateria', 'traseira', 'camara', 'camara-frontal', 'lente', 'conector', 'botoes', 'som', 'rosto', 'agua', 'software', 'diagnostico', 'pelicula']);
+/* Os tipos de aparelho (o desenho de cada modelo nas reparações e na retoma). */
+export const DESENHOS = Object.freeze(['iphone-botao', 'iphone-entalhe', 'iphone-ilha', 'iphone-duo', 'galaxy', 'galaxy-flip', 'galaxy-fold', 'tablet', 'relogio']);
+export const TIPOS_FAMILIA = Object.freeze({ telemovel: 'Telemóvel', tablet: 'Tablet', relogio: 'Relógio' });
 
 /* ------------------------------------------------------------------ */
 /* Ajudantes que o painel e o Worker também usam                      */
@@ -473,6 +495,10 @@ export function problemasDoArtigo(a, ctx = {}) {
   if (!ausente(o) && o !== '' && (typeof o !== 'number' || !Number.isInteger(o) || o < LIMITES.ordem[0] || o > LIMITES.ordem[1])) {
     avisa('ordem', 'ordem', `A posição é um número inteiro de 0 a ${LIMITES.ordem[1]} (mais baixo aparece primeiro).`);
   }
+  const kg = a.peso;
+  if (!ausente(kg) && kg !== '' && (typeof kg !== 'number' || !Number.isFinite(kg) || kg < LIMITES.peso[0] || kg > LIMITES.peso[1])) {
+    avisa('peso', 'peso', `O peso é em quilos, de ${String(LIMITES.peso[0]).replace('.', ',')} a ${LIMITES.peso[1]} (ex.: 0,4 para um telemóvel), ou fica vazio (vale o da categoria).`);
+  }
 
   // --- as características e o que inclui -----------------------------------------------
   const listaDeTextos = (campo, rotulo, maxLinhas, maxTexto) => {
@@ -573,7 +599,7 @@ export function problemasDoArtigo(a, ctx = {}) {
 /* content/site.json                                                   */
 /* ------------------------------------------------------------------ */
 
-export const SECCOES_SITE = Object.freeze({ contactos: 'Contactos', horario: 'Horário', aviso: 'Aviso do topo', entrega: 'Entrega e pagamento', pagamentos: 'Loja online', empresa: 'Dados legais', marca: 'A marca', extras: 'Google, DIGI e fidelidade' });
+export const SECCOES_SITE = Object.freeze({ contactos: 'Contactos', horario: 'Horário', aviso: 'Aviso do topo', entrega: 'Entrega e pagamento', pagamentos: 'Loja online', empresa: 'Dados legais', marca: 'A marca', extras: 'Google e fidelidade' });
 /* O que o painel nunca muda: a marca (o nome comercial, nos textos legais e no
    Google), as zonas de entrega e a localidade. */
 export const BLOQUEADOS_SITE = Object.freeze(['marca', 'entrega.zonas', 'local']);
@@ -672,12 +698,25 @@ export function problemasDoSite(d, { producao = false } = {}) {
   }
   const portes = eObjecto(en.portes) ? en.portes : {};
   if (!ausente(en.portes) && !eObjecto(en.portes)) avisa('entrega.portes', 'entrega', 'entrega.portes', 'Os portes não estão gravados como deve ser. Escreva-os outra vez.');
+  /* Os portes de cada zona: os escalões de peso da transportadora, do mais leve ao mais pesado
+     ([{ ate: 5, preco: 5.9 }, { ate: 30, preco: 14.9 }]: até 5 kg, 5,90 €; até 30 kg, 14,90 €).
+     Uma encomenda mais pesada do que o último escalão combina os portes pelo WhatsApp. */
   const faltamPortes = [];
   for (const z of ZONAS_ENVIO) {
     const v = portes[z];
-    if (ausente(v) || v === '') { faltamPortes.push(z); continue; }
-    if (typeof v !== 'number' || !Number.isFinite(v) || v < LIMITES.portes[0] || v > LIMITES.portes[1] || !duasCasas(v)) avisa(`entrega.portes.${z}`, 'entrega', `entrega.portes.${z}`, `Portes para ${NOMES_ZONAS[z]}: só o número, sem € (ex.: 5), ou vazio («a confirmar»).`);
+    if (ausente(v) || (Array.isArray(v) && !v.length)) { faltamPortes.push(z); continue; }
+    if (!Array.isArray(v)) { avisa(`entrega.portes.${z}`, 'entrega', `entrega.portes.${z}`, `Portes para ${NOMES_ZONAS[z]}: escreva os escalões de peso (até quantos kg, e o preço).`); continue; }
+    if (v.length > TAMANHOS.escaloes) avisa(`entrega.portes.${z}:quantos`, 'entrega', `entrega.portes.${z}`, `Há ${v.length} escalões de portes; o máximo é ${TAMANHOS.escaloes}.`);
+    let antes = 0;
+    v.forEach((e, i) => {
+      const onde = `entrega.portes.${z}.${i}`;
+      if (!eObjecto(e) || typeof e.ate !== 'number' || !Number.isFinite(e.ate) || e.ate < LIMITES.escalao[0] || e.ate > LIMITES.escalao[1]) { avisa(`${onde}.ate`, 'entrega', `${onde}.ate`, `Escalão ${i + 1} dos portes: o peso máximo é um número de quilos (ex.: 5).`); return; }
+      if (typeof e.preco !== 'number' || !Number.isFinite(e.preco) || e.preco < LIMITES.portes[0] || e.preco > LIMITES.portes[1] || !duasCasas(e.preco)) avisa(`${onde}.preco`, 'entrega', `${onde}.preco`, `Escalão ${i + 1} dos portes: o preço é só o número, sem € (ex.: 5,90).`);
+      if (e.ate <= antes) avisa(`${onde}:ordem`, 'entrega', `${onde}.ate`, 'Os escalões dos portes vão do mais leve para o mais pesado, sem repetir o peso.');
+      antes = e.ate;
+    });
   }
+  textoSimples(en.transportadora, 'entrega.transportadora', 'entrega', 'entrega.transportadora', 'Transportadora', TAMANHOS.transportadora);
   const gratis = portes.gratisAPartirDe;
   if (!ausente(gratis) && gratis !== '' && (typeof gratis !== 'number' || !Number.isFinite(gratis) || gratis < 0 || gratis > LIMITES.portes[1] || !duasCasas(gratis))) {
     avisa('entrega.portes.gratisAPartirDe', 'entrega', 'entrega.portes.gratisAPartirDe', 'Portes grátis a partir de: só o número, sem € (ex.: 100), ou vazio (sem portes grátis).');
@@ -706,7 +745,7 @@ export function problemasDoSite(d, { producao = false } = {}) {
   }
   if (!eObjecto(g) || vazio(g.recondicionados)) legal('garantias.recondicionados:vazio', 'extras', 'garantias.recondicionados', 'Falta a garantia dos recondicionados e usados (18 meses por acordo, ou os 3 anos da lei): a ficha e os termos dizem-na ao cliente.');
 
-  // --- Google, DIGI e fidelidade -------------------------------------------------------------
+  // --- Google e fidelidade -------------------------------------------------------------------
   const go = d.google;
   if (!ausente(go)) {
     if (!eObjecto(go)) avisa('google:forma', 'extras', 'google', 'Os dados do Google não estão gravados como deve ser.');
@@ -717,8 +756,6 @@ export function problemasDoSite(d, { producao = false } = {}) {
       if (!vazio(go.nota) && vazio(go.ligacao)) avisa('google:sem-ligacao', 'extras', 'google.ligacao', 'Há nota do Google mas não há ligação: o site só mostra a nota com a ligação para as opiniões, para quem quiser conferir.', { lembrete: true });
     }
   }
-  const pa = d.parcerias;
-  if (!ausente(pa) && (!eObjecto(pa) || (!ausente(pa.digi) && typeof pa.digi !== 'boolean'))) avisa('parcerias', 'extras', 'parcerias.digi', '«Vendedor Oficial DIGI» tem de ser sim ou não.');
   const fi = d.fidelidade;
   if (!ausente(fi)) {
     if (!eObjecto(fi)) avisa('fidelidade:forma', 'extras', 'fidelidade', 'O cartão de fidelidade não está gravado como deve ser.');
@@ -756,6 +793,8 @@ export function problemasDasCategorias(valor, { fotos = null } = {}) {
       const m = v.match(RE_ALEGACOES);
       if (m) bloqueia(`${c.slug}.${k}:alegacao`, `${i}.${k}`, `«${rotulo}» da categoria ${c.nome || c.slug}: «${m[0]}» é uma palavra que a lei só deixa usar com prova. Tire-a.`);
     }
+    const kg = c.peso;
+    if (!ausente(kg) && kg !== '' && (typeof kg !== 'number' || !Number.isFinite(kg) || kg < LIMITES.peso[0] || kg > LIMITES.peso[1])) avisa(`${c.slug}.peso`, `${i}.peso`, `O peso da categoria ${c.nome || c.slug} é em quilos (ex.: 0,4), ou fica vazio.`);
     /* A fotografia da categoria é opcional (o menu da LF Mobile é só texto); se estiver escrita, tem de existir. */
     if (!vazio(c.foto) && (!nomeDeFotoValido(c.foto) || (fotos && !fotos.has(c.foto)))) bloqueia(`${c.slug}.foto`, `${i}.foto`, `A fotografia da categoria ${c.nome || c.slug} não existe na biblioteca: escolha outra, ou nenhuma.`);
   });
@@ -763,60 +802,479 @@ export function problemasDasCategorias(valor, { fotos = null } = {}) {
 }
 
 /* ------------------------------------------------------------------ */
-/* content/servicos.json                                               */
+/* content/aparelhos.json — as marcas, as famílias e os modelos         */
 /* ------------------------------------------------------------------ */
 
-/* Os serviços de reparação e manutenção (a página /reparacoes/ e a secção da página inicial):
-   [{ slug, nome, icone, resumo, itens: [texto], preco?: texto }]. O «preco» é uma frase
-   («Orçamento gratuito», «Desde 20 €»), nunca um número: cada reparação é orçamentada. */
-export function problemasDosServicos(valor) {
-  const ficheiro = FICHEIROS.servicos;
+/* Os aparelhos que a loja repara e retoma (o dono, 9 nov 2026: «só Apple e Samsung»):
+   { marcas: [{ id, nome }], familias: [{ id, marca, nome, tipo }],
+     modelos: [{ id, nome, familia, ano?, capacidades?: [GB], desenho? }],
+     outrasMarcas?: [{ nome, modelos: [texto] }] }   (só sugestões na escolha do modelo das películas)
+   O id de um modelo é o endereço da página dele (/reparacoes/<id>/) e a chave dos preços e dos
+   valores da retoma: não muda depois de criado. Um modelo com problemas fica de fora (avisa). */
+export function problemasDosAparelhos(valor) {
+  const ficheiro = FICHEIROS.aparelhos;
   const out = [];
-  const ecra = 'Serviços';
-  const bloqueia = (chave, campo, mensagem) => out.push({ classe: 'bloqueia', chave: `servicos:${chave}`, ficheiro, ecra, campo, mensagem });
-  const avisa = (chave, campo, mensagem) => out.push({ classe: 'avisa', chave: `servicos:${chave}`, ficheiro, ecra, campo, mensagem });
+  const ecra = 'Modelos';
+  const bloqueia = (chave, campo, mensagem) => out.push({ classe: 'bloqueia', chave: `aparelhos:${chave}`, ficheiro, ecra, campo, mensagem });
+  const avisa = (chave, campo, mensagem) => out.push({ classe: 'avisa', chave: `aparelhos:${chave}`, ficheiro, ecra, campo, mensagem });
   const l = lerJson(valor);
-  if (!Array.isArray(l.obj)) { bloqueia('forma', undefined, 'Os serviços não se conseguem ler. Só o Renato os pode corrigir.'); return out; }
-  if (l.obj.length > TAMANHOS.servicos) avisa('quantos', undefined, `Há ${l.obj.length} serviços; o máximo é ${TAMANHOS.servicos}.`);
-  const slugs = new Set();
-  l.obj.forEach((s, i) => {
-    if (!eObjecto(s) || !slugValido(s.slug)) { bloqueia(`${i}:forma`, `${i}`, `O serviço ${i + 1} não tem a forma certa. Só o Renato o pode corrigir.`); return; }
-    if (slugs.has(s.slug)) bloqueia(`${s.slug}:repetido`, `${i}`, `O serviço «${s.slug}» está repetido. Só o Renato o pode corrigir.`);
-    slugs.add(s.slug);
-    const rotulo = s.nome || s.slug;
-    if (!temTexto(s.nome)) bloqueia(`${s.slug}.nome:vazio`, `${i}.nome`, `O serviço ${i + 1} não tem nome.`);
-    for (const [k, max, nomeCampo, { linha = true } = {}] of [['nome', TAMANHOS.servicoNome, 'Nome'], ['resumo', TAMANHOS.servicoResumo, 'Frase curta', { linha: false }], ['preco', TAMANHOS.servicoPreco, 'Preço']]) {
-      const v = s[k];
-      if (ausente(v) || v === '') continue;
-      if (typeof v !== 'string') { bloqueia(`${s.slug}.${k}:tipo`, `${i}.${k}`, `«${nomeCampo}» do serviço ${rotulo} tem de ser texto.`); continue; }
-      if (v.length > max) avisa(`${s.slug}.${k}:tamanho`, `${i}.${k}`, `«${nomeCampo}» do serviço ${rotulo} tem mais de ${max} caracteres.`);
-      if ((linha ? RE_CONTROLO_LINHA : RE_CONTROLO_TEXTO).test(v) || RE_PARTE_A_PAGINA.test(v)) bloqueia(`${s.slug}.${k}:controlo`, `${i}.${k}`, `«${nomeCampo}» do serviço ${rotulo} tem caracteres que não podem ir para o site.`);
-      const m = v.match(RE_ALEGACOES);
-      if (m) bloqueia(`${s.slug}.${k}:alegacao`, `${i}.${k}`, `«${nomeCampo}» do serviço ${rotulo}: «${m[0]}» é uma palavra que a lei só deixa usar com prova. Tire-a.`);
+  const d = l.obj;
+  if (l.ilegivel || !eObjecto(d) || !Array.isArray(d.marcas) || !Array.isArray(d.familias) || !Array.isArray(d.modelos)) {
+    bloqueia('forma', undefined, 'A lista dos modelos não se consegue ler: sem ela as reparações e a retoma não se geram. Só o Renato a pode corrigir.');
+    return out;
+  }
+  const marcas = new Set(d.marcas.filter((m) => eObjecto(m) && slugValido(m.id) && temTexto(m.nome)).map((m) => m.id));
+  if (!marcas.size) bloqueia('marcas', 'marcas', 'Não há nenhuma marca na lista dos modelos. Só o Renato a pode repor.');
+  const familias = new Set();
+  d.familias.forEach((f, i) => {
+    if (!eObjecto(f) || !slugValido(f.id) || !temTexto(f.nome) || !marcas.has(f.marca) || !tem(TIPOS_FAMILIA, f.tipo)) { bloqueia(`familias.${i}`, `familias.${i}`, `A família ${i + 1} dos modelos não tem a forma certa. Só o Renato a pode corrigir.`); return; }
+    if (familias.has(f.id)) bloqueia(`familias.${f.id}:repetida`, `familias.${i}`, `A família «${f.id}» está repetida.`);
+    familias.add(f.id);
+  });
+  if (d.modelos.length > TAMANHOS.modelos) avisa('modelos:quantos', 'modelos', `Há ${d.modelos.length} modelos; o máximo é ${TAMANHOS.modelos}.`);
+  const ids = new Set();
+  d.modelos.forEach((m, i) => {
+    const onde = `modelos.${i}`;
+    if (!eObjecto(m) || !slugValido(m.id)) { avisa(`${onde}:forma`, onde, `O modelo ${i + 1} não tem um endereço válido: fica fora do site.`); return; }
+    const rotulo = temTexto(m.nome) ? m.nome.trim() : m.id;
+    if (ids.has(m.id)) { avisa(`${m.id}:repetido`, onde, `O modelo «${rotulo}» está repetido: só o primeiro aparece.`); return; }
+    ids.add(m.id);
+    if (!temTexto(m.nome) || m.nome.length > TAMANHOS.modeloNome || RE_CONTROLO_LINHA.test(m.nome) || RE_PARTE_A_PAGINA.test(m.nome)) avisa(`${m.id}.nome`, `${onde}.nome`, `O modelo «${m.id}» precisa de um nome numa linha, até ${TAMANHOS.modeloNome} caracteres: fica fora do site até o ter.`);
+    if (!familias.has(m.familia)) avisa(`${m.id}.familia`, `${onde}.familia`, `O modelo «${rotulo}» não é de nenhuma família da lista: fica fora do site.`);
+    if (!ausente(m.ano) && (!Number.isInteger(m.ano) || m.ano < LIMITES.ano[0] || m.ano > LIMITES.ano[1])) avisa(`${m.id}.ano`, `${onde}.ano`, `O ano do modelo «${rotulo}» é um número de quatro algarismos (ex.: 2024).`);
+    if (!ausente(m.capacidades) && (!Array.isArray(m.capacidades) || m.capacidades.length > TAMANHOS.capacidades || !m.capacidades.every((c) => Number.isInteger(c) && c > 0 && c <= 4096))) avisa(`${m.id}.capacidades`, `${onde}.capacidades`, `As capacidades do modelo «${rotulo}» são números de GB (ex.: 128, 256; 1 TB é 1024).`);
+    if (!ausente(m.desenho) && !DESENHOS.includes(m.desenho)) avisa(`${m.id}.desenho`, `${onde}.desenho`, `O desenho do modelo «${rotulo}» não é nenhum dos do site.`);
+  });
+  const om = d.outrasMarcas;
+  if (!ausente(om)) {
+    if (!Array.isArray(om)) avisa('outrasMarcas', 'outrasMarcas', 'As outras marcas não estão gravadas como uma lista.');
+    else {
+      if (om.length > TAMANHOS.outrasMarcas) avisa('outrasMarcas:quantas', 'outrasMarcas', `Há ${om.length} outras marcas; o máximo é ${TAMANHOS.outrasMarcas}.`);
+      om.forEach((x, i) => {
+        if (!eObjecto(x) || !temTexto(x.nome) || x.nome.length > TAMANHOS.modeloNome || !Array.isArray(x.modelos) || x.modelos.length > TAMANHOS.modelosDaMarca || !x.modelos.every((t) => temTexto(t) && t.length <= TAMANHOS.modeloNome && !RE_CONTROLO_LINHA.test(t) && !RE_PARTE_A_PAGINA.test(t))) {
+          avisa(`outrasMarcas.${i}`, `outrasMarcas.${i}`, `A marca ${i + 1} das sugestões das películas não está como devia: fica de fora.`);
+        }
+      });
     }
-    if (!vazio(s.icone) && !ICONES_SERVICO.includes(s.icone)) avisa(`${s.slug}.icone`, `${i}.icone`, `O desenho do serviço ${rotulo} não é nenhum dos do site: escolha um da grelha.`);
-    const it = s.itens;
-    if (!ausente(it)) {
-      if (!Array.isArray(it)) avisa(`${s.slug}.itens`, `${i}.itens`, `A lista do serviço ${rotulo} não está gravada como uma lista.`);
-      else {
-        if (it.length > TAMANHOS.servicoItens) avisa(`${s.slug}.itens:quantos`, `${i}.itens`, `O serviço ${rotulo} tem ${it.length} linhas; o máximo é ${TAMANHOS.servicoItens}.`);
-        it.forEach((t, j) => {
-          if (typeof t !== 'string' || !t.trim()) avisa(`${s.slug}.itens.${j}`, `${i}.itens`, `A linha ${j + 1} do serviço ${rotulo} está vazia: escreva-a ou tire-a.`);
-          else if (t.length > TAMANHOS.servicoItem || RE_CONTROLO_LINHA.test(t) || RE_PARTE_A_PAGINA.test(t)) avisa(`${s.slug}.itens.${j}:tamanho`, `${i}.itens`, `A linha ${j + 1} do serviço ${rotulo} é comprida de mais ou tem caracteres que não podem ir para o site.`);
-        });
+  }
+  return out;
+}
+
+/* Os modelos que o site usa: só os que passam nas regras, com a família e a marca ao lado.
+   → { marcas, familias, modelos, porId: Map, outrasMarcas } */
+export function aparelhosDe(valor) {
+  const d = lerJson(valor).obj;
+  const vazioA = { marcas: [], familias: [], modelos: [], porId: new Map(), outrasMarcas: [] };
+  if (!eObjecto(d) || !Array.isArray(d.marcas) || !Array.isArray(d.familias) || !Array.isArray(d.modelos)) return vazioA;
+  const marcas = d.marcas.filter((m) => eObjecto(m) && slugValido(m.id) && temTexto(m.nome)).map((m) => ({ id: m.id, nome: m.nome.trim() }));
+  const idsMarcas = new Set(marcas.map((m) => m.id));
+  const familias = [];
+  for (const f of d.familias) {
+    if (eObjecto(f) && slugValido(f.id) && temTexto(f.nome) && idsMarcas.has(f.marca) && tem(TIPOS_FAMILIA, f.tipo) && !familias.some((x) => x.id === f.id)) familias.push({ id: f.id, marca: f.marca, nome: f.nome.trim(), tipo: f.tipo });
+  }
+  const porFamilia = new Map(familias.map((f) => [f.id, f]));
+  const porId = new Map();
+  const modelos = [];
+  for (const m of d.modelos) {
+    if (!eObjecto(m) || !slugValido(m.id) || porId.has(m.id) || !porFamilia.has(m.familia)) continue;
+    if (!temTexto(m.nome) || m.nome.length > TAMANHOS.modeloNome || RE_CONTROLO_LINHA.test(m.nome) || RE_PARTE_A_PAGINA.test(m.nome)) continue;
+    const f = porFamilia.get(m.familia);
+    const x = {
+      id: m.id, nome: m.nome.trim(), familia: f.id, marca: f.marca, tipo: f.tipo,
+      ano: Number.isInteger(m.ano) ? m.ano : null,
+      capacidades: Array.isArray(m.capacidades) && m.capacidades.every((c) => Number.isInteger(c) && c > 0 && c <= 4096) ? [...m.capacidades] : [],
+      desenho: DESENHOS.includes(m.desenho) ? m.desenho : (f.tipo === 'tablet' ? 'tablet' : f.tipo === 'relogio' ? 'relogio' : 'galaxy'),
+    };
+    porId.set(x.id, x);
+    modelos.push(x);
+  }
+  const outrasMarcas = (Array.isArray(d.outrasMarcas) ? d.outrasMarcas : [])
+    .filter((x) => eObjecto(x) && temTexto(x.nome) && x.nome.length <= TAMANHOS.modeloNome && Array.isArray(x.modelos))
+    .map((x) => ({ nome: x.nome.trim(), modelos: x.modelos.filter((t) => temTexto(t) && t.length <= TAMANHOS.modeloNome && !RE_CONTROLO_LINHA.test(t) && !RE_PARTE_A_PAGINA.test(t)).map((t) => t.trim()) }));
+  return { marcas, familias, modelos, porId, outrasMarcas };
+}
+/* A capacidade como se diz: 1024 GB é «1 TB». */
+export const capacidadeTexto = (gb) => (gb >= 1024 && gb % 1024 === 0 ? `${gb / 1024} TB` : `${gb} GB`);
+
+/* ------------------------------------------------------------------ */
+/* content/reparacoes.json — os tipos de reparação e os preços          */
+/* ------------------------------------------------------------------ */
+
+/* { confirmado: bool,
+     tipos: [{ id, nome, titulo, icone, resumo, sintomas: [texto], familias: [id], excluir?: [modelo],
+               niveis?: [{ id, nome, texto }], foto?, orcamento?: bool, gratis?: bool }],
+     precos: { <modelo>: { <tipo>: preço | { <nível>: preço } } } }
+   O preço de um tipo com níveis (o ecrã: compatível e original) é por nível; sem níveis, um número.
+   Sem preço, a página diz «Orçamento grátis». «orcamento»: o preço só se sabe depois de ver (os
+   líquidos); «gratis»: o diagnóstico. CONFIRMADO: os preços que vieram do mercado (referências, 9
+   nov 2026) só aparecem na pré-visualização, marcados «por confirmar»; no site a sério só depois
+   de o dono os confirmar no painel. */
+export function problemasDasReparacoes(valor, { aparelhos = null, fotos = null, producao = false } = {}) {
+  const ficheiro = FICHEIROS.reparacoes;
+  const out = [];
+  const ecra = 'Reparações';
+  const bloqueia = (chave, campo, mensagem) => out.push({ classe: 'bloqueia', chave: `reparacoes:${chave}`, ficheiro, ecra, campo, mensagem });
+  const avisa = (chave, campo, mensagem, extra = {}) => out.push({ classe: 'avisa', chave: `reparacoes:${chave}`, ficheiro, ecra, campo, mensagem, ...extra });
+  const l = lerJson(valor);
+  const d = l.obj;
+  if (l.ilegivel || !eObjecto(d) || !Array.isArray(d.tipos)) { bloqueia('forma', undefined, 'As reparações não se conseguem ler: sem elas a página das reparações não se gera. Só o Renato as pode corrigir.'); return out; }
+  if (!ausente(d.confirmado) && typeof d.confirmado !== 'boolean') avisa('confirmado', 'confirmado', '«Confirmo os preços» tem de ser sim ou não.');
+  const familias = aparelhos ? new Set(aparelhos.familias.map((f) => f.id)) : null;
+  const tipos = new Map();
+  d.tipos.forEach((t, i) => {
+    const onde = `tipos.${i}`;
+    if (!eObjecto(t) || !slugValido(t.id)) { bloqueia(`${onde}:forma`, onde, `A reparação ${i + 1} não tem a forma certa. Só o Renato a pode corrigir.`); return; }
+    if (tipos.has(t.id)) { bloqueia(`${t.id}:repetida`, onde, `A reparação «${t.id}» está repetida.`); return; }
+    tipos.set(t.id, t);
+    const rotulo = temTexto(t.nome) ? t.nome.trim() : t.id;
+    for (const [k, max, nome, obrigatorio, linha] of [['nome', TAMANHOS.tipoNome, 'Nome', true, true], ['titulo', TAMANHOS.tipoTitulo, 'Título', false, true], ['resumo', TAMANHOS.tipoResumo, 'Frase curta', true, false]]) {
+      const v = t[k];
+      if (vazio(v)) { if (obrigatorio) bloqueia(`${t.id}.${k}:vazio`, `${onde}.${k}`, `«${nome}» da reparação ${rotulo} está vazio.`); continue; }
+      if (typeof v !== 'string') { bloqueia(`${t.id}.${k}:tipo`, `${onde}.${k}`, `«${nome}» da reparação ${rotulo} tem de ser texto.`); continue; }
+      if (v.length > max) avisa(`${t.id}.${k}:tamanho`, `${onde}.${k}`, `«${nome}» da reparação ${rotulo} tem mais de ${max} caracteres.`);
+      if ((linha ? RE_CONTROLO_LINHA : RE_CONTROLO_TEXTO).test(v) || RE_PARTE_A_PAGINA.test(v)) bloqueia(`${t.id}.${k}:controlo`, `${onde}.${k}`, `«${nome}» da reparação ${rotulo} tem caracteres que não podem ir para o site.`);
+      const m = v.match(RE_ALEGACOES);
+      if (m) bloqueia(`${t.id}.${k}:alegacao`, `${onde}.${k}`, `«${nome}» da reparação ${rotulo}: «${m[0]}» é uma palavra que a lei só deixa usar com prova. Tire-a.`);
+    }
+    if (!vazio(t.icone) && !ICONES_REPARACAO.includes(t.icone)) avisa(`${t.id}.icone`, `${onde}.icone`, `O desenho da reparação ${rotulo} não é nenhum dos do site.`);
+    if (!Array.isArray(t.familias) || !t.familias.length) bloqueia(`${t.id}.familias`, `${onde}.familias`, `A reparação ${rotulo} não diz em que aparelhos se faz.`);
+    else if (familias) for (const f of t.familias) if (!familias.has(f)) avisa(`${t.id}.familias.${f}`, `${onde}.familias`, `A reparação ${rotulo} fala da família «${f}», que não existe na lista dos modelos.`);
+    if (!ausente(t.sintomas) && (!Array.isArray(t.sintomas) || t.sintomas.length > TAMANHOS.sintomas || !t.sintomas.every((x) => temTexto(x) && x.length <= TAMANHOS.sintoma && !RE_CONTROLO_LINHA.test(x) && !RE_PARTE_A_PAGINA.test(x)))) avisa(`${t.id}.sintomas`, `${onde}.sintomas`, `Os sintomas da reparação ${rotulo} são até ${TAMANHOS.sintomas} linhas curtas.`);
+    if (!ausente(t.niveis)) {
+      if (!Array.isArray(t.niveis) || t.niveis.length > TAMANHOS.niveis) avisa(`${t.id}.niveis`, `${onde}.niveis`, `A reparação ${rotulo} tem até ${TAMANHOS.niveis} níveis (ex.: compatível e original).`);
+      else t.niveis.forEach((n, j) => {
+        if (!eObjecto(n) || !slugValido(n.id) || !temTexto(n.nome) || n.nome.length > TAMANHOS.nivelNome || (!ausente(n.texto) && (typeof n.texto !== 'string' || n.texto.length > TAMANHOS.nivelTexto || RE_PARTE_A_PAGINA.test(n.texto)))) avisa(`${t.id}.niveis.${j}`, `${onde}.niveis.${j}`, `O nível ${j + 1} da reparação ${rotulo} não está como devia.`);
+        else { const m = `${n.nome} ${n.texto || ''}`.match(RE_ALEGACOES); if (m) bloqueia(`${t.id}.niveis.${j}:alegacao`, `${onde}.niveis.${j}`, `O nível «${n.nome}» da reparação ${rotulo}: «${m[0]}» é uma palavra que a lei só deixa usar com prova. Tire-a.`); }
+      });
+    }
+    if (!vazio(t.foto) && (!nomeDeFotoValido(t.foto) || (fotos && !fotos.has(t.foto)))) avisa(`${t.id}.foto`, `${onde}.foto`, `A fotografia da reparação ${rotulo} já não está na biblioteca: não aparece.`);
+  });
+  const precos = d.precos;
+  if (!ausente(precos) && !eObjecto(precos)) bloqueia('precos:forma', 'precos', 'Os preços das reparações não estão gravados como deve ser. Só o Renato os pode corrigir.');
+  else if (eObjecto(precos)) {
+    const precoBom = (x) => typeof x === 'number' && Number.isFinite(x) && x >= LIMITES.reparacao[0] && x <= LIMITES.reparacao[1] && duasCasas(x);
+    for (const [mid, porTipo] of Object.entries(precos)) {
+      const modelo = aparelhos ? aparelhos.porId.get(mid) : null;
+      if (aparelhos && !modelo) { avisa(`precos.${mid}:modelo`, `precos.${mid}`, `Há preços para o modelo «${mid}», que não está na lista dos modelos: não aparecem.`); continue; }
+      if (!eObjecto(porTipo)) { avisa(`precos.${mid}:forma`, `precos.${mid}`, `Os preços do modelo ${modelo ? modelo.nome : mid} não estão como deviam: não aparecem.`); continue; }
+      for (const [tid, v] of Object.entries(porTipo)) {
+        const t = tipos.get(tid);
+        const nomeM = modelo ? modelo.nome : mid;
+        if (!t) { avisa(`precos.${mid}.${tid}:tipo`, `precos.${mid}.${tid}`, `${nomeM}: há um preço para a reparação «${tid}», que não existe.`); continue; }
+        if (v === null || v === '') continue;
+        if (Array.isArray(t.niveis) && t.niveis.length) {
+          if (!eObjecto(v)) { avisa(`precos.${mid}.${tid}:forma`, `precos.${mid}.${tid}`, `${nomeM} › ${t.nome}: o preço é por nível (${t.niveis.map((n) => n.nome).join(', ')}).`); continue; }
+          for (const [nid, x] of Object.entries(v)) {
+            if (!t.niveis.some((n) => n.id === nid)) avisa(`precos.${mid}.${tid}.${nid}:nivel`, `precos.${mid}.${tid}.${nid}`, `${nomeM} › ${t.nome}: o nível «${nid}» não existe.`);
+            else if (x !== null && x !== '' && !precoBom(x)) avisa(`precos.${mid}.${tid}.${nid}`, `precos.${mid}.${tid}.${nid}`, `${nomeM} › ${t.nome}: o preço é só o número, sem € (ex.: 89,90).`);
+          }
+        } else if (!precoBom(v)) avisa(`precos.${mid}.${tid}`, `precos.${mid}.${tid}`, `${nomeM} › ${t.nome}: o preço é só o número, sem € (ex.: 49,90).`);
+        if (modelo && !(Array.isArray(t.familias) && t.familias.includes(modelo.familia))) avisa(`precos.${mid}.${tid}:familia`, `precos.${mid}.${tid}`, `${nomeM} › ${t.nome}: esta reparação não se faz neste aparelho, e o preço não aparece.`);
       }
     }
+  }
+  const temPrecos = eObjecto(precos) && Object.values(precos).some((x) => eObjecto(x) && Object.keys(x).length);
+  if (temPrecos && d.confirmado !== true) {
+    avisa(producao ? 'confirmado:producao' : 'confirmado:previa', 'confirmado', producao
+      ? 'Os preços das reparações ainda não estão confirmados: o site mostra «Orçamento grátis» em vez deles até os confirmar.'
+      : 'Os preços das reparações ainda não estão confirmados: na pré-visualização aparecem marcados «por confirmar», e no site a sério só depois de os confirmar.', { lembrete: true });
+  }
+  return out;
+}
+
+/* Os tipos de reparação já limpos: os que o site mostra, pela ordem do ficheiro. */
+export function tiposDeReparacao(valor) {
+  const d = lerJson(valor).obj;
+  if (!eObjecto(d) || !Array.isArray(d.tipos)) return [];
+  const vistos = new Set();
+  const out = [];
+  for (const t of d.tipos) {
+    if (!eObjecto(t) || !slugValido(t.id) || vistos.has(t.id) || !temTexto(t.nome) || !temTexto(t.resumo) || !Array.isArray(t.familias)) continue;
+    vistos.add(t.id);
+    out.push({
+      id: t.id, nome: t.nome.trim(), titulo: temTexto(t.titulo) ? t.titulo.trim() : t.nome.trim(), resumo: t.resumo.trim(),
+      icone: ICONES_REPARACAO.includes(t.icone) ? t.icone : 'diagnostico',
+      sintomas: linhasDe(t.sintomas).slice(0, TAMANHOS.sintomas),
+      familias: t.familias.filter((f) => typeof f === 'string'),
+      excluir: Array.isArray(t.excluir) ? t.excluir.filter((x) => typeof x === 'string') : [],
+      niveis: Array.isArray(t.niveis) ? t.niveis.filter((n) => eObjecto(n) && slugValido(n.id) && temTexto(n.nome)).slice(0, TAMANHOS.niveis).map((n) => ({ id: n.id, nome: n.nome.trim(), texto: temTexto(n.texto) ? n.texto.trim() : '' })) : [],
+      foto: nomeDeFotoValido(t.foto) ? t.foto : '',
+      orcamento: t.orcamento === true, gratis: t.gratis === true,
+    });
+  }
+  return out;
+}
+/* As reparações de um modelo, com o preço de cada nível (null = orçamento). `mostrarPorConfirmar`:
+   na pré-visualização os preços por confirmar aparecem (marcados); em produção não.
+   → [{ ...tipo, niveis: [{ id, nome, texto, preco }], preco: o mais baixo | null, desde: bool }] */
+export function reparacoesDoModelo(valor, modelo, { mostrarPorConfirmar = true } = {}) {
+  const d = lerJson(valor).obj;
+  const tipos = tiposDeReparacao(valor);
+  const confirmado = eObjecto(d) && d.confirmado === true;
+  const usar = confirmado || mostrarPorConfirmar;
+  const doModelo = usar && eObjecto(d) && eObjecto(d.precos) && eObjecto(d.precos[modelo.id]) ? d.precos[modelo.id] : {};
+  const precoBom = (x) => typeof x === 'number' && Number.isFinite(x) && x >= LIMITES.reparacao[0] && x <= LIMITES.reparacao[1] && duasCasas(x);
+  return tipos.filter((t) => t.familias.includes(modelo.familia) && !t.excluir.includes(modelo.id)).map((t) => {
+    const v = doModelo[t.id];
+    let niveis;
+    if (t.niveis.length) niveis = t.niveis.map((n) => ({ ...n, preco: eObjecto(v) && precoBom(v[n.id]) ? v[n.id] : null }));
+    else niveis = [{ id: 'unico', nome: t.nome, texto: '', preco: precoBom(v) ? v : null }];
+    const comPreco = niveis.filter((n) => n.preco !== null);
+    const preco = comPreco.length ? Math.min(...comPreco.map((n) => n.preco)) : null;
+    return { ...t, niveis, preco, desde: comPreco.length > 1, porConfirmar: !confirmado && comPreco.length > 0 };
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* content/retoma.json — o simulador da retoma                          */
+/* ------------------------------------------------------------------ */
+
+/* { confirmado: bool, familias: [id], minimo: €,
+     valores: { <modelo>: { <capacidade GB>: valor máximo em € } },
+     perguntas: [{ id, texto, ajuda?, respostas: [{ texto, ajuda?, fator?: 0–1, avaliar?: true }] }],
+     receber: [texto], entregar: [texto] }
+   O VALOR (a mesma conta no simulador, src/scripts/retoma.js): o máximo do modelo e da capacidade
+   × o fator de cada resposta, arredondado aos 5 € para baixo. Uma resposta «avaliar» (não liga,
+   molhou) e um valor abaixo do mínimo dão «avaliamos na loja». Sem valor para o modelo, também. */
+export function problemasDaRetoma(valor, { aparelhos = null, producao = false } = {}) {
+  const ficheiro = FICHEIROS.retoma;
+  const out = [];
+  const ecra = 'Retoma';
+  const bloqueia = (chave, campo, mensagem) => out.push({ classe: 'bloqueia', chave: `retoma:${chave}`, ficheiro, ecra, campo, mensagem });
+  const avisa = (chave, campo, mensagem, extra = {}) => out.push({ classe: 'avisa', chave: `retoma:${chave}`, ficheiro, ecra, campo, mensagem, ...extra });
+  const l = lerJson(valor);
+  const d = l.obj;
+  if (l.ilegivel || !eObjecto(d) || !Array.isArray(d.perguntas) || !Array.isArray(d.familias)) { bloqueia('forma', undefined, 'A retoma não se consegue ler: sem ela a página da retoma não se gera. Só o Renato a pode corrigir.'); return out; }
+  if (!ausente(d.confirmado) && typeof d.confirmado !== 'boolean') avisa('confirmado', 'confirmado', '«Confirmo os valores» tem de ser sim ou não.');
+  if (!ausente(d.minimo) && (typeof d.minimo !== 'number' || !Number.isFinite(d.minimo) || d.minimo < 0 || d.minimo > LIMITES.retoma[1])) avisa('minimo', 'minimo', 'O valor mínimo da retoma é um número de euros (abaixo dele, «avaliamos na loja»).');
+  if (aparelhos) for (const f of d.familias) if (!aparelhos.familias.some((x) => x.id === f)) avisa(`familias.${f}`, 'familias', `A retoma fala da família «${f}», que não existe na lista dos modelos.`);
+  if (d.perguntas.length > TAMANHOS.perguntas) avisa('perguntas:quantas', 'perguntas', `Há ${d.perguntas.length} perguntas; o máximo é ${TAMANHOS.perguntas}.`);
+  const ids = new Set();
+  d.perguntas.forEach((q, i) => {
+    const onde = `perguntas.${i}`;
+    if (!eObjecto(q) || !slugValido(q.id) || ids.has(q.id) || !temTexto(q.texto) || !Array.isArray(q.respostas)) { bloqueia(`${onde}:forma`, onde, `A pergunta ${i + 1} da retoma não tem a forma certa. Só o Renato a pode corrigir.`); return; }
+    ids.add(q.id);
+    if (q.texto.length > TAMANHOS.pergunta || RE_PARTE_A_PAGINA.test(q.texto) || RE_CONTROLO_LINHA.test(q.texto)) avisa(`${q.id}.texto`, `${onde}.texto`, `A pergunta «${q.texto.slice(0, 40)}» é comprida de mais ou tem caracteres que não podem ir para o site.`);
+    if (!ausente(q.ajuda) && (typeof q.ajuda !== 'string' || q.ajuda.length > TAMANHOS.perguntaAjuda || RE_PARTE_A_PAGINA.test(q.ajuda))) avisa(`${q.id}.ajuda`, `${onde}.ajuda`, `A ajuda da pergunta «${q.texto.slice(0, 40)}» é comprida de mais.`);
+    if (q.respostas.length < 2 || q.respostas.length > TAMANHOS.respostas) bloqueia(`${q.id}.respostas`, `${onde}.respostas`, `A pergunta «${q.texto.slice(0, 40)}» tem de ter de 2 a ${TAMANHOS.respostas} respostas.`);
+    q.respostas.forEach((r, j) => {
+      const ondeR = `${onde}.respostas.${j}`;
+      if (!eObjecto(r) || !temTexto(r.texto) || r.texto.length > TAMANHOS.resposta || RE_PARTE_A_PAGINA.test(r.texto)) { bloqueia(`${q.id}.${j}`, ondeR, `A resposta ${j + 1} da pergunta «${q.texto.slice(0, 40)}» não tem texto.`); return; }
+      if (!ausente(r.ajuda) && (typeof r.ajuda !== 'string' || r.ajuda.length > TAMANHOS.respostaAjuda || RE_PARTE_A_PAGINA.test(r.ajuda))) avisa(`${q.id}.${j}.ajuda`, `${ondeR}.ajuda`, `A ajuda da resposta «${r.texto}» é comprida de mais.`);
+      const fatorBom = typeof r.fator === 'number' && Number.isFinite(r.fator) && r.fator >= LIMITES.fator[0] && r.fator <= LIMITES.fator[1];
+      if (r.avaliar !== true && !fatorBom) bloqueia(`${q.id}.${j}.fator`, `${ondeR}.fator`, `A resposta «${r.texto}» precisa da percentagem do valor que fica (de 0 a 100 %), ou de «avaliamos na loja».`);
+    });
+  });
+  for (const [k, rotulo] of [['receber', 'Como recebe'], ['entregar', 'Como entrega']]) {
+    const v = d[k];
+    if (ausente(v)) continue;
+    if (!Array.isArray(v) || v.length > TAMANHOS.opcoesRetoma || !v.every((t) => temTexto(t) && t.length <= TAMANHOS.opcaoRetoma && !RE_PARTE_A_PAGINA.test(t))) avisa(k, k, `«${rotulo}» é uma lista de até ${TAMANHOS.opcoesRetoma} frases curtas.`);
+  }
+  const valores = d.valores;
+  if (!ausente(valores) && !eObjecto(valores)) bloqueia('valores:forma', 'valores', 'Os valores da retoma não estão gravados como deve ser. Só o Renato os pode corrigir.');
+  else if (eObjecto(valores)) {
+    for (const [mid, porCap] of Object.entries(valores)) {
+      const modelo = aparelhos ? aparelhos.porId.get(mid) : null;
+      if (aparelhos && !modelo) { avisa(`valores.${mid}:modelo`, `valores.${mid}`, `Há valores de retoma para o modelo «${mid}», que não está na lista dos modelos: não aparecem.`); continue; }
+      if (!eObjecto(porCap)) { avisa(`valores.${mid}:forma`, `valores.${mid}`, `Os valores do modelo ${modelo ? modelo.nome : mid} não estão como deviam.`); continue; }
+      for (const [cap, x] of Object.entries(porCap)) {
+        const nomeM = modelo ? modelo.nome : mid;
+        if (modelo && !modelo.capacidades.includes(Number(cap))) avisa(`valores.${mid}.${cap}:capacidade`, `valores.${mid}.${cap}`, `${nomeM}: não há a capacidade ${cap} GB na lista do modelo, e o valor não aparece.`);
+        if (x !== null && x !== '' && (typeof x !== 'number' || !Number.isFinite(x) || x < LIMITES.retoma[0] || x > LIMITES.retoma[1])) avisa(`valores.${mid}.${cap}`, `valores.${mid}.${cap}`, `${nomeM} ${cap} GB: o valor é só o número de euros (ex.: 190).`);
+      }
+    }
+  }
+  const temValores = eObjecto(valores) && Object.values(valores).some((x) => eObjecto(x) && Object.keys(x).length);
+  if (temValores && d.confirmado !== true) {
+    avisa(producao ? 'confirmado:producao' : 'confirmado:previa', 'confirmado', producao
+      ? 'Os valores da retoma ainda não estão confirmados: o simulador diz «avaliamos na loja» até os confirmar.'
+      : 'Os valores da retoma ainda não estão confirmados: na pré-visualização aparecem marcados «por confirmar», e no site a sério só depois de os confirmar.', { lembrete: true });
+  }
+  return out;
+}
+
+/* A retoma como o site a usa: as perguntas e respostas limpas, e os valores (só os confirmados, ou
+   todos na pré-visualização). → { familias, minimo, valores, perguntas, receber, entregar, porConfirmar } */
+export function retomaDe(valor, { mostrarPorConfirmar = true } = {}) {
+  const d = lerJson(valor).obj;
+  if (!eObjecto(d) || !Array.isArray(d.perguntas)) return null;
+  const confirmado = d.confirmado === true;
+  const perguntas = d.perguntas
+    .filter((q) => eObjecto(q) && slugValido(q.id) && temTexto(q.texto) && Array.isArray(q.respostas))
+    .map((q) => ({
+      id: q.id, texto: q.texto.trim(), ajuda: temTexto(q.ajuda) ? q.ajuda.trim() : '',
+      respostas: q.respostas.filter((r) => eObjecto(r) && temTexto(r.texto)).map((r) => ({
+        texto: r.texto.trim(), ajuda: temTexto(r.ajuda) ? r.ajuda.trim() : '',
+        ...(r.avaliar === true ? { avaliar: true } : { fator: typeof r.fator === 'number' && r.fator >= 0 && r.fator <= 1 ? r.fator : 1 }),
+      })),
+    }))
+    .filter((q) => q.respostas.length >= 2);
+  const valores = {};
+  if ((confirmado || mostrarPorConfirmar) && eObjecto(d.valores)) {
+    for (const [mid, porCap] of Object.entries(d.valores)) {
+      if (!eObjecto(porCap)) continue;
+      const bons = Object.entries(porCap).filter(([, x]) => typeof x === 'number' && Number.isFinite(x) && x >= LIMITES.retoma[0] && x <= LIMITES.retoma[1]);
+      if (bons.length) valores[mid] = Object.fromEntries(bons);
+    }
+  }
+  const lista = (v) => (Array.isArray(v) ? v.filter((t) => temTexto(t)).map((t) => t.trim()) : []);
+  return {
+    familias: Array.isArray(d.familias) ? d.familias.filter((f) => typeof f === 'string') : [],
+    minimo: typeof d.minimo === 'number' && d.minimo >= 0 ? d.minimo : 0,
+    valores, perguntas, receber: lista(d.receber), entregar: lista(d.entregar),
+    porConfirmar: !confirmado && Object.keys(valores).length > 0,
+  };
+}
+/* O valor de uma simulação (o mesmo cálculo do simulador no browser).
+   respostas: { <pergunta>: índice da resposta }. → { maximo, valor, avaliar, descontos } */
+export function valorDaRetoma(retoma, modeloId, capacidade, respostas = {}) {
+  const maximo = retoma && retoma.valores[modeloId] ? retoma.valores[modeloId][String(capacidade)] : undefined;
+  if (typeof maximo !== 'number') return { maximo: null, valor: null, avaliar: true, descontos: [] };
+  let fator = 1;
+  let avaliar = false;
+  const descontos = [];
+  for (const q of retoma.perguntas) {
+    const r = q.respostas[respostas[q.id]];
+    if (!r) continue;
+    if (r.avaliar) avaliar = true;
+    else if (r.fator < 1) { fator *= r.fator; descontos.push({ pergunta: q.texto, resposta: r.texto, fator: r.fator }); }
+  }
+  let valor = avaliar ? null : Math.floor((maximo * fator) / 5) * 5;
+  if (valor !== null && valor < retoma.minimo) { valor = null; avaliar = true; }
+  return { maximo, valor, avaliar, descontos };
+}
+
+/* ------------------------------------------------------------------ */
+/* content/campanhas.json — as campanhas (Black Friday, Natal…)         */
+/* ------------------------------------------------------------------ */
+
+/* [{ slug, nome, publicada: bool, desde, ate, faixa, titulo, texto, desconto: %, categorias: [slug],
+      marcas: [texto], artigos: [slug] }]
+   Uma campanha publicada e dentro das datas: a faixa no topo do site, o cartão na página
+   inicial, a página /campanhas/<slug>/ e o desconto nos artigos que apanha (pela categoria, pela
+   marca ou escolhidos um a um), com o preço normal riscado e o período (DL 70/2007, art. 5.º).
+   O preço riscado TEM de ser o mais baixo dos 30 dias anteriores ao início: o painel lembra-o. Um
+   artigo com uma promoção própria a correr fica com a dele (os descontos não se somam). A publicação
+   de todas as noites liga e desliga as campanhas nas datas. */
+export function problemasDasCampanhas(valor, { categorias = null, artigos = null, hoje = null } = {}) {
+  const ficheiro = FICHEIROS.campanhas;
+  const out = [];
+  const ecra = 'Campanhas';
+  const bloqueia = (chave, campo, mensagem) => out.push({ classe: 'bloqueia', chave: `campanhas:${chave}`, ficheiro, ecra, campo, mensagem });
+  const avisa = (chave, campo, mensagem, extra = {}) => out.push({ classe: 'avisa', chave: `campanhas:${chave}`, ficheiro, ecra, campo, mensagem, ...extra });
+  const l = lerJson(valor);
+  if (l.ilegivel || !Array.isArray(l.obj)) { bloqueia('forma', undefined, 'As campanhas não se conseguem ler. Só o Renato as pode corrigir.'); return out; }
+  if (l.obj.length > TAMANHOS.campanhas) avisa('quantas', undefined, `Há ${l.obj.length} campanhas; o máximo é ${TAMANHOS.campanhas}. Apague as antigas.`);
+  const slugs = new Set();
+  l.obj.forEach((c, i) => {
+    const onde = `${i}`;
+    if (!eObjecto(c) || !slugValido(c.slug)) { avisa(`${i}:forma`, onde, `A campanha ${i + 1} não tem um endereço válido: não aparece no site.`); return; }
+    const rotulo = temTexto(c.nome) ? c.nome.trim() : c.slug;
+    if (slugs.has(c.slug)) { avisa(`${c.slug}:repetida`, onde, `Há duas campanhas com o endereço «${c.slug}»: só a primeira aparece.`); return; }
+    slugs.add(c.slug);
+    for (const [k, max, nome, obrigatorio, linha] of [['nome', TAMANHOS.campanhaNome, 'Nome', true, true], ['faixa', TAMANHOS.campanhaFaixa, 'Frase da faixa do topo', true, true], ['titulo', TAMANHOS.campanhaTitulo, 'Título da página', true, true], ['texto', TAMANHOS.campanhaTexto, 'Texto da página', false, false]]) {
+      const v = c[k];
+      if (vazio(v)) { if (obrigatorio) avisa(`${c.slug}.${k}:vazio`, `${i}.${k}`, `Falta «${nome}» na campanha ${rotulo}: não aparece no site até o escrever.`); continue; }
+      if (typeof v !== 'string') { avisa(`${c.slug}.${k}:tipo`, `${i}.${k}`, `«${nome}» da campanha ${rotulo} tem de ser texto.`); continue; }
+      if (v.length > max) avisa(`${c.slug}.${k}:tamanho`, `${i}.${k}`, `«${nome}» da campanha ${rotulo} tem mais de ${max} caracteres.`);
+      if ((linha ? RE_CONTROLO_LINHA : RE_CONTROLO_TEXTO).test(v) || RE_PARTE_A_PAGINA.test(v)) bloqueia(`${c.slug}.${k}:controlo`, `${i}.${k}`, `«${nome}» da campanha ${rotulo} tem caracteres que não podem ir para o site.`);
+      const m = v.match(RE_ALEGACOES);
+      if (m) bloqueia(`${c.slug}.${k}:alegacao`, `${i}.${k}`, `«${nome}» da campanha ${rotulo}: «${m[0]}» é uma palavra que a lei só deixa usar com prova. Tire-a.`);
+    }
+    if (!dataValida(c.desde) || !dataValida(c.ate)) avisa(`${c.slug}.datas`, `${i}.desde`, `A campanha ${rotulo} precisa das duas datas (início e fim): não aparece no site até as ter.`);
+    else if (c.desde > c.ate) avisa(`${c.slug}.datas:ordem`, `${i}.ate`, `A campanha ${rotulo} acaba antes de começar: confira as datas.`);
+    const d = c.desconto;
+    if (!ausente(d) && d !== '' && d !== 0 && (!Number.isInteger(d) || d < LIMITES.desconto[0] || d > LIMITES.desconto[1])) avisa(`${c.slug}.desconto`, `${i}.desconto`, `O desconto da campanha ${rotulo} é uma percentagem inteira de ${LIMITES.desconto[0]} a ${LIMITES.desconto[1]} (ou nenhum, só a faixa).`);
+    if (!ausente(c.publicada) && typeof c.publicada !== 'boolean') avisa(`${c.slug}.publicada`, `${i}.publicada`, `«Publicada» da campanha ${rotulo} tem de ser sim ou não.`);
+    for (const [k, existentes, nome] of [['categorias', categorias, 'categoria'], ['artigos', artigos, 'artigo']]) {
+      const v = c[k];
+      if (ausente(v)) continue;
+      if (!Array.isArray(v)) { avisa(`${c.slug}.${k}`, `${i}.${k}`, `A campanha ${rotulo}: «${k}» tem de ser uma lista.`); continue; }
+      if (existentes) for (const x of v) if (!existentes.includes(x)) avisa(`${c.slug}.${k}.${x}`, `${i}.${k}`, `A campanha ${rotulo} fala de um${nome === 'categoria' ? 'a' : ''} ${nome} («${x}») que não existe.`);
+    }
+    if (!ausente(c.marcas) && (!Array.isArray(c.marcas) || !c.marcas.every((x) => temTexto(x) && x.length <= TAMANHOS.marca))) avisa(`${c.slug}.marcas`, `${i}.marcas`, `As marcas da campanha ${rotulo} são uma lista de nomes (ex.: Apple).`);
+    if (c.publicada === true && Number.isInteger(c.desconto) && c.desconto > 0 && !(c.categorias || []).length && !(c.marcas || []).length && !(c.artigos || []).length) avisa(`${c.slug}:sem-alvo`, `${i}.categorias`, `A campanha ${rotulo} tem desconto mas não diz em quê: escolha as categorias, as marcas ou os artigos.`, { lembrete: true });
+    if (c.publicada === true && typeof hoje === 'string' && dataValida(c.ate) && c.ate < hoje) avisa(`${c.slug}:acabou`, `${i}.ate`, `A campanha ${rotulo} acabou a ${c.ate.split('-').reverse().join('/')}: já não aparece. Pode apagá-la.`, { lembrete: true });
   });
   return out;
+}
+
+/* As campanhas que o site mostra HOJE (publicadas, completas e dentro das datas), limpas. */
+export function campanhasActivas(valor, hoje) {
+  const l = lerJson(valor);
+  if (!Array.isArray(l.obj) || typeof hoje !== 'string') return [];
+  const vistos = new Set();
+  const out = [];
+  for (const c of l.obj) {
+    if (!eObjecto(c) || !slugValido(c.slug) || vistos.has(c.slug)) continue;
+    vistos.add(c.slug);
+    if (c.publicada !== true || !dataValida(c.desde) || !dataValida(c.ate) || c.desde > c.ate || hoje < c.desde || hoje > c.ate) continue;
+    if (![c.nome, c.faixa, c.titulo].every((x) => temTexto(x) && !RE_PARTE_A_PAGINA.test(x))) continue;
+    out.push({
+      slug: c.slug, nome: c.nome.trim(), desde: c.desde, ate: c.ate, faixa: c.faixa.trim(), titulo: c.titulo.trim(),
+      texto: temTexto(c.texto) ? c.texto.trim() : '',
+      desconto: Number.isInteger(c.desconto) && c.desconto >= LIMITES.desconto[0] && c.desconto <= LIMITES.desconto[1] ? c.desconto : 0,
+      categorias: Array.isArray(c.categorias) ? c.categorias.filter((x) => typeof x === 'string') : [],
+      marcas: Array.isArray(c.marcas) ? c.marcas.filter((x) => temTexto(x)).map((x) => x.trim().toLowerCase()) : [],
+      artigos: Array.isArray(c.artigos) ? c.artigos.filter((x) => typeof x === 'string') : [],
+    });
+  }
+  return out;
+}
+/* A campanha que apanha um artigo (a primeira da lista), ou null. */
+export function campanhaDoArtigo(a, slug, activas) {
+  if (!eObjecto(a)) return null;
+  const marca = temTexto(a.marca) ? a.marca.trim().toLowerCase() : '';
+  return activas.find((c) => c.artigos.includes(slug) || c.categorias.includes(a.categoria) || (marca && c.marcas.includes(marca))) || null;
+}
+/* O artigo como o site o mostra com a campanha: o preço com o desconto, o normal riscado e o
+   período da campanha. Sem preço, sem desconto, ou com uma promoção própria a correr: igual. */
+export function comCampanha(a, slug, activas, hoje) {
+  const c = campanhaDoArtigo(a, slug, activas);
+  if (!c) return a;
+  const x = { ...a, campanha: c.slug };
+  if (!c.desconto || typeof a.preco !== 'number') return x;
+  const propria = precoDe(a, hoje);
+  if (propria.anterior) return x;
+  const base = propria.atual;
+  return { ...x, preco: Math.round(base * (100 - c.desconto)) / 100, precoAnterior: base, promocaoDesde: c.desde, promocaoAte: c.ate };
+}
+
+/* ------------------------------------------------------------------ */
+/* Os portes pelo peso                                                  */
+/* ------------------------------------------------------------------ */
+
+/* O peso de um artigo (kg): o dele, o da categoria, ou PESO_POR_OMISSAO. */
+export function pesoDe(a, categorias = []) {
+  const ok = (x) => typeof x === 'number' && Number.isFinite(x) && x >= LIMITES.peso[0] && x <= LIMITES.peso[1];
+  if (eObjecto(a) && ok(a.peso)) return a.peso;
+  const c = Array.isArray(categorias) && eObjecto(a) ? categorias.find((k) => eObjecto(k) && k.slug === a.categoria) : null;
+  return c && ok(c.peso) ? c.peso : PESO_POR_OMISSAO;
+}
+/* Os escalões de uma zona, já limpos e por ordem: [{ ate, preco }]. */
+export function escaloesDe(lista) {
+  if (!Array.isArray(lista)) return [];
+  return lista
+    .filter((e) => eObjecto(e) && typeof e.ate === 'number' && Number.isFinite(e.ate) && e.ate > 0 && typeof e.preco === 'number' && Number.isFinite(e.preco) && e.preco >= 0)
+    .map((e) => ({ ate: e.ate, preco: e.preco }))
+    .sort((a, b) => a.ate - b.ate);
+}
+/* Os portes de uma encomenda com este peso: o preço do primeiro escalão que o aguenta, ou null
+   (sem escalões, ou mais pesada do que o último: combina-se). A MESMA conta está no carrinho
+   (carrinho.js) e no Worker (contas.js). */
+export function portesDoPeso(kg, escaloes) {
+  const e = escaloesDe(escaloes).find((x) => kg <= x.ate + 1e-9);
+  return e ? e.preco : null;
 }
 
 /* ------------------------------------------------------------------ */
 /* content/inicio.json                                                 */
 /* ------------------------------------------------------------------ */
 
-/* As secções da página inicial, pela ordem da página: a capa, os destaques da loja, as
-   reparações, a retoma e a loja (a fotografia da fachada). Poucas e curtas. */
-export const SECCOES_INICIO = Object.freeze(['seo', 'capa', 'destaques', 'reparacoes', 'retoma', 'loja']);
+/* As secções da página inicial, pela ordem da página: a capa (com a escolha do modelo para
+   reparar), os destaques da loja, as reparações (a grelha dos problemas), a retoma, as películas e
+   a loja (a fotografia da fachada). Poucas e curtas. */
+export const SECCOES_INICIO = Object.freeze(['seo', 'capa', 'destaques', 'reparacoes', 'retoma', 'peliculas', 'loja']);
 
 /* As fotografias que a página inicial usa (para saber se uma se pode apagar). */
 export function fotosDoInicio(h) {
@@ -847,6 +1305,7 @@ export function problemasDoInicio(valor, { fotos = null } = {}) {
     ['destaques.titulo', TAMANHOS.inicioTitulo, true], ['destaques.texto', TAMANHOS.inicioTexto, false], ['destaques.botao', TAMANHOS.inicioCurto, true],
     ['reparacoes.titulo', TAMANHOS.inicioTitulo, true], ['reparacoes.texto', TAMANHOS.inicioTexto, false], ['reparacoes.botao', TAMANHOS.inicioCurto, true],
     ['retoma.titulo', TAMANHOS.inicioTitulo, true], ['retoma.texto', TAMANHOS.inicioTexto, false], ['retoma.botao', TAMANHOS.inicioCurto, true],
+    ['peliculas.titulo', TAMANHOS.inicioTitulo, true], ['peliculas.texto', TAMANHOS.inicioTexto, false], ['peliculas.botao', TAMANHOS.inicioCurto, true],
     ['loja.titulo', TAMANHOS.inicioTitulo, true], ['loja.texto', TAMANHOS.inicioTexto, false],
   ];
   const valorEm = (caminho) => caminho.split('.').reduce((o, k) => (eObjecto(o) || Array.isArray(o) ? o[k] : undefined), h);
@@ -920,6 +1379,8 @@ export function problemas(dados = {}, opcoes = {}) {
   const videos = Array.isArray(d.videos) ? d.videos : null;
   let categorias = null;
   if (tem(d, 'categorias')) { const cs = categoriasDe(d.categorias); if (cs) categorias = cs.map((c) => c.slug); }
+  const aparelhos = tem(d, 'aparelhos') ? aparelhosDe(d.aparelhos) : null;
+  const nomesArtigos = eObjecto(d.artigos) ? Object.keys(d.artigos).map(slugDoFicheiro) : null;
 
   const umFicheiro = (k, rotulo, fn) => {
     if (!tem(d, k)) return;
@@ -932,8 +1393,11 @@ export function problemas(dados = {}, opcoes = {}) {
   umFicheiro('site', 'Dados da loja', (o) => problemasDoSite(o, { producao: Boolean(opcoes.producao) }));
   umFicheiro('fotos', 'Fotografias', (o) => problemasDasFotos(o, Array.isArray(d.ficheirosFotos) ? d.ficheirosFotos : null));
   umFicheiro('categorias', 'Categorias', (o) => problemasDasCategorias(o, { fotos }));
-  umFicheiro('servicos', 'Serviços', (o) => problemasDosServicos(o));
   umFicheiro('inicio', 'Página inicial', (o) => problemasDoInicio(o, { fotos }));
+  umFicheiro('aparelhos', 'Modelos', (o) => problemasDosAparelhos(o));
+  umFicheiro('reparacoes', 'Reparações', (o) => problemasDasReparacoes(o, { aparelhos, fotos, producao: Boolean(opcoes.producao) }));
+  umFicheiro('retoma', 'Retoma', (o) => problemasDaRetoma(o, { aparelhos, producao: Boolean(opcoes.producao) }));
+  umFicheiro('campanhas', 'Campanhas', (o) => problemasDasCampanhas(o, { categorias, artigos: nomesArtigos, hoje: opcoes.hoje }));
 
   const mapa = d.artigos;
   if (eObjecto(mapa)) {
@@ -1011,8 +1475,12 @@ const valorEmCaminho = (o, caminho) => caminho.split('.').reduce((x, k) => (eObj
  *   'artigo':     as chaves que não são CAMPOS_ARTIGO não mudam;
  *   'site':       BLOQUEADOS_SITE não mudam, e não aparecem secções novas;
  *   'categorias': as categorias são as mesmas, pela mesma ordem (o slug);
- *   'servicos':   os serviços podem mudar de ordem, entrar e sair (são do dono);
- *   'inicio':     não aparecem nem desaparecem secções. */
+ *   'inicio':     não aparecem nem desaparecem secções;
+ *   'aparelhos':  as marcas e as famílias são as mesmas; os modelos podem entrar (um id que já
+ *                 existia não muda de família: os preços e os valores dependem dele);
+ *   'reparacoes': os tipos são os mesmos, pela mesma ordem (o id), com os mesmos níveis;
+ *   'retoma':     as perguntas são as mesmas (o id), cada uma com o mesmo número de respostas;
+ *   'campanhas':  são do dono (entram, saem, mudam). */
 export function mudancasBloqueadas(antes, depois, qual = 'site') {
   const out = [];
   if (qual === 'artigo') {
@@ -1031,14 +1499,44 @@ export function mudancasBloqueadas(antes, depois, qual = 'site') {
     });
     return out;
   }
-  if (qual === 'servicos') return out;
+  if (qual === 'campanhas') return out;
+  if (qual === 'aparelhos') {
+    const a = eObjecto(antes) ? antes : {}; const d = eObjecto(depois) ? depois : {};
+    for (const k of ['marcas', 'familias']) if (!mesmoValor(a[k], d[k])) out.push({ caminho: k, motivo: 'mudou' });
+    const familiaAntes = new Map((Array.isArray(a.modelos) ? a.modelos : []).filter(eObjecto).map((m) => [m.id, m.familia]));
+    (Array.isArray(d.modelos) ? d.modelos : []).forEach((m, i) => {
+      if (eObjecto(m) && familiaAntes.has(m.id) && familiaAntes.get(m.id) !== m.familia) out.push({ caminho: `modelos.${i}.familia`, motivo: 'mudou' });
+    });
+    return out;
+  }
+  if (qual === 'reparacoes') {
+    const ta = eObjecto(antes) && Array.isArray(antes.tipos) ? antes.tipos : []; const td = eObjecto(depois) && Array.isArray(depois.tipos) ? depois.tipos : [];
+    if (ta.length !== td.length) return [{ caminho: 'tipos', motivo: 'quantos' }];
+    ta.forEach((t, i) => {
+      const u = td[i];
+      if (!mesmoValor(eObjecto(t) ? t.id : null, eObjecto(u) ? u.id : null)) out.push({ caminho: `tipos.${i}.id`, motivo: 'mudou' });
+      const ids = (x) => (eObjecto(x) && Array.isArray(x.niveis) ? x.niveis.map((n) => (eObjecto(n) ? n.id : null)) : []);
+      if (!mesmoValor(ids(t), ids(u))) out.push({ caminho: `tipos.${i}.niveis`, motivo: 'mudou' });
+    });
+    return out;
+  }
+  if (qual === 'retoma') {
+    const pa = eObjecto(antes) && Array.isArray(antes.perguntas) ? antes.perguntas : []; const pd = eObjecto(depois) && Array.isArray(depois.perguntas) ? depois.perguntas : [];
+    if (pa.length !== pd.length) return [{ caminho: 'perguntas', motivo: 'quantas' }];
+    pa.forEach((q, i) => {
+      const u = pd[i];
+      if (!mesmoValor(eObjecto(q) ? q.id : null, eObjecto(u) ? u.id : null)) out.push({ caminho: `perguntas.${i}.id`, motivo: 'mudou' });
+      else if ((eObjecto(q) && Array.isArray(q.respostas) ? q.respostas.length : 0) !== (eObjecto(u) && Array.isArray(u.respostas) ? u.respostas.length : 0)) out.push({ caminho: `perguntas.${i}.respostas`, motivo: 'quantas' });
+    });
+    return out;
+  }
   const a = eObjecto(antes) ? antes : {}; const d = eObjecto(depois) ? depois : {};
   if (qual === 'inicio') {
     for (const k of new Set([...Object.keys(a), ...Object.keys(d)])) if (!tem(a, k) || !tem(d, k)) out.push({ caminho: k, motivo: tem(a, k) ? 'saiu' : 'chave_nova' });
     return out;
   }
   for (const caminho of BLOQUEADOS_SITE) if (!mesmoValor(valorEmCaminho(a, caminho), valorEmCaminho(d, caminho))) out.push({ caminho, motivo: 'mudou' });
-  const conhecidas = new Set([...Object.keys(a), ...Object.keys(SECCOES_SITE), 'descricao', 'assinatura', 'local', 'garantias', 'google', 'parcerias', 'fidelidade']);
+  const conhecidas = new Set([...Object.keys(a), ...Object.keys(SECCOES_SITE), 'descricao', 'assinatura', 'local', 'garantias', 'google', 'fidelidade']);
   for (const k of Object.keys(d)) if (!conhecidas.has(k)) out.push({ caminho: k, motivo: 'chave_nova' });
   return out;
 }
@@ -1076,7 +1574,7 @@ export function fotosDasPaginas(paginas = {}) {
   return out;
 }
 
-/* AS FOTOGRAFIAS EM USO, em todo o conteúdo: as dos artigos, das categorias, dos serviços,
+/* AS FOTOGRAFIAS EM USO, em todo o conteúdo: as dos artigos, das categorias, das reparações,
    da página inicial e das páginas de texto (dados.paginas). Uma fotografia só sai da
    biblioteca se não estiver aqui. → Set */
 export function fotosEmUso(dados = {}, extra = []) {
@@ -1089,8 +1587,8 @@ export function fotosEmUso(dados = {}, extra = []) {
   if (eObjecto(d.artigos)) for (const v of Object.values(d.artigos)) { const a = lerJson(v).obj; if (eObjecto(a) && Array.isArray(a.fotos)) a.fotos.forEach(juntar); }
   const cs = lerJson(d.categorias).obj;
   if (Array.isArray(cs)) for (const c of cs) if (eObjecto(c)) juntar(c.foto);
-  const ss = lerJson(d.servicos).obj;
-  if (Array.isArray(ss)) for (const s of ss) if (eObjecto(s)) juntar(s.foto);
+  const rs = lerJson(d.reparacoes).obj;
+  if (eObjecto(rs) && Array.isArray(rs.tipos)) for (const t of rs.tipos) if (eObjecto(t)) juntar(t.foto);
   fotosDoInicio(lerJson(d.inicio).obj).forEach(juntar);
   return usadas;
 }

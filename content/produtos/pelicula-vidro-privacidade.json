@@ -1,0 +1,33 @@
+{
+  "nome": "Película de vidro privacidade",
+  "nomeCurto": "Película de vidro privacidade",
+  "marca": "",
+  "fotos": [
+    "pelicula-vidro-privacidade-1"
+  ],
+  "resumo": "Só quem está à frente do ecrã o consegue ver.",
+  "descricao": "Vidro temperado com filtro de privacidade: de lado, o ecrã fica escuro. Se a levantar na loja, aplicamo-la na hora.",
+  "preco": null,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [],
+  "inclui": [],
+  "opcoes": [],
+  "pedeModelo": true,
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "peliculas",
+  "destaque": false,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 62
+}

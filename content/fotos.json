@@ -1,8 +1,4 @@
 {
-  "blackview-tab-10-pro-1": {
-    "alt": "Blackview Tab 10 Pro",
-    "foco": "50% 50%"
-  },
   "capas-1": {
     "alt": "Capas para telemóvel",
     "foco": "50% 50%"
@@ -10,14 +6,6 @@
   "cartao-peliculas": {
     "alt": "O cartão de fidelidade das películas de hidrogel da LF Mobile, com seis casas para carimbar",
     "foco": "50% 55%"
-  },
-  "dolce-gusto-genio-s-plus-1": {
-    "alt": "Máquina de café Dolce Gusto Genio S Plus, fotografia 1",
-    "foco": "50% 50%"
-  },
-  "dolce-gusto-genio-s-plus-2": {
-    "alt": "Máquina de café Dolce Gusto Genio S Plus, fotografia 2",
-    "foco": "50% 50%"
   },
   "fones-p9-1": {
     "alt": "Auscultadores P9, fotografia 1",
@@ -37,26 +25,6 @@
   },
   "guess-wireless-earbuds-1": {
     "alt": "GUESS Wireless Earbuds",
-    "foco": "50% 50%"
-  },
-  "huawei-band-11-1": {
-    "alt": "Huawei Band 11",
-    "foco": "50% 50%"
-  },
-  "huawei-band-11-pro-1": {
-    "alt": "Huawei Band 11 Pro",
-    "foco": "50% 50%"
-  },
-  "huawei-watch-d2-1": {
-    "alt": "Huawei Watch D2, fotografia 1",
-    "foco": "50% 50%"
-  },
-  "huawei-watch-d2-2": {
-    "alt": "Huawei Watch D2, fotografia 2",
-    "foco": "50% 50%"
-  },
-  "huawei-watch-d2-3": {
-    "alt": "Huawei Watch D2, fotografia 3",
     "foco": "50% 50%"
   },
   "inpods-3-1": {
@@ -183,24 +151,28 @@
     "alt": "Micflip — localizador para passaporte",
     "foco": "50% 50%"
   },
-  "oppo-a5x-1": {
-    "alt": "OPPO A5x",
+  "pelicula-camara-1": {
+    "alt": "Ilustração: as costas de um telemóvel com os vidros de protecção sobre as lentes da câmara",
     "foco": "50% 50%"
-  },
-  "pc-gaming-montado": {
-    "alt": "Um computador gaming com ventoinhas iluminadas, montado e limpo na loja",
-    "foco": "50% 55%"
   },
   "pelicula-hidrogel-1": {
     "alt": "Película de hidrogel aplicada",
     "foco": "50% 50%"
   },
-  "redmi-pad-pro-5g-256gb-1": {
-    "alt": "Redmi Pad Pro 5G 256 GB",
+  "pelicula-hidrogel-ilustracao": {
+    "alt": "Ilustração: um telemóvel com uma película de hidrogel flexível, com o canto a levantar",
     "foco": "50% 50%"
   },
-  "reparacao-comando-ps5": {
-    "alt": "Um comando da PlayStation 5 aberto na bancada, com a placa à vista para substituir os analógicos",
+  "pelicula-vidro-mate-1": {
+    "alt": "Ilustração: um telemóvel com uma película de vidro mate, fosca, a pousar sobre o ecrã",
+    "foco": "50% 50%"
+  },
+  "pelicula-vidro-privacidade-1": {
+    "alt": "Ilustração: um telemóvel com uma película de vidro de privacidade, escura, a pousar sobre o ecrã",
+    "foco": "50% 50%"
+  },
+  "pelicula-vidro-temperado-1": {
+    "alt": "Ilustração: um telemóvel com uma película de vidro transparente a pousar sobre o ecrã",
     "foco": "50% 50%"
   },
   "reparacao-ecra-iphone": {
@@ -225,10 +197,6 @@
   },
   "smartwatch-watch-s11-1": {
     "alt": "Smartwatch Watch S11",
-    "foco": "50% 50%"
-  },
-  "zte-blade-v70-max-1": {
-    "alt": "ZTE Blade V70 Max",
     "foco": "50% 50%"
   }
 }

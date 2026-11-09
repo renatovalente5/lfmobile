@@ -36,7 +36,7 @@ export const bloco = (html, padding = '20px 40px 6px 40px') =>
 export const separador = () => `<tr><td class="p" style="padding:14px 40px 0 40px;"><div class="hr" style="border-top:1px solid ${LINHA};font-size:0;line-height:0;">&nbsp;</div></td></tr>`;
 
 /* A tabela dos artigos e dos totais: uma linha por artigo. */
-export function tabelaArtigos(enc, { portes, total }) {
+export function tabelaArtigos(enc, { portes, total, desconto = null }) {
   const linhas = (enc.linhas || []).map((l) => `
         <tr>
           <td class="t" style="padding:9px 0;border-bottom:1px solid ${LINHA};font-family:${FONTE};font-size:15px;line-height:22px;color:${TEXTO};">${esc(l.qtd)} × ${esc(l.nome)}${l.escolhas && l.escolhas.length ? `<br><span style="font-size:13px;color:${TEXTO2};">${esc(l.escolhas.join(' · '))}</span>` : ''}</td>
@@ -49,6 +49,7 @@ export function tabelaArtigos(enc, { portes, total }) {
         </tr>`;
   return `<tr><td class="p" style="padding:6px 40px 0 40px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">${linhas}
+        ${desconto ? menor(desconto.rotulo, esc(desconto.valor)) : ''}
         ${menor(portes.rotulo, esc(portes.valor))}
         <tr>
           <td class="t" style="padding:12px 0 0 0;font-family:${FONTE};font-size:17px;line-height:24px;font-weight:700;color:${TINTA};">Total</td>

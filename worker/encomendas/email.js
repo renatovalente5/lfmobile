@@ -40,11 +40,12 @@ function totais(enc) {
     ? { rotulo: 'Levantamento na loja', valor: 'Grátis' }
     : { rotulo: 'Portes', valor: enc.portes_por_confirmar ? 'a confirmar' : (enc.portes_cents ? eur(enc.portes_cents) : 'Grátis') };
   const total = enc.portes_por_confirmar ? `${eur(enc.total_cents)} + portes` : eur(enc.total_cents);
-  return { portes, total };
+  const desconto = enc.cupao && enc.desconto_cents ? { rotulo: `Cupão ${enc.cupao}`, valor: `−${eur(enc.desconto_cents)}` } : null;
+  return { portes, total, desconto };
 }
 function artigosTexto(enc) {
-  const { portes, total } = totais(enc);
-  return ['ARTIGOS', ...(enc.linhas || []).map(linhaTexto), `  ${portes.rotulo}: ${portes.valor}`, `  Total: ${total}`];
+  const { portes, total, desconto } = totais(enc);
+  return ['ARTIGOS', ...(enc.linhas || []).map(linhaTexto), ...(desconto ? [`  ${desconto.rotulo}: ${desconto.valor}`] : []), `  ${portes.rotulo}: ${portes.valor}`, `  Total: ${total}`];
 }
 
 const moradaDe = (c) => [c.morada, [c.codigoPostal, c.localidade].filter(Boolean).join(' ')].filter(Boolean).join(', ');

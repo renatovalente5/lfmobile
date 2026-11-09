@@ -1,6 +1,6 @@
 titulo: Termos e condições
 descricao: As condições das compras feitas no site da LF Mobile: quem vende, preços, portes, como se faz a encomenda, pagamento, prazos, desistência e garantia.
-atualizado: 2026-11-08
+atualizado: 2026-11-09
 ---
 ## Quem vende
 
@@ -23,6 +23,8 @@ Os preços estão em euros e são os preços finais. {{empresa.iva}}
 Quando um artigo está em promoção, mostramos o preço anterior riscado, o período da promoção e o preço mais baixo praticado nos 30 dias anteriores.
 
 Os portes não estão incluídos no preço dos artigos e são por encomenda: {{portes}}
+
+Um cupão dá o desconto que diz (uma percentagem, um valor ou os portes grátis), nas condições que o acompanham: a compra mínima, as datas, os artigos a que se aplica e quantas vezes se pode usar. Usa-se no carrinho, antes de encomendar, um por encomenda, e não se troca por dinheiro.
 
 ## Como se faz a encomenda
 

@@ -8,7 +8,8 @@
 // Os testes do Worker das encomendas são dele (worker/encomendas/test/); os do painel são do painel.
 //
 // O CONTEÚDO DE ENSAIO: os testes usam scripts/testes/conteudo (uma cópia congelada do conteúdo a 9 nov
-// 2026, com cinco artigos) e scripts/testes/fotos, NUNCA o content/ do commit. O content/ é do dono,
+// 2026, com seis artigos, três modelos, duas reparações e a retoma) e scripts/testes/fotos, NUNCA o
+// content/ do commit. O content/ é do dono,
 // que o muda no painel: preencher o NIF, ligar a Stripe ou esconder um artigo não pode parar a
 // publicação neste passo (achado ao fazer o painel). Um problema no conteúdo verdadeiro pára no passo
 // seguinte, o do gerador, que escreve as razões para o painel (::error).
@@ -67,8 +68,8 @@ teste('opcoesDe: um grupo precisa de dois valores; o acréscimo só conta se for
 teste('o conteúdo de ensaio não tem problemas que bloqueiem a pré-visualização, e tem os lembretes dos dados legais', () => {
   const E = 'scripts/testes/conteudo';
   const dados = {
-    site: ler(`${E}/site.json`), inicio: ler(`${E}/inicio.json`), categorias: ler(`${E}/categorias.json`),
-    servicos: ler(`${E}/servicos.json`), fotos: ler(`${E}/fotos.json`),
+    site: ler(`${E}/site.json`), inicio: ler(`${E}/inicio.json`), categorias: ler(`${E}/categorias.json`), fotos: ler(`${E}/fotos.json`),
+    aparelhos: ler(`${E}/aparelhos.json`), reparacoes: ler(`${E}/reparacoes.json`), retoma: ler(`${E}/retoma.json`), campanhas: ler(`${E}/campanhas.json`),
     artigos: Object.fromEntries(fs.readdirSync(path.join(RAIZ, E, 'produtos')).filter((f) => f.endsWith('.json')).map((f) => [f.slice(0, -5), ler(`${E}/produtos/${f}`)])),
     ficheirosFotos: fs.readdirSync(path.join(RAIZ, 'scripts/testes/fotos')).filter((f) => f.endsWith('.jpg')).map((f) => f.slice(0, -4)),
     videos: [],
@@ -85,6 +86,59 @@ teste('um artigo sem nome é escondido do site (neutralizado), não pára a publ
   assert.ok(semNome.some((p) => p.neutralizacao === 'esconder' || /escondid/i.test(p.mensagem)), JSON.stringify(semNome));
   assert.deepEqual(R.problemasDoArtigo(base, ctx).filter((p) => p.classe === 'bloqueia'), []);
 });
+teste('os portes pelo peso: o escalão que aguenta a encomenda; acima do último, combina-se', () => {
+  const e = [{ ate: 30, preco: 14.9 }, { ate: 5, preco: 5.9 }];
+  assert.equal(R.portesDoPeso(0.6, e), 5.9);
+  assert.equal(R.portesDoPeso(5, e), 5.9);
+  assert.equal(R.portesDoPeso(8, e), 14.9);
+  assert.equal(R.portesDoPeso(31, e), null);
+  assert.equal(R.pesoDe({ peso: 2 }, []), 2);
+  assert.equal(R.pesoDe({ categoria: 'tablets' }, [{ slug: 'tablets', peso: 1 }]), 1);
+  assert.equal(R.pesoDe({ categoria: 'x' }, []), R.PESO_POR_OMISSAO);
+});
+teste('a retoma: o máximo × os fatores, aos 5 € para baixo; «avaliar» e abaixo do mínimo dão «avaliamos na loja»', () => {
+  const r = R.retomaDe(ler('scripts/testes/conteudo/retoma.json'));
+  assert.deepEqual(R.valorDaRetoma(r, 'iphone-13', 128, {}), { maximo: 190, valor: 190, avaliar: false, descontos: [] });
+  assert.equal(R.valorDaRetoma(r, 'iphone-13', 128, { corpo: 1 }).valor, 170, '190 × 0,9 = 171 → 170');
+  assert.equal(R.valorDaRetoma(r, 'iphone-13', 128, { funciona: 1 }).avaliar, true);
+  assert.equal(R.valorDaRetoma(r, 'galaxy-s24', 128, {}).avaliar, true, 'sem valor para o modelo');
+  assert.equal(R.valorDaRetoma({ ...r, minimo: 200 }, 'iphone-13', 128, {}).avaliar, true, 'abaixo do mínimo');
+  assert.deepEqual(R.retomaDe(ler('scripts/testes/conteudo/retoma.json'), { mostrarPorConfirmar: false }).valores, {}, 'em produção, os valores por confirmar não aparecem');
+});
+teste('as campanhas: só a publicada e dentro das datas; o desconto no preço, o normal riscado, a promoção própria ganha', () => {
+  const c = [{ slug: 'bf', nome: 'Black Friday', publicada: true, desde: '2026-11-20', ate: '2026-11-30', faixa: 'BF', titulo: 'BF', desconto: 10, categorias: ['audio'] }];
+  assert.equal(R.campanhasActivas(c, '2026-11-19').length, 0);
+  assert.equal(R.campanhasActivas(c, '2026-11-30').length, 1);
+  assert.equal(R.campanhasActivas([{ ...c[0], publicada: false }], '2026-11-25').length, 0);
+  const act = R.campanhasActivas(c, '2026-11-25');
+  const a = R.comCampanha({ categoria: 'audio', preco: 59.9 }, 'fones', act, '2026-11-25');
+  assert.equal(a.preco, 53.91);
+  assert.equal(a.precoAnterior, 59.9);
+  assert.equal(a.promocaoDesde, '2026-11-20');
+  assert.equal(a.promocaoAte, '2026-11-30');
+  assert.equal(a.campanha, 'bf');
+  const propria = R.comCampanha({ categoria: 'audio', preco: 49.9, precoAnterior: 59.9, promocaoAte: '2026-12-31' }, 'x', act, '2026-11-25');
+  assert.equal(propria.preco, 49.9, 'os descontos não se somam');
+  assert.equal(R.comCampanha({ categoria: 'peliculas', preco: 10 }, 'p', act, '2026-11-25').preco, 10);
+});
+teste('as regras novas: a lista dos modelos, as reparações e as campanhas avisam o que está mal', () => {
+  assert.equal(R.problemasDosAparelhos('{x').some((p) => p.classe === 'bloqueia'), true);
+  const ap = R.aparelhosDe(ler('scripts/testes/conteudo/aparelhos.json'));
+  assert.equal(ap.modelos.length, 3);
+  const rep = ler('scripts/testes/conteudo/reparacoes.json');
+  rep.precos['iphone-13'].bateria = '69 €';
+  rep.precos['nao-existe'] = { bateria: 10 };
+  const l = R.problemasDasReparacoes(rep, { aparelhos: ap });
+  assert.ok(l.some((p) => /só o número/.test(p.mensagem)), JSON.stringify(l));
+  assert.ok(l.some((p) => /não está na lista dos modelos/.test(p.mensagem)));
+  assert.ok(R.problemasDasReparacoes(ler('scripts/testes/conteudo/reparacoes.json'), { aparelhos: ap }).some((p) => p.lembrete && /não estão confirmados/.test(p.mensagem)));
+  const cs = R.problemasDasCampanhas([{ slug: 'x', nome: 'X', faixa: 'X', titulo: 'X', desde: '2026-12-10', ate: '2026-12-01', desconto: 95 }]);
+  assert.ok(cs.some((p) => /acaba antes de começar/.test(p.mensagem)));
+  assert.ok(cs.some((p) => /de 1 a 90/.test(p.mensagem)));
+  const reps = R.reparacoesDoModelo(ler('scripts/testes/conteudo/reparacoes.json'), ap.porId.get('iphone-13'));
+  assert.deepEqual(reps.map((r) => [r.id, r.preco, r.desde]), [['ecra', 129.9, true], ['bateria', 69.9, false], ['diagnostico', null, false]]);
+  assert.equal(R.reparacoesDoModelo(ler('scripts/testes/conteudo/reparacoes.json'), ap.porId.get('iphone-13'), { mostrarPorConfirmar: false })[0].preco, null, 'em produção, os preços por confirmar não aparecem');
+});
 teste('markdown e euros', () => {
   assert.match(markdown('## Título\n\nTexto com **negrito**.\n\n- um\n- dois'), /<h2 id="titulo">Título<\/h2>/);
   assert.match(markdown('<script>x</script>'), /&lt;script&gt;/);
@@ -94,7 +148,7 @@ teste('markdown e euros', () => {
 
 // ---------------------------------------------------------------- os scripts do browser
 console.log('scripts do browser');
-for (const f of ['src/scripts/site.js', 'src/scripts/carrinho.js']) {
+for (const f of ['src/scripts/site.js', 'src/scripts/carrinho.js', 'src/scripts/loja.js', 'src/scripts/reparacoes.js', 'src/scripts/retoma.js']) {
   teste(`${f} compila`, () => {
     const r = spawnSync(process.execPath, ['--check', path.join(RAIZ, f)], { encoding: 'utf8' });
     assert.equal(r.status, 0, r.stderr);
@@ -149,7 +203,7 @@ const todosHtml = (pasta) => {
 const preencherDadosLegais = (s) => {
   s.contactos.email = 'geral@lfmobile-teste.pt';
   Object.assign(s.empresa, { nome: 'Nome de Teste', tipo: 'Empresário em nome individual', nif: '123456789', iva: 'Os preços incluem IVA à taxa legal em vigor.' });
-  s.entrega.portes.continente = 4.9;
+  s.entrega.portes.continente = [{ ate: 5, preco: 4.9 }, { ate: 30, preco: 12.9 }];
   s.garantias.recondicionados = 18;
 };
 
@@ -165,8 +219,18 @@ teste('a pré-visualização constrói com --base, fecha-se aos motores de busca
   assert.ok(fs.existsSync(path.join(pasta, '_site/404.html')));
   assert.ok(fs.existsSync(path.join(pasta, '_site/assets/catalogo.json')));
   const cat = JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets/catalogo.json'), 'utf8'));
-  assert.equal(cat.v, 2);
+  assert.equal(cat.v, 3);
   assert.equal(cat.modo, 'encomenda');
+  assert.deepEqual(cat.portes.continente, [{ ate: 5, preco: 5.9 }, { ate: 30, preco: 14.9 }]);
+  assert.equal(cat.transportadora, 'Nacex');
+  assert.equal(cat.produtos['pelicula-vidro'].pedeModelo, true);
+  assert.equal(cat.produtos['fones-p9'].peso, 0.3, 'o peso da categoria (Áudio)');
+  assert.ok(cat.categorias.some((c) => c.slug === 'peliculas'));
+  const busca = fs.readdirSync(path.join(pasta, '_site/assets')).find((f) => /^busca-[0-9a-f]+\.json$/.test(f));
+  assert.ok(busca, 'falta o índice da procura');
+  const ind = JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets', busca), 'utf8'));
+  assert.ok(ind.modelos.some((m) => m.n === 'iPhone 13' && m.u === '/lfmobile/reparacoes/iphone-13/'));
+  assert.ok(ind.artigos.some((a) => a.n === 'Auscultadores P9'));
   for (const [slug, p] of Object.entries(cat.produtos)) {
     if (p.compravel) assert.equal(typeof p.preco, 'number', `${slug} comprável sem preço`);
     assert.ok(fs.existsSync(path.join(pasta, '_site/produtos', slug, 'index.html')), `${slug} sem ficha`);
@@ -188,6 +252,76 @@ teste('a ficha de um artigo comprável tem o formulário do carrinho; a de um «
   const pel = fs.readFileSync(path.join(pasta, '_site/produtos/pelicula-hidrogel/index.html'), 'utf8');
   assert.match(pel, /data-comprar="pelicula-hidrogel"/);
   assert.match(pel, /Só na loja/);
+});
+teste('a película que pede o modelo tem a escolha da marca e do modelo, com as sugestões', () => {
+  const pasta = copia('modelo-pelicula');
+  assert.equal(construir(pasta).codigo, 0);
+  const html = fs.readFileSync(path.join(pasta, '_site/produtos/pelicula-vidro/index.html'), 'utf8');
+  assert.match(html, /data-escolha-modelo/);
+  assert.match(html, /<option>Apple<\/option><option>Samsung<\/option><option>Xiaomi<\/option>/);
+  assert.match(html, /id="dados-modelos">\{"Apple":\["iPhone 15 Pro","iPhone 13"\]/);
+  assert.doesNotMatch(fs.readFileSync(path.join(pasta, '_site/produtos/fones-p9/index.html'), 'utf8'), /data-escolha-modelo/);
+});
+teste('as reparações: a página geral, a da família e a do modelo, com os preços «por confirmar» na pré-visualização', () => {
+  const pasta = copia('reparacoes');
+  assert.equal(construir(pasta).codigo, 0);
+  const ler2 = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  const hub = ler2('reparacoes/index.html');
+  assert.match(hub, /data-seletor="reparacoes"/);
+  assert.match(hub, /href="\/reparacoes\/iphone-13\/"/);
+  assert.match(hub, /data-problema="ecra"/);
+  assert.match(ler2('reparacoes/iphone/index.html'), /Reparação iPhone/);
+  const m = ler2('reparacoes/iphone-13/index.html');
+  assert.match(m, /desde 129,90/);
+  assert.match(m, /69,90/);
+  assert.match(m, /Ecrã original/);
+  assert.match(m, /por confirmar: preços de referência/);
+  assert.match(m, /data-por-confirmar="sim"/);
+  assert.match(ler2('reparacoes/galaxy-s24/index.html'), /59,90/);
+  assert.match(ler2('reparacoes/iphone-15-pro/index.html'), /Orçamento grátis/);
+});
+teste('em produção, os preços das reparações e os valores da retoma por confirmar não aparecem; confirmados, aparecem', () => {
+  const pasta = copia('reparacoes-producao', (p) => json(p, 'content/site.json', preencherDadosLegais));
+  assert.equal(construir(pasta, '--producao').codigo, 0);
+  const m = fs.readFileSync(path.join(pasta, '_site/reparacoes/iphone-13/index.html'), 'utf8');
+  assert.doesNotMatch(m, /129,90|69,90/);
+  assert.match(m, /Orçamento grátis/);
+  const dados = (html) => JSON.parse(html.match(/<script type="application\/json" id="dados-retoma">(.*?)<\/script>/)[1]);
+  assert.deepEqual(dados(fs.readFileSync(path.join(pasta, '_site/retoma/index.html'), 'utf8')).valores, {});
+  const conf = copia('reparacoes-confirmadas', (p) => {
+    json(p, 'content/site.json', preencherDadosLegais);
+    json(p, 'content/reparacoes.json', (r) => { r.confirmado = true; });
+    json(p, 'content/retoma.json', (r) => { r.confirmado = true; });
+  });
+  assert.equal(construir(conf, '--producao').codigo, 0);
+  const m2 = fs.readFileSync(path.join(conf, '_site/reparacoes/iphone-13/index.html'), 'utf8');
+  assert.match(m2, /desde 129,90/);
+  assert.doesNotMatch(m2, /por confirmar/);
+  assert.match(m2, /"@type":"Offer","priceCurrency":"EUR","price":"129.90"/);
+  assert.deepEqual(dados(fs.readFileSync(path.join(conf, '_site/retoma/index.html'), 'utf8')).valores, { 'iphone-13': { 128: 190, 256: 210 } });
+});
+teste('uma campanha a correr: a faixa do topo, a página dela, o preço com desconto e o normal riscado, e o catálogo igual', () => {
+  const hoje = hojeEmLisboa();
+  const daqui = (dias) => new Date(Date.parse(`${hoje}T12:00:00Z`) + dias * 86400000).toISOString().slice(0, 10);
+  const pasta = copia('campanha', (p) => json(p, 'content/campanhas.json', (c) => {
+    c.push({ slug: 'black-friday', nome: 'Black Friday', publicada: true, desde: daqui(-1), ate: daqui(6), faixa: 'Black Friday: 10% no áudio', titulo: 'Black Friday na LF Mobile', texto: '', desconto: 10, categorias: ['audio'], marcas: [], artigos: [] });
+    c.push({ slug: 'rascunho', nome: 'Rascunho', publicada: false, desde: daqui(-1), ate: daqui(6), faixa: 'X', titulo: 'X', desconto: 50, categorias: ['peliculas'] });
+  }));
+  assert.equal(construir(pasta).codigo, 0);
+  const ler2 = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  const index = ler2('index.html');
+  assert.match(index, /class="faixa-topo__campanha" href="\/campanhas\/black-friday\/"/);
+  assert.ok(fs.existsSync(path.join(pasta, '_site/campanhas/black-friday/index.html')));
+  assert.ok(!fs.existsSync(path.join(pasta, '_site/campanhas/rascunho/index.html')), 'o rascunho não aparece');
+  const ficha = ler2('produtos/fones-p9/index.html');
+  assert.match(ficha, /53,91/);
+  assert.match(ficha, /<s class="preco__antes"><span class="visualmente-escondido">em vez de <\/span>59,90/);
+  assert.match(ficha, /Black Friday: de /, 'a nota legal do período (DL 70/2007)');
+  const cat = JSON.parse(ler2('assets/catalogo.json'));
+  assert.equal(cat.produtos['fones-p9'].preco, 53.91);
+  assert.equal(cat.produtos['fones-p9'].precoAnterior, 59.9);
+  assert.equal(cat.produtos['fones-p9'].campanha, 'black-friday');
+  assert.equal(cat.produtos['pelicula-vidro'].preco, 9.9, 'o rascunho não mexe nos preços');
 });
 teste('o WhatsApp é um botão flutuante (fora da barra de cima), e não aparece no carrinho nem na encomenda', () => {
   const pasta = copia('whatsapp');
@@ -212,7 +346,8 @@ teste('os contactos têm o mapa desenhado dentro da página (sem o Google, sem c
   for (const pagina of ['politica-de-cookies/index.html', 'politica-de-privacidade/index.html']) assert.doesNotMatch(ler(pagina), /lfmobile-mapa|Carregar o mapa/, pagina);
 });
 teste('a produção pára sem os dados legais, e diz quais', () => {
-  const pasta = copia('producao-falha');
+  // sem os escalões dos portes, também (o conteúdo de ensaio já tem os da Nacex)
+  const pasta = copia('producao-falha', (p) => json(p, 'content/site.json', (s) => { s.entrega.portes.continente = []; }));
   const r = construir(pasta, '--producao');
   assert.notEqual(r.codigo, 0);
   assert.match(r.saida, /A publicação parou/);

@@ -1,0 +1,365 @@
+{
+  "confirmado": false,
+  "familias": [
+    "iphone",
+    "galaxy-s",
+    "galaxy-z",
+    "galaxy-a"
+  ],
+  "minimo": 20,
+  "valores": {
+    "iphone-17-pro-max": {
+      "256": 920,
+      "512": 990,
+      "1024": 1125,
+      "2048": 1500
+    },
+    "iphone-17-pro": {
+      "256": 825,
+      "512": 870,
+      "1024": 900
+    },
+    "iphone-air": {
+      "256": 400,
+      "512": 450,
+      "1024": 500
+    },
+    "iphone-17": {
+      "256": 500,
+      "512": 635
+    },
+    "iphone-16e": {
+      "128": 350,
+      "256": 370,
+      "512": 450
+    },
+    "iphone-16-pro-max": {
+      "256": 715,
+      "512": 760,
+      "1024": 790
+    },
+    "iphone-16-pro": {
+      "128": 595,
+      "256": 610,
+      "512": 670,
+      "1024": 800
+    },
+    "iphone-16-plus": {
+      "128": 520,
+      "256": 550,
+      "512": 600
+    },
+    "iphone-16": {
+      "128": 425,
+      "256": 500,
+      "512": 590
+    },
+    "iphone-15-pro-max": {
+      "256": 540,
+      "512": 560,
+      "1024": 600
+    },
+    "iphone-15-pro": {
+      "128": 500,
+      "256": 520,
+      "512": 540,
+      "1024": 550
+    },
+    "iphone-15-plus": {
+      "128": 380,
+      "256": 430,
+      "512": 480
+    },
+    "iphone-15": {
+      "128": 350,
+      "256": 395,
+      "512": 420
+    },
+    "iphone-14-pro-max": {
+      "128": 355,
+      "256": 370,
+      "512": 390,
+      "1024": 430
+    },
+    "iphone-14-pro": {
+      "128": 320,
+      "256": 340,
+      "512": 360,
+      "1024": 400
+    },
+    "iphone-14-plus": {
+      "128": 230,
+      "256": 250,
+      "512": 335
+    },
+    "iphone-14": {
+      "128": 230,
+      "256": 265,
+      "512": 315
+    },
+    "iphone-se-2022": {
+      "64": 70,
+      "128": 100
+    },
+    "iphone-13-pro-max": {
+      "128": 290,
+      "256": 310,
+      "512": 330,
+      "1024": 410
+    },
+    "iphone-13-pro": {
+      "128": 260,
+      "256": 280,
+      "512": 300,
+      "1024": 360
+    },
+    "iphone-13": {
+      "128": 190,
+      "256": 210,
+      "512": 265
+    },
+    "iphone-13-mini": {
+      "128": 140,
+      "256": 165,
+      "512": 255
+    },
+    "iphone-12-pro-max": {
+      "128": 205,
+      "256": 230,
+      "512": 255
+    },
+    "iphone-12-pro": {
+      "128": 160,
+      "256": 185,
+      "512": 225
+    },
+    "iphone-12": {
+      "64": 110,
+      "128": 120,
+      "256": 135
+    },
+    "iphone-12-mini": {
+      "64": 95,
+      "128": 100,
+      "256": 125
+    },
+    "galaxy-s25-ultra": {
+      "256": 470,
+      "512": 470
+    },
+    "galaxy-s25": {
+      "256": 320
+    },
+    "galaxy-s24-ultra": {
+      "256": 355,
+      "512": 380
+    },
+    "galaxy-s24-plus": {
+      "256": 290
+    },
+    "galaxy-s24": {
+      "128": 195,
+      "256": 240
+    },
+    "galaxy-s23-ultra": {
+      "256": 270,
+      "512": 355
+    },
+    "galaxy-s23": {
+      "128": 200,
+      "256": 210
+    },
+    "galaxy-s22-ultra": {
+      "128": 210,
+      "256": 225
+    },
+    "galaxy-s22-plus": {
+      "128": 275,
+      "256": 275
+    },
+    "galaxy-a35": {
+      "128": 100
+    },
+    "galaxy-a15": {
+      "128": 70
+    },
+    "galaxy-a54": {
+      "128": 100
+    },
+    "galaxy-a34": {
+      "128": 115
+    },
+    "galaxy-a14": {
+      "64": 70,
+      "128": 70
+    },
+    "galaxy-a53": {
+      "128": 80
+    },
+    "galaxy-a33": {
+      "128": 60
+    },
+    "galaxy-a52s": {
+      "128": 55
+    },
+    "galaxy-a52": {
+      "128": 55
+    },
+    "galaxy-a32": {
+      "128": 65
+    }
+  },
+  "perguntas": [
+    {
+      "id": "funciona",
+      "texto": "Liga e funciona normalmente?",
+      "respostas": [
+        {
+          "texto": "Sim",
+          "fator": 1
+        },
+        {
+          "texto": "Não",
+          "avaliar": true
+        }
+      ]
+    },
+    {
+      "id": "corpo",
+      "texto": "Como está por fora?",
+      "ajuda": "As laterais e os cantos.",
+      "respostas": [
+        {
+          "texto": "Como novo",
+          "ajuda": "Sem marcas visíveis",
+          "fator": 1
+        },
+        {
+          "texto": "Bom",
+          "ajuda": "Marcas ligeiras de uso",
+          "fator": 0.9
+        },
+        {
+          "texto": "Razoável",
+          "ajuda": "Riscos e marcas à vista",
+          "fator": 0.84
+        },
+        {
+          "texto": "Muito marcado",
+          "ajuda": "Amolgadelas ou riscos fundos",
+          "fator": 0.65
+        }
+      ]
+    },
+    {
+      "id": "ecra",
+      "texto": "E o ecrã?",
+      "respostas": [
+        {
+          "texto": "Sem riscos",
+          "fator": 1
+        },
+        {
+          "texto": "Riscos ligeiros",
+          "fator": 0.95
+        },
+        {
+          "texto": "Riscos fundos",
+          "fator": 0.66
+        },
+        {
+          "texto": "Partido ou com manchas",
+          "fator": 0.55
+        }
+      ]
+    },
+    {
+      "id": "traseira",
+      "texto": "E a traseira?",
+      "respostas": [
+        {
+          "texto": "Sem marcas",
+          "fator": 1
+        },
+        {
+          "texto": "Marcas ligeiras",
+          "fator": 0.97
+        },
+        {
+          "texto": "Partida",
+          "fator": 0.8
+        }
+      ]
+    },
+    {
+      "id": "camaras",
+      "texto": "As câmaras funcionam bem?",
+      "respostas": [
+        {
+          "texto": "Sim",
+          "fator": 1
+        },
+        {
+          "texto": "Não",
+          "fator": 0.8
+        }
+      ]
+    },
+    {
+      "id": "bateria",
+      "texto": "A bateria está acima de 85 %?",
+      "ajuda": "No iPhone: Definições › Bateria › Estado da bateria. No Samsung: Definições › Assistência do dispositivo › Bateria.",
+      "respostas": [
+        {
+          "texto": "Sim",
+          "fator": 1
+        },
+        {
+          "texto": "Não",
+          "fator": 0.75
+        },
+        {
+          "texto": "Não sei",
+          "fator": 0.9
+        }
+      ]
+    },
+    {
+      "id": "biometria",
+      "texto": "O Face ID ou a impressão digital funcionam?",
+      "respostas": [
+        {
+          "texto": "Sim",
+          "fator": 1
+        },
+        {
+          "texto": "Não",
+          "fator": 0.65
+        }
+      ]
+    },
+    {
+      "id": "liquidos",
+      "texto": "Alguma vez molhou, ou está dobrado?",
+      "respostas": [
+        {
+          "texto": "Não",
+          "fator": 1
+        },
+        {
+          "texto": "Sim",
+          "avaliar": true
+        }
+      ]
+    }
+  ],
+  "receber": [
+    "Em dinheiro, na loja",
+    "Por transferência bancária",
+    "Em desconto numa compra na loja"
+  ],
+  "entregar": [
+    "Na loja, em São Roque",
+    "Por envio (combinamos consigo)"
+  ]
+}

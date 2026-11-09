@@ -33,7 +33,9 @@ test('o preço de hoje: normal, em promoção, promoção acabada', () => {
 test('as contas de uma encomenda simples batem certo em cêntimos', () => {
   const c = contas(cat, [{ produto: 'fones-p9', opcoes: [1], qtd: 2 }], LEV, HOJE);
   assert.equal(c.linhas.length, 1);
-  assert.deepEqual(c.linhas[0], { produto: 'fones-p9', nome: 'Auscultadores P9', qtd: 2, opcoes: [1], escolhas: ['Cor: Prateado'], unidade_cents: 5990, total_cents: 11980 });
+  assert.deepEqual(c.linhas[0], { produto: 'fones-p9', nome: 'Auscultadores P9', qtd: 2, opcoes: [1], escolhas: ['Cor: Prateado'], categoria: 'audio', unidade_cents: 5990, total_cents: 11980 });
+  assert.equal(c.desconto_cents, 0);
+  assert.equal(c.peso_kg, 0.6);
   assert.equal(c.artigos_cents, 11980);
   assert.equal(c.portes_cents, 0);
   assert.equal(c.portes_por_confirmar, false);
@@ -46,7 +48,7 @@ test('os cêntimos do Worker são os euros do carrinho arredondados (todos os ar
   for (const [id, p] of Object.entries(cat.produtos)) {
     if (!p.compravel) continue;
     for (let qtd = 1; qtd <= 20; qtd++) {
-      const c = contas(cat, [{ produto: id, opcoes: [], qtd }], LEV, HOJE);
+      const c = contas(cat, [{ produto: id, opcoes: [], qtd, ...(p.pedeModelo ? { modelo: 'iPhone 13' } : {}) }], LEV, HOJE);
       assert.equal(c.total_cents, Math.round(p.preco * qtd * 100), `${id} × ${qtd}`);
     }
   }

@@ -24,6 +24,8 @@ import { esc, euros, hojeEmLisboa, markdown, numeroWhatsApp, numeroLegivel, cust
 import { pagina } from '../src/templates/layout.mjs';
 import * as R from '../src/lib/regras.mjs';
 import * as paginas from '../src/templates/paginas.mjs';
+import * as reparacoes from '../src/templates/reparacoes.mjs';
+import { retoma as paginaRetoma } from '../src/templates/retoma.mjs';
 /* As peças legais comuns aos sites do Renato (a cópia em legal-comum/, instalada por
    _ferramentas/legal-comum/instalar.mjs; não se edita aqui). */
 import { livroCss, destinatariosHtml, CATALOGO_DESTINATARIOS, frasesPrivacidade, prazos as PRAZOS_LEGAIS, verificarIdentificacao, verificarPromocao, verificarProduto, AVISO_RETOMA, COMO_SE_FAZ_A_ENCOMENDA, BOTAO_ENCOMENDA, formularioLivreResolucao, ralHtml, textoGarantia, VERSAO as LEGAL_COMUM_VERSAO } from '../legal-comum/index.mjs';
@@ -84,8 +86,11 @@ const dadosRegras = {
   site: lerTexto('content/site.json'),
   inicio: lerTexto('content/inicio.json'),
   categorias: lerTexto('content/categorias.json'),
-  servicos: lerTexto('content/servicos.json'),
   fotos: lerTexto('content/fotos.json'),
+  aparelhos: lerTexto('content/aparelhos.json'),
+  reparacoes: lerTexto('content/reparacoes.json'),
+  retoma: lerTexto('content/retoma.json'),
+  campanhas: lerTexto('content/campanhas.json'),
   artigos: Object.fromEntries(fs.readdirSync(path.join(CONTEUDO, 'produtos')).filter((f) => f.endsWith('.json')).map((f) => [f.slice(0, -5), lerTexto(`content/produtos/${f}`)])),
   ficheirosFotos: fs.readdirSync(path.join(RAIZ, 'media/fotos')).filter((f) => f.endsWith('.jpg')).map((f) => f.slice(0, -4)),
   videos: listar('media/video', '.mp4'),
@@ -104,11 +109,17 @@ for (const e of neutro.efeitos) {
 const site = JSON.parse(dadosRegras.site);
 const inicio = JSON.parse(dadosRegras.inicio);
 const categorias = JSON.parse(dadosRegras.categorias);
-const servicos = JSON.parse(dadosRegras.servicos).filter((s) => s && s.slug && s.nome);
 const fotos = JSON.parse(dadosRegras.fotos);
-// Os artigos como o gerador os lê: a cópia neutralizada (um artigo com problemas sai escondido).
+// Os modelos (só os que passam nas regras), os tipos de reparação, a retoma (os valores por
+// confirmar só na pré-visualização) e as campanhas que estão a correr HOJE.
+const aparelhos = R.aparelhosDe(dadosRegras.aparelhos);
+const tiposReparacao = R.tiposDeReparacao(dadosRegras.reparacoes);
+const retoma = R.retomaDe(dadosRegras.retoma, { mostrarPorConfirmar: !producao });
+const campanhas = R.campanhasActivas(dadosRegras.campanhas, hoje);
+// Os artigos como o gerador os lê: a cópia neutralizada (um artigo com problemas sai escondido),
+// com o desconto da campanha que os apanha (o preço normal fica riscado, com o período).
 const produtos = Object.entries(neutro.artigos)
-  .map(([slug, a]) => ({ slug, ...a }))
+  .map(([slug, a]) => ({ slug, ...R.comCampanha(a, slug, campanhas, hoje) }))
   .filter((p) => p.publicado !== false)
   .sort((a, b) => (a.ordem ?? 500) - (b.ordem ?? 500) || a.nome.localeCompare(b.nome, 'pt'));
 const fotoExiste = (f) => fotos[f] && dadosRegras.ficheirosFotos.includes(f);
@@ -130,7 +141,7 @@ const fotoExiste = (f) => fotos[f] && dadosRegras.ficheirosFotos.includes(f);
   }, { modo: 'avisar', ecra: 'Dados da loja › Dados legais' });
   for (const p of r.problemas) avisos.push(`Identificação (${p.campo}): ${p.mensagem}`);
 }
-const EEE = new Set(['telemoveis', 'recondicionados', 'tablets', 'smartwatches', 'audio']);
+const EEE = new Set(['iphone', 'samsung', 'recondicionados', 'tablets', 'smartwatches', 'audio']);
 for (const p of produtos) {
   if (typeof p.precoAnterior === 'number' && typeof p.preco === 'number' && p.precoAnterior > p.preco) {
     const r = verificarPromocao({ precoAntes: p.precoAnterior, precoAgora: p.preco, inicio: p.promocaoDesde, fim: p.promocaoAte, historico: [] }, { modo: 'avisar' });
@@ -198,15 +209,23 @@ const css = Buffer.concat([
   Buffer.from(`/* legal-comum v${LEGAL_COMUM_VERSAO}: o Livro de Reclamações */\n${livroCss()}\n`),
   fs.readFileSync(path.join(RAIZ, 'src/estilos/site.css')),
 ]);
-const js = Buffer.from(['site.js', 'carrinho.js'].map((f) => `// ${f}\n${fs.readFileSync(path.join(RAIZ, 'src/scripts', f), 'utf8')}`).join('\n'));
+const js = Buffer.from(['site.js', 'carrinho.js', 'loja.js', 'reparacoes.js', 'retoma.js'].map((f) => `// ${f}\n${fs.readFileSync(path.join(RAIZ, 'src/scripts', f), 'utf8')}`).join('\n'));
 const ficheiros = { css: `site-${resumo(css)}.css`, js: `site-${resumo(js)}.js`, videos: ficheirosVideo };
 fs.writeFileSync(path.join(SAIDA, 'assets', ficheiros.css), css);
 fs.writeFileSync(path.join(SAIDA, 'assets', ficheiros.js), js);
 
 // ---------------------------------------------------------------- contexto dos modelos
 const numero = numeroWhatsApp(site.contactos.whatsapp);
+const escaloes = R.escaloesDe(site.entrega?.portes?.continente);
+/* A escolha do modelo nas películas: as marcas (Apple e Samsung primeiro, com os modelos da lista;
+   as outras com as sugestões de content/aparelhos.json) e os nomes de cada uma. */
+const modelosPorMarca = {};
+for (const m of aparelhos.marcas) modelosPorMarca[m.nome] = aparelhos.modelos.filter((x) => x.marca === m.id && x.tipo === 'telemovel').map((x) => x.nome);
+for (const o of aparelhos.outrasMarcas) modelosPorMarca[o.nome] = o.modelos;
 const ctx = {
-  site, inicio, categorias, servicos, produtos, fotos, manifesto, hoje, producao, ficheiros, api: API, base,
+  site, inicio, categorias, produtos, fotos, manifesto, hoje, producao, ficheiros, api: API, base,
+  aparelhos, tiposReparacao, retoma, campanhas, escaloes, modelosPorMarca, marcasParaModelo: Object.keys(modelosPorMarca),
+  dados: dadosRegras,
   videos: {},
   url: (c) => (/^https?:|^mailto:|^tel:|^#/.test(c) ? c : `${base}${c}`),
   asset: (rel) => `${base}/assets/${rel}`,
@@ -218,23 +237,36 @@ const ctx = {
   // o mapa da loja (scripts/mapa.mjs), escrito dentro da página dos contactos: aparece logo, sem pedidos
   mapaLoja: existe('media/mapa/loja.svg') ? fs.readFileSync(path.join(RAIZ, 'media/mapa/loja.svg'), 'utf8').trim() : '',
 };
+/* O horário para a faixa do topo dizer «Aberta · fecha às 19:00» (site.js): os dias (0 = domingo,
+   como no Date do browser) e as horas de abrir e fechar, do mesmo horário que o Google lê. */
+const DIA_JS = { Sunday: 0, Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6 };
+ctx.horarioSemana = paginas.horarioLd(ctx).filter((h) => h.opens !== h.closes).map((h) => ({ dias: h.dayOfWeek.map((d) => DIA_JS[d]), abre: h.opens, fecha: h.closes }));
 
 // ---------------------------------------------------------------- catálogo do carrinho e do Worker
 /* O que o carrinho e o Worker das encomendas lêem: os preços, as escolhas e a disponibilidade de cada
    artigo, as zonas e os portes da loja, o modo dos pagamentos e os endereços. O carrinho nunca guarda
    preços. Sai duas vezes: com o resumo no nome (a cache de um ano, para o site) e como
    assets/catalogo.json (nome fixo, para o Worker ler sempre o actual). */
-const fotoPequena = (f) => { const m = manifesto.fotos[f]; const w = m.larguras.find((x) => x >= 360) || m.larguras[0]; return ctx.asset(`img/${f}-${m.resumo}-${w}.webp`); };
+/* A imagem pequena de um artigo (o carrinho, a procura): o recorte, quando o há. */
+const fotoPequena = (f) => {
+  const r = manifesto.recortes?.[f];
+  if (r) { const w = r.larguras.find((x) => x >= 240) || r.larguras[0]; return ctx.asset(`img/recorte-${f}-${r.resumo}-${w}.webp`); }
+  const m = manifesto.fotos[f]; const w = m.larguras.find((x) => x >= 360) || m.larguras[0]; return ctx.asset(`img/${f}-${m.resumo}-${w}.webp`);
+};
 const catalogo = {
-  v: 2,
+  v: 3,
   marca: site.marca,
   whatsapp: numero,
   email: site.contactos.email || '',
   modo: site.pagamentos?.modo === 'online' ? 'online' : 'encomenda',
   api: API,
   zonas: site.entrega.zonas,
+  transportadora: site.entrega.transportadora || '',
+  // as categorias (o Worker diz o nome delas na frase dos cupões e confere as do painel)
+  categorias: categorias.map((c) => ({ slug: c.slug, nome: c.nome })),
+  // os portes de cada zona: os escalões de peso [{ ate: kg, preco: € }] (R.portesDoPeso)
   portes: {
-    ...Object.fromEntries(R.ZONAS_ENVIO.map((z) => [z, Number.isFinite(site.entrega.portes?.[z]) ? site.entrega.portes[z] : null])),
+    ...Object.fromEntries(R.ZONAS_ENVIO.map((z) => [z, R.escaloesDe(site.entrega.portes?.[z])])),
     gratisAPartirDe: Number.isFinite(site.entrega.portes?.gratisAPartirDe) ? site.entrega.portes.gratisAPartirDe : null,
   },
   levantamento: site.entrega.levantamento || '',
@@ -248,9 +280,33 @@ const catalogo = {
     nome: p.nome, nomeCurto: p.nomeCurto || p.nome, url: ctx.url(`/produtos/${p.slug}/`), foto: fotoPequena(p.fotos[0]),
     preco: typeof p.preco === 'number' ? p.preco : null, precoAnterior: p.precoAnterior || null, promocaoAte: p.promocaoAte || '',
     opcoes: R.opcoesDe(p), estado: R.estadoDe(p), disponibilidade: R.disponibilidadeDe(p), compravel: R.compravel(p), enviavel: R.enviavel(p),
+    categoria: p.categoria, peso: R.pesoDe(p, categorias), pedeModelo: p.pedeModelo === true, campanha: p.campanha || '',
   }])),
 };
 const catalogoBuf = Buffer.from(JSON.stringify(catalogo));
+/* O ÍNDICE DA PROCURA (assets/busca-*.json, lido quando a pessoa toca na procura): os artigos (o nome,
+   a marca, a categoria, o preço de hoje e a imagem pequena), os modelos para reparar e as páginas. */
+const sem = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const busca = {
+  artigos: produtos.map((p) => {
+    const v = R.precoDe(p, hoje);
+    const c = categorias.find((k) => k.slug === p.categoria);
+    return { n: p.nome, u: ctx.url(`/produtos/${p.slug}/`), f: fotoPequena(p.fotos[0]), p: v.atual, c: c ? c.nome : '', t: sem(`${p.nome} ${p.marca || ''} ${c ? c.nome : ''} ${p.resumo || ''}`) };
+  }),
+  modelos: aparelhos.modelos.map((m) => ({ n: m.nome, u: ctx.url(`/reparacoes/${m.id}/`), t: sem(`${m.nome} ${aparelhos.familias.find((f) => f.id === m.familia)?.nome || ''} reparacao reparar ecra bateria`) })),
+  paginas: [
+    ['Reparações', '/reparacoes/', 'reparacao reparar arranjar ecra bateria partido orcamento'],
+    ['Retoma: quanto vale o seu telemóvel', '/retoma/', 'retoma vender usado trocar valor simular'],
+    ['Películas', '/loja/peliculas/', 'pelicula peliculas vidro protetor protecao ecra hidrogel'],
+    ['Recondicionados', '/loja/recondicionados/', 'recondicionado usado segunda mao'],
+    ['Contactos e horário', '/contactos/', 'contactos horario morada telefone whatsapp email loja'],
+    ['Envios e devoluções', '/envios-e-devolucoes/', 'envio envios portes nacex devolucao entrega'],
+    ['Perguntas frequentes', '/perguntas-frequentes/', 'perguntas duvidas ajuda'],
+  ].map(([n, u, t]) => ({ n, u: ctx.url(u), t: sem(`${n} ${t}`) })),
+};
+const buscaBuf = Buffer.from(JSON.stringify(busca));
+ficheiros.busca = `busca-${resumo(buscaBuf)}.json`;
+fs.writeFileSync(path.join(SAIDA, 'assets', ficheiros.busca), buscaBuf);
 ficheiros.catalogo = `catalogo-${resumo(catalogoBuf)}.json`;
 fs.writeFileSync(path.join(SAIDA, 'assets', ficheiros.catalogo), catalogoBuf);
 fs.writeFileSync(path.join(SAIDA, 'assets', 'catalogo.json'), catalogoBuf);
@@ -261,10 +317,16 @@ fs.writeFileSync(path.join(SAIDA, 'assets', 'catalogo.json'), catalogoBuf);
    na loja não tem custos, e os artigos «só na loja» não se enviam.» */
 function textoPortes() {
   const p = site.entrega.portes || {};
+  const t = site.entrega.transportadora;
   const zonas = site.entrega.zonas.filter((z) => z.morada);
-  const partes = zonas.map((z) => (Number.isFinite(p[z.id]) ? `${euros(p[z.id])} para ${esc(z.curto)}` : ctx.marcador(`os portes para ${z.curto}`)));
+  const partes = zonas.map((z) => {
+    const e = R.escaloesDe(p[z.id]);
+    if (!e.length) return ctx.marcador(`os portes para ${z.curto}`);
+    const kg = (x) => `${String(x).replace('.', ',')} kg`;
+    return `${e.map((x) => `${euros(x.preco)} até ${kg(x.ate)}`).join(' e ')} para ${esc(z.curto)}${t ? `, pela ${esc(t)}` : ''}; uma encomenda com mais de ${kg(e[e.length - 1].ate)} combina os portes connosco`;
+  });
   const gratis = Number.isFinite(p.gratisAPartirDe) ? ` (grátis a partir de ${euros(p.gratisAPartirDe)} em artigos)` : '';
-  return `${partes.join('; ')}${gratis}. O levantamento na loja não tem custos, e os artigos «só na loja» não se enviam.`;
+  return `${partes.join('; ')}${gratis}. O peso é o dos artigos da encomenda. O levantamento na loja não tem custos, e os artigos «só na loja» não se enviam.`;
 }
 
 function identificacao() {
@@ -402,8 +464,11 @@ saidas.push(paginas.inicio(ctx));
 saidas.push(paginas.loja(ctx));
 for (const c of categorias) saidas.push(paginas.loja(ctx, c.slug));
 for (const p of produtos) saidas.push(paginas.produto(ctx, p));
-saidas.push(paginas.reparacoes(ctx));
-saidas.push(paginas.retoma(ctx));
+saidas.push(reparacoes.reparacoes(ctx));
+for (const f of aparelhos.familias) if (aparelhos.modelos.some((m) => m.familia === f.id)) saidas.push(reparacoes.familia(ctx, f));
+for (const m of aparelhos.modelos) saidas.push(reparacoes.modelo(ctx, m));
+saidas.push(paginaRetoma(ctx));
+for (const c of campanhas) saidas.push(paginas.campanha(ctx, c));
 saidas.push(paginas.carrinho(ctx));
 saidas.push(paginas.checkout(ctx));
 saidas.push(paginas.obrigado(ctx));
@@ -429,10 +494,12 @@ try {
   const data = (ficheirosFonte) => execFileSync('git', ['log', '-1', '--format=%cI', '--', ...ficheirosFonte], { cwd: RAIZ, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
   for (const s of indexaveis) {
     let fontes = ['content/site.json'];
-    if (s.caminho === '/') fontes = ['content/inicio.json', 'content/produtos', 'content/servicos.json', 'content/site.json'];
+    if (s.caminho === '/') fontes = ['content/inicio.json', 'content/produtos', 'content/reparacoes.json', 'content/site.json'];
     else if (s.caminho.startsWith('/produtos/')) fontes = [`content/produtos/${s.caminho.split('/')[2]}.json`];
     else if (s.caminho.startsWith('/loja/')) fontes = ['content/produtos', 'content/categorias.json'];
-    else if (s.caminho === '/reparacoes/') fontes = ['content/servicos.json', 'content/site.json'];
+    else if (s.caminho.startsWith('/reparacoes/')) fontes = ['content/reparacoes.json', 'content/aparelhos.json'];
+    else if (s.caminho === '/retoma/') fontes = ['content/retoma.json', 'content/aparelhos.json'];
+    else if (s.caminho.startsWith('/campanhas/')) fontes = ['content/campanhas.json'];
     else if (existe(`content/paginas${s.caminho.replace(/\/$/, '')}.md`)) fontes = [`content/paginas${s.caminho.replace(/\/$/, '')}.md`, 'content/site.json'];
     lastmod[s.caminho] = data(fontes) || hoje;
   }
@@ -452,7 +519,7 @@ fs.writeFileSync(path.join(SAIDA, 'robots.txt'), producao
 if (dominio) {
   const umAno = '  Cache-Control: public, max-age=31536000, immutable\n';
   const seguranca = '/*\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: SAMEORIGIN\n  Content-Security-Policy: frame-ancestors \'self\'\n  Referrer-Policy: strict-origin-when-cross-origin\n  Strict-Transport-Security: max-age=86400\n';
-  fs.writeFileSync(path.join(SAIDA, '_headers'), seguranca + ['/assets/site-*', '/assets/catalogo-*', '/assets/video/*'].map((r) => `${r}\n${umAno}`).join(''));
+  fs.writeFileSync(path.join(SAIDA, '_headers'), seguranca + ['/assets/site-*', '/assets/catalogo-*', '/assets/busca-*', '/assets/video/*'].map((r) => `${r}\n${umAno}`).join(''));
 }
 fs.writeFileSync(path.join(SAIDA, '.nojekyll'), '');
 
@@ -489,4 +556,4 @@ for (const f of todosHtml) {
 if (problemas.length) parar(`A publicação parou: o site saiu com ${problemas.length} problemas.`, [...new Set(problemas)].slice(0, 60).map((p) => `Gerador: ${p}`), { tecnico: true });
 
 for (const a of avisos) console.warn(`  ! ${a}`);
-console.log(`site: ${saidas.length} páginas em _site/ (${producao ? `produção, ${DOMINIO}` : dominio ? `${DOMINIO}, ainda fechado aos motores de busca` : base ? `pré-visualização, ${ORIGEM}${base}/` : 'local'}), ${produtos.length} artigos, ${servicos.length} serviços, hoje ${hoje}`);
+console.log(`site: ${saidas.length} páginas em _site/ (${producao ? `produção, ${DOMINIO}` : dominio ? `${DOMINIO}, ainda fechado aos motores de busca` : base ? `pré-visualização, ${ORIGEM}${base}/` : 'local'}), ${produtos.length} artigos, ${aparelhos.modelos.length} modelos, ${campanhas.length} campanhas a correr, hoje ${hoje}`);

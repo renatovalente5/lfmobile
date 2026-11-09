@@ -1,0 +1,35 @@
+{
+  "nome": "Película de vidro",
+  "nomeCurto": "Película de vidro",
+  "marca": "",
+  "fotos": [
+    "loja-letreiro"
+  ],
+  "resumo": "Vidro temperado.",
+  "descricao": "Vidro temperado para qualquer telemóvel.",
+  "preco": 9.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Na 6.ª película, oferecemos uma"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "pedeModelo": true,
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "peliculas",
+  "destaque": true,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 61
+}

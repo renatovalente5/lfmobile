@@ -1,0 +1,50 @@
+{
+  "confirmado": false,
+  "familias": [
+    "iphone",
+    "galaxy-s"
+  ],
+  "minimo": 20,
+  "valores": {
+    "iphone-13": {
+      "128": 190,
+      "256": 210
+    }
+  },
+  "perguntas": [
+    {
+      "id": "funciona",
+      "texto": "Liga e funciona normalmente?",
+      "respostas": [
+        {
+          "texto": "Sim",
+          "fator": 1
+        },
+        {
+          "texto": "Não",
+          "avaliar": true
+        }
+      ]
+    },
+    {
+      "id": "corpo",
+      "texto": "Como está por fora?",
+      "respostas": [
+        {
+          "texto": "Como novo",
+          "fator": 1
+        },
+        {
+          "texto": "Bom",
+          "fator": 0.9
+        }
+      ]
+    }
+  ],
+  "receber": [
+    "Em dinheiro, na loja"
+  ],
+  "entregar": [
+    "Na loja, em São Roque"
+  ]
+}

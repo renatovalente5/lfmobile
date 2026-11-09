@@ -16,10 +16,13 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
-  # Todos os dias às 00:15 de Lisboa: as promoções e o aviso do topo têm data de fim, e o site
-  # só muda quando se publica.
+  # Todos os dias às 00:15 de Lisboa: as campanhas, as promoções e o aviso do topo têm datas, e o
+  # site só muda quando se publica. O cron é em UTC e Lisboa muda de hora: 23:15 UTC é a 00:15 de
+  # verão e 00:15 UTC a de inverno (só com a primeira, no inverno publicava às 23:15 — uma campanha
+  # que começa hoje só aparecia amanhã à noite).
   schedule:
     - cron: '15 23 * * *'
+    - cron: '15 0 * * *'
 
 permissions: {}
 

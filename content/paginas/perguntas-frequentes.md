@@ -2,9 +2,13 @@ titulo: Perguntas frequentes
 descricao: Orçamentos, reparações, encomendas, envios, retoma e garantia: as respostas curtas às perguntas que nos fazem mais vezes.
 modelo: perguntas
 ---
+## Quanto custa a reparação?
+
+Escolha o seu modelo nas [reparações](/reparacoes/) e vê o preço de cada uma. Confirmamos o preço no diagnóstico, antes de reparar.
+
 ## O orçamento é mesmo gratuito?
 
-Sim. Vemos o equipamento, dizemos o que tem e quanto custa, e só avançamos com o seu acordo. Pode pedir o orçamento [aqui](/reparacoes/), pelo WhatsApp ou na loja.
+Sim. Vemos o equipamento, dizemos o que tem e quanto custa, e só avançamos com o seu acordo. Pode pedir o orçamento nas [reparações](/reparacoes/), pelo WhatsApp ou na loja.
 
 ## Quanto tempo demora uma reparação?
 
@@ -14,9 +18,9 @@ Depende da avaria e de termos a peça. Dizemos-lhe o tempo previsto junto com o 
 
 Na maioria das reparações não, mas pode acontecer. Faça sempre uma cópia de segurança antes de nos entregar o equipamento.
 
-## Reparam equipamentos de todas as marcas?
+## Que marcas reparam?
 
-iPhone, Samsung, Xiaomi, Huawei e as outras marcas mais comuns, além de tablets, portáteis, computadores fixos e consolas. Se tiver dúvidas sobre o seu, pergunte-nos.
+iPhone, iPad e Apple Watch, e Samsung Galaxy (telemóveis, tablets e relógios). As películas servem qualquer telemóvel.
 
 ## As reparações têm garantia?
 
@@ -40,7 +44,15 @@ Sim, tem 14 dias depois de o receber para desistir da compra, sem dar justifica�
 
 ## Compram telemóveis usados?
 
-Sim. Diga-nos o modelo e o estado na página da [retoma](/retoma/) e respondemos com uma proposta; o valor final confirma-se com o equipamento na loja.
+Sim, iPhone e Samsung. Faça a simulação na página da [retoma](/retoma/) e vê logo o valor estimado; o valor final confirma-se com o telemóvel na loja.
+
+## Que películas têm?
+
+De vidro temperado, de privacidade, mate, para a câmara e de hidrogel, para qualquer telemóvel. Ao comprar, diz-nos o modelo; se a levantar na loja, aplicamo-la na hora. [Ver as películas](/loja/peliculas/).
+
+## Tenho um cupão. Onde o uso?
+
+No carrinho, em «Tem um cupão?». O desconto aparece no total antes de encomendar.
 
 ## Não encontro o modelo que quero na loja.
 

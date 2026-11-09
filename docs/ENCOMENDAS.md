@@ -198,3 +198,48 @@ como travão. Segredos: `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `PAINEL_SEGREDO`. Bindings: KV `ORDERS`, rate limit
 `TRAVAO_CHECKOUT`. `wrangler deploy --config worker/encomendas/wrangler.toml` sempre com
 `--config` (memória: wrangler-autoconfig-pasta-mae).
+
+## 8. O site novo (9 nov 2026): o catálogo v3, o peso, o modelo e os cupões
+
+**O catálogo** (`assets/catalogo.json`, `v: 3`) passa a levar `transportadora` («Nacex»), `categorias`
+(`[{ slug, nome }]`) e os portes de cada zona como **escalões de peso**:
+`portes: { continente: [{ "ate": 5, "preco": 5.9 }, { "ate": 30, "preco": 14.9 }], gratisAPartirDe: null }`.
+Cada artigo leva `categoria`, `peso` (kg: o dele, o da categoria, ou 0,3), `pedeModelo` e `campanha`
+(o slug da campanha que lhe deu o preço, ou `''`). Com uma campanha a correr, `preco` já é o preço com
+o desconto e `precoAnterior`/`promocaoAte` são os da campanha: o Worker não precisa de saber de
+campanhas. Um catálogo v2 (um número por zona) continua a valer, como um escalão só.
+
+**Os portes** de uma encomenda com envio: o primeiro escalão cujo `ate` aguenta o peso total (a soma
+`peso × qtd`); mais pesada do que o último, «por confirmar» (em modo «online» o `/checkout` recusa, com
+a frase «A encomenda pesa mais de 30 kg…»). Grátis a partir de `gratisAPartirDe` em artigos, ou com um
+cupão de portes grátis. A encomenda guarda `peso_kg`.
+
+**O modelo do telemóvel** (as películas, `pedeModelo: true`): cada linha do `/checkout` pode levar
+`"modelo": "Samsung Galaxy A55"` (até 80 caracteres, limpo). Num artigo que o pede, sem modelo: 400. Na
+encomenda fica em `linhas[].modelo` e nas escolhas («Modelo: Samsung Galaxy A55»), por isso aparece nos
+emails, no painel e na página da Stripe.
+
+**Os cupões** (worker/encomendas/cupoes.js) vivem no KV deste Worker, nunca no repositório:
+
+- `cupao:<CÓDIGO>` → a regra `{ codigo, tipo: "percentagem" | "valor" | "portes", valor, minimo?, desde?,
+  ate?, limite?, porCliente?, categorias?, ativo, nota?, criado_em, actualizado_em }`;
+  `cupao-usos:<CÓDIGO>` → o número de usos; `cupao-cliente:<CÓDIGO>:<resumo SHA-256 do email>` → o id da
+  encomenda (400 dias), quando é «um por cliente».
+- `POST /cupao` `{ codigo, entrega, linhas }` (público, CORS, o mesmo travão do `/checkout`) → 200
+  `{ cupao: { codigo, tipo, valor, minimo, categorias, descricao }, desconto_cents }`, ou 400
+  `{ erro, campo: "cupao" }` (não existe, inactivo, fora das datas, abaixo do mínimo, gasto). O carrinho
+  guarda o código e a regra e faz a conta (a mesma de `descontoDoCupao`).
+- `/checkout` com `"cupao": "BEMVINDO"`: o Worker lê a regra, confere tudo outra vez (e o «um por
+  cliente», pelo email) e faz as contas com o desconto: `desconto_cents` (a percentagem arredonda ao
+  cêntimo; o valor fixo nunca passa dos artigos a que se aplica), e `total_cents = artigos − desconto +
+  portes`. Um cupão que deixou de valer: 400 com `campo: "cupao"` (o carrinho tira-o e redesenha). A
+  encomenda guarda `cupao`, `desconto_cents` e, nos de portes, `cupao_portes: true`; a vista pública
+  (`GET /encomenda`) mostra `cupao` e `desconto_cents`.
+- Em modo «online», a Stripe recebe um cupão de uso único com o valor calculado (`POST /coupons`
+  `amount_off`, `max_redemptions: 1`, `name: "Cupão <CÓDIGO>"`) e a sessão leva `discounts: [{ coupon }]`.
+- Os usos contam-se quando a encomenda fica registada (modo «encomenda») ou paga (webhook, uma vez:
+  `cupao_contado`). O KV não tem escrita condicional: dois pedidos ao mesmo tempo podem passar um uso
+  acima do limite.
+- O painel: `GET /painel/cupoes` → `{ cupoes: [regra + usos + descricao] }`; `PUT /painel/cupoes/<CÓDIGO>`
+  com a regra (400 `{ erro, campo }` quando não presta; as categorias conferem-se com o catálogo);
+  `DELETE /painel/cupoes/<CÓDIGO>`.

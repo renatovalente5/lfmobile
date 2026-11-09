@@ -5,6 +5,8 @@
  *                             grava no KV e, em modo «encomenda», manda os emails e devolve o
  *                             número e a chave; em modo «online», abre a página segura da Stripe.
  *   GET  /encomenda?e=&c=     o que a página «obrigado» mostra (sem dados pessoais); ou ?s=<sessão>.
+ *   POST /cupao               o carrinho confere um código: { codigo, linhas, entrega } → a regra
+ *                             pública e o desconto, ou 400 com a frase (cupoes.js).
  *   POST /stripe/webhook      os eventos da Stripe (a fonte da verdade do pagamento).
  *   /painel/…                 as rotas do painel, com o PAINEL_SEGREDO (painel.js).
  *
@@ -18,7 +20,8 @@
 
 import { json, lerCorpoJson } from './http.js';
 import { lerCatalogo, modoDe, siteUrl } from './catalogo.js';
-import { validarPedido, ErroDoPedido, hojeLisboa } from './contas.js';
+import { validarPedido, contas as fazerContas, ErroDoPedido, hojeLisboa } from './contas.js';
+import { lerCupao, porQueNaoVale, publico, contarUso, normalizarCodigo } from './cupoes.js';
 import { criarEncomenda, idLivre, novaChave, lerEncomenda, gravarEncomenda, vistaPublica, iguais, RE_ID, RE_CHAVE, TTL_ENCOMENDA, TTL_EVENTO, agoraISO } from './encomenda.js';
 import { criarSessao, stripeFetch, verificarAssinatura, aplicarEvento, idDoEvento } from './stripe.js';
 import { avisar, falhou } from './email.js';
@@ -86,9 +89,22 @@ async function checkout(request, env, cors) {
   if (modo === 'online' && !env.STRIPE_SECRET_KEY) return json({ erro: 'O pagamento no site não está ligado. Encomende pelo WhatsApp.' }, 503, cors);
 
   const hoje = hojeLisboa();
+  // O cupão: tem de existir e valer hoje, para estes artigos e para este email (o «um por cliente»).
+  // Um cupão que deixou de valer recusa a encomenda com campo «cupao»: o carrinho tira-o e refaz a conta.
+  let cupao = null;
+  if (corpo && corpo.cupao !== undefined && corpo.cupao !== null && corpo.cupao !== '') {
+    cupao = await lerCupao(env, corpo.cupao);
+    let razao = cupao ? null : 'Este cupão não existe ou já não vale.';
+    if (!razao) {
+      let previa = null;
+      try { previa = validarPedido(corpo, cat, modo, hoje); } catch (_) { /* o erro do pedido diz-se a seguir, sem o cupão */ }
+      razao = await porQueNaoVale(env, cupao, { hoje, artigos_cents: previa ? previa.contas.artigos_cents : null, email: corpo.cliente && typeof corpo.cliente.email === 'string' ? corpo.cliente.email : '' });
+    }
+    if (razao) return json({ erro: `${razao} Tirámo-lo do carrinho: veja o total outra vez.`, campo: 'cupao' }, 400, cors);
+  }
   let pedido;
   try {
-    pedido = validarPedido(corpo, cat, modo, hoje);
+    pedido = validarPedido(corpo, cat, modo, hoje, { cupao });
   } catch (e) {
     if (e instanceof ErroDoPedido) return json(e.campo ? { erro: e.message, campo: e.campo } : { erro: e.message }, e.status, cors);
     throw e;
@@ -128,6 +144,11 @@ async function checkout(request, env, cors) {
     console.error('ENCOMENDA NÃO GRAVADA (KV)', id, e.message);
     return json({ erro: 'Não foi possível registar a encomenda agora. Tente daqui a pouco ou fale connosco pelo WhatsApp.' }, 503, cors);
   }
+  // Em modo «encomenda» o cupão conta logo (a encomenda ficou feita); em «online», quando a Stripe
+  // disser que foi paga (webhook).
+  if (enc.cupao) {
+    try { await contarUso(env, enc.cupao, enc.cliente.email, id); } catch (e) { console.error('uso do cupão por contar', id, enc.cupao, e.message); }
+  }
   // Os emails saem antes de responder (num waitUntil um erro não se vê). Uma falha do Resend não
   // apaga a encomenda, que já está gravada: fica registada nela, e só então se grava outra vez.
   const resultado = await avisar(env, 'registada', enc, { cat });
@@ -137,6 +158,32 @@ async function checkout(request, env, cors) {
     try { await gravarEncomenda(env, enc); } catch (e) { console.error('aviso por gravar', id, e.message); }
   }
   return json({ encomenda: id, chave: enc.chave, estado: enc.estado, total_cents: enc.total_cents }, 200, cors);
+}
+
+/* ---------------------------------------------------------------- POST /cupao
+   O carrinho confere um código: as contas com os artigos que lá estão (para o mínimo e as
+   categorias) e as regras do cupão (as datas, o limite de usos; o «um por cliente» só no
+   /checkout, que tem o email). Responde a regra pública e o desconto, para o carrinho fazer a conta.
+   O travão é o mesmo do /checkout: adivinhar códigos à força não passa de 5 por minuto. */
+async function conferirCupao(request, env, cors) {
+  const ip = request.headers.get('CF-Connecting-IP') || 'desconhecido';
+  if (await travado(env, ip)) return json({ erro: 'Demasiadas tentativas. Aguarde um minuto e tente outra vez.' }, 429, cors);
+  const { corpo, resposta } = await lerCorpoJson(request, cors);
+  if (resposta) return resposta;
+  const codigo = normalizarCodigo(corpo.codigo);
+  if (!codigo) return json({ erro: 'Escreva o código do cupão como está (letras e algarismos).', campo: 'cupao' }, 400, cors);
+  const regra = await lerCupao(env, codigo);
+  if (!regra) return json({ erro: 'Este cupão não existe ou já não vale.', campo: 'cupao' }, 400, cors);
+  let cat;
+  try { cat = await lerCatalogo(env); } catch (e) { return json({ erro: 'Não conseguimos confirmar o cupão agora. Tente daqui a um minuto.' }, 503, cors); }
+  const hoje = hojeLisboa();
+  const zona = (Array.isArray(cat.zonas) ? cat.zonas : []).find((z) => z && z.id === corpo.entrega) || (cat.zonas || [])[0];
+  let c = null;
+  try { c = fazerContas(cat, Array.isArray(corpo.linhas) && corpo.linhas.length ? corpo.linhas : [], zona, hoje, { cupao: regra }); } catch (_) { c = null; }
+  const razao = await porQueNaoVale(env, regra, { hoje, artigos_cents: c ? c.artigos_cents : null });
+  if (razao) return json({ erro: razao, campo: 'cupao' }, 400, cors);
+  const nomes = Object.fromEntries((Array.isArray(cat.categorias) ? cat.categorias : []).map((k) => [k.slug, k.nome]));
+  return json({ cupao: publico(regra, nomes), desconto_cents: c ? c.desconto_cents : 0 }, 200, cors);
 }
 
 /* ---------------------------------------------------------------- GET /encomenda */
@@ -214,6 +261,10 @@ async function webhook(request, env) {
   // O índice pi: quando se fica a saber o pagamento (é por ele que um reembolso chega cá).
   const pi = enc.stripe && enc.stripe.payment_intent;
   if (pi && (await env.ORDERS.get(`pi:${pi}`)) !== id) await env.ORDERS.put(`pi:${pi}`, id, { expirationTtl: TTL_ENCOMENDA });
+  // O cupão de uma encomenda paga conta agora (uma vez: a marca cupao_contado).
+  if (enc.cupao && enc.estado === 'paga' && !enc.cupao_contado) {
+    try { await contarUso(env, enc.cupao, (enc.cliente || {}).email, id); enc.cupao_contado = true; } catch (e) { console.error('uso do cupão por contar', id, e.message); }
+  }
   let mudou = JSON.stringify(enc) !== antes;
   if (mudou) await gravarEncomenda(env, enc, { em });
 
@@ -251,10 +302,11 @@ export default {
 
       const cors = corsDe(request, env);
       if (!cors) return json({ erro: 'Origem não autorizada.' }, 403);
-      const publica = caminho === '/checkout' || caminho === '/encomenda';
+      const publica = caminho === '/checkout' || caminho === '/encomenda' || caminho === '/cupao';
       if (request.method === 'OPTIONS') return publica ? new Response(null, { status: 204, headers: cors }) : json({ erro: 'Rota desconhecida.' }, 404, cors);
       if (caminho === '/checkout') return request.method === 'POST' ? await checkout(request, env, cors) : json({ erro: 'Método não permitido.' }, 405, cors);
       if (caminho === '/encomenda') return request.method === 'GET' ? await encomenda(url, env, cors) : json({ erro: 'Método não permitido.' }, 405, cors);
+      if (caminho === '/cupao') return request.method === 'POST' ? await conferirCupao(request, env, cors) : json({ erro: 'Método não permitido.' }, 405, cors);
       if (caminho === '/') return json({ ok: true, servico: 'lfmobile-encomendas' }, 200, cors);
       return json({ erro: 'Rota desconhecida.' }, 404, cors);
     } catch (e) {
