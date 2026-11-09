@@ -240,7 +240,9 @@ DIGI. Sai o ecrã Serviços. As regras novas entram no `regras.mjs` (copiado byt
 ### 13.5 O que falta do dono
 
 - Os preços das reparações (com o nível original, onde o fizer) e os valores da retoma: uma folha
-  de cálculo com as referências do mercado ao lado, para ele escrever os dele.
+  de cálculo com as referências do mercado ao lado, para ele escrever os dele. Feita a 9 nov:
+  `_cliente/notas/LF Mobile — preços e valores para preencher.xlsx` (fora do repositório). Quando
+  voltar, os números passam para `reparacoes.json` e `retoma.json`, com `confirmado: true`.
 - Os preços das películas de vidro (a de hidrogel é 12,50 €).
 - Retoma: como paga (dinheiro, transferência, desconto numa compra?) e se recebe por envio.
 - Se as reparações e a retoma ficam mesmo só Apple e Samsung (perguntado no WhatsApp a 9 nov, sem
