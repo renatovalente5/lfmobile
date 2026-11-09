@@ -1,0 +1,37 @@
+{
+  "nome": "iPhone 13 128 GB",
+  "nomeCurto": "iPhone 13 128 GB",
+  "marca": "Apple",
+  "fotos": [
+    "loja-letreiro"
+  ],
+  "resumo": "Excelente estado, com bateria saudável.",
+  "descricao": "Rápido, com óptimas câmaras e anos de actualizações pela frente.",
+  "preco": 279.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "recondicionado",
+  "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "128 GB",
+    "Bateria a 89 %",
+    "Grade A+",
+    "Testado na loja"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "recondicionados",
+  "destaque": true,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 30
+}

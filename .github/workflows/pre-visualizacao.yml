@@ -61,6 +61,8 @@ jobs:
       # falhar, fica no ar a publicação anterior.
       - name: Testar o gerador
         run: node scripts/testar.mjs
+        env:
+          PYTHON: python # o do setup-python, com o Pillow (as imagens do conteúdo de ensaio)
       - name: Construir a pré-visualização
         run: node scripts/build.mjs --base=/lfmobile --sem-imagens
       - name: Conferir o que sai

@@ -1,0 +1,34 @@
+{
+  "nome": "Samsung Galaxy S25 128 GB",
+  "nomeCurto": "Samsung Galaxy S25 128 GB",
+  "marca": "Samsung",
+  "fotos": [
+    "loja-letreiro"
+  ],
+  "resumo": "O topo de gama compacto da Samsung, novo e selado.",
+  "descricao": "O topo de gama compacto da Samsung: ecrã brilhante, câmaras de referência e vários anos de actualizações. Fazemos a configuração e a passagem dos seus dados na loja, se quiser.",
+  "preco": 589.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "128 GB de armazenamento"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "telemoveis",
+  "destaque": true,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 20
+}

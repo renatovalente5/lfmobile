@@ -1,0 +1,44 @@
+[
+  {
+    "slug": "telemoveis",
+    "nome": "Telemóveis",
+    "titulo": "Telemóveis novos",
+    "resumo": "Novos, selados e com a garantia do fabricante."
+  },
+  {
+    "slug": "recondicionados",
+    "nome": "Recondicionados",
+    "titulo": "Telemóveis recondicionados",
+    "resumo": "Testados na loja, com a bateria e o estado em cada ficha."
+  },
+  {
+    "slug": "tablets",
+    "nome": "Tablets",
+    "titulo": "Tablets",
+    "resumo": "Para estudar, trabalhar e ver filmes."
+  },
+  {
+    "slug": "smartwatches",
+    "nome": "Smartwatches",
+    "titulo": "Smartwatches e pulseiras",
+    "resumo": "Relógios e pulseiras inteligentes para o dia a dia e o desporto."
+  },
+  {
+    "slug": "audio",
+    "nome": "Áudio",
+    "titulo": "Auriculares e auscultadores",
+    "resumo": "Sem fios, para iPhone e Android."
+  },
+  {
+    "slug": "acessorios",
+    "nome": "Acessórios",
+    "titulo": "Acessórios e películas",
+    "resumo": "Películas aplicadas na loja, capas, localizadores e mais."
+  },
+  {
+    "slug": "outros",
+    "nome": "Outros",
+    "titulo": "Outros artigos",
+    "resumo": "O que vai chegando à loja."
+  }
+]

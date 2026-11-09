@@ -1,0 +1,32 @@
+{
+  "nome": "Huawei Watch D2",
+  "nomeCurto": "Huawei Watch D2",
+  "marca": "Huawei",
+  "fotos": [
+    "loja-letreiro"
+  ],
+  "resumo": "O relógio que mede a pressão arterial no pulso.",
+  "descricao": "Mede a pressão arterial no pulso e acompanha o sono, o ritmo cardíaco e o exercício, num relógio elegante.",
+  "preco": 299.9,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "smartwatches",
+  "destaque": true,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 10
+}

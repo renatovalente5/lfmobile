@@ -6,6 +6,12 @@
 // Cada guarda prova-se nos dois sentidos: o site normal passa, e uma cópia estragada de propósito pára
 // com a mensagem certa. As cópias fazem-se numa pasta temporária (nunca se mexe no repositório).
 // Os testes do Worker das encomendas são dele (worker/encomendas/test/); os do painel são do painel.
+//
+// O CONTEÚDO DE ENSAIO: os testes usam scripts/testes/conteudo (uma cópia congelada do conteúdo a 9 nov
+// 2026, com cinco artigos) e scripts/testes/fotos, NUNCA o content/ do commit. O content/ é do dono,
+// que o muda no painel: preencher o NIF, ligar a Stripe ou esconder um artigo não pode parar a
+// publicação neste passo (achado ao fazer o painel). Um problema no conteúdo verdadeiro pára no passo
+// seguinte, o do gerador, que escreve as razões para o painel (::error).
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -58,12 +64,13 @@ teste('opcoesDe: um grupo precisa de dois valores; o acréscimo só conta se for
   assert.equal(o.length, 1);
   assert.deepEqual(o[0].valores.map((v) => v.suplemento), [0, 5, 0]);
 });
-teste('o conteúdo do repositório não tem problemas que bloqueiem a pré-visualização', () => {
+teste('o conteúdo de ensaio não tem problemas que bloqueiem a pré-visualização, e tem os lembretes dos dados legais', () => {
+  const E = 'scripts/testes/conteudo';
   const dados = {
-    site: ler('content/site.json'), inicio: ler('content/inicio.json'), categorias: ler('content/categorias.json'),
-    servicos: ler('content/servicos.json'), fotos: ler('content/fotos.json'),
-    artigos: Object.fromEntries(fs.readdirSync(path.join(RAIZ, 'content/produtos')).filter((f) => f.endsWith('.json')).map((f) => [f.slice(0, -5), ler(`content/produtos/${f}`)])),
-    ficheirosFotos: fs.readdirSync(path.join(RAIZ, 'media/fotos')).filter((f) => f.endsWith('.jpg')).map((f) => f.slice(0, -4)),
+    site: ler(`${E}/site.json`), inicio: ler(`${E}/inicio.json`), categorias: ler(`${E}/categorias.json`),
+    servicos: ler(`${E}/servicos.json`), fotos: ler(`${E}/fotos.json`),
+    artigos: Object.fromEntries(fs.readdirSync(path.join(RAIZ, E, 'produtos')).filter((f) => f.endsWith('.json')).map((f) => [f.slice(0, -5), ler(`${E}/produtos/${f}`)])),
+    ficheirosFotos: fs.readdirSync(path.join(RAIZ, 'scripts/testes/fotos')).filter((f) => f.endsWith('.jpg')).map((f) => f.slice(0, -4)),
     videos: [],
   };
   const lista = R.problemas(dados, { hoje: hojeEmLisboa(), producao: false });
@@ -73,7 +80,7 @@ teste('o conteúdo do repositório não tem problemas que bloqueiem a pré-visua
 });
 teste('um artigo sem nome é escondido do site (neutralizado), não pára a publicação; um são não tem problemas', () => {
   const base = { nome: 'Coisa', categoria: 'acessorios', preco: 10, fotos: ['loja-fachada'] };
-  const ctx = { nome: 'coisa', categorias: ler('content/categorias.json'), fotos: ler('content/fotos.json'), videos: [], hoje: hojeEmLisboa() };
+  const ctx = { nome: 'coisa', categorias: ler('scripts/testes/conteudo/categorias.json'), fotos: ler('scripts/testes/conteudo/fotos.json'), videos: [], hoje: hojeEmLisboa() };
   const semNome = R.problemasDoArtigo({ ...base, nome: '' }, ctx);
   assert.ok(semNome.some((p) => p.neutralizacao === 'esconder' || /escondid/i.test(p.mensagem)), JSON.stringify(semNome));
   assert.deepEqual(R.problemasDoArtigo(base, ctx).filter((p) => p.classe === 'bloqueia'), []);
@@ -102,14 +109,23 @@ teste('o carrinho usa a mesma regra de preço das regras (precoDe copiada) e a c
 });
 
 // ---------------------------------------------------------------- construções numa cópia
-if (!fs.existsSync(path.join(RAIZ, '.cache', 'imagens', 'manifesto.json'))) {
-  console.error('\nFaltam as imagens: corre primeiro «python3 scripts/imagens.py».');
-  process.exit(1);
-}
+/* A base: o site (o gerador, os modelos, o media/ que não é do dono) com o conteúdo e as fotografias de
+   ensaio no lugar do content/ e do media/fotos/, e as imagens feitas uma vez. Cada teste copia a base. */
 const temporaria = fs.mkdtempSync(path.join(os.tmpdir(), 'lfmobile-teste-'));
+const base = path.join(temporaria, 'base');
+fs.cpSync(RAIZ, base, {
+  recursive: true,
+  filter: (f) => { const rel = f.slice(RAIZ.length); return !/^\/(\.git|_site|_cliente|node_modules|\.wrangler|\.cache|content|media\/fotos)(\/|$)/.test(rel); },
+});
+fs.cpSync(path.join(RAIZ, 'scripts/testes/conteudo'), path.join(base, 'content'), { recursive: true });
+fs.cpSync(path.join(RAIZ, 'scripts/testes/fotos'), path.join(base, 'media/fotos'), { recursive: true });
+{
+  const r = spawnSync(process.env.PYTHON || 'python3', ['scripts/imagens.py'], { cwd: base, encoding: 'utf8' });
+  if (r.status !== 0) { console.error(`\nAs imagens do conteúdo de ensaio falharam (precisa do Pillow):\n${r.stdout}\n${r.stderr}`); process.exit(1); }
+}
 function copia(nome, mexer = () => {}) {
   const destino = path.join(temporaria, nome);
-  fs.cpSync(RAIZ, destino, { recursive: true, filter: (f) => !/\/(\.git|_site|_cliente|node_modules|\.wrangler)(\/|$)/.test(f.slice(RAIZ.length)) });
+  fs.cpSync(base, destino, { recursive: true });
   mexer(destino);
   return destino;
 }

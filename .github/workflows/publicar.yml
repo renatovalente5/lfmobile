@@ -63,6 +63,8 @@ jobs:
         run: python scripts/imagens.py
       - name: Testar o gerador
         run: node scripts/testar.mjs
+        env:
+          PYTHON: python # o do setup-python, com o Pillow (as imagens do conteúdo de ensaio)
       - name: Construir
         run: node scripts/build.mjs --producao --sem-imagens
       # O que o job «publicar» precisa, num ficheiro só: o site, o script do www e a

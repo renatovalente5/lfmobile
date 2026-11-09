@@ -1,0 +1,34 @@
+{
+  "nome": "Película de hidrogel aplicada",
+  "nomeCurto": "Película de hidrogel aplicada",
+  "marca": "",
+  "fotos": [
+    "loja-letreiro"
+  ],
+  "resumo": "Cortada à medida do seu telemóvel e aplicada na hora, na loja.",
+  "descricao": "Cortada à medida do seu telemóvel e aplicada na hora, sem bolhas. Protege contra riscos e impactos e mantém o toque suave.",
+  "preco": 12.5,
+  "precoAnterior": null,
+  "promocaoDesde": "",
+  "promocaoAte": "",
+  "estado": "novo",
+  "disponibilidade": "loja",
+  "caracteristicas": [
+    "Na 6.ª película, oferecemos uma"
+  ],
+  "inclui": [],
+  "opcoes": [],
+  "video": "",
+  "referencia": "",
+  "fabricante": {
+    "nome": "",
+    "morada": "",
+    "email": ""
+  },
+  "avisos": "",
+  "categoria": "acessorios",
+  "destaque": true,
+  "novidade": false,
+  "publicado": true,
+  "ordem": 80
+}

@@ -1,0 +1,35 @@
+{
+  "seo": {
+    "titulo": "LF Mobile — Reparação de telemóveis e loja de tecnologia em São Roque, Oliveira de Azeméis",
+    "descricao": "Reparação de smartphones, tablets, computadores e consolas com orçamento gratuito. Telemóveis novos e recondicionados, acessórios e películas. Em São Roque, Oliveira de Azeméis, com envios para Portugal Continental."
+  },
+  "capa": {
+    "titulo": "Reparamos, vendemos e cuidamos da sua tecnologia.",
+    "texto": "Reparações com orçamento gratuito, telemóveis novos e recondicionados e envios para todo o continente.",
+    "botao": "Pedir orçamento",
+    "ligacao": "/reparacoes/",
+    "botao2": "Ver a loja",
+    "ligacao2": "/loja/",
+    "foto": "loja-letreiro"
+  },
+  "destaques": {
+    "titulo": "Na loja",
+    "texto": "",
+    "botao": "Ver toda a loja"
+  },
+  "reparacoes": {
+    "titulo": "Do ecrã partido ao portátil que aquece.",
+    "texto": "Diagnóstico e orçamento gratuitos, peças de qualidade e garantia.",
+    "botao": "Pedir orçamento gratuito"
+  },
+  "retoma": {
+    "titulo": "Tem um telemóvel parado?",
+    "texto": "Diga-nos o modelo e o estado e respondemos com uma proposta.",
+    "botao": "Pedir proposta"
+  },
+  "loja": {
+    "titulo": "A loja",
+    "texto": "",
+    "foto": "loja-fachada"
+  }
+}
