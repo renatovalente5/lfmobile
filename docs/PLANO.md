@@ -229,13 +229,18 @@ tarifas da Nacex); a linha da encomenda leva o modelo escrito pelo cliente; os p
 /painel/cupoes` para o painel; os emails e o resumo com o desconto. O contrato está no
 `docs/ENCOMENDAS.md`.
 
-### 13.4 O que muda no painel (depois do site)
+### 13.4 O que muda no painel (feito a 10 nov 2026)
 
-Ecrãs novos: Campanhas, Cupões (fala com o Worker), Reparações (os preços por modelo numa
-tabela, os níveis, «Confirmo os preços»), Retoma (os valores por modelo e capacidade, os
-descontos de cada resposta, «Confirmo os valores»), Modelos (acrescentar o iPhone que sair). Na
-ficha do artigo: o peso e «pede o modelo». Em Dados da loja: a Nacex e as duas tarifas; sai a
-DIGI. Sai o ecrã Serviços. As regras novas entram no `regras.mjs` (copiado byte a byte).
+Ecrãs novos: **Reparações** (a marca e a família, a procura, os preços de cada modelo numa grelha
+— o ecrã por nível —, um modelo novo no princípio da família, «Ajustar os preços desta família» por
+uma percentagem), **Retoma** (os valores por modelo e capacidade, o que fica com cada resposta ou
+«Avaliamos na loja», as formas de receber e de entregar, o mínimo), **Campanhas** e **Cupões** (no
+Worker das encomendas, sem passar pelo repositório). As capacidades de um modelo escolhem-se na ficha
+dele. Na ficha do artigo: o peso e «pede o modelo»; nas Categorias, o peso. Em Dados da loja: a
+transportadora e os escalões dos portes; saiu a DIGI. Saiu o ecrã Serviços. Os preços e os valores
+já estão confirmados (§13.6): o painel não mostra o «Confirmo». As regras entram no `regras.mjs`
+(copiado byte a byte); todos os artigos têm o `pedeModelo` escrito (o painel escreve sempre os
+interruptores).
 
 ### 13.5 O que falta do dono
 
