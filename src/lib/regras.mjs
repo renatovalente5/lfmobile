@@ -178,10 +178,10 @@ export const RE_ALEGACOES = /\b(ecol[óo]gic[oa]s?|sustent[áa]ve(l|is)|sustenta
 
 /* Os desenhos que um tipo de reparação pode ter (a grelha de ícones do painel; o site
    desenha-os em src/templates/icones.mjs). */
-export const ICONES_REPARACAO = Object.freeze(['ecra', 'bateria', 'traseira', 'camara', 'camara-frontal', 'lente', 'conector', 'botoes', 'som', 'rosto', 'agua', 'software', 'diagnostico', 'pelicula']);
+export const ICONES_REPARACAO = Object.freeze(['ecra', 'bateria', 'traseira', 'camara', 'camara-frontal', 'lente', 'conector', 'botoes', 'som', 'rosto', 'agua', 'software', 'diagnostico', 'pelicula', 'temperatura', 'ventoinha', 'hdmi', 'disco', 'fonte', 'comando', 'placa']);
 /* Os tipos de aparelho (o desenho de cada modelo nas reparações e na retoma). */
-export const DESENHOS = Object.freeze(['iphone-botao', 'iphone-entalhe', 'iphone-ilha', 'iphone-duo', 'galaxy', 'galaxy-flip', 'galaxy-fold', 'tablet', 'relogio']);
-export const TIPOS_FAMILIA = Object.freeze({ telemovel: 'Telemóvel', tablet: 'Tablet', relogio: 'Relógio' });
+export const DESENHOS = Object.freeze(['iphone-botao', 'iphone-entalhe', 'iphone-ilha', 'iphone-duo', 'galaxy', 'galaxy-flip', 'galaxy-fold', 'tablet', 'relogio', 'consola']);
+export const TIPOS_FAMILIA = Object.freeze({ telemovel: 'Telemóvel', tablet: 'Tablet', relogio: 'Relógio', consola: 'Consola' });
 
 /* ------------------------------------------------------------------ */
 /* Ajudantes que o painel e o Worker também usam                      */
@@ -901,7 +901,7 @@ export function aparelhosDe(valor) {
       id: m.id, nome: m.nome.trim(), familia: f.id, marca: f.marca, tipo: f.tipo,
       ano: Number.isInteger(m.ano) ? m.ano : null,
       capacidades: Array.isArray(m.capacidades) && m.capacidades.every((c) => Number.isInteger(c) && c > 0 && c <= 4096) ? [...m.capacidades] : [],
-      desenho: DESENHOS.includes(m.desenho) ? m.desenho : (f.tipo === 'tablet' ? 'tablet' : f.tipo === 'relogio' ? 'relogio' : 'galaxy'),
+      desenho: DESENHOS.includes(m.desenho) ? m.desenho : (['tablet', 'relogio', 'consola'].includes(f.tipo) ? f.tipo : 'galaxy'),
     };
     porId.set(x.id, x);
     modelos.push(x);

@@ -369,6 +369,39 @@ teste('sem a ligação das opiniões, a faixa do rodapé não mostra a nota do G
   assert.doesNotMatch(faixa, /no Google/);
   assert.match(faixa, /<strong>Orçamento grátis<\/strong>/);
 });
+teste('as consolas: a PlayStation tem os problemas dela (não os dos telemóveis), diz-se «da PlayStation», sem películas, e a procura acha «ps5»', () => {
+  const pasta = copia('consolas', (p) => {
+    json(p, 'content/aparelhos.json', (a) => {
+      a.marcas.push({ id: 'sony', nome: 'Sony' });
+      a.familias.push({ id: 'playstation', marca: 'sony', nome: 'PlayStation', tipo: 'consola' });
+      a.modelos.push({ id: 'playstation-5', nome: 'PlayStation 5', familia: 'playstation', ano: 2020, desenho: 'consola' });
+    });
+    json(p, 'content/reparacoes.json', (r) => {
+      r.tipos.splice(2, 0, { id: 'hdmi', nome: 'Porta HDMI', titulo: 'Reparação da porta HDMI', icone: 'hdmi', resumo: 'Sem imagem na televisão.', familias: ['playstation'] });
+      r.tipos.find((t) => t.id === 'diagnostico').familias.push('playstation');
+      r.precos['playstation-5'] = { hdmi: 89.9 };
+    });
+  });
+  assert.equal(construir(pasta).codigo, 0);
+  const ler2 = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  const ps5 = ler2('reparacoes/playstation-5/index.html');
+  assert.match(ps5, /<span class="rep__nome">Reparação da porta HDMI<\/span>[\s\S]*?89,90/);
+  assert.doesNotMatch(ps5, /data-rep="ecra"|data-rep="bateria"/, 'só os problemas da consola');
+  assert.match(ps5, /<legend class="visualmente-escondido">Reparações da PlayStation 5<\/legend>/);
+  assert.match(ps5, /<meta name="description" content="Reparação da PlayStation 5 /);
+  assert.match(ps5, /<title>Reparação PlayStation 5 — porta HDMI, limpeza e mais/);
+  assert.doesNotMatch(ps5, /modelo-peliculas/, 'películas não, numa consola');
+  assert.match(ps5, /<use href="#ap-consola"\/>/);
+  assert.match(ler2('reparacoes/playstation/index.html'), /reparar%20a%20minha%20PlayStation/);
+  // a grelha dos problemas é a dos telemóveis; a PlayStation aparece no rodapé
+  const rep = ler2('reparacoes/index.html');
+  assert.doesNotMatch(rep.match(/<ul class="problemas__grelha"[\s\S]*?<\/ul>/)[0], /data-problema="hdmi"/);
+  assert.match(rep, /<li><a href="\/reparacoes\/playstation\/">PlayStation<\/a><\/li>/);
+  // a procura: «ps5» e «consola»
+  const busca = JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets', fs.readdirSync(path.join(pasta, '_site/assets')).find((x) => /^busca-[0-9a-f]+\.json$/.test(x))), 'utf8'));
+  const m = busca.modelos.find((x) => x.n === 'PlayStation 5');
+  assert.ok(m && m.t.includes('ps5') && m.t.includes('consola'), JSON.stringify(m));
+});
 teste('em produção, os preços das reparações e os valores da retoma por confirmar não aparecem; confirmados, aparecem', () => {
   const pasta = copia('reparacoes-producao', (p) => json(p, 'content/site.json', preencherDadosLegais));
   assert.equal(construir(pasta, '--producao').codigo, 0);

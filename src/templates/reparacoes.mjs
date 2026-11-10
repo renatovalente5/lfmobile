@@ -19,6 +19,9 @@ import { reparacoesDoModelo } from '../lib/regras.mjs';
 const nomeMarca = (ctx, id) => (ctx.aparelhos.marcas.find((m) => m.id === id) || {}).nome || '';
 const familiaDe = (ctx, id) => ctx.aparelhos.familias.find((f) => f.id === id);
 const modelosDaFamilia = (ctx, id) => ctx.aparelhos.modelos.filter((m) => m.familia === id);
+/* «do iPhone», mas «da PlayStation»: as consolas dizem-se no feminino («a PS5»). */
+const doAparelho = (x) => (x?.tipo === 'consola' ? 'da' : 'do');
+const oMeu = (x) => (x?.tipo === 'consola' ? 'a minha' : 'o meu');
 
 /* O preço de uma reparação, como se diz na lista: «129,90 €», «desde 129,90 €», «Grátis» ou
    «Orçamento grátis». */
@@ -65,7 +68,9 @@ export function seletorDeModelo(ctx, { id = 'escolher', destino = 'reparacoes', 
 /* A GRELHA DOS PROBLEMAS (a da iServices): o desenho e o nome de cada um; tocar abre a explicação e
    os sintomas por baixo. Sem JavaScript, as explicações estão todas à vista, uma a seguir à outra. */
 export function grelhaDosProblemas(ctx, { titulo, texto = '', ligacaoModelo = '#escolher', comPeliculas = true } = {}) {
-  const tipos = ctx.tiposReparacao;
+  // os problemas dos telemóveis: os das consolas (HDMI, leitor, comandos…) estão na página de cada uma
+  const deTelemovel = new Set(ctx.aparelhos.familias.filter((f) => f.tipo === 'telemovel').map((f) => f.id));
+  const tipos = ctx.tiposReparacao.filter((t) => t.familias.some((f) => deTelemovel.has(f)));
   const peliculas = comPeliculas && ctx.produtos.some((p) => p.categoria === 'peliculas');
   return `<section class="problemas" aria-labelledby="problemas-titulo" data-problemas>
   <div class="seccao__cabeca seccao__cabeca--centro">
@@ -110,7 +115,7 @@ export function reparacoes(ctx) {
     <div class="rep-capa__texto">
       <p class="rotulo rotulo--claro">Reparações</p>
       <h1 class="rep-capa__titulo">Reparação de telemóveis, com o preço à vista.</h1>
-      <p class="rep-capa__sub">Todas as marcas. Escolha o seu modelo e veja quanto custa. Diagnóstico e orçamento grátis, na loja ou pelo WhatsApp.</p>
+      <p class="rep-capa__sub">Telemóveis de todas as marcas, tablets, relógios e consolas PlayStation. Escolha o seu modelo e veja quanto custa. Diagnóstico e orçamento grátis, na loja ou pelo WhatsApp.</p>
       <ul class="rep-capa__pontos">
         <li>${icones.certo}Orçamento grátis e sem compromisso</li>
         <li>${icones.certo}Ecrã compatível ou original, à escolha</li>
@@ -128,10 +133,10 @@ export function reparacoes(ctx) {
   return {
     caminho: '/reparacoes/',
     titulo: 'Reparação de telemóveis de todas as marcas — preços por modelo',
-    descricao: `Reparação de iPhone, Samsung, Xiaomi, Huawei, OPPO e outras marcas em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ecrã, bateria, traseira, câmaras, carregamento. Veja o preço do seu modelo; orçamento grátis.`,
+    descricao: `Reparação de telemóveis de todas as marcas, tablets, relógios e consolas PlayStation em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}. Veja o preço do seu modelo; orçamento grátis.`,
     classe: 'pagina-reparacoes',
     jsonld: [m.ld, {
-      '@context': 'https://schema.org', '@type': 'Service', name: 'Reparação de telemóveis, tablets e relógios de todas as marcas', provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },
+      '@context': 'https://schema.org', '@type': 'Service', name: 'Reparação de telemóveis, tablets, relógios e consolas', provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },
       hasOfferCatalog: { '@type': 'OfferCatalog', name: 'Reparações', itemListElement: ctx.tiposReparacao.map((t) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: t.titulo, description: t.resumo } })) },
     }],
     conteudo,
@@ -154,12 +159,12 @@ export function familia(ctx, f) {
   <ul class="modelos-grelha">
     ${lista.map((x) => `<li><a class="modelo-cartao" href="${ctx.url(`/reparacoes/${x.id}/`)}">${usarAparelho(x.desenho)}<span class="modelo-cartao__nome">${esc(x.nome)}</span>${x.ano ? `<span class="modelo-cartao__ano">${x.ano}</span>` : ''}</a></li>`).join('')}
   </ul>
-  ${convite(ctx, { titulo: 'O seu modelo não está na lista? Pergunte-nos.', texto: `Olá! Queria um orçamento para reparar o meu ${f.nome}: ` })}
+  ${convite(ctx, { titulo: 'O seu modelo não está na lista? Pergunte-nos.', texto: `Olá! Queria um orçamento para reparar ${oMeu(f)} ${f.nome}: ` })}
 </div>`;
   return {
     caminho,
     titulo: `Reparação ${f.nome} — escolha o modelo`,
-    descricao: `Reparação de ${f.nome} em ${ctx.site.local.localidade}: ${lista.slice(0, 6).map((x) => x.nome).join(', ')} e outros. Ecrã, bateria e mais, com o preço de cada modelo.`,
+    descricao: `Reparação de ${f.nome} em ${ctx.site.local.localidade}: ${lista.slice(0, 6).map((x) => x.nome).join(', ')} e outros. ${f.tipo === 'consola' ? 'Porta HDMI, limpeza, comandos' : 'Ecrã, bateria'} e mais, com o preço de cada modelo.`,
     classe: 'pagina-familia',
     jsonld: [m.ld],
     conteudo,
@@ -195,7 +200,7 @@ export function modelo(ctx, x) {
       </fieldset>` : ''}
     </div>`;
   }).join('\n');
-  const peliculas = ctx.produtos.filter((p) => p.categoria === 'peliculas' && p.pedeModelo === true).slice(0, 4);
+  const peliculas = x.tipo === 'consola' ? [] : ctx.produtos.filter((p) => p.categoria === 'peliculas' && p.pedeModelo === true).slice(0, 4);
   const irmaos = modelosDaFamilia(ctx, f.id).filter((y) => y.id !== x.id);
   const msgBase = `Olá! Quero marcar uma reparação.\n\nEquipamento: ${x.nome}`;
   const conteudo = `<div class="contentor modelo-pagina" data-modelo="${esc(x.id)}" data-nome-modelo="${esc(x.nome)}"${porConfirmar ? ' data-por-confirmar="sim"' : ''}>
@@ -212,7 +217,7 @@ export function modelo(ctx, x) {
   <div class="modelo-grelha">
     <form class="reps" data-reparacoes novalidate>
       <fieldset class="reps__lista">
-        <legend class="visualmente-escondido">Reparações do ${esc(x.nome)}</legend>
+        <legend class="visualmente-escondido">Reparações ${doAparelho(x)} ${esc(x.nome)}</legend>
         ${lista}
       </fieldset>
     </form>
@@ -243,8 +248,8 @@ ${spriteAparelhos()}`;
   const comPreco = ctx.producao ? reps.filter((r) => r.preco !== null && !r.porConfirmar) : [];
   return {
     caminho,
-    titulo: `Reparação ${x.nome} — ecrã, bateria e mais`,
-    descricao: `Reparação do ${x.nome} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ${reps.slice(0, 5).map((r) => r.nome.toLowerCase()).join(', ')}. Veja o preço e marque pelo WhatsApp; diagnóstico grátis.`.slice(0, 160),
+    titulo: `Reparação ${x.nome} — ${x.tipo === 'consola' ? 'porta HDMI, limpeza e mais' : 'ecrã, bateria e mais'}`,
+    descricao: `Reparação ${doAparelho(x)} ${x.nome} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ${reps.slice(0, 5).map((r) => r.nome.toLowerCase()).join(', ')}. Veja o preço e marque pelo WhatsApp; diagnóstico grátis.`.slice(0, 160),
     classe: 'pagina-modelo',
     jsonld: [m.ld, {
       '@context': 'https://schema.org', '@type': 'Service', name: `Reparação ${x.nome}`, provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },

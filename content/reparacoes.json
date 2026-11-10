@@ -494,6 +494,164 @@
       ]
     },
     {
+      "id": "limpeza",
+      "nome": "Limpeza e pasta térmica",
+      "titulo": "Limpeza interna e pasta térmica",
+      "icone": "temperatura",
+      "resumo": "Aquece, faz muito barulho ou desliga-se a meio do jogo.",
+      "sintomas": [
+        "Ventoinha muito barulhenta",
+        "Desliga-se sozinha a meio do jogo",
+        "Muito quente ao toque"
+      ],
+      "familias": [
+        "playstation"
+      ]
+    },
+    {
+      "id": "hdmi",
+      "nome": "Porta HDMI",
+      "titulo": "Reparação da porta HDMI",
+      "icone": "hdmi",
+      "resumo": "Sem imagem na televisão, ou a imagem falha e pisca.",
+      "sintomas": [
+        "Sem imagem, com a consola ligada",
+        "A imagem falha ou pisca",
+        "Porta torta ou partida"
+      ],
+      "familias": [
+        "playstation"
+      ]
+    },
+    {
+      "id": "ventoinha",
+      "nome": "Ventoinha",
+      "titulo": "Troca da ventoinha",
+      "icone": "ventoinha",
+      "resumo": "A ventoinha não roda, ou faz ruído mesmo depois de limpa.",
+      "sintomas": [
+        "A ventoinha não roda",
+        "Ruído de raspar ou de avião",
+        "Aviso de temperatura"
+      ],
+      "familias": [
+        "playstation"
+      ]
+    },
+    {
+      "id": "fonte",
+      "nome": "Fonte de alimentação",
+      "titulo": "Troca da fonte de alimentação",
+      "icone": "fonte",
+      "resumo": "Não liga, ou desliga-se de repente.",
+      "sintomas": [
+        "Não liga, sem luz nenhuma",
+        "Desliga-se de repente",
+        "Cheiro a queimado"
+      ],
+      "familias": [
+        "playstation"
+      ]
+    },
+    {
+      "id": "leitor",
+      "nome": "Leitor de discos",
+      "titulo": "Reparação do leitor de discos",
+      "icone": "disco",
+      "resumo": "Não lê os jogos, não aceita o disco ou não o deita fora.",
+      "sintomas": [
+        "Não lê os discos",
+        "Não aceita ou não deita fora o disco",
+        "Faz barulho a ler"
+      ],
+      "familias": [
+        "playstation"
+      ]
+    },
+    {
+      "id": "comando",
+      "nome": "Analógicos do comando",
+      "titulo": "Troca dos analógicos do comando",
+      "icone": "comando",
+      "resumo": "A personagem anda sozinha ou a mira foge (drift).",
+      "sintomas": [
+        "A personagem anda sozinha",
+        "A mira desvia sem tocar",
+        "Analógico solto ou preso"
+      ],
+      "familias": [
+        "playstation"
+      ]
+    },
+    {
+      "id": "comando-bateria",
+      "nome": "Bateria do comando",
+      "titulo": "Bateria ou carregamento do comando",
+      "icone": "bateria",
+      "resumo": "O comando não carrega ou descarrega depressa.",
+      "sintomas": [
+        "Não carrega com o cabo",
+        "Descarrega em pouco tempo",
+        "Só funciona ligado ao cabo"
+      ],
+      "familias": [
+        "playstation"
+      ]
+    },
+    {
+      "id": "placa",
+      "nome": "Placa (microsoldadura)",
+      "titulo": "Reparação da placa (microsoldadura)",
+      "icone": "placa",
+      "orcamento": true,
+      "resumo": "Não liga, não carrega ou ficou sem imagem depois de uma queda ou de um curto-circuito: reparamos a placa.",
+      "sintomas": [
+        "Não liga, mesmo com a bateria ou a fonte boas",
+        "Sem imagem ou sem rede depois de uma queda",
+        "Curto-circuito ou peças queimadas na placa"
+      ],
+      "familias": [
+        "iphone",
+        "ipad",
+        "galaxy-s",
+        "galaxy-z",
+        "galaxy-a",
+        "galaxy-note",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "galaxy-tab",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "xiaomi-pad",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "huawei-matepad",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "playstation",
+        "tcl",
+        "tcl-tab",
+        "nokia",
+        "zte",
+        "alcatel"
+      ]
+    },
+    {
       "id": "liquidos",
       "nome": "Líquidos",
       "titulo": "Danos por líquidos",
@@ -601,7 +759,8 @@
         "tcl-tab",
         "nokia",
         "zte",
-        "alcatel"
+        "alcatel",
+        "playstation"
       ]
     },
     {
@@ -655,7 +814,8 @@
         "tcl-tab",
         "nokia",
         "zte",
-        "alcatel"
+        "alcatel",
+        "playstation"
       ],
       "gratis": true
     }
@@ -6183,6 +6343,66 @@
       "bateria": 44.95,
       "camara-traseira": 49.95,
       "conector": 39.95
+    },
+    "playstation-5-pro": {
+      "limpeza": 59.9,
+      "hdmi": 89.9,
+      "ventoinha": 79.9,
+      "fonte": 129.9,
+      "leitor": 99.9,
+      "comando": 29.9,
+      "comando-bateria": 29.9,
+      "software": 29.9
+    },
+    "playstation-5-slim": {
+      "limpeza": 59.9,
+      "hdmi": 89.9,
+      "ventoinha": 79.9,
+      "fonte": 129.9,
+      "leitor": 99.9,
+      "comando": 29.9,
+      "comando-bateria": 29.9,
+      "software": 29.9
+    },
+    "playstation-5": {
+      "limpeza": 59.9,
+      "hdmi": 89.9,
+      "ventoinha": 79.9,
+      "fonte": 129.9,
+      "leitor": 99.9,
+      "comando": 29.9,
+      "comando-bateria": 29.9,
+      "software": 29.9
+    },
+    "playstation-4-pro": {
+      "limpeza": 49.9,
+      "hdmi": 69.9,
+      "ventoinha": 59.9,
+      "fonte": 89.9,
+      "leitor": 79.9,
+      "comando": 24.9,
+      "comando-bateria": 24.9,
+      "software": 29.9
+    },
+    "playstation-4-slim": {
+      "limpeza": 49.9,
+      "hdmi": 69.9,
+      "ventoinha": 59.9,
+      "fonte": 89.9,
+      "leitor": 79.9,
+      "comando": 24.9,
+      "comando-bateria": 24.9,
+      "software": 29.9
+    },
+    "playstation-4": {
+      "limpeza": 49.9,
+      "hdmi": 69.9,
+      "ventoinha": 59.9,
+      "fonte": 89.9,
+      "leitor": 79.9,
+      "comando": 24.9,
+      "comando-bateria": 24.9,
+      "software": 29.9
     }
   }
 }

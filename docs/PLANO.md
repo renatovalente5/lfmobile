@@ -310,3 +310,24 @@ iPhone não tinha artigos novos (os iPhone estão em Recondicionados) e escondia
    quando ela aparece), e na capa a escolha do modelo passou para baixo do texto e da fotografia, a toda
    a largura do cartão (cortava «Escolha o modelo»).
 
+### 13.8 O dono, 10 nov: «Sim reparo consolas! Sony!» e «Também faço reparações de Apple Watch»
+
+Respostas no WhatsApp às duas perguntas de 9 nov (dos computadores não disse nada: ficam de fora). O
+**Apple Watch** já estava nas reparações desde 9 nov (15 modelos, preços da iServices): fica. As
+**consolas** entram como a família `playstation` da Sony (tipo `consola`, desenho `consola`: uma torre
+qualquer com um comando à frente, nenhuma consola verdadeira): PS5 Pro, PS5 Slim, PS5, PS4 Pro, PS4
+Slim e PS4. Reparações só delas: limpeza e pasta térmica, porta HDMI, ventoinha, fonte de alimentação,
+leitor de discos, analógicos do comando e bateria do comando (mais o software e o diagnóstico de
+sempre). E a **placa (microsoldadura)** — «basicamente tudo que seja micro soldadura eu faço» — em
+todos os telemóveis, tablets e consolas, com o preço «depois do diagnóstico». Preços de referência de
+10 nov 2026 (iLoja no Porto, iMarket em Lisboa, Purplee, ChipCor, iBrave), um pouco abaixo das cadeias:
+
+| | Limpeza | HDMI | Ventoinha | Fonte | Leitor | Analógicos | Bateria do comando | Software |
+|---|---|---|---|---|---|---|---|---|
+| PS5 (Pro, Slim) | 59,90 | 89,90 | 79,90 | 129,90 | 99,90 | 29,90 | 29,90 | 29,90 |
+| PS4 (Pro, Slim) | 49,90 | 69,90 | 59,90 | 89,90 | 79,90 | 24,90 | 24,90 | 29,90 |
+
+A grelha dos problemas da página das reparações continua a dos telemóveis (os das consolas estão na
+página de cada uma); a PlayStation está em Outras › Sony, no rodapé e na procura («ps5», «consola»), e
+diz-se no feminino («Reparação da PlayStation 5», «a minha PlayStation»). Sem películas nas consolas.
+

@@ -287,6 +287,12 @@
       "tipo": "telemovel"
     },
     {
+      "id": "playstation",
+      "marca": "sony",
+      "nome": "PlayStation",
+      "tipo": "consola"
+    },
+    {
       "id": "tcl",
       "marca": "tcl",
       "nome": "TCL",
@@ -5111,6 +5117,48 @@
       "nome": "Xperia 1 VI",
       "familia": "xperia",
       "desenho": "galaxy"
+    },
+    {
+      "id": "playstation-5-pro",
+      "nome": "PlayStation 5 Pro",
+      "familia": "playstation",
+      "ano": 2024,
+      "desenho": "consola"
+    },
+    {
+      "id": "playstation-5-slim",
+      "nome": "PlayStation 5 Slim",
+      "familia": "playstation",
+      "ano": 2023,
+      "desenho": "consola"
+    },
+    {
+      "id": "playstation-5",
+      "nome": "PlayStation 5",
+      "familia": "playstation",
+      "ano": 2020,
+      "desenho": "consola"
+    },
+    {
+      "id": "playstation-4-pro",
+      "nome": "PlayStation 4 Pro",
+      "familia": "playstation",
+      "ano": 2016,
+      "desenho": "consola"
+    },
+    {
+      "id": "playstation-4-slim",
+      "nome": "PlayStation 4 Slim",
+      "familia": "playstation",
+      "ano": 2016,
+      "desenho": "consola"
+    },
+    {
+      "id": "playstation-4",
+      "nome": "PlayStation 4",
+      "familia": "playstation",
+      "ano": 2013,
+      "desenho": "consola"
     },
     {
       "id": "tcl-505",

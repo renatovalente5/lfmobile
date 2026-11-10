@@ -299,7 +299,8 @@ const busca = {
     const c = categorias.find((k) => k.slug === p.categoria);
     return { n: p.nome, u: ctx.url(`/produtos/${p.slug}/`), f: fotoPequena(p.fotos[0]), p: v.atual, c: c ? c.nome : '', t: sem(`${p.nome} ${p.marca || ''} ${c ? c.nome : ''} ${p.resumo || ''}`) };
   }),
-  modelos: aparelhos.modelos.map((m) => ({ n: m.nome, u: ctx.url(`/reparacoes/${m.id}/`), t: sem(`${m.nome} ${aparelhos.familias.find((f) => f.id === m.familia)?.nome || ''} reparacao reparar ecra bateria`) })),
+  // «ps5» acha a PlayStation 5, e «consola» (o tipo da família) acha todas
+  modelos: aparelhos.modelos.map((m) => ({ n: m.nome, u: ctx.url(`/reparacoes/${m.id}/`), t: sem(`${m.nome} ${m.nome.replace(/PlayStation\s*/i, 'PS')} ${aparelhos.familias.find((f) => f.id === m.familia)?.nome || ''} ${R.TIPOS_FAMILIA[m.tipo] || ''} reparacao reparar ecra bateria`) })),
   paginas: [
     ['Reparações', '/reparacoes/', 'reparacao reparar arranjar ecra bateria partido orcamento'],
     ['Retoma: quanto vale o seu telemóvel', '/retoma/', 'retoma vender usado trocar valor simular'],

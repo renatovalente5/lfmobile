@@ -1,7 +1,7 @@
 // OS DESENHOS DOS APARELHOS (feitos aqui, sem fotografias de marca): cada modelo tem um «desenho»
 // (content/aparelhos.json; DESENHOS em src/lib/regras.mjs) — o iPhone com botão (8, SE), com
-// entalhe (X a 14), com ilha (14 Pro em diante), o dobrável, o Galaxy, o Flip e o Fold, o tablet e o
-// relógio. De frente, com o ecrã aceso num brilho dourado (a cor da marca). Decorativos (aria-hidden):
+// entalhe (X a 14), com ilha (14 Pro em diante), o dobrável, o Galaxy, o Flip e o Fold, o tablet, o
+// relógio e a consola (uma torre qualquer com um comando à frente: nenhuma consola verdadeira). De frente, com o ecrã aceso num brilho dourado (a cor da marca). Decorativos (aria-hidden):
 // o nome do modelo está sempre ao lado.
 
 const CORPO = '#1c1c1e';
@@ -58,6 +58,17 @@ const DESENHOS = {
     <rect x="16" y="30" width="88" height="120" rx="26" fill="${CORPO}" stroke="${ARO}" stroke-width="2"/>
     ${ecra(23, 37, 74, 106, 20)}
     <rect x="104" y="62" width="7" height="22" rx="3" fill="${ARO}"/>`),
+  consola: () => svg('0 0 140 200', `
+    <rect x="38" y="4" width="70" height="152" rx="14" fill="${CORPO}" stroke="${ARO}" stroke-width="2"/>
+    ${ecra(45, 11, 56, 138, 9)}
+    <rect x="71" y="22" width="4" height="70" rx="2" fill="#C9A24C" opacity=".9"/>
+    <rect x="50" y="128" width="46" height="3.5" rx="1.75" fill="#000" opacity=".7"/>
+    <path d="M37 142h66c11 0 19 7 22 18l6 21c2.5 9-7 15-14.5 9.5L103 180H37l-13.5 10.5C16 196 6.5 190 9 181l6-21c3-11 11-18 22-18Z" fill="#26262a" stroke="${ARO}" stroke-width="2" stroke-linejoin="round"/>
+    <rect x="56" y="148" width="28" height="13" rx="4" fill="url(#ap-ecra)" stroke="#4a4a50" stroke-width="1"/>
+    <circle cx="51" cy="170" r="7.5" fill="#0e0e10" stroke="#4a4a50" stroke-width="2"/>
+    <circle cx="89" cy="170" r="7.5" fill="#0e0e10" stroke="#4a4a50" stroke-width="2"/>
+    <path d="M27.5 152.5h5v-5h4v5h5v4h-5v5h-4v-5h-5z" fill="#4a4a50"/>
+    <circle cx="109" cy="149.5" r="2.8" fill="#4a4a50"/><circle cx="115" cy="155.5" r="2.8" fill="#4a4a50"/><circle cx="103" cy="155.5" r="2.8" fill="#4a4a50"/><circle cx="109" cy="161.5" r="2.8" fill="#C9A24C"/>`),
 };
 
 /* O desenho de um modelo (ou de um tipo: 'iphone-ilha', 'galaxy'…). */
@@ -67,7 +78,7 @@ export function desenhoAparelho(desenho, classe = '') {
 
 /* As páginas com muitos modelos (as reparações, a retoma) escrevem os desenhos UMA vez, como
    <symbol>, e cada modelo usa-os com <use>: 187 desenhos inteiros pesavam mais de 100 KB. */
-const VB = { 'iphone-duo': '0 0 200 180', 'galaxy-fold': '0 0 200 180', tablet: '0 0 160 210', relogio: '0 0 120 180' };
+const VB = { 'iphone-duo': '0 0 200 180', 'galaxy-fold': '0 0 200 180', tablet: '0 0 160 210', relogio: '0 0 120 180', consola: '0 0 140 200' };
 export function spriteAparelhos() {
   const simbolos = Object.keys(DESENHOS).map((d) => {
     const s = DESENHOS[d]();

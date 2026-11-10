@@ -8,7 +8,7 @@ Reparamos telemóveis de todas as marcas, e vendemos e compramos iPhone e Samsun
 
 ## Reparações desde 2020
 
-Telemóveis de todas as marcas, tablets e relógios. Películas para qualquer telemóvel.
+Telemóveis de todas as marcas, tablets, relógios e consolas PlayStation. Películas para qualquer telemóvel.
 
 ## Loja desde setembro de 2026
 
