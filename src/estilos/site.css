@@ -410,19 +410,7 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
 .problema-painel__texto .lista-certa { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); font-size: .95rem; }
 .problema-painel__texto .botao { justify-self: start; }
 
-/* ---------------------------------------------------------------- retoma e películas (página inicial) */
-.faixa-retoma { position: relative; display: grid; gap: 24px; margin-top: 56px; padding: clamp(26px, 4vw, 52px); border-radius: var(--raio-g); background: radial-gradient(80% 120% at 100% 100%, #3A2E14 0%, rgba(58, 46, 20, 0) 60%), var(--escuro); color: var(--branco); overflow: hidden; }
-@media (min-width: 900px) { .faixa-retoma { grid-template-columns: minmax(0, 1fr) minmax(0, .8fr); align-items: center; } }
-.faixa-retoma__texto { display: grid; gap: 14px; justify-items: start; }
-.faixa-retoma__sub { color: rgba(255, 255, 255, .78); max-width: 46ch; }
-.faixa-retoma__passos { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 4px 0 6px; }
-.faixa-retoma__passos li { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: .95rem; }
-.faixa-retoma__passos span { display: inline-flex; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 999px; background: rgba(201, 162, 76, .18); color: var(--ouro-claro); font-size: .82rem; font-weight: 800; }
-.faixa-retoma__desenho { display: flex; justify-content: center; align-items: flex-end; gap: 0; min-height: 180px; }
-.faixa-retoma__desenho .aparelho { height: auto; filter: drop-shadow(0 24px 30px rgba(0, 0, 0, .5)); }
-.faixa-retoma__a { width: 120px; transform: rotate(-8deg) translateX(24px); position: relative; z-index: 1; }
-.faixa-retoma__b { width: 210px; transform: rotate(6deg); }
-@media (max-width: 899.98px) { .faixa-retoma__desenho { display: none; } }
+/* ---------------------------------------------------------------- películas (página inicial) */
 .faixa-peliculas { display: grid; gap: 22px; margin-top: 56px; padding: clamp(24px, 4vw, 44px); border-radius: var(--raio-g); background: var(--cinza); }
 @media (min-width: 900px) { .faixa-peliculas { grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); align-items: center; gap: 32px; } }
 .faixa-peliculas__texto { display: grid; gap: 14px; justify-items: start; }
@@ -436,15 +424,7 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
 .faixa-peliculas__nome::first-letter { text-transform: uppercase; }
 .faixa-peliculas__preco { font-weight: 800; font-size: .88rem; color: var(--tinta-2); }
 
-/* ---------------------------------------------------------------- confiança e a loja */
-.confianca-faixa { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 48px; }
-@media (min-width: 900px) { .confianca-faixa { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; } }
-.confianca-faixa__caixa { display: flex; align-items: center; gap: 12px; height: 100%; padding: 14px; border-radius: var(--raio-m); border: 1px solid var(--linha); text-decoration: none; }
-@media (hover: hover) { a.confianca-faixa__caixa:hover { border-color: var(--tinta); } }
-.confianca-faixa strong { display: block; font-size: .92rem; line-height: 1.25; }
-.confianca-faixa small { display: block; color: var(--tinta-3); font-size: .8rem; }
-.confianca-faixa__icone { display: inline-flex; flex: none; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 12px; background: var(--cinza); color: var(--tinta); }
-.confianca-faixa__icone--ouro { background: var(--ouro-fundo); color: var(--ouro); }
+/* ---------------------------------------------------------------- a loja */
 .loja-casa { display: grid; gap: 24px; padding: 48px 0 8px; align-items: center; }
 @media (min-width: 900px) { .loja-casa { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 72px); } }
 .loja-casa__foto img { width: 100%; border-radius: var(--raio-g); object-fit: cover; }
@@ -995,7 +975,11 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .rodape__garantias { border-bottom: 1px solid var(--linha); }
 .rodape__garantias ul { max-width: var(--largura); margin: 0 auto; padding: 24px var(--margem); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 @media (min-width: 900px) { .rodape__garantias ul { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.rodape__garantias li { display: flex; gap: 12px; align-items: flex-start; font-size: .88rem; color: var(--tinta-2); }
+.rodape__garantias li, .rodape__garantias a { display: flex; gap: 12px; align-items: flex-start; font-size: .88rem; color: var(--tinta-2); }
+.rodape__garantias a { text-decoration: none; }
+@media (hover: hover) { .rodape__garantias a:hover strong { text-decoration: underline; } }
+/* a 320 px, «Levantamento» não cabia na coluna: menos espaço entre as colunas e o ícone */
+@media (max-width: 359.98px) { .rodape__garantias ul { column-gap: 10px; } .rodape__garantias li, .rodape__garantias a { gap: 8px; } }
 .rodape__garantias strong { display: block; color: var(--tinta); font-size: .92rem; }
 .rodape__garantias .icone { width: 26px; height: 26px; color: var(--ouro-texto); margin-top: 1px; }
 .rodape__corpo { max-width: var(--largura); margin: 0 auto; padding: 40px var(--margem) 0; display: grid; gap: 32px; }

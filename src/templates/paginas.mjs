@@ -141,16 +141,8 @@ export function inicio(ctx) {
   <ul class="faixa-peliculas__tipos">${pels.slice(0, 5).map((p) => `<li><a href="${ctx.url(`/produtos/${p.slug}/`)}"><span class="faixa-peliculas__img">${imagem(ctx, p.fotos[0], { tamanhos: '140px', alt: '', recorte: true })}</span><span class="faixa-peliculas__nome">${esc(p.nomeCurto || p.nome).replace(/^Película (de |para a )?/i, '')}</span>${precoDe(p, ctx.hoje).atual !== null ? `<span class="faixa-peliculas__preco">${euros(precoDe(p, ctx.hoje).atual)}</span>` : ''}</a></li>`).join('')}</ul>
 </section>` : '';
 
-  /* A CONFIANÇA: a nota do Google (com a ligação, para quem quiser conferir) e o que a loja faz. As
-     opiniões em si não se copiam (DL 57/2008, art. 8.º, al. cc). */
-  const g = ctx.site.google || {};
-  const t = ctx.site.entrega.transportadora;
-  const confianca = `<ul class="confianca-faixa" aria-label="Porquê a LF Mobile">
-  ${g.nota && g.ligacao ? `<li><a class="confianca-faixa__caixa" href="${esc(g.ligacao)}" target="_blank" rel="noopener"><span class="confianca-faixa__icone confianca-faixa__icone--ouro">${icones.estrela}</span><span><strong>${esc(String(g.nota).replace('.', ','))} no Google</strong><small>${g.opinioes ? `${g.opinioes} opiniões` : 'Ver as opiniões'}</small></span></a></li>` : ''}
-  <li><div class="confianca-faixa__caixa"><span class="confianca-faixa__icone">${icones.ferramentas}</span><span><strong>Reparações desde 2020</strong><small>Diagnóstico e orçamento grátis</small></span></div></li>
-  <li><div class="confianca-faixa__caixa"><span class="confianca-faixa__icone">${icones.camiao}</span><span><strong>${t ? `Envios ${esc(t)} 24/48 h` : 'Envios 24/48 h'}</strong><small>${ctx.escaloes.length ? `Desde ${euros(ctx.escaloes[0].preco)}` : 'Portugal Continental'}</small></span></div></li>
-  <li><div class="confianca-faixa__caixa"><span class="confianca-faixa__icone">${icones.loja}</span><span><strong>Loja em ${esc(ctx.site.local.localidade)}</strong><small>Levantamento grátis</small></span></div></li>
-</ul>`;
+  /* A nota do Google e as garantias (envios, levantamento) estão na faixa do rodapé, em todas as
+     páginas: a faixa que havia aqui repetia-as (o Renato, 10 nov 2026). */
 
   /* A LOJA: a fotografia da fachada, a morada, o horário e os botões. */
   const loja = `<section class="loja-casa" aria-labelledby="loja-titulo">
@@ -184,7 +176,6 @@ export function inicio(ctx) {
   ${filaCampanha}
   ${destaques}
   ${faixaPeliculas}
-  ${confianca}
   ${loja}
 </div>`,
   };

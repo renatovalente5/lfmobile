@@ -350,6 +350,22 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   assert.match(menu, /<strong>Retoma<\/strong><small>Compramos o seu<\/small>/);
   assert.match(menu, /<ul class="menu__grelha" aria-labelledby="menu-loja">\s*<li><a href="\/loja\/apple\/">/);
   assert.match(menu, /id="menu-ajuda">Ajuda</);
+  // as garantias numa faixa só, a do rodapé (em todas as páginas): a nota do Google em primeiro, com
+  // a ligação para as opiniões; a página inicial já não tem a faixa que as repetia
+  assert.doesNotMatch(inicio, /confianca-faixa|Retoma do seu usado/);
+  for (const html of [inicio, ler2('reparacoes/index.html')]) {
+    const lis = html.match(/<div class="rodape__garantias">[\s\S]*?<\/ul>/)[0].match(/<li>[\s\S]*?<\/li>/g);
+    assert.deepEqual(lis.map((li) => li.match(/<strong>(.*?)<\/strong>/)[1]), ['5,0 no Google', 'Orçamento grátis', 'Envios Nacex em 24/48 h', 'Levantamento grátis']);
+    assert.match(lis[0], /<a href="https:\/\/www\.google\.com\/maps\/place\/LF\+Mobile\/[^"]*!9m1!1b1[^"]*" target="_blank" rel="noopener">/);
+    assert.match(lis[0], /<\/strong>20 opiniões\.<\/span>/);
+  }
+});
+teste('sem a ligação das opiniões, a faixa do rodapé não mostra a nota do Google', () => {
+  const pasta = copia('sem-google', (p) => json(p, 'content/site.json', (s) => { delete s.google.ligacao; }));
+  assert.equal(construir(pasta).codigo, 0);
+  const faixa = fs.readFileSync(path.join(pasta, '_site/index.html'), 'utf8').match(/<div class="rodape__garantias">[\s\S]*?<\/ul>/)[0];
+  assert.doesNotMatch(faixa, /no Google/);
+  assert.match(faixa, /<strong>Orçamento grátis<\/strong>/);
 });
 teste('em produção, os preços das reparações e os valores da retoma por confirmar não aparecem; confirmados, aparecem', () => {
   const pasta = copia('reparacoes-producao', (p) => json(p, 'content/site.json', preencherDadosLegais));

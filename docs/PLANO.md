@@ -24,7 +24,7 @@ confiança». Pouco texto; o óbvio não se explica.
 
 | Página | Conteúdo |
 |---|---|
-| `/` | Capa, barra de confiança (5,0 no Google · desde 2020 · envios 24/48 h · Vendedor Oficial DIGI), destaques da loja, reparações, retoma, cartão das películas, a loja, contactos |
+| `/` | Capa (a escolha do modelo para reparar, com a retoma ao lado), as categorias, a campanha a correr, os destaques, as películas e a loja. Em todas as páginas, por cima do rodapé: 5,0 no Google (com a ligação para as opiniões) · orçamento grátis · envios 24/48 h · levantamento grátis |
 | `/loja/` | Catálogo com filtros por categoria e procura; cartões com preço c/ IVA, «Adicionar» |
 | `/loja/<artigo>/` | Ficha: fotografias, preço, descrição, características, disponibilidade, «Adicionar ao carrinho», «Perguntar no WhatsApp» |
 | `/reparacoes/` | Serviços por tipo de equipamento; «Pedir orçamento gratuito» → WhatsApp com a mensagem composta |
@@ -294,4 +294,8 @@ iPhone não tinha artigos novos (os iPhone estão em Recondicionados) e escondia
 4. **O menu do telemóvel**: os dois serviços em cartões, a loja numa grelha de duas colunas, a ajuda
    em quatro linhas, e o WhatsApp — cabe quase num ecrã.
 5. **O painel** acompanha tudo isto (§13.4 e o repositório do painel).
+6. **As garantias numa faixa só** (o Renato, com uma captura: «estão um bocado repetidos»): saiu da
+   página inicial a faixa por cima da loja (Google · desde 2020 · envios · loja em São Roque). Fica a
+   do rodapé, em todas as páginas, que abre com a nota do Google e a ligação para as opiniões, no
+   lugar da «Retoma do seu usado» (a Retoma já está no topo de todas as páginas).
 
