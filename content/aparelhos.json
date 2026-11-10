@@ -7,6 +7,66 @@
     {
       "id": "samsung",
       "nome": "Samsung"
+    },
+    {
+      "id": "xiaomi",
+      "nome": "Xiaomi"
+    },
+    {
+      "id": "huawei",
+      "nome": "Huawei"
+    },
+    {
+      "id": "oppo",
+      "nome": "OPPO"
+    },
+    {
+      "id": "google",
+      "nome": "Google"
+    },
+    {
+      "id": "motorola",
+      "nome": "Motorola"
+    },
+    {
+      "id": "honor",
+      "nome": "Honor"
+    },
+    {
+      "id": "oneplus",
+      "nome": "OnePlus"
+    },
+    {
+      "id": "realme",
+      "nome": "realme"
+    },
+    {
+      "id": "vivo",
+      "nome": "vivo"
+    },
+    {
+      "id": "nothing",
+      "nome": "Nothing"
+    },
+    {
+      "id": "sony",
+      "nome": "Sony"
+    },
+    {
+      "id": "tcl",
+      "nome": "TCL"
+    },
+    {
+      "id": "nokia",
+      "nome": "Nokia"
+    },
+    {
+      "id": "zte",
+      "nome": "ZTE"
+    },
+    {
+      "id": "alcatel",
+      "nome": "Alcatel"
     }
   ],
   "familias": [
@@ -53,6 +113,24 @@
       "tipo": "telemovel"
     },
     {
+      "id": "galaxy-m",
+      "marca": "samsung",
+      "nome": "Galaxy M",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "galaxy-j",
+      "marca": "samsung",
+      "nome": "Galaxy J",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "galaxy-xcover",
+      "marca": "samsung",
+      "nome": "Galaxy XCover",
+      "tipo": "telemovel"
+    },
+    {
       "id": "galaxy-tab",
       "marca": "samsung",
       "nome": "Galaxy Tab",
@@ -63,6 +141,180 @@
       "marca": "samsung",
       "nome": "Galaxy Watch",
       "tipo": "relogio"
+    },
+    {
+      "id": "redmi",
+      "marca": "xiaomi",
+      "nome": "Redmi",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "xiaomi",
+      "marca": "xiaomi",
+      "nome": "Xiaomi",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "poco",
+      "marca": "xiaomi",
+      "nome": "POCO",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "xiaomi-pad",
+      "marca": "xiaomi",
+      "nome": "Xiaomi Pad",
+      "tipo": "tablet"
+    },
+    {
+      "id": "xiaomi-watch",
+      "marca": "xiaomi",
+      "nome": "Xiaomi Watch",
+      "tipo": "relogio"
+    },
+    {
+      "id": "huawei-p",
+      "marca": "huawei",
+      "nome": "Huawei P e Pura",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "huawei-nova",
+      "marca": "huawei",
+      "nome": "Huawei nova",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "huawei-mate",
+      "marca": "huawei",
+      "nome": "Huawei Mate",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "huawei-p-smart",
+      "marca": "huawei",
+      "nome": "Huawei P smart",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "huawei-y",
+      "marca": "huawei",
+      "nome": "Huawei Y",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "huawei-matepad",
+      "marca": "huawei",
+      "nome": "Huawei MatePad",
+      "tipo": "tablet"
+    },
+    {
+      "id": "huawei-watch",
+      "marca": "huawei",
+      "nome": "Huawei Watch",
+      "tipo": "relogio"
+    },
+    {
+      "id": "oppo-a",
+      "marca": "oppo",
+      "nome": "OPPO A",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "oppo-reno",
+      "marca": "oppo",
+      "nome": "OPPO Reno",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "oppo-find",
+      "marca": "oppo",
+      "nome": "OPPO Find",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "pixel",
+      "marca": "google",
+      "nome": "Pixel",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "motorola",
+      "marca": "motorola",
+      "nome": "Motorola",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "honor",
+      "marca": "honor",
+      "nome": "Honor",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "oneplus",
+      "marca": "oneplus",
+      "nome": "OnePlus",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "oneplus-nord",
+      "marca": "oneplus",
+      "nome": "OnePlus Nord",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "realme",
+      "marca": "realme",
+      "nome": "realme",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "vivo",
+      "marca": "vivo",
+      "nome": "vivo",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "nothing",
+      "marca": "nothing",
+      "nome": "Nothing Phone",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "xperia",
+      "marca": "sony",
+      "nome": "Xperia",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "tcl",
+      "marca": "tcl",
+      "nome": "TCL",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "tcl-tab",
+      "marca": "tcl",
+      "nome": "TCL Tab",
+      "tipo": "tablet"
+    },
+    {
+      "id": "nokia",
+      "marca": "nokia",
+      "nome": "Nokia",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "zte",
+      "marca": "zte",
+      "nome": "ZTE",
+      "tipo": "telemovel"
+    },
+    {
+      "id": "alcatel",
+      "marca": "alcatel",
+      "nome": "Alcatel",
+      "tipo": "telemovel"
     }
   ],
   "modelos": [
@@ -711,6 +963,83 @@
       "desenho": "tablet"
     },
     {
+      "id": "ipad-pro-12-9-3-geracao",
+      "nome": "iPad Pro 12,9″ (3.ª geração)",
+      "familia": "ipad",
+      "ano": 2018,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-11-1-geracao",
+      "nome": "iPad Pro 11″ (1.ª geração)",
+      "familia": "ipad",
+      "ano": 2018,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-6-geracao",
+      "nome": "iPad (6.ª geração)",
+      "familia": "ipad",
+      "ano": 2018,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-12-9-2-geracao",
+      "nome": "iPad Pro 12,9″ (2.ª geração)",
+      "familia": "ipad",
+      "ano": 2017,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-10-5",
+      "nome": "iPad Pro 10,5″",
+      "familia": "ipad",
+      "ano": 2017,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-5-geracao",
+      "nome": "iPad (5.ª geração)",
+      "familia": "ipad",
+      "ano": 2017,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-9-7",
+      "nome": "iPad Pro 9,7″",
+      "familia": "ipad",
+      "ano": 2016,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-pro-12-9-1-geracao",
+      "nome": "iPad Pro 12,9″ (1.ª geração)",
+      "familia": "ipad",
+      "ano": 2015,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-mini-4",
+      "nome": "iPad mini 4",
+      "familia": "ipad",
+      "ano": 2015,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-air-2",
+      "nome": "iPad Air 2",
+      "familia": "ipad",
+      "ano": 2014,
+      "desenho": "tablet"
+    },
+    {
+      "id": "ipad-mini-3",
+      "nome": "iPad mini 3",
+      "familia": "ipad",
+      "ano": 2014,
+      "desenho": "tablet"
+    },
+    {
       "id": "apple-watch-series-11",
       "nome": "Apple Watch Series 11",
       "familia": "apple-watch",
@@ -806,6 +1135,13 @@
       "nome": "Apple Watch Series 4",
       "familia": "apple-watch",
       "ano": 2018,
+      "desenho": "relogio"
+    },
+    {
+      "id": "apple-watch-series-3",
+      "nome": "Apple Watch Series 3",
+      "familia": "apple-watch",
+      "ano": 2017,
       "desenho": "relogio"
     },
     {
@@ -1646,6 +1982,216 @@
       "desenho": "galaxy"
     },
     {
+      "id": "galaxy-m55",
+      "nome": "Galaxy M55",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m34",
+      "nome": "Galaxy M34",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m13",
+      "nome": "Galaxy M13",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m23",
+      "nome": "Galaxy M23",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m53",
+      "nome": "Galaxy M53",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m02",
+      "nome": "Galaxy M02",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m12",
+      "nome": "Galaxy M12",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m22",
+      "nome": "Galaxy M22",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m32",
+      "nome": "Galaxy M32",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m52-5g",
+      "nome": "Galaxy M52 5G",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m62",
+      "nome": "Galaxy M62",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m01",
+      "nome": "Galaxy M01",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m11",
+      "nome": "Galaxy M11",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m21",
+      "nome": "Galaxy M21",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m21s",
+      "nome": "Galaxy M21s",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m31",
+      "nome": "Galaxy M31",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m31s",
+      "nome": "Galaxy M31s",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m51",
+      "nome": "Galaxy M51",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m10",
+      "nome": "Galaxy M10",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m20",
+      "nome": "Galaxy M20",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-m30s",
+      "nome": "Galaxy M30s",
+      "familia": "galaxy-m",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-j7-2016",
+      "nome": "Galaxy J7 2016",
+      "familia": "galaxy-j",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-j7-2017",
+      "nome": "Galaxy J7 2017",
+      "familia": "galaxy-j",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-j6",
+      "nome": "Galaxy J6",
+      "familia": "galaxy-j",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-j6-plus",
+      "nome": "Galaxy J6 Plus",
+      "familia": "galaxy-j",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-j5-2015",
+      "nome": "Galaxy J5 2015",
+      "familia": "galaxy-j",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-j5-2016",
+      "nome": "Galaxy J5 2016",
+      "familia": "galaxy-j",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-j5-2017",
+      "nome": "Galaxy J5 2017",
+      "familia": "galaxy-j",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-j4-core",
+      "nome": "Galaxy J4 Core",
+      "familia": "galaxy-j",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-j4-plus",
+      "nome": "Galaxy J4 Plus",
+      "familia": "galaxy-j",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-j3-2016",
+      "nome": "Galaxy J3 2016",
+      "familia": "galaxy-j",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-j3-2017",
+      "nome": "Galaxy J3 2017",
+      "familia": "galaxy-j",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-xcover6-pro",
+      "nome": "Galaxy XCover6 Pro",
+      "familia": "galaxy-xcover",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-xcover5",
+      "nome": "Galaxy XCover5",
+      "familia": "galaxy-xcover",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "galaxy-xcover-pro",
+      "nome": "Galaxy XCover Pro",
+      "familia": "galaxy-xcover",
+      "desenho": "galaxy"
+    },
+    {
       "id": "galaxy-tab-s11-ultra",
       "nome": "Galaxy Tab S11 Ultra",
       "familia": "galaxy-tab",
@@ -1807,6 +2353,41 @@
       "desenho": "tablet"
     },
     {
+      "id": "galaxy-tab-a-10-1-2019",
+      "nome": "Galaxy Tab A 10.1 (2019)",
+      "familia": "galaxy-tab",
+      "ano": 2019,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s6",
+      "nome": "Galaxy Tab S6",
+      "familia": "galaxy-tab",
+      "ano": 2019,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-s5e",
+      "nome": "Galaxy Tab S5e",
+      "familia": "galaxy-tab",
+      "ano": 2019,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-a-8-0-2019",
+      "nome": "Galaxy Tab A 8.0 (2019)",
+      "familia": "galaxy-tab",
+      "ano": 2019,
+      "desenho": "tablet"
+    },
+    {
+      "id": "galaxy-tab-active3",
+      "nome": "Galaxy Tab Active3",
+      "familia": "galaxy-tab",
+      "ano": 2020,
+      "desenho": "tablet"
+    },
+    {
       "id": "galaxy-watch-ultra",
       "nome": "Galaxy Watch Ultra",
       "familia": "galaxy-watch",
@@ -1875,6 +2456,3003 @@
       "familia": "galaxy-watch",
       "ano": 2021,
       "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch3",
+      "nome": "Galaxy Watch3",
+      "familia": "galaxy-watch",
+      "ano": 2020,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch-active2",
+      "nome": "Galaxy Watch Active2",
+      "familia": "galaxy-watch",
+      "ano": 2019,
+      "desenho": "relogio"
+    },
+    {
+      "id": "galaxy-watch-2018",
+      "nome": "Galaxy Watch (2018)",
+      "familia": "galaxy-watch",
+      "ano": 2018,
+      "desenho": "relogio"
+    },
+    {
+      "id": "redmi-15",
+      "nome": "Redmi 15",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-15c",
+      "nome": "Redmi 15C",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-14c",
+      "nome": "Redmi 14C",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-14-5g",
+      "nome": "Redmi Note 14 5G",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-14-pro-5g",
+      "nome": "Redmi Note 14 Pro 5G",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-14-pro-plus-5g",
+      "nome": "Redmi Note 14 Pro Plus 5G",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-13",
+      "nome": "Redmi 13",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-13c",
+      "nome": "Redmi 13C",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-13-5g",
+      "nome": "Redmi Note 13 5G",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-13-pro-4g",
+      "nome": "Redmi Note 13 Pro 4G",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-13-pro-plus",
+      "nome": "Redmi Note 13 Pro Plus",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-12",
+      "nome": "Redmi 12",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-12c",
+      "nome": "Redmi 12C",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-12",
+      "nome": "Redmi Note 12",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-12-pro-5g",
+      "nome": "Redmi Note 12 Pro 5G",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-12-pro-plus",
+      "nome": "Redmi Note 12 Pro+",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-12t-pro",
+      "nome": "Redmi Note 12T Pro",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-11",
+      "nome": "Redmi Note 11",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-11-pro-5g",
+      "nome": "Redmi Note 11 Pro 5G",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-11-pro-plus-5g",
+      "nome": "Redmi Note 11 Pro+ 5G",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-11s-5g",
+      "nome": "Redmi Note 11S 5G",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-10-2021",
+      "nome": "Redmi 10 2021",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-10-2022",
+      "nome": "Redmi 10 2022",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-10a",
+      "nome": "Redmi 10A",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-10c",
+      "nome": "Redmi 10C",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-10-5g",
+      "nome": "Redmi Note 10 5G",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-10-pro",
+      "nome": "Redmi Note 10 Pro",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-9-at",
+      "nome": "Redmi 9 AT",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-9c",
+      "nome": "Redmi 9C",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-9t",
+      "nome": "Redmi 9T",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-9-5g",
+      "nome": "Redmi Note 9 5G",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-9-pro",
+      "nome": "Redmi Note 9 Pro",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-9s",
+      "nome": "Redmi Note 9s",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-8",
+      "nome": "Redmi 8",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-8a",
+      "nome": "Redmi 8A",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-8",
+      "nome": "Redmi Note 8",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-8-2021",
+      "nome": "Redmi Note 8 2021",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-8-pro",
+      "nome": "Redmi Note 8 Pro",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-8t",
+      "nome": "Redmi Note 8T",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-7",
+      "nome": "Redmi 7",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-7-pro",
+      "nome": "Redmi 7 Pro",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-7a",
+      "nome": "Redmi 7A",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-7",
+      "nome": "Redmi Note 7",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-7-pro",
+      "nome": "Redmi Note 7 Pro",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-6",
+      "nome": "Redmi 6",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-6-pro",
+      "nome": "Redmi 6 Pro",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-6a",
+      "nome": "Redmi 6a",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-6-pro",
+      "nome": "Redmi Note 6 Pro",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-5",
+      "nome": "Redmi 5",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-5-plus",
+      "nome": "Redmi 5 Plus",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-5a",
+      "nome": "Redmi 5a",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-a5",
+      "nome": "Redmi A5",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-5",
+      "nome": "Redmi Note 5",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-5a",
+      "nome": "Redmi Note 5a",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-note-4x",
+      "nome": "Redmi Note 4x",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-a3",
+      "nome": "Redmi A3",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-a2",
+      "nome": "Redmi A2",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-s2",
+      "nome": "Redmi S2",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "redmi-a1",
+      "nome": "Redmi A1",
+      "familia": "redmi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-15",
+      "nome": "Xiaomi 15",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-15t",
+      "nome": "Xiaomi 15T",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-15t-pro",
+      "nome": "Xiaomi 15T Pro",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-14",
+      "nome": "Xiaomi 14",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-14-pro",
+      "nome": "Xiaomi 14 Pro",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-14-ultra",
+      "nome": "Xiaomi 14 Ultra",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-14t",
+      "nome": "Xiaomi 14T",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-14t-pro",
+      "nome": "Xiaomi 14T Pro",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-13",
+      "nome": "Xiaomi 13",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-13-lite",
+      "nome": "Xiaomi 13 Lite",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-13-pro",
+      "nome": "Xiaomi 13 Pro",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-13-ultra",
+      "nome": "Xiaomi 13 Ultra",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-13t",
+      "nome": "Xiaomi 13T",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-13t-pro",
+      "nome": "Xiaomi 13T Pro",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-12",
+      "nome": "Xiaomi 12",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-12-lite",
+      "nome": "Xiaomi 12 Lite",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-12-pro",
+      "nome": "Xiaomi 12 Pro",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-12t-pro",
+      "nome": "Xiaomi 12T Pro",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-12x",
+      "nome": "Xiaomi 12X",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-11-lite-5g-ne",
+      "nome": "Xiaomi 11 Lite 5G NE",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-11i-5g",
+      "nome": "Xiaomi 11i 5G",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-11t",
+      "nome": "Xiaomi 11T",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-11t-pro",
+      "nome": "Xiaomi 11T Pro",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-11",
+      "nome": "Xiaomi Mi 11",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-11-lite-4g",
+      "nome": "Xiaomi Mi 11 Lite 4G",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-11i-5g",
+      "nome": "Xiaomi Mi 11i 5G",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-10",
+      "nome": "Xiaomi Mi 10",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-10t-lite-5g",
+      "nome": "Xiaomi Mi 10T Lite 5G",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-note-10",
+      "nome": "Xiaomi Mi Note 10",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-note-10-pro",
+      "nome": "Xiaomi Mi Note 10 Pro",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-9",
+      "nome": "Xiaomi Mi 9",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-9-lite",
+      "nome": "Xiaomi Mi 9 Lite",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-9-se",
+      "nome": "Xiaomi Mi 9 SE",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-9t",
+      "nome": "Xiaomi Mi 9T",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-9t-pro",
+      "nome": "Xiaomi Mi 9T Pro",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-8",
+      "nome": "Xiaomi Mi 8",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-8-lite",
+      "nome": "Xiaomi Mi 8 Lite",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-8-pro",
+      "nome": "Xiaomi Mi 8 Pro",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-6",
+      "nome": "Xiaomi Mi 6",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-5",
+      "nome": "Xiaomi Mi 5",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-5s",
+      "nome": "Xiaomi Mi 5s",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-a3",
+      "nome": "Xiaomi Mi A3",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-max-3",
+      "nome": "Xiaomi Mi Max 3",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-mix-3",
+      "nome": "Xiaomi Mi Mix 3",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-a2",
+      "nome": "Xiaomi Mi A2",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-a2-lite",
+      "nome": "Xiaomi Mi A2 Lite",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-max-2",
+      "nome": "Xiaomi Mi Max 2",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-mix-2s",
+      "nome": "Xiaomi Mi Mix 2s",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-a1",
+      "nome": "Xiaomi Mi A1",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-mi-mix",
+      "nome": "Xiaomi Mi Mix",
+      "familia": "xiaomi",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-c40",
+      "nome": "POCO C40",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-f7",
+      "nome": "POCO F7",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-x7-pro",
+      "nome": "POCO X7 Pro",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-f6",
+      "nome": "POCO F6",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-m6-pro",
+      "nome": "POCO M6 Pro",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-x6-pro",
+      "nome": "POCO X6 Pro",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-f5",
+      "nome": "POCO F5",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-m5",
+      "nome": "POCO M5",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-m5s",
+      "nome": "POCO M5s",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-x5-5g",
+      "nome": "POCO X5 5G",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-f4",
+      "nome": "POCO F4",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-f4-gt",
+      "nome": "POCO F4 GT",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-m4-pro-5g",
+      "nome": "POCO M4 Pro 5G",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-x4-gt",
+      "nome": "POCO X4 GT",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-x4-pro-5g",
+      "nome": "POCO X4 Pro 5G",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-f3",
+      "nome": "POCO F3",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-m3",
+      "nome": "POCO M3",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-m3-pro-5g",
+      "nome": "POCO M3 Pro 5G",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-x3",
+      "nome": "POCO X3",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-x3-gt",
+      "nome": "POCO X3 GT",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-x3-nfc",
+      "nome": "POCO X3 NFC",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "poco-x3-pro",
+      "nome": "POCO X3 Pro",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pocophone-f1",
+      "nome": "Pocophone F1",
+      "familia": "poco",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xiaomi-pad-6",
+      "nome": "Xiaomi Pad 6",
+      "familia": "xiaomi-pad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "xiaomi-pad-6-pro",
+      "nome": "Xiaomi Pad 6 Pro",
+      "familia": "xiaomi-pad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "xiaomi-pad-5",
+      "nome": "Xiaomi Pad 5",
+      "familia": "xiaomi-pad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "xiaomi-pad-5-pro",
+      "nome": "Xiaomi Pad 5 Pro",
+      "familia": "xiaomi-pad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "xiaomi-pad-5-pro-12-4",
+      "nome": "Xiaomi Pad 5 Pro 12.4",
+      "familia": "xiaomi-pad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "xiaomi-mi-pad-4",
+      "nome": "Xiaomi Mi Pad 4",
+      "familia": "xiaomi-pad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "redmi-pad",
+      "nome": "Redmi Pad",
+      "familia": "xiaomi-pad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "redmi-pad-se",
+      "nome": "Redmi Pad SE",
+      "familia": "xiaomi-pad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "redmi-watch-2-lite",
+      "nome": "Redmi Watch 2 Lite",
+      "familia": "xiaomi-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "xiaomi-watch-s1-active",
+      "nome": "Xiaomi Watch S1 Active",
+      "familia": "xiaomi-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "xiaomi-mi-watch",
+      "nome": "Xiaomi Mi Watch",
+      "familia": "xiaomi-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "xiaomi-mi-watch-revolve-active",
+      "nome": "Xiaomi Mi Watch Revolve Active",
+      "familia": "xiaomi-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "huawei-pura-70",
+      "nome": "Huawei Pura 70",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p60-pro",
+      "nome": "Huawei P60 Pro",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p50-pro",
+      "nome": "Huawei P50 Pro",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p40",
+      "nome": "Huawei P40",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p40-lite",
+      "nome": "Huawei P40 Lite",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p40-lite-e",
+      "nome": "Huawei P40 Lite E",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p40-pro",
+      "nome": "Huawei P40 Pro",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p40-pro-plus",
+      "nome": "Huawei P40 Pro Plus",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p30",
+      "nome": "Huawei P30",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p30-lite",
+      "nome": "Huawei P30 lite",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p30-pro",
+      "nome": "Huawei P30 Pro",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p30-pro-new-edition",
+      "nome": "Huawei P30 Pro New Edition",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p20",
+      "nome": "Huawei P20",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p20-lite",
+      "nome": "Huawei P20 Lite",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p20-pro",
+      "nome": "Huawei P20 Pro",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p10",
+      "nome": "Huawei P10",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p10-lite",
+      "nome": "Huawei P10 Lite",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p10-plus",
+      "nome": "Huawei P10 Plus",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p9",
+      "nome": "Huawei P9",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p9-lite",
+      "nome": "Huawei P9 Lite",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p9-plus",
+      "nome": "Huawei P9 Plus",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p8",
+      "nome": "Huawei P8",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p8-lite",
+      "nome": "Huawei P8 Lite",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p8-lite-2015",
+      "nome": "Huawei P8 Lite 2015",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p8-lite-2017",
+      "nome": "Huawei P8 Lite 2017",
+      "familia": "huawei-p",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-y90",
+      "nome": "Huawei nova Y90",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-y70",
+      "nome": "Huawei nova Y70",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-13",
+      "nome": "Huawei nova 13",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-12",
+      "nome": "Huawei nova 12",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-11",
+      "nome": "Huawei nova 11",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-11-pro",
+      "nome": "Huawei nova 11 Pro",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-11i",
+      "nome": "Huawei nova 11i",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-10",
+      "nome": "Huawei nova 10",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-10-pro",
+      "nome": "Huawei nova 10 Pro",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-9",
+      "nome": "Huawei nova 9",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-9-se",
+      "nome": "Huawei nova 9 SE",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-8i",
+      "nome": "Huawei nova 8i",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-5i",
+      "nome": "Huawei nova 5i",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-nova-5t",
+      "nome": "Huawei nova 5T",
+      "familia": "huawei-nova",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-50-pro",
+      "nome": "Huawei Mate 50 Pro",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-40-pro",
+      "nome": "Huawei Mate 40 Pro",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-30",
+      "nome": "Huawei Mate 30",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-30-lite",
+      "nome": "Huawei Mate 30 Lite",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-30-pro",
+      "nome": "Huawei Mate 30 Pro",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-20",
+      "nome": "Huawei Mate 20",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-20-lite",
+      "nome": "Huawei Mate 20 Lite",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-20-pro",
+      "nome": "Huawei Mate 20 Pro",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-20-x",
+      "nome": "Huawei Mate 20 X",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-10",
+      "nome": "Huawei Mate 10",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-10-lite",
+      "nome": "Huawei Mate 10 Lite",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-10-pro",
+      "nome": "Huawei Mate 10 Pro",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-mate-9",
+      "nome": "Huawei Mate 9",
+      "familia": "huawei-mate",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p-smart-2020",
+      "nome": "Huawei P Smart 2020",
+      "familia": "huawei-p-smart",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p-smart-2019",
+      "nome": "Huawei P Smart 2019",
+      "familia": "huawei-p-smart",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-huawei-p-smart",
+      "nome": "Huawei P Smart",
+      "familia": "huawei-p-smart",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p-smart-pro",
+      "nome": "Huawei P Smart Pro",
+      "familia": "huawei-p-smart",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-p-smart-s",
+      "nome": "Huawei P Smart S",
+      "familia": "huawei-p-smart",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y9s",
+      "nome": "Huawei Y9s",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y7-2017",
+      "nome": "Huawei Y7 2017",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y7-2019",
+      "nome": "Huawei Y7 2019",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y6",
+      "nome": "Huawei Y6",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y6-2017",
+      "nome": "Huawei Y6 (2017)",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y6-2018",
+      "nome": "Huawei Y6 (2018)",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y6-2019",
+      "nome": "Huawei Y6 2019",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y6-ii",
+      "nome": "Huawei Y6 II",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y6-pro-2017",
+      "nome": "Huawei Y6 Pro 2017",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y6p",
+      "nome": "Huawei Y6p",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y5-ii",
+      "nome": "Huawei Y5 II",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-y5p",
+      "nome": "Huawei Y5p",
+      "familia": "huawei-y",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "huawei-matepad-11-2021",
+      "nome": "Huawei MatePad 11 (2021)",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-matepad-11-2023",
+      "nome": "Huawei MatePad 11 (2023)",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-matepad-10-4",
+      "nome": "Huawei MatePad 10.4",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-matepad-pro-10-8-2021",
+      "nome": "Huawei MatePad Pro 10.8 (2021)",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-matepad-t10",
+      "nome": "Huawei MatePad T10",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-matepad-t10s",
+      "nome": "Huawei MatePad T10s",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-matepad-t8",
+      "nome": "Huawei MatePad T8",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-mediapad-7",
+      "nome": "Huawei MediaPad 7",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-m5",
+      "nome": "Huawei M5",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-m5-lite",
+      "nome": "Huawei M5 Lite",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-m5-pro",
+      "nome": "Huawei M5 Pro",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-mediapad-t5",
+      "nome": "Huawei MediaPad T5",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-m3-lite",
+      "nome": "Huawei M3 Lite",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-m3-pro",
+      "nome": "Huawei M3 Pro",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-mediapad-m3",
+      "nome": "Huawei MediaPad M3",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-mediapad-t3",
+      "nome": "Huawei MediaPad T3",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-mediapad-t2",
+      "nome": "Huawei MediaPad T2",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-mediapad-t1",
+      "nome": "Huawei MediaPad T1",
+      "familia": "huawei-matepad",
+      "desenho": "tablet"
+    },
+    {
+      "id": "huawei-watch-gt-46mm",
+      "nome": "Huawei Watch GT 46mm",
+      "familia": "huawei-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "huawei-watch-3",
+      "nome": "Huawei Watch 3",
+      "familia": "huawei-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "huawei-watch-gt-3-42mm",
+      "nome": "Huawei Watch GT 3 42mm",
+      "familia": "huawei-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "huawei-watch-gt-3-46mm",
+      "nome": "Huawei Watch GT 3 46mm",
+      "familia": "huawei-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "huawei-watch-gt-3-pro",
+      "nome": "Huawei Watch GT 3 Pro",
+      "familia": "huawei-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "huawei-watch-2-sport",
+      "nome": "Huawei Watch 2 Sport",
+      "familia": "huawei-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "huawei-watch-gt-2-42mm",
+      "nome": "Huawei Watch GT 2 42mm",
+      "familia": "huawei-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "huawei-watch-gt-2-46mm",
+      "nome": "Huawei Watch GT 2 46mm",
+      "familia": "huawei-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "huawei-watch-gt-2-pro",
+      "nome": "Huawei Watch GT 2 Pro",
+      "familia": "huawei-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "huawei-watch-gt-2e",
+      "nome": "Huawei Watch GT 2e",
+      "familia": "huawei-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "huawei-watch-fit",
+      "nome": "Huawei Watch Fit",
+      "familia": "huawei-watch",
+      "desenho": "relogio"
+    },
+    {
+      "id": "oppo-a96",
+      "nome": "OPPO A96",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a95-5g",
+      "nome": "OPPO A95 5G",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a94-5g",
+      "nome": "OPPO A94 5G",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a93",
+      "nome": "OPPO A93",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a91",
+      "nome": "OPPO A91",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a80",
+      "nome": "OPPO A80",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a79",
+      "nome": "OPPO A79",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a78-5g",
+      "nome": "OPPO A78 5G",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a77-5g",
+      "nome": "OPPO A77 5G",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a76",
+      "nome": "OPPO A76",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a74-5g",
+      "nome": "OPPO A74 5G",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a73-5g",
+      "nome": "OPPO A73 5G",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a72",
+      "nome": "OPPO A72",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a60",
+      "nome": "OPPO A60",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a58-4g",
+      "nome": "OPPO A58 4G",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a57",
+      "nome": "OPPO A57",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a57s",
+      "nome": "OPPO A57s",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a55-5g",
+      "nome": "OPPO A55 5G",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a54-5g",
+      "nome": "OPPO A54 5G",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a54s",
+      "nome": "OPPO A54s",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a53-5g",
+      "nome": "OPPO A53 5G",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a53s",
+      "nome": "OPPO A53s",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a52",
+      "nome": "OPPO A52",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a40",
+      "nome": "OPPO A40",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a38",
+      "nome": "OPPO A38",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a35",
+      "nome": "OPPO A35",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a18",
+      "nome": "OPPO A18",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a17",
+      "nome": "OPPO A17",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a16",
+      "nome": "OPPO A16",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a16s",
+      "nome": "OPPO A16s",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a15",
+      "nome": "OPPO A15",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a5",
+      "nome": "OPPO A5",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a5-pro",
+      "nome": "OPPO A5 Pro",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-a5x",
+      "nome": "OPPO A5x",
+      "familia": "oppo-a",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno14",
+      "nome": "OPPO Reno14",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-13",
+      "nome": "OPPO Reno 13",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno12",
+      "nome": "OPPO Reno12",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-10",
+      "nome": "OPPO Reno 10",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-10-pro",
+      "nome": "OPPO Reno 10 Pro",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-8-5g",
+      "nome": "OPPO Reno 8 5G",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-8-lite-5g",
+      "nome": "OPPO Reno 8 Lite 5G",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-8-pro-5g",
+      "nome": "OPPO Reno 8 Pro 5G",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-7-5g",
+      "nome": "OPPO Reno 7 5G",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-7-lite",
+      "nome": "OPPO Reno 7 Lite",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-6-5g",
+      "nome": "OPPO Reno 6 5G",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-6-pro-5g",
+      "nome": "OPPO Reno 6 Pro 5G",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-5-5g",
+      "nome": "OPPO Reno 5 5G",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-4-5g",
+      "nome": "OPPO Reno 4 5G",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-4-pro-5g",
+      "nome": "OPPO Reno 4 Pro 5G",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-4-z-5g",
+      "nome": "OPPO Reno 4 Z 5G",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-3",
+      "nome": "OPPO Reno 3",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-2-z",
+      "nome": "OPPO Reno 2 Z",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-reno-2f",
+      "nome": "OPPO Reno 2F",
+      "familia": "oppo-reno",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-r15-pro",
+      "nome": "OPPO R15 Pro",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x8-pro",
+      "nome": "OPPO Find X8 Pro",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x6",
+      "nome": "OPPO Find X6",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x5",
+      "nome": "OPPO Find X5",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x5-lite",
+      "nome": "OPPO Find X5 Lite",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x5-pro",
+      "nome": "OPPO Find X5 Pro",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x3-lite",
+      "nome": "OPPO Find X3 Lite",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x3-neo",
+      "nome": "OPPO Find X3 Neo",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x3-pro",
+      "nome": "OPPO Find X3 Pro",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x2",
+      "nome": "OPPO Find X2",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x2-lite",
+      "nome": "OPPO Find X2 Lite",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x2-neo",
+      "nome": "OPPO Find X2 Neo",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oppo-find-x2-pro",
+      "nome": "OPPO Find X2 Pro",
+      "familia": "oppo-find",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-10",
+      "nome": "Pixel 10",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-10-pro",
+      "nome": "Pixel 10 Pro",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-9",
+      "nome": "Pixel 9",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-9-pro",
+      "nome": "Pixel 9 Pro",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-9-pro-xl",
+      "nome": "Pixel 9 Pro XL",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-9a",
+      "nome": "Pixel 9a",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-8",
+      "nome": "Pixel 8",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-8-pro",
+      "nome": "Pixel 8 Pro",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-8a",
+      "nome": "Pixel 8a",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-7",
+      "nome": "Pixel 7",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-7-pro",
+      "nome": "Pixel 7 Pro",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-7a",
+      "nome": "Pixel 7a",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-6",
+      "nome": "Pixel 6",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-6-pro",
+      "nome": "Pixel 6 Pro",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-6a",
+      "nome": "Pixel 6a",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-5",
+      "nome": "Pixel 5",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-5a",
+      "nome": "Pixel 5a",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-4",
+      "nome": "Pixel 4",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-4-xl",
+      "nome": "Pixel 4 XL",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "pixel-4a-5g",
+      "nome": "Pixel 4a 5G",
+      "familia": "pixel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g100",
+      "nome": "Moto G100",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g85",
+      "nome": "moto g85",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g84",
+      "nome": "moto g84",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g60",
+      "nome": "Moto G60",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "motorola-edge-60",
+      "nome": "Motorola edge 60",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g55",
+      "nome": "moto g55",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g54",
+      "nome": "moto g54",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "motorola-edge-50",
+      "nome": "Motorola Edge 50",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "motorola-edge-50-fusion",
+      "nome": "Motorola Edge 50 Fusion",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "motorola-edge-50-pro",
+      "nome": "Motorola edge 50 Pro",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "motorola-razr-50",
+      "nome": "Motorola razr 50",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g41",
+      "nome": "Moto G41",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "motorola-edge-40",
+      "nome": "Motorola Edge 40",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "motorola-edge-40-pro",
+      "nome": "Motorola Edge 40 Pro",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g35",
+      "nome": "moto g35",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-e32",
+      "nome": "Moto E32",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g31",
+      "nome": "Moto G31",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g30",
+      "nome": "Moto G30",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "motorola-edge-30-pro",
+      "nome": "Motorola Edge 30 Pro",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g24",
+      "nome": "moto g24",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-e22",
+      "nome": "Moto E22",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-e20",
+      "nome": "Moto E20",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g20",
+      "nome": "Moto G20",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g15",
+      "nome": "moto g15",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g10",
+      "nome": "Moto G10",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g9-play",
+      "nome": "Moto G9 Play",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g9-plus",
+      "nome": "Moto G9 Plus",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g8-power",
+      "nome": "Moto G8 Power",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g8-power-lite",
+      "nome": "Moto G8 Power Lite",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-e7",
+      "nome": "Moto E7",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-e7-plus",
+      "nome": "Moto E7 Plus",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-e7-power",
+      "nome": "Moto E7 Power",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-e6-plus",
+      "nome": "Moto E6 Plus",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "moto-g",
+      "nome": "Moto G",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "motorola-one-fusion",
+      "nome": "Motorola One Fusion",
+      "familia": "motorola",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-400",
+      "nome": "Honor 400",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-400-lite",
+      "nome": "Honor 400 Lite",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-200",
+      "nome": "Honor 200",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-200-lite",
+      "nome": "Honor 200 Lite",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-90-lite",
+      "nome": "Honor 90 Lite",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-70-lite-5g",
+      "nome": "Honor 70 Lite 5G",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-9-lite",
+      "nome": "Honor 9 Lite",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-9x",
+      "nome": "Honor 9X",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-8",
+      "nome": "Honor 8",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-x8-5g",
+      "nome": "Honor X8 5G",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-x8a",
+      "nome": "Honor X8a",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-x8b",
+      "nome": "Honor X8b",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-magic7-pro",
+      "nome": "Honor Magic7 Pro",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-x7b",
+      "nome": "Honor X7b",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-magic6-pro",
+      "nome": "Honor Magic6 Pro",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-x6",
+      "nome": "Honor X6",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "honor-x6b",
+      "nome": "Honor X6b",
+      "familia": "honor",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-13",
+      "nome": "OnePlus 13",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-13r",
+      "nome": "OnePlus 13R",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-12",
+      "nome": "OnePlus 12",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-11",
+      "nome": "OnePlus 11",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-10-pro-5g",
+      "nome": "OnePlus 10 Pro 5G",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-10t",
+      "nome": "OnePlus 10T",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-9",
+      "nome": "OnePlus 9",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-9-pro",
+      "nome": "OnePlus 9 Pro",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-8-5g",
+      "nome": "OnePlus 8 5G",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-8-pro",
+      "nome": "OnePlus 8 Pro",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-8t-5g",
+      "nome": "OnePlus 8T 5G",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-7",
+      "nome": "OnePlus 7",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-7-pro",
+      "nome": "OnePlus 7 Pro",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-7t",
+      "nome": "OnePlus 7T",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-7t-pro",
+      "nome": "OnePlus 7T Pro",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-7t-pro-mclaren-edition",
+      "nome": "OnePlus 7T Pro McLaren Edition",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-6",
+      "nome": "OnePlus 6",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-6t",
+      "nome": "OnePlus 6T",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-5",
+      "nome": "OnePlus 5",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-5t",
+      "nome": "OnePlus 5T",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-3",
+      "nome": "OnePlus 3",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-3t",
+      "nome": "OnePlus 3T",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-2",
+      "nome": "OnePlus 2",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-1",
+      "nome": "OnePlus 1",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-x",
+      "nome": "OnePlus X",
+      "familia": "oneplus",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-nord-n100",
+      "nome": "OnePlus Nord N100",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-nord-n10-5g",
+      "nome": "OnePlus Nord N10 5G",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-nord-4",
+      "nome": "OnePlus Nord 4",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-nord-ce4",
+      "nome": "OnePlus Nord CE4",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-nord-ce4-lite",
+      "nome": "OnePlus Nord CE4 Lite",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-nord-ce-3-lite-5g",
+      "nome": "OnePlus Nord CE 3 Lite 5G",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-nord-2-5g",
+      "nome": "OnePlus Nord 2 5G",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-nord-2t-5g",
+      "nome": "OnePlus Nord 2T 5G",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-nord-ce-2-5g",
+      "nome": "OnePlus Nord CE 2 5G",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-nord-ce-2-lite-5g",
+      "nome": "OnePlus Nord CE 2 Lite 5G",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-oneplus-nord",
+      "nome": "OnePlus Nord",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "oneplus-nord-ce",
+      "nome": "OnePlus Nord CE",
+      "familia": "oneplus-nord",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "realme-c67",
+      "nome": "realme C67",
+      "familia": "realme",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "realme-c61",
+      "nome": "realme C61",
+      "familia": "realme",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "realme-note-60",
+      "nome": "realme Note 60",
+      "familia": "realme",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "realme-14-pro",
+      "nome": "realme 14 Pro",
+      "familia": "realme",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "realme-12",
+      "nome": "realme 12",
+      "familia": "realme",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "realme-12-pro",
+      "nome": "realme 12 Pro",
+      "familia": "realme",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "realme-c3",
+      "nome": "realme C3",
+      "familia": "realme",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "realme-gt-neo-3t",
+      "nome": "realme GT Neo 3T",
+      "familia": "realme",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "realme-x2",
+      "nome": "realme X2",
+      "familia": "realme",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "realme-x2-pro",
+      "nome": "realme X2 Pro",
+      "familia": "realme",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "vivo-v40",
+      "nome": "vivo V40",
+      "familia": "vivo",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "vivo-y36",
+      "nome": "vivo Y36",
+      "familia": "vivo",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "vivo-y28",
+      "nome": "vivo Y28",
+      "familia": "vivo",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nothing-phone-3a",
+      "nome": "Nothing Phone (3a)",
+      "familia": "nothing",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nothing-phone-3a-pro",
+      "nome": "Nothing Phone (3a) Pro",
+      "familia": "nothing",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nothing-phone-2",
+      "nome": "Nothing Phone (2)",
+      "familia": "nothing",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nothing-phone-2a",
+      "nome": "Nothing Phone (2a)",
+      "familia": "nothing",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "cmf-phone-1",
+      "nome": "CMF Phone 1",
+      "familia": "nothing",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nothing-phone-1",
+      "nome": "Nothing Phone (1)",
+      "familia": "nothing",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xperia-10-v",
+      "nome": "Xperia 10 V",
+      "familia": "xperia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xperia-10-vi",
+      "nome": "Xperia 10 VI",
+      "familia": "xperia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "xperia-1-vi",
+      "nome": "Xperia 1 VI",
+      "familia": "xperia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-505",
+      "nome": "TCL 505",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-408",
+      "nome": "TCL 408",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-406",
+      "nome": "TCL 406",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-405",
+      "nome": "TCL 405",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-403",
+      "nome": "TCL 403",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-306",
+      "nome": "TCL 306",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-305",
+      "nome": "TCL 305",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-205",
+      "nome": "TCL 205",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-50",
+      "nome": "TCL 50",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-50-nxtpaper",
+      "nome": "TCL 50 NxtPaper",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-50-pro-nxtpaper",
+      "nome": "TCL 50 Pro NxtPaper",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-50-se",
+      "nome": "TCL 50 SE",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-40-nxtpaper-4g",
+      "nome": "TCL 40 NXTPAPER 4G",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-40-se",
+      "nome": "TCL 40 SE",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-40-x",
+      "nome": "TCL 40 X",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-40-xe",
+      "nome": "TCL 40 XE",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-40r",
+      "nome": "TCL 40R",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-30",
+      "nome": "TCL 30",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-30-se",
+      "nome": "TCL 30 SE",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-30-plus",
+      "nome": "TCL 30+",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-30e-5g",
+      "nome": "TCL 30E 5G",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-20-5g",
+      "nome": "TCL 20 5G",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-20-pro-5g",
+      "nome": "TCL 20 Pro 5G",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-20-r-5g",
+      "nome": "TCL 20 R 5G",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-20-se",
+      "nome": "TCL 20 SE",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-20l",
+      "nome": "TCL 20L",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-20l-plus",
+      "nome": "TCL 20L Plus",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-20y",
+      "nome": "TCL 20Y",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-10-5g",
+      "nome": "TCL 10 5G",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-10-plus",
+      "nome": "TCL 10 Plus",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-10-pro",
+      "nome": "TCL 10 Pro",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-10-se",
+      "nome": "TCL 10 SE",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-10l",
+      "nome": "TCL 10L",
+      "familia": "tcl",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "tcl-tab-10",
+      "nome": "TCL Tab 10",
+      "familia": "tcl-tab",
+      "desenho": "tablet"
+    },
+    {
+      "id": "nokia-g42",
+      "nome": "Nokia G42",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nokia-c32",
+      "nome": "Nokia C32",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nokia-g22",
+      "nome": "Nokia G22",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nokia-g20",
+      "nome": "Nokia G20",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nokia-g10",
+      "nome": "Nokia G10",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nokia-8",
+      "nome": "Nokia 8",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nokia-8-sirocco",
+      "nome": "Nokia 8 Sirocco",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nokia-7-plus",
+      "nome": "Nokia 7 Plus",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nokia-6",
+      "nome": "Nokia 6",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nokia-6-1",
+      "nome": "Nokia 6.1",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nokia-5",
+      "nome": "Nokia 5",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "nokia-5-1-plus",
+      "nome": "Nokia 5.1 Plus",
+      "familia": "nokia",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "zte-blade-v70",
+      "nome": "ZTE Blade V70",
+      "familia": "zte",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "zte-blade-a54",
+      "nome": "ZTE Blade A54",
+      "familia": "zte",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "zte-blade-v50",
+      "nome": "ZTE Blade V50",
+      "familia": "zte",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "alcatel-3l-2019",
+      "nome": "Alcatel 3L 2019",
+      "familia": "alcatel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "alcatel-3l-2020",
+      "nome": "Alcatel 3L 2020",
+      "familia": "alcatel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "alcatel-3x-2019",
+      "nome": "Alcatel 3X 2019",
+      "familia": "alcatel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "alcatel-3x-2020",
+      "nome": "Alcatel 3X 2020",
+      "familia": "alcatel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "alcatel-1s-2019",
+      "nome": "Alcatel 1S 2019",
+      "familia": "alcatel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "alcatel-1s-2020",
+      "nome": "Alcatel 1S 2020",
+      "familia": "alcatel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "alcatel-1s-2021",
+      "nome": "Alcatel 1S 2021",
+      "familia": "alcatel",
+      "desenho": "galaxy"
+    },
+    {
+      "id": "alcatel-1se-2020",
+      "nome": "Alcatel 1SE 2020",
+      "familia": "alcatel",
+      "desenho": "galaxy"
     }
   ],
   "outrasMarcas": [

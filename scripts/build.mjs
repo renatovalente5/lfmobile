@@ -217,11 +217,16 @@ fs.writeFileSync(path.join(SAIDA, 'assets', ficheiros.js), js);
 // ---------------------------------------------------------------- contexto dos modelos
 const numero = numeroWhatsApp(site.contactos.whatsapp);
 const escaloes = R.escaloesDe(site.entrega?.portes?.continente);
-/* A escolha do modelo nas películas: as marcas (Apple e Samsung primeiro, com os modelos da lista;
-   as outras com as sugestões de content/aparelhos.json) e os nomes de cada uma. */
+/* A escolha do modelo nas películas: as marcas da lista dos modelos (Apple e Samsung primeiro), com
+   os telemóveis de cada uma e as sugestões de content/aparelhos.json (outrasMarcas: os modelos mais
+   recentes e as marcas sem modelos na lista), sem repetir nomes. */
 const modelosPorMarca = {};
 for (const m of aparelhos.marcas) modelosPorMarca[m.nome] = aparelhos.modelos.filter((x) => x.marca === m.id && x.tipo === 'telemovel').map((x) => x.nome);
-for (const o of aparelhos.outrasMarcas) modelosPorMarca[o.nome] = o.modelos;
+for (const o of aparelhos.outrasMarcas) {
+  const k = Object.keys(modelosPorMarca).find((n) => n.toLowerCase() === o.nome.toLowerCase()) || o.nome;
+  const vistos = new Set();
+  modelosPorMarca[k] = [...o.modelos, ...(modelosPorMarca[k] || [])].filter((n) => { const c = n.toLowerCase(); if (vistos.has(c)) return false; vistos.add(c); return true; });
+}
 const ctx = {
   site, inicio, categorias, produtos, fotos, manifesto, hoje, producao, ficheiros, api: API, base,
   aparelhos, tiposReparacao, retoma, campanhas, escaloes, modelosPorMarca, marcasParaModelo: Object.keys(modelosPorMarca),

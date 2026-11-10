@@ -280,6 +280,37 @@ teste('as reparações: a página geral, a da família e a do modelo, com os pre
   assert.match(ler2('reparacoes/galaxy-s24/index.html'), /59,90/);
   assert.match(ler2('reparacoes/iphone-15-pro/index.html'), /Orçamento grátis/);
 });
+teste('as reparações de outras marcas: «Outras» abre as marcas, a família e o modelo têm página, e as películas juntam as sugestões sem repetir', () => {
+  const pasta = copia('reparacoes-marcas', (p) => {
+    json(p, 'content/aparelhos.json', (a) => {
+      a.marcas.push({ id: 'xiaomi', nome: 'Xiaomi' });
+      a.familias.push({ id: 'redmi', marca: 'xiaomi', nome: 'Redmi', tipo: 'telemovel' });
+      a.modelos.push({ id: 'redmi-note-13', nome: 'Redmi Note 13', familia: 'redmi', desenho: 'galaxy' });
+    });
+    json(p, 'content/reparacoes.json', (r) => {
+      for (const t of r.tipos) t.familias.push('redmi');
+      r.precos['redmi-note-13'] = { ecra: { compativel: 79.9 } };
+    });
+  });
+  assert.equal(construir(pasta).codigo, 0);
+  const ler2 = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  const hub = ler2('reparacoes/index.html');
+  assert.match(hub, /data-marca="apple" aria-pressed="true">Apple<\/button><button class="seletor__marca" type="button" data-marca="samsung"|data-marca="samsung" aria-pressed="false">Samsung/);
+  assert.match(hub, /data-outras aria-pressed="false" aria-expanded="false" aria-controls="escolher-outras">Outras<span class="visualmente-escondido"> marcas<\/span>/);
+  assert.match(hub, /<div class="seletor__outras" id="escolher-outras" role="group" aria-label="Outras marcas" hidden>\s*<button class="seletor__outra" type="button" data-marca="xiaomi" aria-pressed="false">Xiaomi<\/button>/);
+  assert.match(hub, /Outra marca ou modelo\?/);
+  assert.match(hub, /data-familia="redmi" data-marca-da-familia="xiaomi"/);
+  assert.match(hub, /<li data-familia="redmi" data-marca="xiaomi" data-nome="redmi note 13">/);
+  assert.match(ler2('reparacoes/redmi/index.html'), /Reparação Redmi/);
+  const m = ler2('reparacoes/redmi-note-13/index.html');
+  assert.match(m, /Xiaomi · Redmi/);
+  assert.match(m, /79,90/);
+  // o rodapé leva a primeira família de cada marca
+  assert.match(ler2('index.html'), /<li><a href="\/reparacoes\/redmi\/">Redmi<\/a><\/li>/);
+  // a escolha do modelo nas películas: a sugestão e o modelo da lista com o mesmo nome aparecem uma vez
+  const dados = JSON.parse(ler2('produtos/pelicula-vidro/index.html').match(/id="dados-modelos">(.*?)<\/script>/)[1]);
+  assert.deepEqual(dados.Xiaomi, ['Redmi Note 13']);
+});
 teste('em produção, os preços das reparações e os valores da retoma por confirmar não aparecem; confirmados, aparecem', () => {
   const pasta = copia('reparacoes-producao', (p) => json(p, 'content/site.json', preencherDadosLegais));
   assert.equal(construir(pasta, '--producao').codigo, 0);

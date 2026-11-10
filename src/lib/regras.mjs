@@ -162,7 +162,7 @@ export const TAMANHOS = Object.freeze({
   catNome: 40, catTitulo: 80, catResumo: 2000,
   inicioCurto: 60, inicioTitulo: 120, inicioTexto: 600,
   transportadora: 40, escaloes: 6,
-  modeloNome: 60, modelos: 400, capacidades: 8, outrasMarcas: 30, modelosDaMarca: 60,
+  modeloNome: 60, modelos: 1200, capacidades: 8, outrasMarcas: 30, modelosDaMarca: 60,
   tipoNome: 40, tipoTitulo: 80, tipoResumo: 200, sintomas: 8, sintoma: 120, niveis: 3, nivelNome: 40, nivelTexto: 160,
   pergunta: 120, perguntaAjuda: 240, respostas: 6, resposta: 60, respostaAjuda: 80, perguntas: 12, opcoesRetoma: 6, opcaoRetoma: 80,
   campanhas: 20, campanhaNome: 60, campanhaFaixa: 140, campanhaTitulo: 120, campanhaTexto: 600,
@@ -805,7 +805,8 @@ export function problemasDasCategorias(valor, { fotos = null } = {}) {
 /* content/aparelhos.json — as marcas, as famílias e os modelos         */
 /* ------------------------------------------------------------------ */
 
-/* Os aparelhos que a loja repara e retoma (o dono, 9 nov 2026: «só Apple e Samsung»):
+/* Os aparelhos que a loja repara e retoma (9 nov 2026: repara todas as marcas; a retoma é só de
+   Apple e Samsung, as famílias de content/retoma.json):
    { marcas: [{ id, nome }], familias: [{ id, marca, nome, tipo }],
      modelos: [{ id, nome, familia, ano?, capacidades?: [GB], desenho? }],
      outrasMarcas?: [{ nome, modelos: [texto] }] }   (só sugestões na escolha do modelo das películas)

@@ -98,7 +98,7 @@ export function inicio(ctx) {
   const mosaico = `<section class="mosaico" aria-labelledby="capa-titulo">
   <div class="mosaico__principal">
     <div class="mosaico__palavras">
-      <p class="rotulo rotulo--claro">Reparação de iPhone e Samsung</p>
+      <p class="rotulo rotulo--claro">Reparação de telemóveis</p>
       <h1 class="mosaico__h1" id="capa-titulo">${esc(h.capa.titulo)}</h1>
       ${h.capa.texto ? `<p class="mosaico__sub">${esc(h.capa.texto)}</p>` : ''}
       ${escolhaRapida(ctx, h)}

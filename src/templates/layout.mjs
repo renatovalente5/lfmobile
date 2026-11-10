@@ -174,7 +174,9 @@ function folhaProcura(ctx) {
 function rodape(ctx) {
   const e = ctx.site.empresa || {};
   const ligacao = (caminho, texto) => `<li><a href="${ctx.url(caminho)}">${esc(texto)}</a></li>`;
-  const familias = ctx.aparelhos.familias.filter((f) => ctx.aparelhos.modelos.some((m) => m.familia === f.id));
+  const comModelos = ctx.aparelhos.familias.filter((f) => ctx.aparelhos.modelos.some((m) => m.familia === f.id));
+  // as reparações no rodapé: a primeira família de cada marca (iPhone, Galaxy S, Redmi…), até seis
+  const familias = ctx.aparelhos.marcas.map((m) => comModelos.find((f) => f.marca === m.id)).filter(Boolean);
   const t = ctx.site.entrega.transportadora;
   return `<footer class="rodape">
   <div class="rodape__garantias">

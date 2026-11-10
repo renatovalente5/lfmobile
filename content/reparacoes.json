@@ -1,5 +1,5 @@
 {
-  "confirmado": false,
+  "confirmado": true,
   "tipos": [
     {
       "id": "ecra",
@@ -22,7 +22,39 @@
         "ipad",
         "galaxy-tab",
         "apple-watch",
-        "galaxy-watch"
+        "galaxy-watch",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "xiaomi-pad",
+        "xiaomi-watch",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "huawei-matepad",
+        "huawei-watch",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "tcl-tab",
+        "nokia",
+        "zte",
+        "alcatel"
       ],
       "niveis": [
         {
@@ -59,7 +91,39 @@
         "ipad",
         "galaxy-tab",
         "apple-watch",
-        "galaxy-watch"
+        "galaxy-watch",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "xiaomi-pad",
+        "xiaomi-watch",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "huawei-matepad",
+        "huawei-watch",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "tcl-tab",
+        "nokia",
+        "zte",
+        "alcatel"
       ]
     },
     {
@@ -78,7 +142,34 @@
         "galaxy-s",
         "galaxy-z",
         "galaxy-a",
-        "galaxy-note"
+        "galaxy-note",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "nokia",
+        "zte",
+        "alcatel"
       ],
       "foto": "reparacao-vidro-traseiro-iphone"
     },
@@ -100,7 +191,37 @@
         "galaxy-a",
         "galaxy-note",
         "ipad",
-        "galaxy-tab"
+        "galaxy-tab",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "xiaomi-pad",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "huawei-matepad",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "tcl-tab",
+        "nokia",
+        "zte",
+        "alcatel"
       ]
     },
     {
@@ -121,7 +242,37 @@
         "galaxy-a",
         "galaxy-note",
         "ipad",
-        "galaxy-tab"
+        "galaxy-tab",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "xiaomi-pad",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "huawei-matepad",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "tcl-tab",
+        "nokia",
+        "zte",
+        "alcatel"
       ]
     },
     {
@@ -139,7 +290,34 @@
         "galaxy-s",
         "galaxy-z",
         "galaxy-a",
-        "galaxy-note"
+        "galaxy-note",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "nokia",
+        "zte",
+        "alcatel"
       ]
     },
     {
@@ -160,7 +338,37 @@
         "galaxy-a",
         "galaxy-note",
         "ipad",
-        "galaxy-tab"
+        "galaxy-tab",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "xiaomi-pad",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "huawei-matepad",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "tcl-tab",
+        "nokia",
+        "zte",
+        "alcatel"
       ]
     },
     {
@@ -181,7 +389,37 @@
         "galaxy-a",
         "galaxy-note",
         "ipad",
-        "galaxy-tab"
+        "galaxy-tab",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "xiaomi-pad",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "huawei-matepad",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "tcl-tab",
+        "nokia",
+        "zte",
+        "alcatel"
       ]
     },
     {
@@ -202,7 +440,37 @@
         "galaxy-a",
         "galaxy-note",
         "ipad",
-        "galaxy-tab"
+        "galaxy-tab",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "xiaomi-pad",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "huawei-matepad",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "tcl-tab",
+        "nokia",
+        "zte",
+        "alcatel"
       ]
     },
     {
@@ -245,7 +513,39 @@
         "ipad",
         "galaxy-tab",
         "apple-watch",
-        "galaxy-watch"
+        "galaxy-watch",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "xiaomi-pad",
+        "xiaomi-watch",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "huawei-matepad",
+        "huawei-watch",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "tcl-tab",
+        "nokia",
+        "zte",
+        "alcatel"
       ],
       "orcamento": true
     },
@@ -269,7 +569,39 @@
         "ipad",
         "galaxy-tab",
         "apple-watch",
-        "galaxy-watch"
+        "galaxy-watch",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "xiaomi-pad",
+        "xiaomi-watch",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "huawei-matepad",
+        "huawei-watch",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "tcl-tab",
+        "nokia",
+        "zte",
+        "alcatel"
       ]
     },
     {
@@ -291,12 +623,80 @@
         "ipad",
         "galaxy-tab",
         "apple-watch",
-        "galaxy-watch"
+        "galaxy-watch",
+        "galaxy-m",
+        "galaxy-j",
+        "galaxy-xcover",
+        "redmi",
+        "xiaomi",
+        "poco",
+        "xiaomi-pad",
+        "xiaomi-watch",
+        "huawei-p",
+        "huawei-nova",
+        "huawei-mate",
+        "huawei-p-smart",
+        "huawei-y",
+        "huawei-matepad",
+        "huawei-watch",
+        "oppo-a",
+        "oppo-reno",
+        "oppo-find",
+        "pixel",
+        "motorola",
+        "honor",
+        "oneplus",
+        "oneplus-nord",
+        "realme",
+        "vivo",
+        "nothing",
+        "xperia",
+        "tcl",
+        "tcl-tab",
+        "nokia",
+        "zte",
+        "alcatel"
       ],
       "gratis": true
     }
   ],
   "precos": {
+    "iphone-18-pro-max": {
+      "ecra": {
+        "compativel": 406,
+        "original": 634
+      },
+      "bateria": 119.95,
+      "traseira": 169.95,
+      "camara-frontal": 39.95,
+      "conector": 139.95,
+      "botoes": 139.95,
+      "som": 139.95,
+      "software": 24.95
+    },
+    "iphone-18-pro": {
+      "ecra": {
+        "compativel": 376
+      },
+      "bateria": 99.95,
+      "traseira": 169.95,
+      "camara-frontal": 39.95,
+      "conector": 129.95,
+      "botoes": 149.95,
+      "som": 139.95,
+      "software": 24.95
+    },
+    "iphone-17e": {
+      "ecra": {
+        "compativel": 152
+      },
+      "bateria": 99.95,
+      "traseira": 199.95,
+      "camara-frontal": 39.95,
+      "conector": 129.95,
+      "som": 129.95,
+      "software": 24.95
+    },
     "iphone-17-pro-max": {
       "ecra": {
         "compativel": 406,
@@ -750,20 +1150,420 @@
       "som": 39.95,
       "software": 24.95
     },
+    "ipad-pro-13-m5": {
+      "ecra": {
+        "compativel": 878
+      }
+    },
+    "ipad-pro-11-m5": {
+      "ecra": {
+        "compativel": 712
+      },
+      "software": 24.95
+    },
+    "ipad-air-13-m3": {
+      "ecra": {
+        "compativel": 235
+      }
+    },
+    "ipad-air-11-m3": {
+      "ecra": {
+        "compativel": 237
+      }
+    },
+    "ipad-a16": {
+      "ecra": {
+        "compativel": 99
+      },
+      "bateria": 119.95,
+      "botoes": 99.95,
+      "software": 24.95
+    },
+    "ipad-pro-13-m4": {
+      "ecra": {
+        "compativel": 878
+      }
+    },
+    "ipad-pro-11-m4": {
+      "ecra": {
+        "compativel": 712
+      },
+      "bateria": 129.95,
+      "conector": 159.95,
+      "software": 24.95
+    },
+    "ipad-air-13-m2": {
+      "ecra": {
+        "compativel": 232
+      }
+    },
+    "ipad-air-11-m2": {
+      "ecra": {
+        "compativel": 221
+      }
+    },
+    "ipad-mini-a17-pro": {
+      "ecra": {
+        "compativel": 209
+      },
+      "bateria": 99.95,
+      "conector": 89.95,
+      "software": 24.95
+    },
+    "ipad-pro-12-9-6-geracao": {
+      "ecra": {
+        "compativel": 236
+      },
+      "bateria": 149.95,
+      "conector": 159.95,
+      "software": 24.95
+    },
+    "ipad-pro-11-4-geracao": {
+      "ecra": {
+        "compativel": 224
+      },
+      "software": 24.95,
+      "bateria": 129.95,
+      "conector": 159.95
+    },
+    "ipad-10-geracao": {
+      "ecra": {
+        "compativel": 99
+      },
+      "bateria": 119.95,
+      "botoes": 99.95,
+      "software": 24.95
+    },
+    "ipad-air-5-geracao": {
+      "ecra": {
+        "compativel": 210
+      },
+      "bateria": 99.95,
+      "conector": 99.95,
+      "software": 24.95
+    },
+    "ipad-pro-12-9-5-geracao": {
+      "ecra": {
+        "compativel": 236
+      },
+      "bateria": 149.95,
+      "conector": 159.95,
+      "software": 24.95
+    },
+    "ipad-pro-11-3-geracao": {
+      "ecra": {
+        "compativel": 224
+      },
+      "bateria": 129.95,
+      "conector": 159.95,
+      "software": 24.95
+    },
+    "ipad-mini-6-geracao": {
+      "ecra": {
+        "compativel": 213
+      },
+      "bateria": 99.95,
+      "conector": 89.95,
+      "software": 24.95
+    },
+    "ipad-9-geracao": {
+      "ecra": {
+        "compativel": 94
+      },
+      "bateria": 149.95,
+      "conector": 99.95,
+      "software": 24.95
+    },
+    "ipad-air-4-geracao": {
+      "ecra": {
+        "compativel": 212
+      },
+      "bateria": 119.95,
+      "conector": 99.95,
+      "software": 24.95
+    },
+    "ipad-pro-12-9-4-geracao": {
+      "ecra": {
+        "compativel": 209
+      },
+      "bateria": 139.95,
+      "conector": 159.95,
+      "software": 24.95
+    },
+    "ipad-pro-11-2-geracao": {
+      "ecra": {
+        "compativel": 204
+      },
+      "bateria": 119.95,
+      "conector": 159.95,
+      "software": 24.95
+    },
+    "ipad-8-geracao": {
+      "ecra": {
+        "compativel": 89
+      },
+      "bateria": 99.95,
+      "conector": 99.95,
+      "software": 24.95
+    },
+    "ipad-7-geracao": {
+      "ecra": {
+        "compativel": 89
+      },
+      "conector": 99.95,
+      "software": 24.95
+    },
+    "ipad-air-3-geracao": {
+      "ecra": {
+        "compativel": 200
+      },
+      "bateria": 99.95,
+      "conector": 99.95,
+      "software": 24.95
+    },
+    "ipad-mini-5-geracao": {
+      "ecra": {
+        "compativel": 133
+      },
+      "bateria": 99.95,
+      "conector": 89.95,
+      "software": 24.95
+    },
+    "ipad-pro-12-9-3-geracao": {
+      "ecra": {
+        "compativel": 209
+      },
+      "bateria": 139.95,
+      "conector": 159.95,
+      "software": 24.95
+    },
+    "ipad-pro-11-1-geracao": {
+      "ecra": {
+        "compativel": 204
+      },
+      "bateria": 99.95,
+      "conector": 159.95,
+      "software": 24.95
+    },
+    "ipad-6-geracao": {
+      "ecra": {
+        "compativel": 79
+      },
+      "software": 24.95,
+      "bateria": 99.95,
+      "camara-frontal": 89.95,
+      "conector": 119.95,
+      "botoes": 99.95,
+      "som": 99.95
+    },
+    "ipad-pro-12-9-2-geracao": {
+      "ecra": {
+        "compativel": 251
+      },
+      "bateria": 129.95,
+      "camara-traseira": 119.95,
+      "conector": 159.95,
+      "botoes": 99.95,
+      "software": 24.95
+    },
+    "ipad-pro-10-5": {
+      "ecra": {
+        "compativel": 198
+      },
+      "bateria": 99.95,
+      "conector": 119.95,
+      "software": 24.95
+    },
+    "ipad-5-geracao": {
+      "ecra": {
+        "compativel": 79
+      },
+      "bateria": 99.95,
+      "camara-frontal": 89.95,
+      "conector": 119.95,
+      "botoes": 99.95,
+      "som": 99.95,
+      "software": 24.95
+    },
+    "ipad-pro-9-7": {
+      "ecra": {
+        "compativel": 207
+      },
+      "bateria": 99.95,
+      "camara-frontal": 89.95,
+      "conector": 119.95,
+      "software": 24.95
+    },
+    "ipad-pro-12-9-1-geracao": {
+      "ecra": {
+        "compativel": 218
+      },
+      "bateria": 99.95,
+      "conector": 159.95,
+      "software": 24.95
+    },
+    "ipad-mini-4": {
+      "ecra": {
+        "compativel": 145
+      },
+      "bateria": 89.95,
+      "camara-frontal": 49.95,
+      "conector": 89.95,
+      "botoes": 89.95,
+      "som": 89.95,
+      "software": 24.95
+    },
+    "ipad-air-2": {
+      "ecra": {
+        "compativel": 178
+      },
+      "bateria": 99.95,
+      "camara-frontal": 49.95,
+      "conector": 99.95,
+      "botoes": 99.95,
+      "som": 99.95,
+      "software": 24.95
+    },
+    "ipad-mini-3": {
+      "ecra": {
+        "compativel": 69
+      },
+      "bateria": 79.95,
+      "camara-frontal": 49.95,
+      "conector": 89.95,
+      "botoes": 89.95,
+      "som": 89.95,
+      "software": 24.95
+    },
+    "apple-watch-series-11": {
+      "ecra": {
+        "compativel": 323
+      },
+      "bateria": 79.95
+    },
+    "apple-watch-ultra-3": {
+      "ecra": {
+        "compativel": 183
+      },
+      "bateria": 89.95
+    },
+    "apple-watch-se-3-geracao": {
+      "ecra": {
+        "compativel": 139
+      }
+    },
+    "apple-watch-series-10": {
+      "ecra": {
+        "compativel": 323
+      },
+      "bateria": 79.95
+    },
+    "apple-watch-ultra-2": {
+      "ecra": {
+        "compativel": 183
+      },
+      "bateria": 89.95
+    },
+    "apple-watch-series-9": {
+      "ecra": {
+        "compativel": 171
+      },
+      "bateria": 79.95
+    },
+    "apple-watch-series-8": {
+      "ecra": {
+        "compativel": 176
+      },
+      "bateria": 69.95
+    },
+    "apple-watch-ultra": {
+      "ecra": {
+        "compativel": 219
+      },
+      "bateria": 89.95
+    },
+    "apple-watch-se-2-geracao": {
+      "ecra": {
+        "compativel": 139
+      },
+      "bateria": 59.95
+    },
+    "apple-watch-series-7": {
+      "ecra": {
+        "compativel": 106
+      },
+      "bateria": 69.95
+    },
+    "apple-watch-series-6": {
+      "ecra": {
+        "compativel": 179
+      },
+      "bateria": 59.95
+    },
+    "apple-watch-se": {
+      "ecra": {
+        "compativel": 139
+      },
+      "bateria": 59.95
+    },
+    "apple-watch-series-5": {
+      "ecra": {
+        "compativel": 139
+      },
+      "bateria": 59.95
+    },
+    "apple-watch-series-4": {
+      "ecra": {
+        "compativel": 118
+      },
+      "bateria": 59.95
+    },
+    "apple-watch-series-3": {
+      "ecra": {
+        "compativel": 112
+      },
+      "bateria": 49.95
+    },
     "galaxy-s26-ultra": {
       "ecra": {
         "compativel": 277
-      }
+      },
+      "bateria": 79.95,
+      "traseira": 119.95,
+      "camara-frontal": 129.95,
+      "conector": 79.95,
+      "som": 69.95,
+      "software": 24.95
     },
     "galaxy-s26-plus": {
       "ecra": {
         "compativel": 207
-      }
+      },
+      "bateria": 69.95,
+      "traseira": 119.95,
+      "camara-frontal": 39.95,
+      "conector": 79.95,
+      "som": 69.95,
+      "software": 24.95
     },
     "galaxy-s26": {
       "ecra": {
         "compativel": 157
-      }
+      },
+      "bateria": 69.95,
+      "traseira": 119.95,
+      "camara-frontal": 129.95,
+      "conector": 79.95,
+      "som": 69.95,
+      "software": 24.95
+    },
+    "galaxy-s26-fe": {
+      "ecra": {
+        "compativel": 198
+      },
+      "bateria": 69.95,
+      "conector": 49.95,
+      "software": 24.95
     },
     "galaxy-s25-ultra": {
       "ecra": {
@@ -804,7 +1604,11 @@
       "ecra": {
         "compativel": 198
       },
-      "conector": 49.95
+      "conector": 49.95,
+      "bateria": 69.95,
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "software": 24.95
     },
     "galaxy-s24-ultra": {
       "ecra": {
@@ -840,7 +1644,11 @@
       "ecra": {
         "compativel": 167
       },
-      "bateria": 69.95
+      "bateria": 69.95,
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "software": 24.95
     },
     "galaxy-s23-ultra": {
       "ecra": {
@@ -988,11 +1796,72 @@
       "som": 49.95,
       "software": 24.95
     },
+    "galaxy-z-fold8-ultra": {
+      "vidro-camara": 39.95,
+      "conector": 89.95,
+      "software": 24.95
+    },
+    "galaxy-z-fold8": {
+      "vidro-camara": 39.95,
+      "conector": 89.95,
+      "software": 24.95
+    },
+    "galaxy-z-flip8": {
+      "ecra": {
+        "compativel": 405
+      },
+      "bateria": 69.95,
+      "traseira": 119.95,
+      "camara-frontal": 39.95,
+      "conector": 79.95,
+      "software": 24.95
+    },
+    "galaxy-z-fold7": {
+      "bateria": 69.95,
+      "traseira": 119.95,
+      "camara-frontal": 49.95,
+      "vidro-camara": 39.95,
+      "conector": 89.95,
+      "software": 24.95
+    },
+    "galaxy-z-flip7": {
+      "ecra": {
+        "compativel": 405
+      },
+      "bateria": 69.95,
+      "traseira": 119.95,
+      "camara-frontal": 39.95,
+      "conector": 79.95,
+      "software": 24.95
+    },
+    "galaxy-z-flip7-fe": {
+      "ecra": {
+        "compativel": 405
+      },
+      "bateria": 69.95,
+      "traseira": 119.95,
+      "camara-frontal": 39.95,
+      "conector": 79.95,
+      "software": 24.95
+    },
+    "galaxy-z-fold6": {
+      "bateria": 69.95,
+      "traseira": 119.95,
+      "camara-frontal": 49.95,
+      "vidro-camara": 39.95,
+      "conector": 89.95,
+      "botoes": 59.95,
+      "software": 24.95
+    },
     "galaxy-z-flip6": {
       "ecra": {
         "compativel": 405
       },
-      "traseira": 119.95
+      "traseira": 119.95,
+      "bateria": 69.95,
+      "camara-frontal": 39.95,
+      "conector": 79.95,
+      "software": 24.95
     },
     "galaxy-z-fold5": {
       "vidro-camara": 39.95,
@@ -1041,11 +1910,49 @@
       "conector": 79.95,
       "software": 24.95
     },
+    "galaxy-a57": {
+      "ecra": {
+        "compativel": 106
+      },
+      "bateria": 59.95,
+      "traseira": 79.95,
+      "camara-frontal": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 60,
+      "som": 49.95,
+      "software": 24.95
+    },
+    "galaxy-a37": {
+      "ecra": {
+        "compativel": 131
+      },
+      "bateria": 59.95,
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 60,
+      "software": 24.95
+    },
     "galaxy-a17": {
       "ecra": {
         "compativel": 88
       },
-      "vidro-camara": 39.95
+      "vidro-camara": 39.95,
+      "bateria": 59.95,
+      "traseira": 39.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "botoes": 39.95,
+      "som": 49.95,
+      "software": 24.95
+    },
+    "galaxy-a07": {
+      "ecra": {
+        "compativel": 62
+      },
+      "bateria": 59.95,
+      "vidro-camara": 39.95,
+      "software": 24.95
     },
     "galaxy-a56": {
       "ecra": {
@@ -1081,6 +1988,14 @@
       "traseira": 39.95,
       "vidro-camara": 39.95,
       "conector": 44.95
+    },
+    "galaxy-a06": {
+      "ecra": {
+        "compativel": 62
+      },
+      "bateria": 59.95,
+      "vidro-camara": 39.95,
+      "software": 24.95
     },
     "galaxy-a55": {
       "ecra": {
@@ -1142,6 +2057,18 @@
       "traseira": 59.95,
       "camara-frontal": 39.95,
       "conector": 49.95,
+      "software": 24.95
+    },
+    "galaxy-a24": {
+      "ecra": {
+        "compativel": 98
+      },
+      "bateria": 49.95,
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 60,
+      "botoes": 39.95,
       "software": 24.95
     },
     "galaxy-a14": {
@@ -1271,6 +2198,3991 @@
       "bateria": 49.95,
       "traseira": 89.95,
       "software": 24.95
+    },
+    "galaxy-m55": {
+      "ecra": {
+        "compativel": 71
+      },
+      "software": 24.95
+    },
+    "galaxy-m34": {
+      "ecra": {
+        "compativel": 82
+      },
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "galaxy-m13": {
+      "ecra": {
+        "compativel": 78
+      },
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "galaxy-m23": {
+      "ecra": {
+        "compativel": 78
+      },
+      "camara-traseira": 44.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "galaxy-m53": {
+      "ecra": {
+        "compativel": 114
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "camara-frontal": 49.95,
+      "conector": 49.95,
+      "som": 49.95
+    },
+    "galaxy-m02": {
+      "ecra": {
+        "compativel": 49.95
+      },
+      "software": 24.95
+    },
+    "galaxy-m12": {
+      "ecra": {
+        "compativel": 58
+      },
+      "software": 24.95,
+      "vidro-camara": 39.95,
+      "botoes": 39.95,
+      "som": 39.95
+    },
+    "galaxy-m22": {
+      "ecra": {
+        "compativel": 68
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "camara-traseira": 44.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "som": 39.95
+    },
+    "galaxy-m32": {
+      "ecra": {
+        "compativel": 107
+      },
+      "software": 24.95,
+      "camara-frontal": 49.95,
+      "conector": 49.95
+    },
+    "galaxy-m52-5g": {
+      "ecra": {
+        "compativel": 123
+      },
+      "som": 49.95,
+      "software": 24.95
+    },
+    "galaxy-m62": {
+      "ecra": {
+        "compativel": 134
+      },
+      "software": 24.95
+    },
+    "galaxy-m01": {
+      "ecra": {
+        "compativel": 59.95
+      },
+      "software": 24.95
+    },
+    "galaxy-m11": {
+      "ecra": {
+        "compativel": 78
+      },
+      "vidro-camara": 39.95,
+      "software": 24.95
+    },
+    "galaxy-m21": {
+      "ecra": {
+        "compativel": 94
+      },
+      "bateria": 49.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "galaxy-m21s": {
+      "ecra": {
+        "compativel": 113
+      },
+      "software": 24.95
+    },
+    "galaxy-m31": {
+      "ecra": {
+        "compativel": 113
+      },
+      "camara-frontal": 49.95,
+      "software": 24.95
+    },
+    "galaxy-m31s": {
+      "ecra": {
+        "compativel": 121
+      },
+      "bateria": 49.95,
+      "traseira": 49.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "galaxy-m51": {
+      "ecra": {
+        "compativel": 131
+      },
+      "bateria": 49.95,
+      "camara-frontal": 49.95,
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "galaxy-m10": {
+      "ecra": {
+        "compativel": 86
+      },
+      "software": 24.95,
+      "vidro-camara": 39.95
+    },
+    "galaxy-m20": {
+      "ecra": {
+        "compativel": 84
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "galaxy-m30s": {
+      "ecra": {
+        "compativel": 94
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "galaxy-j7-2016": {
+      "ecra": {
+        "compativel": 43
+      },
+      "bateria": 39.95,
+      "camara-traseira": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "galaxy-j7-2017": {
+      "ecra": {
+        "compativel": 110
+      },
+      "bateria": 39.95,
+      "camara-traseira": 44.95,
+      "som": 44.95,
+      "software": 24.95
+    },
+    "galaxy-j6": {
+      "ecra": {
+        "compativel": 85
+      },
+      "bateria": 39.95,
+      "traseira": 59.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "galaxy-j6-plus": {
+      "ecra": {
+        "compativel": 24
+      },
+      "bateria": 39.95,
+      "traseira": 59.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "galaxy-j5-2015": {
+      "ecra": {
+        "compativel": 64
+      },
+      "bateria": 39.95,
+      "traseira": 39.95,
+      "camara-frontal": 44.95,
+      "conector": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "galaxy-j5-2016": {
+      "ecra": {
+        "compativel": 78
+      },
+      "bateria": 39.95,
+      "traseira": 39.95,
+      "camara-frontal": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "galaxy-j5-2017": {
+      "ecra": {
+        "compativel": 96
+      },
+      "bateria": 39.95,
+      "traseira": 69.95,
+      "camara-traseira": 44.95,
+      "som": 44.95,
+      "software": 24.95
+    },
+    "galaxy-j4-core": {
+      "ecra": {
+        "compativel": 24
+      },
+      "software": 24.95
+    },
+    "galaxy-j4-plus": {
+      "ecra": {
+        "compativel": 24
+      },
+      "bateria": 39.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "galaxy-j3-2016": {
+      "ecra": {
+        "compativel": 49
+      },
+      "bateria": 39.95,
+      "software": 24.95
+    },
+    "galaxy-j3-2017": {
+      "ecra": {
+        "compativel": 62
+      },
+      "bateria": 39.95,
+      "camara-traseira": 44.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "software": 24.95
+    },
+    "galaxy-xcover6-pro": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "conector": 44.95
+    },
+    "galaxy-xcover5": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "conector": 44.95
+    },
+    "galaxy-xcover-pro": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "conector": 44.95
+    },
+    "galaxy-tab-s11-ultra": {
+      "software": 24.95
+    },
+    "galaxy-tab-s11": {
+      "ecra": {
+        "compativel": 369.95
+      },
+      "software": 24.95
+    },
+    "galaxy-tab-s10-fe": {
+      "ecra": {
+        "compativel": 179.95
+      },
+      "bateria": 89.95,
+      "software": 24.95
+    },
+    "galaxy-tab-s10-ultra": {
+      "software": 24.95
+    },
+    "galaxy-tab-s10-plus": {
+      "ecra": {
+        "compativel": 449.95
+      },
+      "software": 24.95
+    },
+    "galaxy-tab-s9-fe": {
+      "ecra": {
+        "compativel": 179.95
+      },
+      "bateria": 89.95,
+      "software": 24.95
+    },
+    "galaxy-tab-s9-ultra": {
+      "software": 24.95
+    },
+    "galaxy-tab-s9-plus": {
+      "ecra": {
+        "compativel": 449.95
+      },
+      "software": 24.95
+    },
+    "galaxy-tab-s9": {
+      "ecra": {
+        "compativel": 369.95
+      },
+      "software": 24.95
+    },
+    "galaxy-tab-s8-ultra": {
+      "software": 24.95
+    },
+    "galaxy-tab-s8-plus": {
+      "ecra": {
+        "compativel": 449.95
+      },
+      "software": 24.95
+    },
+    "galaxy-tab-s8": {
+      "ecra": {
+        "compativel": 369.95
+      },
+      "software": 24.95
+    },
+    "galaxy-tab-s7-fe": {
+      "ecra": {
+        "compativel": 179.95
+      },
+      "bateria": 89.95,
+      "software": 24.95
+    },
+    "galaxy-tab-s7-plus": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 449.95
+      }
+    },
+    "galaxy-tab-s7": {
+      "ecra": {
+        "compativel": 149.95
+      },
+      "software": 24.95
+    },
+    "galaxy-tab-s6-lite": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 89.95,
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "galaxy-tab-a9": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "bateria": 69.95,
+      "conector": 69.95,
+      "software": 24.95
+    },
+    "galaxy-tab-a8": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "bateria": 69.95,
+      "conector": 69.95,
+      "software": 24.95
+    },
+    "galaxy-tab-a7-lite": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 44.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "galaxy-tab-a7": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "bateria": 69.95,
+      "conector": 69.95,
+      "software": 24.95
+    },
+    "galaxy-tab-a-10-1-2019": {
+      "ecra": {
+        "compativel": 179.95
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "galaxy-tab-s6": {
+      "ecra": {
+        "compativel": 299.95
+      },
+      "software": 24.95
+    },
+    "galaxy-tab-s5e": {
+      "ecra": {
+        "compativel": 249.95
+      },
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "galaxy-tab-a-8-0-2019": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 44.95,
+      "conector": 44.95,
+      "botoes": 49.95,
+      "software": 24.95
+    },
+    "galaxy-tab-active3": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "software": 24.95
+    },
+    "galaxy-watch-ultra": {
+      "ecra": {
+        "compativel": 199.95
+      }
+    },
+    "galaxy-watch8-classic": {
+      "ecra": {
+        "compativel": 169.95
+      },
+      "bateria": 49.95
+    },
+    "galaxy-watch8": {
+      "ecra": {
+        "compativel": 169.95
+      },
+      "bateria": 49.95
+    },
+    "galaxy-watch7": {
+      "ecra": {
+        "compativel": 169.95
+      },
+      "bateria": 49.95
+    },
+    "galaxy-watch6-classic": {
+      "ecra": {
+        "compativel": 169.95
+      },
+      "bateria": 49.95
+    },
+    "galaxy-watch6": {
+      "ecra": {
+        "compativel": 169.95
+      },
+      "bateria": 49.95
+    },
+    "galaxy-watch5-pro": {
+      "ecra": {
+        "compativel": 199.95
+      }
+    },
+    "galaxy-watch5": {
+      "ecra": {
+        "compativel": 169.95
+      },
+      "bateria": 49.95
+    },
+    "galaxy-watch4-classic": {
+      "ecra": {
+        "compativel": 144.95
+      },
+      "bateria": 49.95
+    },
+    "galaxy-watch4": {
+      "ecra": {
+        "compativel": 144.95
+      },
+      "bateria": 49.95
+    },
+    "galaxy-watch3": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "bateria": 49.95
+    },
+    "galaxy-watch-active2": {
+      "ecra": {
+        "compativel": 169.95
+      },
+      "bateria": 49.95
+    },
+    "galaxy-watch-2018": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "bateria": 49.95
+    },
+    "redmi-15": {
+      "ecra": {
+        "compativel": 108
+      },
+      "vidro-camara": 39.95,
+      "software": 24.95
+    },
+    "redmi-15c": {
+      "ecra": {
+        "compativel": 85
+      },
+      "bateria": 59.95,
+      "traseira": 44.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "redmi-14c": {
+      "ecra": {
+        "compativel": 57
+      },
+      "bateria": 59.95,
+      "traseira": 44.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "som": 39.95
+    },
+    "redmi-note-14-5g": {
+      "ecra": {
+        "compativel": 128
+      },
+      "vidro-camara": 39.95,
+      "conector": 44.95,
+      "bateria": 49.95
+    },
+    "redmi-note-14-pro-5g": {
+      "ecra": {
+        "compativel": 136
+      },
+      "traseira": 69.95,
+      "vidro-camara": 39.95,
+      "conector": 44.95
+    },
+    "redmi-note-14-pro-plus-5g": {
+      "ecra": {
+        "compativel": 136
+      },
+      "camara-frontal": 39.95,
+      "conector": 44.95
+    },
+    "redmi-13": {
+      "ecra": {
+        "compativel": 73
+      },
+      "vidro-camara": 39.95,
+      "software": 24.95
+    },
+    "redmi-13c": {
+      "ecra": {
+        "compativel": 57
+      },
+      "bateria": 39.95,
+      "traseira": 39.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-13-5g": {
+      "ecra": {
+        "compativel": 123
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-13-pro-4g": {
+      "ecra": {
+        "compativel": 131
+      },
+      "bateria": 44.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "software": 24.95,
+      "traseira": 59.95,
+      "som": 39.95
+    },
+    "redmi-note-13-pro-plus": {
+      "ecra": {
+        "compativel": 133
+      },
+      "bateria": 44.95,
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "botoes": 39.95
+    },
+    "redmi-12": {
+      "ecra": {
+        "compativel": 77
+      },
+      "vidro-camara": 39.95,
+      "software": 24.95
+    },
+    "redmi-12c": {
+      "ecra": {
+        "compativel": 64
+      },
+      "bateria": 39.95,
+      "traseira": 39.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "redmi-note-12": {
+      "ecra": {
+        "compativel": 135
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 44.95,
+      "botoes": 34.95
+    },
+    "redmi-note-12-pro-5g": {
+      "ecra": {
+        "compativel": 140
+      },
+      "software": 24.95,
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "vidro-camara": 49.95,
+      "conector": 44.95,
+      "som": 39.95
+    },
+    "redmi-note-12-pro-plus": {
+      "ecra": {
+        "compativel": 123
+      },
+      "software": 24.95,
+      "bateria": 44.95,
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "botoes": 39.95
+    },
+    "redmi-note-12t-pro": {
+      "software": 24.95
+    },
+    "redmi-note-11": {
+      "ecra": {
+        "compativel": 111
+      },
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "botoes": 34.95,
+      "software": 24.95
+    },
+    "redmi-note-11-pro-5g": {
+      "ecra": {
+        "compativel": 135
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "redmi-note-11-pro-plus-5g": {
+      "ecra": {
+        "compativel": 147
+      },
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "redmi-note-11s-5g": {
+      "ecra": {
+        "compativel": 127
+      },
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "redmi-10-2021": {
+      "ecra": {
+        "compativel": 57
+      },
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "redmi-10-2022": {
+      "ecra": {
+        "compativel": 74
+      },
+      "software": 24.95,
+      "bateria": 44.95,
+      "camara-frontal": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 39.95,
+      "som": 39.95
+    },
+    "redmi-10a": {
+      "ecra": {
+        "compativel": 63
+      },
+      "software": 24.95,
+      "bateria": 44.95
+    },
+    "redmi-10c": {
+      "ecra": {
+        "compativel": 65
+      },
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "redmi-note-10-5g": {
+      "ecra": {
+        "compativel": 113
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-10-pro": {
+      "ecra": {
+        "compativel": 136
+      },
+      "bateria": 44.95,
+      "traseira": 89.95,
+      "vidro-camara": 49.95,
+      "software": 24.95
+    },
+    "redmi-9-at": {
+      "ecra": {
+        "compativel": 63
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-9c": {
+      "ecra": {
+        "compativel": 63
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-9t": {
+      "ecra": {
+        "compativel": 64
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-9-5g": {
+      "ecra": {
+        "compativel": 77
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-9-pro": {
+      "ecra": {
+        "compativel": 95
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-9s": {
+      "ecra": {
+        "compativel": 95
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-8": {
+      "ecra": {
+        "compativel": 44
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-8a": {
+      "ecra": {
+        "compativel": 44
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-8": {
+      "ecra": {
+        "compativel": 59
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-8-2021": {
+      "ecra": {
+        "compativel": 59
+      },
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "redmi-note-8-pro": {
+      "ecra": {
+        "compativel": 69
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "software": 24.95
+    },
+    "redmi-note-8t": {
+      "ecra": {
+        "compativel": 65
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-7": {
+      "ecra": {
+        "compativel": 72
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-7-pro": {
+      "ecra": {
+        "compativel": 78
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-7a": {
+      "ecra": {
+        "compativel": 52
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-7": {
+      "ecra": {
+        "compativel": 78
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "camara-traseira": 54.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "redmi-note-7-pro": {
+      "ecra": {
+        "compativel": 78
+      },
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "redmi-6": {
+      "ecra": {
+        "compativel": 40
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "camara-traseira": 54.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "software": 24.95
+    },
+    "redmi-6-pro": {
+      "ecra": {
+        "compativel": 52
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-6a": {
+      "ecra": {
+        "compativel": 40
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-6-pro": {
+      "ecra": {
+        "compativel": 73
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "conector": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "redmi-5": {
+      "ecra": {
+        "compativel": 71
+      },
+      "bateria": 44.95,
+      "camara-traseira": 44.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "redmi-5-plus": {
+      "ecra": {
+        "compativel": 44
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-5a": {
+      "ecra": {
+        "compativel": 49.95
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-a5": {
+      "ecra": {
+        "compativel": 79
+      },
+      "conector": 39.95,
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "som": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-5": {
+      "ecra": {
+        "compativel": 46
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-5a": {
+      "ecra": {
+        "compativel": 73
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-note-4x": {
+      "ecra": {
+        "compativel": 67
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-a3": {
+      "ecra": {
+        "compativel": 74
+      },
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "som": 44.95,
+      "software": 24.95
+    },
+    "redmi-a2": {
+      "ecra": {
+        "compativel": 67
+      },
+      "software": 24.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "som": 44.95
+    },
+    "redmi-s2": {
+      "ecra": {
+        "compativel": 42
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "redmi-a1": {
+      "ecra": {
+        "compativel": 74
+      },
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-15": {
+      "ecra": {
+        "compativel": 221
+      },
+      "traseira": 89.95,
+      "vidro-camara": 39.95
+    },
+    "xiaomi-15t": {
+      "ecra": {
+        "compativel": 146
+      },
+      "conector": 49.95,
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "camara-frontal": 39.95,
+      "vidro-camara": 39.95,
+      "botoes": 34.95,
+      "som": 49.95,
+      "software": 24.95
+    },
+    "xiaomi-15t-pro": {
+      "ecra": {
+        "compativel": 156
+      },
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "som": 49.95,
+      "software": 24.95
+    },
+    "xiaomi-14": {
+      "ecra": {
+        "compativel": 176
+      },
+      "bateria": 49.95,
+      "traseira": 69.95,
+      "vidro-camara": 39.95,
+      "conector": 49.95
+    },
+    "xiaomi-14-pro": {
+      "bateria": 49.95,
+      "traseira": 69.95,
+      "ecra": {
+        "compativel": 159
+      },
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "som": 49.95,
+      "software": 24.95
+    },
+    "xiaomi-14-ultra": {
+      "ecra": {
+        "compativel": 196
+      },
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "vidro-camara": 39.95
+    },
+    "xiaomi-14t": {
+      "ecra": {
+        "compativel": 182
+      },
+      "traseira": 79.95,
+      "vidro-camara": 39.95,
+      "conector": 49.95,
+      "botoes": 34.95,
+      "som": 49.95
+    },
+    "xiaomi-14t-pro": {
+      "ecra": {
+        "compativel": 156
+      },
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "camara-frontal": 39.95,
+      "conector": 49.95,
+      "som": 49.95
+    },
+    "xiaomi-13": {
+      "ecra": {
+        "compativel": 147
+      },
+      "som": 49.95,
+      "software": 24.95
+    },
+    "xiaomi-13-lite": {
+      "ecra": {
+        "compativel": 154
+      },
+      "software": 24.95
+    },
+    "xiaomi-13-pro": {
+      "som": 49.95,
+      "software": 24.95,
+      "ecra": {
+        "compativel": 159
+      },
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95
+    },
+    "xiaomi-13-ultra": {
+      "ecra": {
+        "compativel": 308
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "vidro-camara": 39.95
+    },
+    "xiaomi-13t": {
+      "bateria": 49.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "som": 59.95,
+      "software": 24.95
+    },
+    "xiaomi-13t-pro": {
+      "ecra": {
+        "compativel": 98
+      },
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "som": 49.95,
+      "software": 24.95
+    },
+    "xiaomi-12": {
+      "ecra": {
+        "compativel": 139
+      },
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "camara-frontal": 44.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-12-lite": {
+      "ecra": {
+        "compativel": 135
+      },
+      "software": 24.95
+    },
+    "xiaomi-12-pro": {
+      "ecra": {
+        "compativel": 159
+      },
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-12t-pro": {
+      "ecra": {
+        "compativel": 110
+      },
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-12x": {
+      "ecra": {
+        "compativel": 139
+      },
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-11-lite-5g-ne": {
+      "ecra": {
+        "compativel": 149.95
+      },
+      "software": 24.95
+    },
+    "xiaomi-11i-5g": {
+      "software": 24.95
+    },
+    "xiaomi-11t": {
+      "ecra": {
+        "compativel": 115
+      },
+      "bateria": 49.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-11t-pro": {
+      "ecra": {
+        "compativel": 115
+      },
+      "bateria": 49.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-11": {
+      "ecra": {
+        "compativel": 235
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-11-lite-4g": {
+      "ecra": {
+        "compativel": 131
+      },
+      "bateria": 44.95,
+      "traseira": 69.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-11i-5g": {
+      "ecra": {
+        "compativel": 126
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-10": {
+      "ecra": {
+        "compativel": 186
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-10t-lite-5g": {
+      "ecra": {
+        "compativel": 88
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-note-10": {
+      "ecra": {
+        "compativel": 132
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-note-10-pro": {
+      "ecra": {
+        "compativel": 132
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-9": {
+      "ecra": {
+        "compativel": 111
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-9-lite": {
+      "ecra": {
+        "compativel": 97
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-9-se": {
+      "ecra": {
+        "compativel": 139
+      },
+      "bateria": 44.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-9t": {
+      "ecra": {
+        "compativel": 128
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "camara-traseira": 49.95,
+      "conector": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-9t-pro": {
+      "ecra": {
+        "compativel": 128
+      },
+      "bateria": 44.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-8": {
+      "ecra": {
+        "compativel": 111
+      },
+      "bateria": 39.95,
+      "traseira": 59.95,
+      "conector": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-8-lite": {
+      "ecra": {
+        "compativel": 74
+      },
+      "bateria": 39.95,
+      "traseira": 59.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-8-pro": {
+      "ecra": {
+        "compativel": 74
+      },
+      "bateria": 39.95,
+      "traseira": 59.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-6": {
+      "ecra": {
+        "compativel": 86
+      },
+      "bateria": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-5": {
+      "ecra": {
+        "compativel": 49.95
+      },
+      "bateria": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-5s": {
+      "ecra": {
+        "compativel": 109
+      },
+      "bateria": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-a3": {
+      "ecra": {
+        "compativel": 124
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-max-3": {
+      "ecra": {
+        "compativel": 92
+      },
+      "bateria": 44.95,
+      "conector": 39.95,
+      "som": 39.95
+    },
+    "xiaomi-mi-mix-3": {
+      "ecra": {
+        "compativel": 117
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-a2": {
+      "ecra": {
+        "compativel": 83
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-a2-lite": {
+      "ecra": {
+        "compativel": 52
+      },
+      "bateria": 44.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-max-2": {
+      "ecra": {
+        "compativel": 87
+      },
+      "bateria": 44.95,
+      "camara-traseira": 49.95,
+      "conector": 39.95
+    },
+    "xiaomi-mi-mix-2s": {
+      "ecra": {
+        "compativel": 88
+      },
+      "camara-frontal": 49.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-a1": {
+      "ecra": {
+        "compativel": 41
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "conector": 39.95,
+      "botoes": 44.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-mi-mix": {
+      "ecra": {
+        "compativel": 82
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "poco-c40": {
+      "ecra": {
+        "compativel": 65
+      },
+      "software": 24.95
+    },
+    "poco-f7": {
+      "ecra": {
+        "compativel": 116
+      },
+      "software": 24.95
+    },
+    "poco-x7-pro": {
+      "ecra": {
+        "compativel": 137
+      },
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "poco-f6": {
+      "ecra": {
+        "compativel": 116
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "poco-m6-pro": {
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "poco-x6-pro": {
+      "ecra": {
+        "compativel": 137
+      },
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "poco-f5": {
+      "ecra": {
+        "compativel": 116
+      },
+      "software": 24.95,
+      "bateria": 49.95
+    },
+    "poco-m5": {
+      "ecra": {
+        "compativel": 101
+      },
+      "software": 24.95,
+      "bateria": 44.95
+    },
+    "poco-m5s": {
+      "software": 24.95
+    },
+    "poco-x5-5g": {
+      "ecra": {
+        "compativel": 125
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "poco-f4": {
+      "ecra": {
+        "compativel": 139
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "poco-f4-gt": {
+      "ecra": {
+        "compativel": 95
+      },
+      "bateria": 54.95,
+      "software": 24.95
+    },
+    "poco-m4-pro-5g": {
+      "conector": 39.95,
+      "software": 24.95,
+      "ecra": {
+        "compativel": 54
+      },
+      "bateria": 44.95,
+      "camara-frontal": 39.95,
+      "botoes": 39.95
+    },
+    "poco-x4-gt": {
+      "ecra": {
+        "compativel": 97
+      },
+      "software": 24.95
+    },
+    "poco-x4-pro-5g": {
+      "ecra": {
+        "compativel": 137
+      },
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "poco-f3": {
+      "ecra": {
+        "compativel": 126
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "poco-m3": {
+      "bateria": 44.95,
+      "software": 24.95,
+      "ecra": {
+        "compativel": 101
+      }
+    },
+    "poco-m3-pro-5g": {
+      "ecra": {
+        "compativel": 54
+      },
+      "bateria": 44.95,
+      "camara-frontal": 39.95,
+      "botoes": 39.95,
+      "software": 24.95
+    },
+    "poco-x3": {
+      "ecra": {
+        "compativel": 87
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "poco-x3-gt": {
+      "ecra": {
+        "compativel": 61
+      },
+      "software": 24.95
+    },
+    "poco-x3-nfc": {
+      "ecra": {
+        "compativel": 96
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "poco-x3-pro": {
+      "ecra": {
+        "compativel": 87
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "som": 49.95,
+      "software": 24.95
+    },
+    "pocophone-f1": {
+      "ecra": {
+        "compativel": 53
+      },
+      "bateria": 44.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "xiaomi-pad-6": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 129.95
+      }
+    },
+    "xiaomi-pad-6-pro": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 129.95
+      }
+    },
+    "xiaomi-pad-5": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "software": 24.95
+    },
+    "xiaomi-pad-5-pro": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "software": 24.95
+    },
+    "xiaomi-pad-5-pro-12-4": {
+      "software": 24.95
+    },
+    "xiaomi-mi-pad-4": {
+      "ecra": {
+        "compativel": 109.95
+      },
+      "bateria": 54.95,
+      "software": 24.95
+    },
+    "redmi-pad": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "software": 24.95
+    },
+    "redmi-pad-se": {
+      "ecra": {
+        "compativel": 99.95
+      }
+    },
+    "redmi-watch-2-lite": {
+      "ecra": {
+        "compativel": 49.95
+      }
+    },
+    "xiaomi-watch-s1-active": {
+      "ecra": {
+        "compativel": 49.95
+      }
+    },
+    "xiaomi-mi-watch": {
+      "ecra": {
+        "compativel": 49.95
+      }
+    },
+    "xiaomi-mi-watch-revolve-active": {
+      "ecra": {
+        "compativel": 49.95
+      }
+    },
+    "huawei-p60-pro": {
+      "software": 24.95
+    },
+    "huawei-p50-pro": {
+      "ecra": {
+        "compativel": 165
+      },
+      "software": 24.95
+    },
+    "huawei-p40": {
+      "ecra": {
+        "compativel": 210
+      },
+      "conector": 99.95,
+      "software": 24.95
+    },
+    "huawei-p40-lite": {
+      "ecra": {
+        "compativel": 46
+      },
+      "bateria": 49.95,
+      "software": 24.95,
+      "traseira": 59.95,
+      "camara-frontal": 39.95
+    },
+    "huawei-p40-lite-e": {
+      "ecra": {
+        "compativel": 36
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "huawei-p40-pro": {
+      "ecra": {
+        "compativel": 176
+      },
+      "bateria": 49.95,
+      "traseira": 99.95,
+      "camara-frontal": 109.95,
+      "conector": 109.95,
+      "software": 24.95
+    },
+    "huawei-p40-pro-plus": {
+      "ecra": {
+        "compativel": 217
+      },
+      "software": 24.95
+    },
+    "huawei-p30": {
+      "ecra": {
+        "original": 109
+      },
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "software": 24.95
+    },
+    "huawei-p30-lite": {
+      "ecra": {
+        "compativel": 45
+      },
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "camara-frontal": 49.95,
+      "conector": 29.95,
+      "software": 24.95
+    },
+    "huawei-p30-pro": {
+      "ecra": {
+        "original": 147
+      },
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "conector": 89.95,
+      "botoes": 89.95,
+      "software": 24.95
+    },
+    "huawei-p30-pro-new-edition": {
+      "traseira": 59.95,
+      "software": 24.95
+    },
+    "huawei-p20": {
+      "ecra": {
+        "compativel": 67
+      },
+      "bateria": 44.95,
+      "traseira": 59.95,
+      "camara-frontal": 69.95,
+      "conector": 79.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p20-lite": {
+      "ecra": {
+        "compativel": 37
+      },
+      "bateria": 39.95,
+      "traseira": 54.95,
+      "camara-frontal": 54.95,
+      "conector": 44.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p20-pro": {
+      "ecra": {
+        "original": 120
+      },
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "camara-frontal": 69.95,
+      "conector": 49.95,
+      "botoes": 89.95,
+      "som": 89.95,
+      "software": 24.95
+    },
+    "huawei-p10": {
+      "ecra": {
+        "compativel": 64
+      },
+      "bateria": 39.95,
+      "traseira": 54.95,
+      "camara-frontal": 44.95,
+      "conector": 44.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p10-lite": {
+      "ecra": {
+        "compativel": 43
+      },
+      "bateria": 39.95,
+      "traseira": 44.95,
+      "camara-frontal": 44.95,
+      "conector": 39.95,
+      "botoes": 44.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p10-plus": {
+      "ecra": {
+        "compativel": 60
+      },
+      "bateria": 39.95,
+      "camara-frontal": 44.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p9": {
+      "ecra": {
+        "compativel": 74
+      },
+      "bateria": 39.95,
+      "traseira": 49.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p9-lite": {
+      "ecra": {
+        "compativel": 42
+      },
+      "bateria": 39.95,
+      "traseira": 49.95,
+      "camara-frontal": 44.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p9-plus": {
+      "ecra": {
+        "compativel": 104
+      },
+      "bateria": 39.95,
+      "camara-frontal": 44.95,
+      "conector": 44.95,
+      "botoes": 39.95,
+      "software": 24.95
+    },
+    "huawei-p8": {
+      "ecra": {
+        "compativel": 60
+      },
+      "bateria": 39.95,
+      "traseira": 44.95,
+      "camara-frontal": 59.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p8-lite": {
+      "ecra": {
+        "compativel": 37
+      },
+      "bateria": 39.95,
+      "traseira": 39.95,
+      "camara-frontal": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p8-lite-2015": {
+      "ecra": {
+        "compativel": 37
+      },
+      "bateria": 39.95,
+      "traseira": 39.95,
+      "camara-frontal": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p8-lite-2017": {
+      "ecra": {
+        "compativel": 37
+      },
+      "bateria": 39.95,
+      "traseira": 39.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-nova-y90": {
+      "ecra": {
+        "compativel": 49
+      },
+      "software": 24.95
+    },
+    "huawei-nova-y70": {
+      "ecra": {
+        "compativel": 64
+      },
+      "software": 24.95
+    },
+    "huawei-nova-13": {
+      "ecra": {
+        "compativel": 100
+      },
+      "traseira": 69.95,
+      "software": 24.95
+    },
+    "huawei-nova-12": {
+      "software": 24.95
+    },
+    "huawei-nova-11": {
+      "ecra": {
+        "compativel": 100
+      },
+      "traseira": 69.95,
+      "software": 24.95
+    },
+    "huawei-nova-11-pro": {
+      "software": 24.95
+    },
+    "huawei-nova-11i": {
+      "software": 24.95
+    },
+    "huawei-nova-10": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 100
+      },
+      "traseira": 69.95
+    },
+    "huawei-nova-10-pro": {
+      "software": 24.95
+    },
+    "huawei-nova-9": {
+      "ecra": {
+        "compativel": 100
+      },
+      "traseira": 69.95,
+      "software": 24.95
+    },
+    "huawei-nova-9-se": {
+      "ecra": {
+        "compativel": 77
+      },
+      "software": 24.95
+    },
+    "huawei-nova-8i": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "huawei-nova-5i": {
+      "software": 24.95
+    },
+    "huawei-nova-5t": {
+      "ecra": {
+        "compativel": 47
+      },
+      "traseira": 49.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95
+    },
+    "huawei-mate-50-pro": {
+      "software": 24.95
+    },
+    "huawei-mate-40-pro": {
+      "ecra": {
+        "compativel": 276
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "huawei-mate-30": {
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "huawei-mate-30-lite": {
+      "ecra": {
+        "compativel": 49.95
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "huawei-mate-30-pro": {
+      "ecra": {
+        "compativel": 298
+      },
+      "bateria": 49.95,
+      "traseira": 99.95,
+      "software": 24.95
+    },
+    "huawei-mate-20": {
+      "ecra": {
+        "compativel": 83
+      },
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "software": 24.95
+    },
+    "huawei-mate-20-lite": {
+      "ecra": {
+        "compativel": 36
+      },
+      "bateria": 39.95,
+      "traseira": 59.95,
+      "software": 24.95
+    },
+    "huawei-mate-20-pro": {
+      "ecra": {
+        "compativel": 148
+      },
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "botoes": 59.95,
+      "software": 24.95
+    },
+    "huawei-mate-20-x": {
+      "ecra": {
+        "compativel": 167
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "huawei-mate-10": {
+      "ecra": {
+        "compativel": 96
+      },
+      "bateria": 49.95,
+      "camara-frontal": 39.95,
+      "botoes": 39.95,
+      "software": 24.95
+    },
+    "huawei-mate-10-lite": {
+      "ecra": {
+        "compativel": 40
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "huawei-mate-10-pro": {
+      "ecra": {
+        "compativel": 89
+      },
+      "bateria": 49.95,
+      "traseira": 49.95,
+      "software": 24.95
+    },
+    "huawei-mate-9": {
+      "ecra": {
+        "compativel": 49.95
+      },
+      "bateria": 49.95,
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p-smart-2020": {
+      "ecra": {
+        "compativel": 48
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "huawei-p-smart-2019": {
+      "ecra": {
+        "compativel": 48
+      },
+      "bateria": 44.95,
+      "traseira": 49.95,
+      "software": 24.95
+    },
+    "huawei-huawei-p-smart": {
+      "ecra": {
+        "compativel": 41
+      },
+      "bateria": 44.95,
+      "traseira": 39.95,
+      "camara-frontal": 39.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-p-smart-pro": {
+      "ecra": {
+        "compativel": 54
+      },
+      "software": 24.95
+    },
+    "huawei-p-smart-s": {
+      "ecra": {
+        "compativel": 37
+      },
+      "bateria": 39.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "huawei-y9s": {
+      "traseira": 54.95,
+      "software": 24.95
+    },
+    "huawei-y7-2017": {
+      "ecra": {
+        "compativel": 40
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "huawei-y7-2019": {
+      "ecra": {
+        "compativel": 40
+      },
+      "bateria": 39.95,
+      "software": 24.95
+    },
+    "huawei-y6": {
+      "ecra": {
+        "compativel": 54
+      },
+      "bateria": 39.95,
+      "software": 24.95
+    },
+    "huawei-y6-2017": {
+      "ecra": {
+        "compativel": 50
+      },
+      "bateria": 49.95,
+      "conector": 44.95,
+      "botoes": 44.95,
+      "software": 24.95
+    },
+    "huawei-y6-2018": {
+      "ecra": {
+        "compativel": 50
+      },
+      "bateria": 49.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-y6-2019": {
+      "ecra": {
+        "compativel": 30
+      },
+      "bateria": 39.95,
+      "software": 24.95
+    },
+    "huawei-y6-ii": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "huawei-y6-pro-2017": {
+      "ecra": {
+        "compativel": 55
+      },
+      "bateria": 39.95,
+      "traseira": 39.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "huawei-y6p": {
+      "ecra": {
+        "original": 49
+      },
+      "bateria": 49.95,
+      "traseira": 49.95,
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "huawei-y5-ii": {
+      "ecra": {
+        "compativel": 66
+      },
+      "bateria": 39.95,
+      "software": 24.95
+    },
+    "huawei-y5p": {
+      "ecra": {
+        "original": 32
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "traseira": 49.95,
+      "camara-frontal": 39.95
+    },
+    "huawei-matepad-11-2021": {
+      "ecra": {
+        "compativel": 199.95
+      },
+      "software": 24.95
+    },
+    "huawei-matepad-11-2023": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 199.95
+      }
+    },
+    "huawei-matepad-10-4": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "software": 24.95
+    },
+    "huawei-matepad-pro-10-8-2021": {
+      "ecra": {
+        "compativel": 199.95
+      },
+      "software": 24.95
+    },
+    "huawei-matepad-t10": {
+      "ecra": {
+        "compativel": 99.95
+      },
+      "software": 24.95,
+      "conector": 44.95
+    },
+    "huawei-matepad-t10s": {
+      "software": 24.95
+    },
+    "huawei-matepad-t8": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "huawei-mediapad-7": {
+      "ecra": {
+        "compativel": 54.95
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "huawei-m5": {
+      "ecra": {
+        "compativel": 159.95
+      },
+      "software": 24.95
+    },
+    "huawei-m5-lite": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "huawei-m5-pro": {
+      "ecra": {
+        "compativel": 144.95
+      },
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "huawei-mediapad-t5": {
+      "ecra": {
+        "compativel": 99.95
+      },
+      "software": 24.95,
+      "bateria": 54.95,
+      "conector": 39.95
+    },
+    "huawei-m3-lite": {
+      "ecra": {
+        "compativel": 109.95
+      },
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "huawei-m3-pro": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 144.95
+      },
+      "conector": 49.95
+    },
+    "huawei-mediapad-m3": {
+      "ecra": {
+        "compativel": 99.95
+      },
+      "software": 24.95
+    },
+    "huawei-mediapad-t3": {
+      "ecra": {
+        "compativel": 99.95
+      },
+      "bateria": 54.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "huawei-mediapad-t2": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 54.95,
+      "software": 24.95
+    },
+    "huawei-mediapad-t1": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 54.95,
+      "software": 24.95
+    },
+    "huawei-watch-gt-46mm": {
+      "ecra": {
+        "compativel": 59.95
+      }
+    },
+    "huawei-watch-3": {
+      "ecra": {
+        "compativel": 89.95
+      }
+    },
+    "huawei-watch-gt-3-42mm": {
+      "ecra": {
+        "compativel": 89.95
+      }
+    },
+    "huawei-watch-gt-3-46mm": {
+      "ecra": {
+        "compativel": 89.95
+      }
+    },
+    "huawei-watch-gt-3-pro": {
+      "ecra": {
+        "compativel": 129.95
+      }
+    },
+    "huawei-watch-2-sport": {
+      "bateria": 49.95
+    },
+    "huawei-watch-gt-2-42mm": {
+      "ecra": {
+        "compativel": 69.95
+      }
+    },
+    "huawei-watch-gt-2-46mm": {
+      "ecra": {
+        "compativel": 69.95
+      }
+    },
+    "huawei-watch-gt-2-pro": {
+      "ecra": {
+        "compativel": 139.95
+      }
+    },
+    "huawei-watch-gt-2e": {
+      "ecra": {
+        "compativel": 89.95
+      }
+    },
+    "huawei-watch-fit": {
+      "ecra": {
+        "compativel": 79.95
+      }
+    },
+    "oppo-a96": {
+      "ecra": {
+        "compativel": 66
+      },
+      "software": 24.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95
+    },
+    "oppo-a95-5g": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 149.95
+      },
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "botoes": 39.95
+    },
+    "oppo-a94-5g": {
+      "ecra": {
+        "compativel": 149.95
+      },
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "oppo-a93": {
+      "ecra": {
+        "compativel": 173
+      },
+      "traseira": 69.95,
+      "conector": 44.95,
+      "botoes": 39.95,
+      "software": 24.95
+    },
+    "oppo-a91": {
+      "ecra": {
+        "compativel": 166
+      },
+      "software": 24.95,
+      "traseira": 69.95,
+      "conector": 44.95,
+      "botoes": 39.95
+    },
+    "oppo-a80": {
+      "ecra": {
+        "compativel": 67
+      },
+      "traseira": 59.95,
+      "software": 24.95
+    },
+    "oppo-a79": {
+      "ecra": {
+        "compativel": 67
+      },
+      "traseira": 59.95,
+      "software": 24.95
+    },
+    "oppo-a78-5g": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 119
+      },
+      "bateria": 49.95,
+      "vidro-camara": 39.95,
+      "conector": 39.95
+    },
+    "oppo-a77-5g": {
+      "ecra": {
+        "compativel": 65
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "traseira": 59.95,
+      "vidro-camara": 39.95,
+      "conector": 39.95
+    },
+    "oppo-a76": {
+      "ecra": {
+        "compativel": 70
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "camara-frontal": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 39.95
+    },
+    "oppo-a74-5g": {
+      "ecra": {
+        "compativel": 129
+      },
+      "bateria": 49.95,
+      "software": 24.95,
+      "camara-frontal": 39.95
+    },
+    "oppo-a73-5g": {
+      "ecra": {
+        "compativel": 166
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "camara-frontal": 39.95
+    },
+    "oppo-a72": {
+      "ecra": {
+        "compativel": 68
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "camara-frontal": 39.95
+    },
+    "oppo-a60": {
+      "ecra": {
+        "compativel": 75
+      },
+      "bateria": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "oppo-a58-4g": {
+      "ecra": {
+        "compativel": 75
+      },
+      "bateria": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "oppo-a57": {
+      "ecra": {
+        "compativel": 54
+      },
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "oppo-a57s": {
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "oppo-a55-5g": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 59
+      },
+      "conector": 44.95
+    },
+    "oppo-a54-5g": {
+      "ecra": {
+        "compativel": 59
+      },
+      "software": 24.95,
+      "conector": 44.95
+    },
+    "oppo-a54s": {
+      "ecra": {
+        "compativel": 51
+      },
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "oppo-a53-5g": {
+      "ecra": {
+        "compativel": 89
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "vidro-camara": 39.95,
+      "conector": 59.95
+    },
+    "oppo-a53s": {
+      "ecra": {
+        "compativel": 62
+      },
+      "software": 24.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95
+    },
+    "oppo-a52": {
+      "ecra": {
+        "compativel": 68
+      },
+      "bateria": 49.95,
+      "vidro-camara": 39.95,
+      "conector": 59.95,
+      "software": 24.95
+    },
+    "oppo-a40": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "bateria": 39.95
+    },
+    "oppo-a38": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "bateria": 39.95
+    },
+    "oppo-a35": {
+      "software": 24.95
+    },
+    "oppo-a18": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "bateria": 39.95,
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "oppo-a17": {
+      "conector": 49.95,
+      "software": 24.95,
+      "ecra": {
+        "compativel": 51
+      },
+      "bateria": 39.95,
+      "vidro-camara": 39.95
+    },
+    "oppo-a16": {
+      "ecra": {
+        "compativel": 51
+      },
+      "software": 24.95,
+      "bateria": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 49.95
+    },
+    "oppo-a16s": {
+      "ecra": {
+        "compativel": 51
+      },
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "oppo-a15": {
+      "ecra": {
+        "compativel": 71
+      },
+      "vidro-camara": 39.95,
+      "software": 24.95
+    },
+    "oppo-a5": {
+      "ecra": {
+        "compativel": 69.95
+      },
+      "bateria": 54.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "oppo-a5-pro": {
+      "ecra": {
+        "compativel": 67
+      },
+      "traseira": 59.95,
+      "software": 24.95
+    },
+    "oppo-a5x": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "bateria": 39.95,
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "oppo-reno14": {
+      "ecra": {
+        "compativel": 126
+      }
+    },
+    "oppo-reno-13": {
+      "ecra": {
+        "compativel": 126
+      }
+    },
+    "oppo-reno12": {
+      "ecra": {
+        "compativel": 126
+      },
+      "software": 24.95
+    },
+    "oppo-reno-10": {
+      "ecra": {
+        "compativel": 148
+      },
+      "software": 24.95,
+      "traseira": 89.95
+    },
+    "oppo-reno-10-pro": {
+      "ecra": {
+        "compativel": 164
+      },
+      "traseira": 69.95,
+      "camara-traseira": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "oppo-reno-8-5g": {
+      "ecra": {
+        "compativel": 167
+      },
+      "traseira": 89.95,
+      "software": 24.95
+    },
+    "oppo-reno-8-lite-5g": {
+      "ecra": {
+        "compativel": 173
+      },
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "oppo-reno-8-pro-5g": {
+      "ecra": {
+        "compativel": 156
+      },
+      "traseira": 89.95,
+      "software": 24.95
+    },
+    "oppo-reno-7-5g": {
+      "ecra": {
+        "compativel": 173
+      },
+      "traseira": 44.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "oppo-reno-7-lite": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 173
+      },
+      "conector": 39.95
+    },
+    "oppo-reno-6-5g": {
+      "ecra": {
+        "compativel": 173
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "traseira": 44.95,
+      "conector": 39.95,
+      "botoes": 39.95
+    },
+    "oppo-reno-6-pro-5g": {
+      "ecra": {
+        "compativel": 212
+      },
+      "software": 24.95,
+      "traseira": 69.95,
+      "camara-traseira": 49.95
+    },
+    "oppo-reno-5-5g": {
+      "ecra": {
+        "compativel": 199.95
+      },
+      "conector": 39.95,
+      "botoes": 39.95,
+      "software": 24.95
+    },
+    "oppo-reno-4-5g": {
+      "ecra": {
+        "compativel": 173
+      },
+      "bateria": 49.95,
+      "traseira": 69.95,
+      "software": 24.95
+    },
+    "oppo-reno-4-pro-5g": {
+      "ecra": {
+        "compativel": 170
+      },
+      "traseira": 69.95,
+      "camara-traseira": 49.95,
+      "software": 24.95
+    },
+    "oppo-reno-4-z-5g": {
+      "ecra": {
+        "compativel": 96
+      },
+      "software": 24.95,
+      "bateria": 49.95
+    },
+    "oppo-reno-3": {
+      "ecra": {
+        "compativel": 166
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "traseira": 69.95,
+      "conector": 39.95,
+      "botoes": 39.95
+    },
+    "oppo-reno-2-z": {
+      "bateria": 49.95,
+      "software": 24.95,
+      "ecra": {
+        "compativel": 96
+      }
+    },
+    "oppo-reno-2f": {
+      "ecra": {
+        "compativel": 89
+      },
+      "software": 24.95
+    },
+    "oppo-r15-pro": {
+      "ecra": {
+        "compativel": 176
+      },
+      "software": 24.95
+    },
+    "oppo-find-x8-pro": {
+      "vidro-camara": 39.95
+    },
+    "oppo-find-x6": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 107
+      },
+      "traseira": 69.95
+    },
+    "oppo-find-x5": {
+      "ecra": {
+        "compativel": 107
+      },
+      "traseira": 69.95,
+      "software": 24.95
+    },
+    "oppo-find-x5-lite": {
+      "ecra": {
+        "compativel": 173
+      },
+      "traseira": 49.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "oppo-find-x5-pro": {
+      "ecra": {
+        "compativel": 219
+      },
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "oppo-find-x3-lite": {
+      "ecra": {
+        "compativel": 170
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "traseira": 39.95,
+      "camara-frontal": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 44.95
+    },
+    "oppo-find-x3-neo": {
+      "ecra": {
+        "compativel": 159.95
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95
+    },
+    "oppo-find-x3-pro": {
+      "ecra": {
+        "compativel": 249.95
+      },
+      "software": 24.95,
+      "bateria": 44.95,
+      "conector": 39.95
+    },
+    "oppo-find-x2": {
+      "ecra": {
+        "compativel": 208
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "oppo-find-x2-lite": {
+      "ecra": {
+        "compativel": 166
+      },
+      "bateria": 49.95,
+      "traseira": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "oppo-find-x2-neo": {
+      "ecra": {
+        "compativel": 170
+      },
+      "bateria": 49.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "software": 24.95
+    },
+    "oppo-find-x2-pro": {
+      "ecra": {
+        "compativel": 208
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "pixel-10": {
+      "ecra": {
+        "compativel": 257
+      },
+      "bateria": 49.95,
+      "traseira": 199.95,
+      "vidro-camara": 39.95
+    },
+    "pixel-10-pro": {
+      "ecra": {
+        "compativel": 234
+      },
+      "bateria": 69.95,
+      "traseira": 239.95,
+      "camara-frontal": 39.95,
+      "vidro-camara": 39.95
+    },
+    "pixel-9": {
+      "ecra": {
+        "compativel": 257
+      },
+      "vidro-camara": 39.95,
+      "bateria": 49.95,
+      "traseira": 199.95,
+      "camara-frontal": 39.95,
+      "som": 59.95,
+      "software": 24.95
+    },
+    "pixel-9-pro": {
+      "ecra": {
+        "compativel": 234
+      },
+      "traseira": 239.95,
+      "vidro-camara": 39.95
+    },
+    "pixel-9-pro-xl": {
+      "ecra": {
+        "compativel": 317
+      },
+      "bateria": 99.95,
+      "vidro-camara": 39.95
+    },
+    "pixel-9a": {
+      "ecra": {
+        "compativel": 214
+      },
+      "vidro-camara": 39.95,
+      "bateria": 49.95,
+      "traseira": 119.95,
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "pixel-8": {
+      "ecra": {
+        "compativel": 255
+      },
+      "bateria": 49.95,
+      "traseira": 199.95,
+      "vidro-camara": 39.95
+    },
+    "pixel-8-pro": {
+      "ecra": {
+        "compativel": 354
+      },
+      "bateria": 69.95,
+      "traseira": 269.95,
+      "camara-frontal": 39.95
+    },
+    "pixel-8a": {
+      "ecra": {
+        "compativel": 219
+      },
+      "traseira": 119.95,
+      "vidro-camara": 39.95
+    },
+    "pixel-7": {
+      "ecra": {
+        "compativel": 239
+      },
+      "bateria": 49.95,
+      "camara-frontal": 39.95,
+      "som": 59.95,
+      "software": 24.95
+    },
+    "pixel-7-pro": {
+      "ecra": {
+        "compativel": 347
+      },
+      "bateria": 69.95,
+      "traseira": 239.95,
+      "som": 89.95
+    },
+    "pixel-7a": {
+      "ecra": {
+        "compativel": 221
+      },
+      "bateria": 49.95,
+      "traseira": 119.95,
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "pixel-6": {
+      "ecra": {
+        "compativel": 222
+      },
+      "bateria": 49.95,
+      "traseira": 89.95,
+      "vidro-camara": 39.95
+    },
+    "pixel-6-pro": {
+      "ecra": {
+        "compativel": 342
+      },
+      "bateria": 59.95,
+      "traseira": 89.95,
+      "camara-frontal": 39.95
+    },
+    "pixel-6a": {
+      "ecra": {
+        "compativel": 221
+      },
+      "bateria": 49.95,
+      "vidro-camara": 39.95
+    },
+    "pixel-5": {
+      "ecra": {
+        "compativel": 244
+      },
+      "vidro-camara": 39.95,
+      "som": 39.95
+    },
+    "pixel-5a": {
+      "ecra": {
+        "compativel": 244
+      },
+      "bateria": 44.95,
+      "traseira": 89.95,
+      "camara-traseira": 54.95,
+      "camara-frontal": 39.95,
+      "vidro-camara": 39.95,
+      "conector": 49.95,
+      "software": 24.95
+    },
+    "pixel-4": {
+      "ecra": {
+        "compativel": 239.95
+      },
+      "conector": 44.95,
+      "bateria": 49.95,
+      "traseira": 89.95,
+      "vidro-camara": 39.95,
+      "som": 39.95
+    },
+    "pixel-4-xl": {
+      "ecra": {
+        "compativel": 173
+      },
+      "bateria": 49.95
+    },
+    "pixel-4a-5g": {
+      "camara-traseira": 54.95,
+      "ecra": {
+        "compativel": 172
+      },
+      "bateria": 44.95,
+      "traseira": 89.95,
+      "conector": 49.95
+    },
+    "moto-g100": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 59.95,
+      "traseira": 49.95,
+      "conector": 39.95
+    },
+    "moto-g85": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 59.95,
+      "traseira": 49.95,
+      "conector": 39.95
+    },
+    "moto-g84": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 59.95,
+      "traseira": 49.95,
+      "conector": 39.95
+    },
+    "moto-g60": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 49.95,
+      "som": 39.95
+    },
+    "motorola-edge-60": {
+      "ecra": {
+        "compativel": 129.95
+      }
+    },
+    "moto-g55": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 49.95,
+      "som": 39.95
+    },
+    "moto-g54": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 49.95,
+      "som": 39.95
+    },
+    "motorola-edge-50": {
+      "ecra": {
+        "compativel": 129.95
+      }
+    },
+    "motorola-edge-50-fusion": {
+      "ecra": {
+        "compativel": 129.95
+      }
+    },
+    "motorola-edge-50-pro": {
+      "ecra": {
+        "compativel": 169.95
+      },
+      "bateria": 49.95,
+      "vidro-camara": 39.95,
+      "conector": 49.95,
+      "som": 49.95
+    },
+    "moto-g41": {
+      "ecra": {
+        "compativel": 99.95
+      }
+    },
+    "motorola-edge-40": {
+      "ecra": {
+        "compativel": 129.95
+      }
+    },
+    "motorola-edge-40-pro": {
+      "ecra": {
+        "compativel": 169.95
+      },
+      "bateria": 49.95,
+      "vidro-camara": 39.95,
+      "conector": 49.95,
+      "som": 49.95
+    },
+    "moto-g35": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "botoes": 39.95
+    },
+    "moto-e32": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "conector": 44.95
+    },
+    "moto-g31": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "botoes": 39.95
+    },
+    "moto-g30": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "botoes": 39.95
+    },
+    "motorola-edge-30-pro": {
+      "ecra": {
+        "compativel": 169.95
+      },
+      "bateria": 49.95,
+      "vidro-camara": 39.95,
+      "conector": 49.95,
+      "som": 49.95
+    },
+    "moto-g24": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "conector": 44.95
+    },
+    "moto-e22": {
+      "ecra": {
+        "compativel": 69.95
+      }
+    },
+    "moto-e20": {
+      "ecra": {
+        "compativel": 59.95
+      }
+    },
+    "moto-g20": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "conector": 39.95,
+      "botoes": 39.95
+    },
+    "moto-g15": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "conector": 44.95
+    },
+    "moto-g10": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "botoes": 39.95
+    },
+    "moto-g9-play": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "botoes": 39.95
+    },
+    "moto-g9-plus": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "botoes": 39.95
+    },
+    "moto-g8-power": {
+      "ecra": {
+        "compativel": 69.95
+      },
+      "botoes": 39.95
+    },
+    "moto-g8-power-lite": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "vidro-camara": 89.95,
+      "conector": 39.95
+    },
+    "moto-e7": {
+      "ecra": {
+        "compativel": 69.95
+      },
+      "conector": 39.95
+    },
+    "moto-e7-plus": {
+      "ecra": {
+        "compativel": 69.95
+      },
+      "bateria": 49.95,
+      "conector": 39.95
+    },
+    "moto-e7-power": {
+      "ecra": {
+        "compativel": 69.95
+      }
+    },
+    "moto-e6-plus": {
+      "ecra": {
+        "compativel": 59.95
+      },
+      "bateria": 49.95,
+      "conector": 39.95
+    },
+    "moto-g": {
+      "ecra": {
+        "compativel": 69.95
+      },
+      "bateria": 39.95,
+      "som": 39.95
+    },
+    "motorola-one-fusion": {
+      "ecra": {
+        "compativel": 109.95
+      },
+      "conector": 39.95
+    },
+    "honor-90-lite": {
+      "ecra": {
+        "compativel": 44
+      }
+    },
+    "honor-70-lite-5g": {
+      "ecra": {
+        "compativel": 34
+      }
+    },
+    "honor-9-lite": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 44.95,
+      "traseira": 39.95,
+      "conector": 39.95
+    },
+    "honor-9x": {
+      "ecra": {
+        "compativel": 48
+      }
+    },
+    "honor-8": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 39.95,
+      "traseira": 39.95,
+      "conector": 39.95,
+      "som": 39.95
+    },
+    "honor-x8-5g": {
+      "ecra": {
+        "compativel": 34
+      }
+    },
+    "honor-x8a": {
+      "ecra": {
+        "compativel": 44
+      }
+    },
+    "honor-x6": {
+      "ecra": {
+        "compativel": 34
+      }
+    },
+    "honor-x6b": {
+      "ecra": {
+        "compativel": 34
+      }
+    },
+    "oneplus-13": {
+      "ecra": {
+        "compativel": 569.95
+      },
+      "traseira": 149.95,
+      "bateria": 79.95,
+      "conector": 69.95,
+      "software": 24.95
+    },
+    "oneplus-13r": {
+      "ecra": {
+        "compativel": 299
+      }
+    },
+    "oneplus-12": {
+      "ecra": {
+        "compativel": 319.95
+      },
+      "traseira": 139.95,
+      "bateria": 79.95,
+      "conector": 69.95,
+      "software": 24.95
+    },
+    "oneplus-11": {
+      "ecra": {
+        "compativel": 219
+      },
+      "bateria": 79.95,
+      "traseira": 129.95,
+      "conector": 69.95,
+      "software": 24.95
+    },
+    "oneplus-10-pro-5g": {
+      "ecra": {
+        "compativel": 219
+      },
+      "bateria": 79.95,
+      "traseira": 89.95,
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "oneplus-10t": {
+      "traseira": 79.95,
+      "software": 24.95,
+      "ecra": {
+        "compativel": 189.95
+      }
+    },
+    "oneplus-9": {
+      "ecra": {
+        "compativel": 199.95
+      },
+      "software": 24.95,
+      "bateria": 49.95,
+      "traseira": 89.95,
+      "conector": 69.95
+    },
+    "oneplus-9-pro": {
+      "ecra": {
+        "compativel": 249.95
+      },
+      "som": 44.95,
+      "software": 24.95
+    },
+    "oneplus-8-5g": {
+      "ecra": {
+        "compativel": 170
+      },
+      "bateria": 49.95,
+      "software": 24.95,
+      "traseira": 89.95
+    },
+    "oneplus-8-pro": {
+      "ecra": {
+        "compativel": 208
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "oneplus-8t-5g": {
+      "ecra": {
+        "compativel": 189.95
+      },
+      "traseira": 89.95,
+      "software": 24.95
+    },
+    "oneplus-7": {
+      "ecra": {
+        "compativel": 119.95
+      },
+      "bateria": 49.95,
+      "traseira": 69.95,
+      "software": 24.95
+    },
+    "oneplus-7-pro": {
+      "ecra": {
+        "compativel": 199.95
+      },
+      "bateria": 49.95,
+      "traseira": 79.95,
+      "conector": 54.95,
+      "software": 24.95
+    },
+    "oneplus-7t": {
+      "ecra": {
+        "compativel": 189.95
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "oneplus-7t-pro": {
+      "ecra": {
+        "compativel": 199.95
+      },
+      "bateria": 49.95,
+      "software": 24.95
+    },
+    "oneplus-7t-pro-mclaren-edition": {
+      "ecra": {
+        "compativel": 269.95
+      },
+      "traseira": 199.95,
+      "software": 24.95
+    },
+    "oneplus-6": {
+      "ecra": {
+        "compativel": 99.95
+      },
+      "bateria": 49.95,
+      "traseira": 49.95,
+      "conector": 44.95,
+      "som": 54.95,
+      "software": 24.95
+    },
+    "oneplus-6t": {
+      "ecra": {
+        "compativel": 109.95
+      },
+      "bateria": 49.95,
+      "traseira": 69.95,
+      "camara-frontal": 59.95,
+      "software": 24.95
+    },
+    "oneplus-5": {
+      "ecra": {
+        "compativel": 69.95
+      },
+      "bateria": 49.95,
+      "traseira": 54.95,
+      "software": 24.95
+    },
+    "oneplus-5t": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "bateria": 49.95,
+      "traseira": 69.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95,
+      "botoes": 49.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "oneplus-3": {
+      "ecra": {
+        "compativel": 59.95
+      },
+      "bateria": 39.95,
+      "traseira": 49.95,
+      "camara-traseira": 49.95,
+      "software": 24.95
+    },
+    "oneplus-3t": {
+      "ecra": {
+        "compativel": 59.95
+      },
+      "bateria": 39.95,
+      "botoes": 39.95,
+      "som": 44.95,
+      "software": 24.95
+    },
+    "oneplus-2": {
+      "ecra": {
+        "compativel": 49.95
+      },
+      "bateria": 39.95,
+      "traseira": 44.95,
+      "software": 24.95
+    },
+    "oneplus-1": {
+      "ecra": {
+        "compativel": 49.95
+      },
+      "bateria": 34.95,
+      "traseira": 39.95,
+      "camara-traseira": 49.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "oneplus-x": {
+      "ecra": {
+        "compativel": 49.95
+      },
+      "bateria": 39.95,
+      "traseira": 49.95,
+      "software": 24.95
+    },
+    "oneplus-nord-n100": {
+      "ecra": {
+        "compativel": 62
+      },
+      "software": 24.95
+    },
+    "oneplus-nord-n10-5g": {
+      "ecra": {
+        "compativel": 99.95
+      },
+      "software": 24.95
+    },
+    "oneplus-nord-4": {
+      "software": 24.95
+    },
+    "oneplus-nord-ce4": {
+      "ecra": {
+        "compativel": 173
+      },
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "oneplus-nord-ce4-lite": {
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "oneplus-nord-ce-3-lite-5g": {
+      "software": 24.95,
+      "camara-frontal": 39.95
+    },
+    "oneplus-nord-2-5g": {
+      "software": 24.95
+    },
+    "oneplus-nord-2t-5g": {
+      "ecra": {
+        "compativel": 199.95
+      },
+      "bateria": 59.95,
+      "camara-frontal": 49.95,
+      "software": 24.95
+    },
+    "oneplus-nord-ce-2-5g": {
+      "ecra": {
+        "compativel": 173
+      },
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "oneplus-nord-ce-2-lite-5g": {
+      "camara-frontal": 39.95,
+      "software": 24.95
+    },
+    "oneplus-oneplus-nord": {
+      "ecra": {
+        "compativel": 219.95
+      },
+      "software": 24.95
+    },
+    "oneplus-nord-ce": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 219.95
+      },
+      "bateria": 54.95,
+      "camara-frontal": 39.95,
+      "conector": 44.95
+    },
+    "realme-c67": {
+      "ecra": {
+        "compativel": 89.95
+      }
+    },
+    "realme-c61": {
+      "ecra": {
+        "compativel": 89.95
+      }
+    },
+    "realme-note-60": {
+      "ecra": {
+        "compativel": 89.95
+      }
+    },
+    "realme-c3": {
+      "ecra": {
+        "compativel": 89.95
+      }
+    },
+    "realme-gt-neo-3t": {
+      "vidro-camara": 39.95
+    },
+    "realme-x2": {
+      "ecra": {
+        "compativel": 99.95
+      }
+    },
+    "realme-x2-pro": {
+      "ecra": {
+        "compativel": 149.95
+      }
+    },
+    "nothing-phone-3a": {
+      "ecra": {
+        "compativel": 179.95
+      },
+      "bateria": 49.95,
+      "conector": 44.95
+    },
+    "nothing-phone-3a-pro": {
+      "ecra": {
+        "compativel": 179.95
+      }
+    },
+    "nothing-phone-2": {
+      "ecra": {
+        "compativel": 159.95
+      },
+      "bateria": 49.95,
+      "conector": 44.95
+    },
+    "nothing-phone-2a": {
+      "ecra": {
+        "compativel": 169.95
+      },
+      "bateria": 49.95,
+      "conector": 44.95
+    },
+    "cmf-phone-1": {
+      "ecra": {
+        "compativel": 159.95
+      }
+    },
+    "nothing-phone-1": {
+      "ecra": {
+        "compativel": 139.95
+      },
+      "bateria": 49.95,
+      "conector": 44.95
+    },
+    "tcl-505": {
+      "ecra": {
+        "compativel": 89.95
+      }
+    },
+    "tcl-408": {
+      "ecra": {
+        "compativel": 59
+      },
+      "software": 24.95
+    },
+    "tcl-406": {
+      "ecra": {
+        "compativel": 59
+      },
+      "software": 24.95
+    },
+    "tcl-405": {
+      "ecra": {
+        "compativel": 59
+      },
+      "software": 24.95
+    },
+    "tcl-403": {
+      "ecra": {
+        "compativel": 58
+      },
+      "software": 24.95
+    },
+    "tcl-306": {
+      "software": 24.95,
+      "ecra": {
+        "compativel": 48
+      }
+    },
+    "tcl-305": {
+      "ecra": {
+        "compativel": 48
+      },
+      "software": 24.95
+    },
+    "tcl-205": {
+      "ecra": {
+        "compativel": 49.95
+      },
+      "software": 24.95
+    },
+    "tcl-50": {
+      "ecra": {
+        "compativel": 55
+      },
+      "vidro-camara": 39.95
+    },
+    "tcl-50-nxtpaper": {
+      "ecra": {
+        "compativel": 70
+      }
+    },
+    "tcl-50-pro-nxtpaper": {
+      "ecra": {
+        "compativel": 70
+      }
+    },
+    "tcl-50-se": {
+      "ecra": {
+        "compativel": 81
+      }
+    },
+    "tcl-40-nxtpaper-4g": {
+      "ecra": {
+        "compativel": 75
+      },
+      "traseira": 44.95,
+      "software": 24.95
+    },
+    "tcl-40-se": {
+      "ecra": {
+        "compativel": 52
+      },
+      "software": 24.95
+    },
+    "tcl-40-x": {
+      "ecra": {
+        "compativel": 62
+      },
+      "software": 24.95
+    },
+    "tcl-40-xe": {
+      "ecra": {
+        "compativel": 62
+      },
+      "bateria": 44.95,
+      "software": 24.95
+    },
+    "tcl-40r": {
+      "ecra": {
+        "compativel": 62
+      },
+      "vidro-camara": 39.95,
+      "software": 24.95
+    },
+    "tcl-30": {
+      "ecra": {
+        "compativel": 94
+      },
+      "traseira": 39.95,
+      "software": 24.95
+    },
+    "tcl-30-se": {
+      "ecra": {
+        "compativel": 48
+      },
+      "traseira": 39.95,
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "tcl-30-plus": {
+      "ecra": {
+        "compativel": 94
+      },
+      "software": 24.95
+    },
+    "tcl-30e-5g": {
+      "software": 24.95
+    },
+    "tcl-20-5g": {
+      "ecra": {
+        "compativel": 64
+      },
+      "software": 24.95
+    },
+    "tcl-20-pro-5g": {
+      "ecra": {
+        "compativel": 146
+      },
+      "software": 24.95
+    },
+    "tcl-20-r-5g": {
+      "ecra": {
+        "compativel": 57
+      },
+      "software": 24.95
+    },
+    "tcl-20-se": {
+      "ecra": {
+        "compativel": 57
+      },
+      "conector": 39.95,
+      "software": 24.95
+    },
+    "tcl-20l": {
+      "ecra": {
+        "compativel": 54
+      },
+      "software": 24.95
+    },
+    "tcl-20l-plus": {
+      "ecra": {
+        "compativel": 54
+      },
+      "software": 24.95
+    },
+    "tcl-20y": {
+      "ecra": {
+        "compativel": 56
+      },
+      "software": 24.95
+    },
+    "tcl-10-5g": {
+      "ecra": {
+        "compativel": 68
+      },
+      "software": 24.95
+    },
+    "tcl-10-plus": {
+      "ecra": {
+        "compativel": 108
+      },
+      "software": 24.95
+    },
+    "tcl-10-pro": {
+      "ecra": {
+        "compativel": 108
+      },
+      "software": 24.95
+    },
+    "tcl-10-se": {
+      "ecra": {
+        "compativel": 53
+      },
+      "camara-frontal": 39.95,
+      "botoes": 39.95,
+      "som": 39.95,
+      "software": 24.95
+    },
+    "tcl-10l": {
+      "ecra": {
+        "compativel": 66
+      },
+      "software": 24.95
+    },
+    "tcl-tab-10": {
+      "ecra": {
+        "compativel": 68
+      },
+      "software": 24.95
+    },
+    "nokia-g42": {
+      "ecra": {
+        "compativel": 79.95
+      }
+    },
+    "nokia-c32": {
+      "ecra": {
+        "compativel": 79.95
+      }
+    },
+    "nokia-g22": {
+      "ecra": {
+        "compativel": 79.95
+      }
+    },
+    "nokia-g20": {
+      "ecra": {
+        "compativel": 79.95
+      }
+    },
+    "nokia-g10": {
+      "ecra": {
+        "compativel": 79.95
+      }
+    },
+    "nokia-8": {
+      "ecra": {
+        "compativel": 129.95
+      },
+      "bateria": 44.95,
+      "traseira": 69.95,
+      "camara-frontal": 54.95,
+      "som": 44.95
+    },
+    "nokia-7-plus": {
+      "ecra": {
+        "compativel": 119.95
+      },
+      "bateria": 44.95,
+      "camara-frontal": 59.95,
+      "conector": 59.95,
+      "som": 59.95
+    },
+    "nokia-6": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 44.95,
+      "conector": 39.95
+    },
+    "nokia-6-1": {
+      "bateria": 39.95
+    },
+    "nokia-5": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "bateria": 44.95,
+      "conector": 39.95,
+      "botoes": 39.95,
+      "som": 39.95
+    },
+    "nokia-5-1-plus": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 44.95
+    },
+    "alcatel-3l-2019": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "bateria": 39.95,
+      "conector": 39.95
+    },
+    "alcatel-3l-2020": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "bateria": 44.95,
+      "traseira": 39.95,
+      "conector": 39.95
+    },
+    "alcatel-3x-2019": {
+      "ecra": {
+        "compativel": 89.95
+      },
+      "bateria": 44.95,
+      "traseira": 49.95,
+      "conector": 39.95,
+      "som": 39.95
+    },
+    "alcatel-3x-2020": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "bateria": 39.95,
+      "traseira": 39.95,
+      "camara-traseira": 44.95,
+      "conector": 39.95,
+      "som": 39.95
+    },
+    "alcatel-1s-2019": {
+      "ecra": {
+        "compativel": 59.95
+      },
+      "bateria": 39.95,
+      "traseira": 39.95,
+      "camara-traseira": 44.95,
+      "conector": 39.95
+    },
+    "alcatel-1s-2020": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "bateria": 44.95,
+      "traseira": 39.95,
+      "conector": 39.95
+    },
+    "alcatel-1s-2021": {
+      "ecra": {
+        "compativel": 79.95
+      },
+      "bateria": 44.95,
+      "vidro-camara": 39.95,
+      "conector": 39.95
+    },
+    "alcatel-1se-2020": {
+      "ecra": {
+        "compativel": 49.95
+      },
+      "bateria": 44.95,
+      "camara-traseira": 49.95,
+      "conector": 39.95
     }
   }
 }

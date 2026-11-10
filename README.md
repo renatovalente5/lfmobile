@@ -29,7 +29,8 @@ scripts/recortes.sh               # (num Mac) os recortes que faltam das fotogra
 - `content/` — o que o painel edita: `site.json` (contactos, horário, local, empresa, entrega com os
   escalões da Nacex, pagamentos, garantias, Google), `inicio.json`, `categorias.json` (com o peso de
   cada uma), `fotos.json`, `produtos/<slug>.json`, `aparelhos.json` (as marcas, as famílias e os
-  modelos Apple e Samsung), `reparacoes.json` (os tipos de reparação e os preços por modelo),
+  modelos: todas as marcas nas reparações, Apple e Samsung na retoma), `reparacoes.json` (os tipos de
+  reparação e os preços por modelo),
   `retoma.json` (os valores e as perguntas do simulador) e `campanhas.json`; e `paginas/*.md` (as
   páginas de texto e legais, só do Renato). Os cupões não estão aqui: vivem no KV do Worker das
   encomendas (`docs/ENCOMENDAS.md`, §8).

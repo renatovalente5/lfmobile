@@ -589,6 +589,12 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .seletor__marcas { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; border-radius: 999px; background: var(--cinza); }
 .seletor__marca { min-height: 42px; border-radius: 999px; font-weight: 800; color: var(--tinta-2); }
 .seletor__marca[aria-pressed="true"] { background: var(--papel); color: var(--tinta); box-shadow: var(--sombra-leve); }
+.seletor__marcas--com-outras { grid-template-columns: 1fr 1fr 1fr; }
+.seletor__outras { display: flex; flex-wrap: wrap; gap: 6px; }
+.seletor__outra { min-height: 36px; padding: 4px 14px; border-radius: 999px; background: var(--cinza); font-weight: 700; font-size: .9rem; color: var(--tinta-2); }
+.seletor__outra[aria-pressed="true"] { background: var(--tinta); color: var(--branco); }
+.seletor__outro { color: var(--tinta-2); font-size: .88rem; }
+.seletor__outro a { color: var(--tinta); font-weight: 700; }
 .seletor__familias { display: flex; flex-wrap: wrap; gap: 6px; }
 .seletor__familia { display: inline-flex; align-items: center; min-height: 36px; padding: 4px 14px; border-radius: 999px; border: 1px solid var(--linha); text-decoration: none; font-weight: 700; font-size: .9rem; }
 .seletor__familia[aria-current="true"] { background: var(--tinta); color: var(--branco); border-color: var(--tinta); }

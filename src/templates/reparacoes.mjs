@@ -1,6 +1,7 @@
 // AS REPARAÇÕES, como a iServices e melhor (o Renato, 9 nov 2026: «Para a página das reparações ele
 // gosta de um sistema como a iServices tem»). Três páginas:
-//   /reparacoes/            escolher o aparelho (marca → família → modelo, com procura) e a grelha
+//   /reparacoes/            escolher o aparelho (marca → família → modelo, com procura; Apple e
+//                           Samsung à vista, as outras marcas atrás de «Outras») e a grelha
 //                           dos problemas, cada um com a explicação e os sintomas;
 //   /reparacoes/<família>/  os modelos de uma família (iPhone, Galaxy S…), para quem chega do Google
 //                           ou do rodapé;
@@ -33,11 +34,19 @@ export function precoDaReparacao(r) {
 export function seletorDeModelo(ctx, { id = 'escolher', destino = 'reparacoes', titulo = 'Escolha o seu aparelho' } = {}) {
   const { marcas, familias } = ctx.aparelhos;
   const comModelos = familias.filter((f) => modelosDaFamilia(ctx, f.id).length);
+  // Apple e Samsung à vista; as outras marcas (o dono repara todas, 9 nov 2026) atrás de «Outras»
+  const comFamilias = marcas.filter((m) => comModelos.some((f) => f.marca === m.id));
+  const principais = comFamilias.slice(0, 2);
+  const outras = comFamilias.slice(2);
   return `<div class="seletor" id="${id}" data-seletor="${destino}">
   <p class="seletor__titulo">${esc(titulo)}</p>
-  <div class="seletor__marcas" role="group" aria-label="Marca">
-    ${marcas.map((m, i) => `<button class="seletor__marca" type="button" data-marca="${esc(m.id)}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(m.nome)}</button>`).join('')}
+  <div class="seletor__marcas${outras.length ? ' seletor__marcas--com-outras' : ''}" role="group" aria-label="Marca">
+    ${principais.map((m, i) => `<button class="seletor__marca" type="button" data-marca="${esc(m.id)}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(m.nome)}</button>`).join('')}
+    ${outras.length ? `<button class="seletor__marca" type="button" data-outras aria-pressed="false" aria-expanded="false" aria-controls="${id}-outras">Outras<span class="visualmente-escondido"> marcas</span></button>` : ''}
   </div>
+  ${outras.length ? `<div class="seletor__outras" id="${id}-outras" role="group" aria-label="Outras marcas" hidden>
+    ${outras.map((m) => `<button class="seletor__outra" type="button" data-marca="${esc(m.id)}" aria-pressed="false">${esc(m.nome)}</button>`).join('')}
+  </div>` : ''}
   <ul class="seletor__familias" aria-label="Aparelho">
     ${comModelos.map((f) => `<li><a class="seletor__familia" href="${ctx.url(`/reparacoes/${f.id}/`)}" data-familia="${esc(f.id)}" data-marca-da-familia="${esc(f.marca)}">${esc(f.nome)}</a></li>`).join('')}
   </ul>
@@ -48,7 +57,8 @@ export function seletorDeModelo(ctx, { id = 'escolher', destino = 'reparacoes', 
   <ul class="seletor__modelos" data-seletor-modelos>
     ${ctx.aparelhos.modelos.map((m) => `<li data-familia="${esc(m.familia)}" data-marca="${esc(m.marca)}" data-nome="${esc(m.nome.toLowerCase())}"><a href="${ctx.url(`/${destino}/${m.id}/`)}">${usarAparelho(m.desenho, 'aparelho--mini')}<span>${esc(m.nome)}</span></a></li>`).join('')}
   </ul>
-  <p class="seletor__vazio" data-seletor-vazio hidden>Não encontramos esse modelo. <a href="${ctx.whatsapp('Olá! Queria um orçamento para reparar o meu ')}" target="_blank" rel="noopener">Pergunte-nos pelo WhatsApp</a>.</p>
+  <p class="seletor__vazio" data-seletor-vazio hidden>Não encontramos esse modelo.</p>
+  <p class="seletor__outro">Outra marca ou modelo? <a href="${ctx.whatsapp('Olá! Queria um orçamento para reparar o meu telemóvel. Marca e modelo: ')}" target="_blank" rel="noopener">Pergunte-nos pelo WhatsApp</a>: o orçamento é grátis.</p>
 </div>`;
 }
 
@@ -99,8 +109,8 @@ export function reparacoes(ctx) {
   <div class="contentor rep-capa__grelha">
     <div class="rep-capa__texto">
       <p class="rotulo rotulo--claro">Reparações</p>
-      <h1 class="rep-capa__titulo">Reparação de iPhone e Samsung, com o preço à vista.</h1>
-      <p class="rep-capa__sub">Escolha o seu modelo e veja quanto custa. Diagnóstico e orçamento grátis, na loja ou pelo WhatsApp.</p>
+      <h1 class="rep-capa__titulo">Reparação de telemóveis, com o preço à vista.</h1>
+      <p class="rep-capa__sub">Todas as marcas. Escolha o seu modelo e veja quanto custa. Diagnóstico e orçamento grátis, na loja ou pelo WhatsApp.</p>
       <ul class="rep-capa__pontos">
         <li>${icones.certo}Orçamento grátis e sem compromisso</li>
         <li>${icones.certo}Ecrã compatível ou original, à escolha</li>
@@ -117,11 +127,11 @@ export function reparacoes(ctx) {
 </div>`;
   return {
     caminho: '/reparacoes/',
-    titulo: 'Reparação de iPhone e Samsung — preços por modelo',
-    descricao: `Reparação de iPhone, iPad, Apple Watch e Samsung Galaxy em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ecrã, bateria, traseira, câmaras, carregamento. Escolha o modelo e veja o preço; diagnóstico e orçamento grátis.`,
+    titulo: 'Reparação de telemóveis de todas as marcas — preços por modelo',
+    descricao: `Reparação de iPhone, Samsung, Xiaomi, Huawei, OPPO e outras marcas em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ecrã, bateria, traseira, câmaras, carregamento. Veja o preço do seu modelo; orçamento grátis.`,
     classe: 'pagina-reparacoes',
     jsonld: [m.ld, {
-      '@context': 'https://schema.org', '@type': 'Service', name: 'Reparação de telemóveis, tablets e relógios Apple e Samsung', provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },
+      '@context': 'https://schema.org', '@type': 'Service', name: 'Reparação de telemóveis, tablets e relógios de todas as marcas', provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },
       hasOfferCatalog: { '@type': 'OfferCatalog', name: 'Reparações', itemListElement: ctx.tiposReparacao.map((t) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: t.titulo, description: t.resumo } })) },
     }],
     conteudo,

@@ -1,6 +1,7 @@
 /* LF Mobile — as reparações.
-   1. A ESCOLHA DO APARELHO ([data-seletor], na página das reparações): a marca (Apple ou Samsung)
-      mostra as famílias dela; a família e a procura filtram os modelos. Sem JavaScript, tudo à vista.
+   1. A ESCOLHA DO APARELHO ([data-seletor], na página das reparações): a marca (Apple, Samsung, ou
+      «Outras», que abre as outras marcas) mostra as famílias dela; a família e a procura filtram os
+      modelos. Sem JavaScript, tudo à vista.
    2. A PÁGINA DE UM MODELO ([data-reparacoes]): escolher uma ou mais reparações (e o nível do ecrã),
       o resumo com o total ao lado (computador) ou na barra de baixo (telemóvel), e «Marcar pelo
       WhatsApp» com tudo escrito. Um endereço com #ecra já traz essa reparação escolhida. */
@@ -14,31 +15,52 @@
 
   // ---------------------------------------------------------------- 1. a escolha do aparelho
   $$('[data-seletor]').forEach((s) => {
-    const marcas = $$('[data-marca]', $('.seletor__marcas', s));
+    const principais = $$('[data-marca]', $('.seletor__marcas', s));
+    const botaoOutras = $('[data-outras]', s);
+    const caixaOutras = $('.seletor__outras', s);
+    const outras = caixaOutras ? $$('[data-marca]', caixaOutras) : [];
     const familias = $$('[data-familia]', $('.seletor__familias', s));
+    const listaFamilias = $('.seletor__familias', s);
     const modelos = $$('[data-seletor-modelos] > li', s);
     const procura = $('[data-seletor-procura]', s);
     const vazio = $('[data-seletor-vazio]', s);
-    let marca = (marcas[0] || {}).dataset ? marcas[0].dataset.marca : '';
+    let marca = (principais[0] || {}).dataset ? principais[0].dataset.marca : '';
+    let abertas = false;
     let familia = '';
     const pintar = () => {
-      marcas.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.marca === marca)));
+      principais.forEach((b) => b.setAttribute('aria-pressed', String(!abertas && b.dataset.marca === marca)));
+      if (botaoOutras) {
+        botaoOutras.setAttribute('aria-pressed', String(abertas));
+        botaoOutras.setAttribute('aria-expanded', String(abertas));
+        caixaOutras.hidden = !abertas;
+      }
+      outras.forEach((b) => b.setAttribute('aria-pressed', String(abertas && b.dataset.marca === marca)));
+      let nFamilias = 0;
       familias.forEach((a) => {
         const li = a.parentElement;
         li.hidden = a.dataset.marcaDaFamilia !== marca;
+        if (!li.hidden) nFamilias++;
         if (a.dataset.familia === familia) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
       });
+      // uma marca com uma família só (o Google: Pixel) não precisa da fila das famílias
+      listaFamilias.hidden = nFamilias < 2;
       const q = sem(procura.value).trim().split(/\s+/).filter(Boolean);
       let n = 0;
       for (const li of modelos) {
-        // a procura procura em todos os modelos (das duas marcas); sem procura, a marca e a família filtram
+        // a procura procura em todos os modelos (de todas as marcas); sem procura, a marca e a família filtram
         const ok = q.length ? q.every((p) => li.dataset.nome.includes(p) || sem(li.dataset.familia).includes(p)) : li.dataset.marca === marca && (!familia || li.dataset.familia === familia);
         li.hidden = !ok;
         if (ok) n++;
       }
       vazio.hidden = n > 0;
     };
-    marcas.forEach((b) => b.addEventListener('click', () => { marca = b.dataset.marca; familia = ''; procura.value = ''; pintar(); }));
+    principais.forEach((b) => b.addEventListener('click', () => { marca = b.dataset.marca; abertas = false; familia = ''; procura.value = ''; pintar(); }));
+    if (botaoOutras) botaoOutras.addEventListener('click', () => {
+      // abre as outras marcas com a primeira escolhida (ou a que já estava)
+      if (!outras.some((b) => b.dataset.marca === marca)) marca = outras[0].dataset.marca;
+      abertas = true; familia = ''; procura.value = ''; pintar();
+    });
+    outras.forEach((b) => b.addEventListener('click', () => { marca = b.dataset.marca; abertas = true; familia = ''; procura.value = ''; pintar(); }));
     familias.forEach((a) => a.addEventListener('click', (e) => {
       e.preventDefault();
       familia = familia === a.dataset.familia ? '' : a.dataset.familia;

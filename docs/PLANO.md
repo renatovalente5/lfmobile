@@ -239,12 +239,34 @@ DIGI. Sai o ecrã Serviços. As regras novas entram no `regras.mjs` (copiado byt
 
 ### 13.5 O que falta do dono
 
-- Os preços das reparações (com o nível original, onde o fizer) e os valores da retoma: uma folha
-  de cálculo com as referências do mercado ao lado, para ele escrever os dele. Feita a 9 nov:
-  `_cliente/notas/LF Mobile — preços e valores para preencher.xlsx` (fora do repositório). Quando
-  voltar, os números passam para `reparacoes.json` e `retoma.json`, com `confirmado: true`.
-- Os preços das películas de vidro (a de hidrogel é 12,50 €).
-- Retoma: como paga (dinheiro, transferência, desconto numa compra?) e se recebe por envio.
-- Se as reparações e a retoma ficam mesmo só Apple e Samsung (perguntado no WhatsApp a 9 nov, sem
-  resposta), e se os computadores e as consolas saem de vez.
-- A conta da Stripe (já ficou de a criar) e o resto da §9.
+- Se ainda repara computadores e consolas (saíram do site com o «só Apple e Samsung»).
+- A conta da Stripe (ficou de a criar a 9 nov) e o resto da §9.
+
+### 13.6 O Renato, 9 nov à noite: «repara qualquer marca», e os preços ficam os do mercado
+
+«Usar os preços das reparações e das retomas os mesmo que encontras na net ou os que achas que
+valem. Repara qualquer marca ele. Os preços podes meter os que quiseres e ele depois ajusta no
+Backoffice.» O que mudou (substitui a decisão 1 nas reparações e a 11):
+
+1. **As reparações são de todas as marcas.** A lista dos modelos ganhou Xiaomi (Redmi, POCO, Pad,
+   Watch), Huawei, OPPO, Google, Motorola, Honor, OnePlus, realme, vivo, Nothing, Sony, TCL, Nokia,
+   ZTE e Alcatel, e as séries Galaxy M, J e XCover, os iPad desde 2014, o Apple Watch Series 3, mais
+   Galaxy Tab e Galaxy Watch. A escolha do aparelho mostra Apple e Samsung, e «Outras» abre as
+   outras marcas; por baixo, «Outra marca ou modelo? Pergunte-nos pelo WhatsApp». A venda continua
+   só Apple e Samsung nos telemóveis, e a **retoma também** (o simulador só tem essas famílias).
+2. **Os preços das reparações** são os da iServices (recolhidos a 9-10 nov, um pedido por segundo,
+   das páginas públicas de cada modelo). Um modelo com dois preços ou menos herda os que faltam do
+   irmão mais próximo da mesma linha (o S26 do S25, o Galaxy A57 do A56), até 3 anos de diferença
+   (ou 2 números no nome, nas marcas sem ano). Sem irmão, «Orçamento grátis» (o iPhone Duo e o
+   Galaxy Z TriFold, sem base nenhuma). Dois tamanhos do mesmo relógio: fica o preço mais alto.
+3. **Os valores da retoma**: os da Fnac e da iServices onde os há; nos outros modelos e
+   capacidades, uma estimativa pela geração e pela capacidade (os mais antigos, aos 5 €). Dois
+   valores do mercado estavam ao contrário e foram corrigidos (o Galaxy S22+ acima do S22 Ultra; o
+   A34 acima do A54).
+4. **`confirmado: true`** nas reparações e na retoma: os preços aparecem sem a marca «por
+   confirmar», também em produção. O dono ajusta-os no painel (ecrãs Reparações e Retoma, §13.4).
+5. **As películas de vidro** têm preço: temperado 9,90 €, privacidade 14,90 €, mate 12,90 €,
+   câmara 7,90 € (a de hidrogel continua a 12,50 €).
+6. **A folha de cálculo** de 9 nov já não é precisa (o dono ajusta no painel). A retoma fica com
+   as formas de pagar e de entregar que já tinha (dinheiro, transferência ou desconto; na loja ou
+   por envio combinado).
