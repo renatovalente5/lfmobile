@@ -101,7 +101,8 @@
     if (!regra) return { cents: 0, portes: false, falta: '' };
     if (typeof regra.minimo === 'number' && artigosCents < emCentimos(regra.minimo)) return { cents: 0, portes: false, falta: `O cupão ${regra.codigo} é para compras a partir de ${euros(regra.minimo)}.` };
     const cats = Array.isArray(regra.categorias) ? regra.categorias : [];
-    const base = validas.filter((d) => !cats.length || cats.includes(d.p.categoria)).reduce((s, d) => s + d.totalCents, 0);
+    // a categoria do artigo e as de marca (Apple, Samsung), como o Worker
+    const base = validas.filter((d) => !cats.length || (Array.isArray(d.p.categorias) && d.p.categorias.length ? d.p.categorias : [d.p.categoria]).some((c) => cats.includes(c))).reduce((s, d) => s + d.totalCents, 0);
     if (regra.tipo === 'portes') return { cents: 0, portes: true, falta: '' };
     if (!base) return { cents: 0, portes: false, falta: `O cupão ${regra.codigo} não se aplica a estes artigos.` };
     if (regra.tipo === 'percentagem') return { cents: Math.round((base * regra.valor) / 100), portes: false, falta: '' };

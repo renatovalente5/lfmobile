@@ -311,6 +311,46 @@ teste('as reparações de outras marcas: «Outras» abre as marcas, a família e
   const dados = JSON.parse(ler2('produtos/pelicula-vidro/index.html').match(/id="dados-modelos">(.*?)<\/script>/)[1]);
   assert.deepEqual(dados.Xiaomi, ['Redmi Note 13']);
 });
+teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços juntos no topo, a página inicial curta, a retoma com vender e retoma, o menu em grelha', () => {
+  const pasta = copia('arrumacao', (p) => {
+    json(p, 'content/categorias.json', (cs) => {
+      const i = cs.findIndex((c) => c.slug === 'iphone');
+      cs[i] = { slug: 'apple', nome: 'Apple', titulo: 'Apple', resumo: 'iPhone novos e recondicionados.', marca: 'Apple' };
+      cs.find((c) => c.slug === 'samsung').marca = 'Samsung';
+    });
+    json(p, 'content/retoma.json', (r) => { r.receber = ['Em dinheiro, na loja', 'Por transferência bancária', 'Em desconto numa compra na loja']; });
+  });
+  assert.equal(construir(pasta).codigo, 0);
+  const ler2 = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  // a categoria de marca: o iPhone recondicionado aparece em Apple (e continua em Recondicionados)
+  const apple = ler2('loja/apple/index.html');
+  assert.match(apple, /data-artigo="iphone-13-128gb-recondicionado"/);
+  assert.doesNotMatch(apple, /data-artigo="samsung-galaxy-s25-128gb"/);
+  assert.match(ler2('loja/recondicionados/index.html'), /data-artigo="iphone-13-128gb-recondicionado"/);
+  const inicio = ler2('index.html');
+  assert.match(inicio, /<li><a href="\/loja\/apple\/">Apple<\/a><\/li><li><a href="\/loja\/samsung\/">Samsung<\/a><\/li>/);
+  // o catálogo leva as categorias de cada artigo (os cupões de uma categoria de marca apanham-nas)
+  const cat = JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets/catalogo.json'), 'utf8'));
+  assert.deepEqual(cat.produtos['iphone-13-128gb-recondicionado'].categorias, ['recondicionados', 'apple']);
+  assert.deepEqual(cat.produtos['fones-p9'].categorias, ['audio']);
+  // o cabeçalho: as Reparações e a Retoma juntas ao lado do carrinho; o «Vender o meu» saiu; a fila de baixo é só a loja
+  assert.match(inicio, /<nav class="topo__servicos" aria-label="Serviços">\s*<a class="topo__accao" href="\/reparacoes\/">[\s\S]*?<span>Reparações<\/span><\/a><a class="topo__accao" href="\/retoma\/">[\s\S]*?<span>Retoma<\/span><\/a>/);
+  assert.doesNotMatch(inicio, /Vender o meu</);
+  assert.doesNotMatch(inicio.match(/<nav class="topo__fila"[\s\S]*?<\/nav>/)[0], /reparacoes|retoma/);
+  // a página inicial sem a grelha dos problemas e sem a faixa da retoma (o cartão da capa fica)
+  assert.doesNotMatch(inicio, /data-problemas|faixa-retoma/);
+  assert.match(inicio, /mosaico__cartao--retoma/);
+  assert.match(ler2('reparacoes/index.html'), /data-problemas/);
+  // a retoma: vender (em dinheiro ou por transferência) e retoma (desconto numa compra)
+  const ret = ler2('retoma/index.html');
+  assert.match(ret, /<strong>Vender<\/strong>Compramos o seu e pagamos em dinheiro ou por transferência\./);
+  assert.match(ret, /<strong>Retoma<\/strong>O valor fica como desconto numa compra na loja\./);
+  // o menu do telemóvel: os dois serviços, a loja em grelha, a ajuda em linhas
+  const menu = inicio.match(/<dialog class="menu"[\s\S]*?<\/dialog>/)[0];
+  assert.match(menu, /<strong>Retoma<\/strong><small>Compramos o seu<\/small>/);
+  assert.match(menu, /<ul class="menu__grelha" aria-labelledby="menu-loja">\s*<li><a href="\/loja\/apple\/">/);
+  assert.match(menu, /id="menu-ajuda">Ajuda</);
+});
 teste('em produção, os preços das reparações e os valores da retoma por confirmar não aparecem; confirmados, aparecem', () => {
   const pasta = copia('reparacoes-producao', (p) => json(p, 'content/site.json', preencherDadosLegais));
   assert.equal(construir(pasta, '--producao').codigo, 0);

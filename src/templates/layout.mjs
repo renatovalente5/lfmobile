@@ -3,9 +3,10 @@
 // O desenho é o de uma loja de electrónica (o Renato, 9 nov 2026: «Ele quer um site mais de
 // eletrónica e não apenas um site simples de AI generated»), à volta do logótipo que existe: em cima
 // a faixa escura (a campanha que está a correr, ou o aviso, ou os envios e a loja aberta); por baixo
-// o logótipo, a procura larga e o carrinho; e a fila das categorias da loja, com as Reparações e a
-// Retoma à direita. No telemóvel: o menu, o logótipo, a lupa e o carrinho; a procura e o menu abrem
-// em folhas.
+// o logótipo, a procura larga, os serviços (Reparações e Retoma, juntos) e o carrinho; e a fila das
+// categorias da loja (o Renato, 10 nov 2026: «Vender o meu» e «Retoma» eram a mesma coisa, e os
+// serviços deviam estar juntos). No telemóvel: o menu, o logótipo, a lupa e o carrinho; a procura e
+// o menu abrem em folhas.
 import { esc, numeroWhatsApp } from './util.mjs';
 import { icones } from './icones.mjs';
 import { livroBotao, categoriasComArtigos } from './componentes.mjs';
@@ -57,19 +58,21 @@ function procura(ctx, id) {
 </form>`;
 }
 
-/* As ligações da fila de baixo: as categorias com artigos; e, à direita, as Reparações, a Retoma e
-   a campanha que está a correr. */
+/* As ligações do cabeçalho e do menu: os serviços (as Reparações e a Retoma, que é vender ou
+   trocar) e as categorias da loja com artigos (Apple e Samsung juntam os da marca). */
 function ligacoesDaFila(ctx) {
-  const cats = categoriasComArtigos(ctx).map((k) => ({ caminho: `/loja/${k.slug}/`, nome: k.nome }));
-  const fim = [
-    { caminho: '/reparacoes/', nome: 'Reparações', icone: icones.ferramentas },
-    { caminho: '/retoma/', nome: 'Retoma', icone: icones.retoma },
+  const cats = categoriasComArtigos(ctx).map((k) => ({ caminho: `/loja/${k.slug}/`, nome: k.nome, slug: k.slug }));
+  const servicos = [
+    { caminho: '/reparacoes/', nome: 'Reparações', icone: icones.ferramentas, sub: 'Preço pelo modelo' },
+    { caminho: '/retoma/', nome: 'Retoma', icone: icones.retoma, sub: 'Compramos o seu' },
   ];
-  return { cats, fim };
+  return { cats, servicos };
 }
+/* O desenho de cada categoria no menu do telemóvel. */
+const ICONE_CATEGORIA = { apple: 'telemovel', samsung: 'telemovel', recondicionados: 'verificado', tablets: 'tablet', smartwatches: 'relogioPulso', audio: 'auriculares', peliculas: 'pelicula', acessorios: 'caixa' };
 
 function cabecalho(ctx, atual) {
-  const { cats, fim } = ligacoesDaFila(ctx);
+  const { cats, servicos } = ligacoesDaFila(ctx);
   const marca = (caminho) => (atual === caminho || (caminho !== '/' && atual.startsWith(caminho)) ? ' aria-current="page"' : '');
   const c = ctx.campanhas[0];
   return `<header class="topo" data-topo>
@@ -78,20 +81,19 @@ function cabecalho(ctx, atual) {
     <a class="topo__marca" href="${ctx.url('/')}">${logotipo(ctx, { alto: 40 })}<span class="visualmente-escondido"> — página inicial</span></a>
     <div class="topo__procura">${procura(ctx, 'busca-topo')}</div>
     <div class="topo__direita">
-      <a class="topo__accao so-largo" href="${ctx.url('/retoma/')}">${icones.retoma}<span>Vender o meu</span></a>
+      <nav class="topo__servicos" aria-label="Serviços">
+        ${servicos.map((x) => `<a class="topo__accao" href="${ctx.url(x.caminho)}"${marca(x.caminho)}>${x.icone}<span>${esc(x.nome)}</span></a>`).join('')}
+      </nav>
       <button class="topo__botao topo__lupa" type="button" data-abrir="procurar" aria-haspopup="dialog">${icones.pesquisa}<span class="visualmente-escondido">Procurar</span></button>
       <a class="topo__botao topo__carrinho" href="${ctx.url('/carrinho/')}" data-abrir="carrinho" aria-haspopup="dialog">${icones.carrinho}<span class="visualmente-escondido">Carrinho</span><span class="topo__conta" data-conta hidden></span></a>
     </div>
   </div>
-  <nav class="topo__fila" aria-label="Loja e serviços">
+  <nav class="topo__fila" aria-label="Loja">
     <ul class="topo__categorias">
       <li><a href="${ctx.url('/loja/')}"${atual === '/loja/' ? ' aria-current="page"' : ''}>Toda a loja</a></li>
       ${cats.map((x) => `<li><a href="${ctx.url(x.caminho)}"${marca(x.caminho)}>${esc(x.nome)}</a></li>`).join('')}
     </ul>
-    <ul class="topo__servicos">
-      ${c ? `<li><a class="topo__campanha" href="${ctx.url(`/campanhas/${c.slug}/`)}"${marca(`/campanhas/${c.slug}/`)}>${esc(c.nome)}</a></li>` : ''}
-      ${fim.map((x) => `<li><a href="${ctx.url(x.caminho)}"${marca(x.caminho)}>${x.icone}<span>${esc(x.nome)}</span></a></li>`).join('')}
-    </ul>
+    ${c ? `<a class="topo__campanha" href="${ctx.url(`/campanhas/${c.slug}/`)}"${marca(`/campanhas/${c.slug}/`)}>${icones.presente}<span>${esc(c.nome)}</span></a>` : ''}
   </nav>
 </header>`;
 }
@@ -106,11 +108,12 @@ function redes(ctx, classe = 'redes', { whatsapp = true } = {}) {
   return `<ul class="${classe}">${r.map((x) => `<li>${x}</li>`).join('')}</ul>`;
 }
 
-/* O MENU DO TELEMÓVEL (uma folha que entra da esquerda): os serviços em cartões (reparar, vender, a
-   campanha), as categorias da loja em linhas com a seta, as outras páginas, e o WhatsApp. */
+/* O MENU DO TELEMÓVEL (uma folha que entra da esquerda), curto (o Renato, 10 nov 2026: «Organiza
+   melhor também o Menu»): os dois serviços em cartões (e a campanha a correr), a loja numa grelha de
+   duas colunas, a ajuda em linhas, e o WhatsApp. */
 function menu(ctx, atual) {
   const c = ctx.site.contactos;
-  const { cats } = ligacoesDaFila(ctx);
+  const { cats, servicos } = ligacoesDaFila(ctx);
   const marca = (caminho) => (caminho === atual ? ' aria-current="page"' : '');
   const camp = ctx.campanhas[0];
   return `<dialog class="menu" id="menu" aria-label="Menu">
@@ -121,21 +124,20 @@ function menu(ctx, atual) {
     </div>
     <nav class="menu__nav" aria-label="Menu">
       <ul class="menu__servicos">
-        <li><a class="menu__servico" href="${ctx.url('/reparacoes/')}"${marca('/reparacoes/')}><span class="menu__servico-icone">${icones.ferramentas}</span><span><strong>Reparações</strong><small>Preço pelo modelo</small></span></a></li>
-        <li><a class="menu__servico" href="${ctx.url('/retoma/')}"${marca('/retoma/')}><span class="menu__servico-icone">${icones.retoma}</span><span><strong>Retoma</strong><small>Quanto vale o seu</small></span></a></li>
+        ${servicos.map((x) => `<li><a class="menu__servico" href="${ctx.url(x.caminho)}"${marca(x.caminho)}><span class="menu__servico-icone">${x.icone}</span><span><strong>${esc(x.nome)}</strong><small>${esc(x.sub)}</small></span></a></li>`).join('')}
         ${camp ? `<li class="menu__servico-largo"><a class="menu__servico menu__servico--campanha" href="${ctx.url(`/campanhas/${camp.slug}/`)}"><span class="menu__servico-icone">${icones.presente}</span><span><strong>${esc(camp.nome)}</strong><small>${esc(camp.faixa)}</small></span></a></li>` : ''}
       </ul>
       <p class="menu__rotulo" id="menu-loja">Loja</p>
-      <ul class="menu__linhas" aria-labelledby="menu-loja">
-        <li><a href="${ctx.url('/loja/')}"${marca('/loja/')}>Toda a loja${icones.seta}</a></li>
-        ${cats.map((x) => `<li><a href="${ctx.url(x.caminho)}"${marca(x.caminho)}>${esc(x.nome)}${icones.seta}</a></li>`).join('')}
+      <ul class="menu__grelha" aria-labelledby="menu-loja">
+        ${cats.map((x) => `<li><a href="${ctx.url(x.caminho)}"${marca(x.caminho)}>${icones[ICONE_CATEGORIA[x.slug]] || icones.caixa}<span>${esc(x.nome)}</span></a></li>`).join('')}
+        <li><a href="${ctx.url('/loja/')}"${marca('/loja/')}>${icones.loja}<span>Toda a loja</span></a></li>
       </ul>
-      <p class="menu__rotulo" id="menu-mais">A LF Mobile</p>
-      <ul class="menu__linhas" aria-labelledby="menu-mais">
-        <li><a href="${ctx.url('/sobre-nos/')}"${marca('/sobre-nos/')}>Sobre nós${icones.seta}</a></li>
+      <p class="menu__rotulo" id="menu-ajuda">Ajuda</p>
+      <ul class="menu__linhas" aria-labelledby="menu-ajuda">
         <li><a href="${ctx.url('/contactos/')}"${marca('/contactos/')}>Contactos e horário${icones.seta}</a></li>
         <li><a href="${ctx.url('/envios-e-devolucoes/')}"${marca('/envios-e-devolucoes/')}>Envios e devoluções${icones.seta}</a></li>
         <li><a href="${ctx.url('/perguntas-frequentes/')}"${marca('/perguntas-frequentes/')}>Perguntas frequentes${icones.seta}</a></li>
+        <li><a href="${ctx.url('/sobre-nos/')}"${marca('/sobre-nos/')}>Sobre nós${icones.seta}</a></li>
       </ul>
     </nav>
     <div class="menu__pe">

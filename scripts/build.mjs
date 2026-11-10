@@ -119,7 +119,7 @@ const campanhas = R.campanhasActivas(dadosRegras.campanhas, hoje);
 // Os artigos como o gerador os lê: a cópia neutralizada (um artigo com problemas sai escondido),
 // com o desconto da campanha que os apanha (o preço normal fica riscado, com o período).
 const produtos = Object.entries(neutro.artigos)
-  .map(([slug, a]) => ({ slug, ...R.comCampanha(a, slug, campanhas, hoje) }))
+  .map(([slug, a]) => ({ slug, ...R.comCampanha(a, slug, campanhas, hoje, categorias) }))
   .filter((p) => p.publicado !== false)
   .sort((a, b) => (a.ordem ?? 500) - (b.ordem ?? 500) || a.nome.localeCompare(b.nome, 'pt'));
 const fotoExiste = (f) => fotos[f] && dadosRegras.ficheirosFotos.includes(f);
@@ -285,7 +285,8 @@ const catalogo = {
     nome: p.nome, nomeCurto: p.nomeCurto || p.nome, url: ctx.url(`/produtos/${p.slug}/`), foto: fotoPequena(p.fotos[0]),
     preco: typeof p.preco === 'number' ? p.preco : null, precoAnterior: p.precoAnterior || null, promocaoAte: p.promocaoAte || '',
     opcoes: R.opcoesDe(p), estado: R.estadoDe(p), disponibilidade: R.disponibilidadeDe(p), compravel: R.compravel(p), enviavel: R.enviavel(p),
-    categoria: p.categoria, peso: R.pesoDe(p, categorias), pedeModelo: p.pedeModelo === true, campanha: p.campanha || '',
+    // a categoria do artigo e as de marca (Apple, Samsung): os cupões de uma categoria apanham as duas
+    categoria: p.categoria, categorias: R.categoriasDoArtigo(p, categorias), peso: R.pesoDe(p, categorias), pedeModelo: p.pedeModelo === true, campanha: p.campanha || '',
   }])),
 };
 const catalogoBuf = Buffer.from(JSON.stringify(catalogo));

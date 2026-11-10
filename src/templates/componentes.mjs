@@ -2,7 +2,7 @@
 // horário e as peças legais comuns.
 import { esc, euros, precoDe, dataPorExtenso, numeroWhatsApp } from './util.mjs';
 import { icones } from './icones.mjs';
-import { temSuplementos, estadoDe, disponibilidadeDe, compravel, opcoesDe, ESTADOS, linhasDe } from '../lib/regras.mjs';
+import { temSuplementos, estadoDe, disponibilidadeDe, compravel, opcoesDe, ESTADOS, linhasDe, categoriasDoArtigo } from '../lib/regras.mjs';
 import { livroReclamacoes, VERSAO as LEGAL_COMUM_VERSAO } from '../../legal-comum/index.mjs';
 
 /* AS PEÇAS DA BIBLIOTECA legal-comum (a cópia está em legal-comum/, instalada por
@@ -222,7 +222,7 @@ export function fila(ctx, produtos, { id, titulo, ligacao = '', textoLigacao = '
 }
 
 /* As categorias com artigos no site. */
-export const categoriasComArtigos = (ctx) => ctx.categorias.filter((c) => ctx.produtos.some((p) => p.categoria === c.slug));
+export const categoriasComArtigos = (ctx) => ctx.categorias.filter((c) => ctx.produtos.some((p) => categoriasDoArtigo(p, ctx.categorias).includes(c.slug)));
 
 /* A ligação do WhatsApp sem texto: o número da loja, em dígitos. */
 export const whatsappNumero = (ctx) => numeroWhatsApp(ctx.site.contactos.whatsapp);

@@ -797,7 +797,24 @@ export function problemasDasCategorias(valor, { fotos = null } = {}) {
     if (!ausente(kg) && kg !== '' && (typeof kg !== 'number' || !Number.isFinite(kg) || kg < LIMITES.peso[0] || kg > LIMITES.peso[1])) avisa(`${c.slug}.peso`, `${i}.peso`, `O peso da categoria ${c.nome || c.slug} é em quilos (ex.: 0,4), ou fica vazio.`);
     /* A fotografia da categoria é opcional (o menu da LF Mobile é só texto); se estiver escrita, tem de existir. */
     if (!vazio(c.foto) && (!nomeDeFotoValido(c.foto) || (fotos && !fotos.has(c.foto)))) bloqueia(`${c.slug}.foto`, `${i}.foto`, `A fotografia da categoria ${c.nome || c.slug} não existe na biblioteca: escolha outra, ou nenhuma.`);
+    /* Uma categoria de marca (Apple, Samsung) junta os artigos dessa marca de todas as categorias. */
+    if (!ausente(c.marca) && (typeof c.marca !== 'string' || !temTexto(c.marca) || c.marca.length > TAMANHOS.marca)) avisa(`${c.slug}.marca`, `${i}.marca`, `A marca da categoria ${c.nome || c.slug} é um nome curto (ex.: Apple), ou fica vazia.`);
   });
+  return out;
+}
+
+/* AS CATEGORIAS DE UM ARTIGO: a dele, e as de marca que lhe tocam (a categoria Apple junta os artigos
+   da Apple de todas as categorias: um iPhone recondicionado aparece em Recondicionados e em Apple).
+   A loja, as campanhas, o catálogo e os cupões (o Worker) usam esta lista. */
+export function categoriasDoArtigo(a, categorias) {
+  if (!eObjecto(a)) return [];
+  const out = temTexto(a.categoria) ? [a.categoria] : [];
+  const marca = temTexto(a.marca) ? a.marca.trim().toLowerCase() : '';
+  if (marca && Array.isArray(categorias)) {
+    for (const c of categorias) {
+      if (eObjecto(c) && slugValido(c.slug) && temTexto(c.marca) && c.marca.trim().toLowerCase() === marca && !out.includes(c.slug)) out.push(c.slug);
+    }
+  }
   return out;
 }
 
@@ -1222,16 +1239,18 @@ export function campanhasActivas(valor, hoje) {
   }
   return out;
 }
-/* A campanha que apanha um artigo (a primeira da lista), ou null. */
-export function campanhaDoArtigo(a, slug, activas) {
+/* A campanha que apanha um artigo (a primeira da lista), ou null. `categorias`: as do site, para as
+   categorias de marca (categoriasDoArtigo); sem elas, só a categoria do artigo. */
+export function campanhaDoArtigo(a, slug, activas, categorias = null) {
   if (!eObjecto(a)) return null;
   const marca = temTexto(a.marca) ? a.marca.trim().toLowerCase() : '';
-  return activas.find((c) => c.artigos.includes(slug) || c.categorias.includes(a.categoria) || (marca && c.marcas.includes(marca))) || null;
+  const cats = categoriasDoArtigo(a, categorias);
+  return activas.find((c) => c.artigos.includes(slug) || c.categorias.some((k) => cats.includes(k)) || (marca && c.marcas.includes(marca))) || null;
 }
 /* O artigo como o site o mostra com a campanha: o preço com o desconto, o normal riscado e o
    período da campanha. Sem preço, sem desconto, ou com uma promoção própria a correr: igual. */
-export function comCampanha(a, slug, activas, hoje) {
-  const c = campanhaDoArtigo(a, slug, activas);
+export function comCampanha(a, slug, activas, hoje, categorias = null) {
+  const c = campanhaDoArtigo(a, slug, activas, categorias);
   if (!c) return a;
   const x = { ...a, campanha: c.slug };
   if (!c.desconto || typeof a.preco !== 'number') return x;
@@ -1273,9 +1292,10 @@ export function portesDoPeso(kg, escaloes) {
 /* ------------------------------------------------------------------ */
 
 /* As secções da página inicial, pela ordem da página: a capa (com a escolha do modelo para
-   reparar), os destaques da loja, as reparações (a grelha dos problemas), a retoma, as películas e
-   a loja (a fotografia da fachada). Poucas e curtas. */
-export const SECCOES_INICIO = Object.freeze(['seo', 'capa', 'destaques', 'reparacoes', 'retoma', 'peliculas', 'loja']);
+   reparar e o cartão da retoma), os destaques da loja, as películas e a loja (a fotografia da
+   fachada). Poucas e curtas. A grelha dos problemas saiu para a página das reparações (o Renato, 10
+   nov 2026: «para não ficar gigante»). */
+export const SECCOES_INICIO = Object.freeze(['seo', 'capa', 'destaques', 'retoma', 'peliculas', 'loja']);
 
 /* As fotografias que a página inicial usa (para saber se uma se pode apagar). */
 export function fotosDoInicio(h) {
@@ -1302,9 +1322,8 @@ export function problemasDoInicio(valor, { fotos = null } = {}) {
   /* Os textos todos: obrigatórios onde o gerador os escreve sem perguntar. Poucos e curtos. */
   const textos = [
     ['seo.titulo', TAMANHOS.inicioTitulo, true], ['seo.descricao', TAMANHOS.inicioTexto, true],
-    ['capa.titulo', TAMANHOS.inicioTitulo, true], ['capa.texto', TAMANHOS.inicioTexto, false], ['capa.botao', TAMANHOS.inicioCurto, true], ['capa.botao2', TAMANHOS.inicioCurto, false],
+    ['capa.titulo', TAMANHOS.inicioTitulo, true], ['capa.texto', TAMANHOS.inicioTexto, false], ['capa.botao', TAMANHOS.inicioCurto, true],
     ['destaques.titulo', TAMANHOS.inicioTitulo, true], ['destaques.texto', TAMANHOS.inicioTexto, false], ['destaques.botao', TAMANHOS.inicioCurto, true],
-    ['reparacoes.titulo', TAMANHOS.inicioTitulo, true], ['reparacoes.texto', TAMANHOS.inicioTexto, false], ['reparacoes.botao', TAMANHOS.inicioCurto, true],
     ['retoma.titulo', TAMANHOS.inicioTitulo, true], ['retoma.texto', TAMANHOS.inicioTexto, false], ['retoma.botao', TAMANHOS.inicioCurto, true],
     ['peliculas.titulo', TAMANHOS.inicioTitulo, true], ['peliculas.texto', TAMANHOS.inicioTexto, false], ['peliculas.botao', TAMANHOS.inicioCurto, true],
     ['loja.titulo', TAMANHOS.inicioTitulo, true], ['loja.texto', TAMANHOS.inicioTexto, false],
@@ -1320,10 +1339,6 @@ export function problemasDoInicio(valor, { fotos = null } = {}) {
     if (m) bloqueia(`${caminho}:alegacao`, caminho, `«${m[0]}» é uma palavra que a lei só deixa usar com prova (ou uma certificação que não temos). Tire-a.`);
   };
   for (const [c, max, ob] of textos) umTexto(c, max, ob);
-  for (const k of ['capa.ligacao', 'capa.ligacao2']) {
-    const v = valorEm(k);
-    if (!vazio(v) && (typeof v !== 'string' || !/^\/[a-z0-9/-]*$/.test(v))) avisa(k, k, 'A ligação do botão tem de ser uma página do site (ex.: /loja/).');
-  }
   /* As fotografias: a da capa é obrigatória; a da loja é opcional (sem ela a secção sai sem fotografia). */
   if (!nomeDeFotoValido(h.capa.foto) || (fotos && !fotos.has(h.capa.foto))) bloqueia('capa.foto:foto', 'capa.foto', 'A fotografia da capa já não está na biblioteca: escolha outra.');
   if (!vazio(h.loja.foto) && (!nomeDeFotoValido(h.loja.foto) || (fotos && !fotos.has(h.loja.foto)))) bloqueia('loja.foto:foto', 'loja.foto', 'A fotografia da loja já não está na biblioteca: escolha outra, ou nenhuma.');
@@ -1475,7 +1490,7 @@ const valorEmCaminho = (o, caminho) => caminho.split('.').reduce((x, k) => (eObj
 /* mudancasBloqueadas(antes, depois, qual) → [{ caminho, motivo }] ([] = pode gravar)
  *   'artigo':     as chaves que não são CAMPOS_ARTIGO não mudam;
  *   'site':       BLOQUEADOS_SITE não mudam, e não aparecem secções novas;
- *   'categorias': as categorias são as mesmas, pela mesma ordem (o slug);
+ *   'categorias': as categorias são as mesmas, pela mesma ordem (o slug), com a mesma marca;
  *   'inicio':     não aparecem nem desaparecem secções;
  *   'aparelhos':  as marcas e as famílias são as mesmas; os modelos podem entrar (um id que já
  *                 existia não muda de família: os preços e os valores dependem dele);
@@ -1497,6 +1512,7 @@ export function mudancasBloqueadas(antes, depois, qual = 'site') {
     if (a.length !== d.length) return [{ caminho: 'categorias', motivo: 'quantas' }];
     a.forEach((c, i) => {
       if (!mesmoValor(eObjecto(c) ? c.slug : null, eObjecto(d[i]) ? d[i].slug : null)) out.push({ caminho: `${i}.slug`, motivo: 'mudou' });
+      else if (!mesmoValor(eObjecto(c) ? c.marca ?? null : null, eObjecto(d[i]) ? d[i].marca ?? null : null)) out.push({ caminho: `${i}.marca`, motivo: 'mudou' });
     });
     return out;
   }

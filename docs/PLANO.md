@@ -270,3 +270,23 @@ Backoffice.» O que mudou (substitui a decisão 1 nas reparações e a 11):
 6. **A folha de cálculo** de 9 nov já não é precisa (o dono ajusta no painel). A retoma fica com
    as formas de pagar e de entregar que já tinha (dinheiro, transferência ou desconto; na loja ou
    por envio combinado).
+
+### 13.7 O Renato, 10 nov: arrumar o site, e o painel em sintonia
+
+«Porque não criaste um separador para Apple e criaste um separador para Samsung?» — a categoria
+iPhone não tinha artigos novos (os iPhone estão em Recondicionados) e escondia-se. Agora:
+
+1. **Apple e Samsung são categorias de marca** (`marca` em `categorias.json`; a «iphone» passou a
+   «apple»): juntam os artigos da marca de todas as categorias, e estão sempre na fila e no menu.
+   As campanhas e os cupões de uma dessas categorias apanham os artigos da marca (`docs/ENCOMENDAS.md` §8).
+2. **«Vender o meu» e «Retoma» eram a mesma coisa**: fica a **Retoma**, junto das **Reparações**, ao
+   lado do carrinho; a fila de baixo é só a loja. A página da retoma diz as duas formas: **Vender**
+   (compramos o seu, em dinheiro ou por transferência) e **Retoma** (desconto numa compra), tiradas
+   das formas de receber.
+3. **A página inicial ficou curta**: saiu a grelha dos problemas (está nas Reparações) e a faixa da
+   retoma (repetia o cartão da capa). Saíram do `inicio.json` a secção das reparações e os campos que
+   o gerador não lia (o segundo botão da capa e as ligações).
+4. **O menu do telemóvel**: os dois serviços em cartões, a loja numa grelha de duas colunas, a ajuda
+   em quatro linhas, e o WhatsApp — cabe quase num ecrã.
+5. **O painel** acompanha tudo isto (§13.4 e o repositório do painel).
+

@@ -1,17 +1,19 @@
 [
   {
-    "slug": "iphone",
-    "nome": "iPhone",
-    "titulo": "iPhone",
-    "resumo": "iPhone novos e selados, com a garantia da Apple.",
-    "peso": 0.5
+    "slug": "apple",
+    "nome": "Apple",
+    "titulo": "Apple",
+    "resumo": "iPhone, iPad e Apple Watch, novos e recondicionados.",
+    "peso": 0.5,
+    "marca": "Apple"
   },
   {
     "slug": "samsung",
     "nome": "Samsung",
     "titulo": "Samsung Galaxy",
-    "resumo": "Galaxy novos e selados, com a garantia da Samsung.",
-    "peso": 0.5
+    "resumo": "Galaxy novos e recondicionados.",
+    "peso": 0.5,
+    "marca": "Samsung"
   },
   {
     "slug": "recondicionados",

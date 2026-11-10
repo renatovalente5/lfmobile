@@ -4,14 +4,14 @@
 import { esc, euros, precoDe, markdown, inline, textoSimples, numeroWhatsApp, numeroLegivel, notaChamada, dataPorExtenso } from './util.mjs';
 import { icones } from './icones.mjs';
 import { usarAparelho, spriteAparelhos } from './aparelhos.mjs';
-import { numeroPortugues, opcoesDe, temSuplementos, estadoDe, disponibilidadeDe, compravel, enviavel, linhasDe, GARANTIAS_USADOS, ESTADOS } from '../lib/regras.mjs';
+import { numeroPortugues, opcoesDe, temSuplementos, estadoDe, disponibilidadeDe, compravel, enviavel, linhasDe, GARANTIAS_USADOS, ESTADOS, categoriasDoArtigo } from '../lib/regras.mjs';
 import { imagem, temRecorte, preco, cartaoProduto, migalhas, botaoSeta, desconto, promocaoAte, cabecaDePagina, convite, promocaoNota, horarioHtml, moradaHtml, estadoRotulo, especificacoes, categoriasComArtigos, campanhaDe, fila } from './componentes.mjs';
-import { grelhaDosProblemas } from './reparacoes.mjs';
 import { BOTAO_ENCOMENDA } from '../../legal-comum/index.mjs';
 
-const produtosDe = (ctx, cat) => ctx.produtos.filter((p) => p.categoria === cat);
+/* Os artigos de uma categoria: os dela e, numa categoria de marca (Apple, Samsung), os dessa marca. */
+const produtosDe = (ctx, cat) => ctx.produtos.filter((p) => categoriasDoArtigo(p, ctx.categorias).includes(cat));
 /* As categorias de equipamentos: na ficha, a etiqueta diz «Novo» (nos acessórios não faz falta). */
-const EQUIPAMENTOS = new Set(['iphone', 'samsung', 'recondicionados', 'tablets', 'smartwatches', 'audio']);
+const EQUIPAMENTOS = new Set(['apple', 'samsung', 'recondicionados', 'tablets', 'smartwatches', 'audio']);
 const categoriaDe = (ctx, slug) => ctx.categorias.find((c) => c.slug === slug);
 
 /* Os portes numa frase curta (a ficha, o carrinho): «Envio Nacex: 5,90 € até 5 kg». */
@@ -39,7 +39,7 @@ export const garantiaTexto = (ctx, p) => {
 };
 
 /* O desenho de uma categoria quando não há recorte de nenhum artigo dela. */
-const DESENHO_CATEGORIA = { iphone: 'iphone-ilha', samsung: 'galaxy', recondicionados: 'iphone-entalhe', tablets: 'tablet', smartwatches: 'relogio' };
+const DESENHO_CATEGORIA = { apple: 'iphone-ilha', samsung: 'galaxy', recondicionados: 'iphone-entalhe', tablets: 'tablet', smartwatches: 'relogio' };
 const ICONE_CATEGORIA = { audio: 'auriculares', peliculas: 'pelicula', acessorios: 'caixa' };
 function imagemDaCategoria(ctx, slug) {
   const p = produtosDe(ctx, slug).find((x) => temRecorte(ctx, x.fotos[0]));
@@ -130,22 +130,6 @@ export function inicio(ctx) {
   const daCampanha = camp ? ctx.produtos.filter((p) => p.campanha === camp.slug) : [];
   const filaCampanha = camp && daCampanha.length ? fila(ctx, daCampanha.slice(0, 12), { id: 'campanha-titulo', titulo: camp.titulo, sub: camp.desconto ? `${camp.desconto}% de desconto até ${dataPorExtenso(camp.ate)}.` : '', ligacao: `/campanhas/${camp.slug}/`, textoLigacao: 'Ver tudo' }) : '';
 
-  /* A RETOMA, numa faixa escura: a pergunta, os três passos e o botão. */
-  const faixaRetoma = `<section class="faixa-retoma" aria-labelledby="retoma-titulo">
-  <div class="faixa-retoma__texto">
-    <p class="rotulo rotulo--ouro">Retoma</p>
-    <h2 class="titulo-seccao" id="retoma-titulo">${esc(h.retoma.titulo)}</h2>
-    ${h.retoma.texto ? `<p class="faixa-retoma__sub">${esc(h.retoma.texto)}</p>` : ''}
-    <ol class="faixa-retoma__passos">
-      <li><span>1</span>Simule no site</li>
-      <li><span>2</span>Entregue na loja</li>
-      <li><span>3</span>Receba o valor</li>
-    </ol>
-    <a class="botao botao--ouro" href="${ctx.url('/retoma/')}">${esc(h.retoma.botao)}${icones.seta}</a>
-  </div>
-  <div class="faixa-retoma__desenho" aria-hidden="true">${usarAparelho('iphone-ilha', 'faixa-retoma__a')}${usarAparelho('galaxy-fold', 'faixa-retoma__b')}</div>
-</section>`;
-
   /* AS PELÍCULAS: os tipos (cada um leva à ficha, onde se diz o modelo). */
   const pels = produtosDe(ctx, 'peliculas');
   const faixaPeliculas = pels.length ? `<section class="faixa-peliculas" aria-labelledby="peliculas-titulo">
@@ -199,10 +183,6 @@ export function inicio(ctx) {
   ${filaCats}
   ${filaCampanha}
   ${destaques}
-  ${grelhaDosProblemas(ctx, { titulo: h.reparacoes.titulo, texto: h.reparacoes.texto, ligacaoModelo: ctx.url('/reparacoes/#escolher') })}
-</div>
-<div class="contentor">${faixaRetoma}</div>
-<div class="contentor">
   ${faixaPeliculas}
   ${confianca}
   ${loja}

@@ -1,4 +1,4 @@
-// A RETOMA, como a da Fnac e melhor (o Renato, 9 nov 2026: «Para a página das retomas ele quer um
+// A RETOMA (vender ou trocar), como a da Fnac e melhor (o Renato, 9 nov 2026: «Para a página das retomas ele quer um
 // sistema como o da Fnac, analisa para fazeres igual e melhor»). Um simulador por passos: a marca
 // (Apple ou Samsung), o modelo (com procura), a capacidade e o estado, uma pergunta de cada vez,
 // com o valor a mexer ao lado (computador) ou na barra de baixo (telemóvel). No fim, o valor
@@ -13,6 +13,23 @@ import { icones } from './icones.mjs';
 import { spriteAparelhos } from './aparelhos.mjs';
 import { migalhas, notaPorConfirmar } from './componentes.mjs';
 import { capacidadeTexto } from '../lib/regras.mjs';
+
+/* AS DUAS FORMAS (o Renato, 10 nov 2026: «vender o meu e retoma é quase o mesmo (...) especificar
+   que compras e fazes retomas»): «Vender», se a loja paga em dinheiro ou por transferência, e
+   «Retoma», se o valor pode ficar como desconto. Sai das formas de receber (Retoma, no painel). */
+export function formasDaRetoma(receber) {
+  const l = Array.isArray(receber) ? receber : [];
+  const paga = l.filter((t) => !/desconto/i.test(t));
+  const out = [];
+  if (paga.length) {
+    const d = paga.some((t) => /dinheiro/i.test(t));
+    const tr = paga.some((t) => /transfer/i.test(t));
+    const como = d && tr ? 'em dinheiro ou por transferência' : d ? 'em dinheiro' : tr ? 'por transferência' : paga.join(' ou ').toLowerCase();
+    out.push({ icone: icones.euro, titulo: 'Vender', texto: `Compramos o seu e pagamos ${como}.` });
+  }
+  if (l.some((t) => /desconto/i.test(t))) out.push({ icone: icones.retoma, titulo: 'Retoma', texto: 'O valor fica como desconto numa compra na loja.' });
+  return out;
+}
 
 export function retoma(ctx) {
   const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: 'Retoma', caminho: '/retoma/' }]);
@@ -32,12 +49,14 @@ export function retoma(ctx) {
     porConfirmar: r.porConfirmar,
   };
   const c = ctx.site.contactos;
+  const formas = formasDaRetoma(r.receber);
   const conteudo = `${spriteAparelhos()}
 <section class="ret-capa">
   <div class="contentor ret-capa__dentro">
     <p class="rotulo rotulo--claro">Retoma</p>
     <h1 class="ret-capa__titulo">Quanto vale o seu telemóvel?</h1>
     <p class="ret-capa__sub">Responda a umas perguntas e veja o valor na hora. Sem compromisso.</p>
+    ${formas.length ? `<ul class="ret-capa__formas">${formas.map((f) => `<li>${f.icone}<span><strong>${esc(f.titulo)}</strong>${esc(f.texto)}</span></li>`).join('')}</ul>` : ''}
     <ol class="ret-capa__passos">
       <li><span>1</span>Simule aqui</li>
       <li><span>2</span>Entregue na loja</li>

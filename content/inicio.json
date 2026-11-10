@@ -7,9 +7,6 @@
     "titulo": "O seu telemóvel, como novo outra vez.",
     "texto": "Reparamos todas as marcas. Escolha o modelo e veja o preço. Orçamento grátis, na loja ou pelo WhatsApp.",
     "botao": "Ver preços",
-    "ligacao": "/reparacoes/",
-    "botao2": "Ver a loja",
-    "ligacao2": "/loja/",
     "foto": "reparacao-ecra-iphone"
   },
   "destaques": {
@@ -17,14 +14,9 @@
     "texto": "",
     "botao": "Ver toda a loja"
   },
-  "reparacoes": {
-    "titulo": "O que se passa com o seu telemóvel?",
-    "texto": "Escolha o problema e o modelo: dizemos o preço e reparamos na loja.",
-    "botao": "Escolher o modelo"
-  },
   "retoma": {
     "titulo": "Quanto vale o seu telemóvel?",
-    "texto": "Responda a meia dúzia de perguntas e veja o valor na hora. Recebe na loja.",
+    "texto": "Compramos o seu, ou o valor fica como desconto noutro. Veja quanto vale na hora.",
     "botao": "Simular a retoma"
   },
   "peliculas": {

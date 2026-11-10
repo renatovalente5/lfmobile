@@ -79,6 +79,9 @@ export function contas(cat, linhas, zona, hoje = hojeLisboa(), { cupao = null } 
   if (linhas.length > MAX_LINHAS) throw new ErroDoPedido('O carrinho tem artigos a mais. Divida a encomenda em duas.');
   const envio = Boolean(zona && zona.morada);
   const saida = [];
+  // as categorias de cada linha para o cupão: a do artigo e as de marca do catálogo (Apple, Samsung),
+  // à parte das linhas (a forma da encomenda gravada não muda)
+  const categoriasDasLinhas = [];
   let artigos_cents = 0;
   let peso = 0;
   for (const l of linhas) {
@@ -98,6 +101,7 @@ export function contas(cat, linhas, zona, hoje = hojeLisboa(), { cupao = null } 
     const total_cents = unidade_cents * l.qtd;
     artigos_cents += total_cents;
     peso += (typeof p.peso === 'number' && Number.isFinite(p.peso) && p.peso > 0 ? p.peso : 0.3) * l.qtd;
+    categoriasDasLinhas.push(Array.isArray(p.categorias) && p.categorias.length ? p.categorias.filter((c) => typeof c === 'string') : [p.categoria || '']);
     saida.push({
       produto: l.produto,
       nome: p.nome,
@@ -111,7 +115,7 @@ export function contas(cat, linhas, zona, hoje = hojeLisboa(), { cupao = null } 
     });
   }
   // O desconto do cupão (cupoes.js, descontoDoCupao), sobre os artigos (ou só os das categorias dele).
-  const desc = cupao ? descontoDoCupao(cupao, saida, artigos_cents) : { cents: 0, portes: false };
+  const desc = cupao ? descontoDoCupao(cupao, saida.map((l, i) => ({ ...l, categorias: categoriasDasLinhas[i] })), artigos_cents) : { cents: 0, portes: false };
   // Os portes (carrinho.js, contas): zero no levantamento; grátis a partir de X em artigos ou com o
   // cupão de portes grátis; pelo peso da encomenda (o escalão da Nacex); por confirmar (null) quando
   // não há escalão que a aguente, ou o dono ainda não os definiu.
@@ -139,7 +143,7 @@ export function contas(cat, linhas, zona, hoje = hojeLisboa(), { cupao = null } 
    artigos). → { cents, portes } */
 export function descontoDoCupao(regra, linhas, artigos_cents) {
   const cats = Array.isArray(regra.categorias) ? regra.categorias : [];
-  const base = linhas.filter((l) => !cats.length || cats.includes(l.categoria)).reduce((s, l) => s + l.total_cents, 0);
+  const base = linhas.filter((l) => !cats.length || (Array.isArray(l.categorias) ? l.categorias : [l.categoria]).some((c) => cats.includes(c))).reduce((s, l) => s + l.total_cents, 0);
   if (regra.tipo === 'portes') return { cents: 0, portes: true };
   if (regra.tipo === 'percentagem') return { cents: Math.round((base * regra.valor) / 100), portes: false };
   if (regra.tipo === 'valor') return { cents: Math.min(centimos(regra.valor), base), portes: false };

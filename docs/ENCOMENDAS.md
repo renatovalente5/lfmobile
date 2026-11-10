@@ -209,6 +209,13 @@ Cada artigo leva `categoria`, `peso` (kg: o dele, o da categoria, ou 0,3), `pede
 o desconto e `precoAnterior`/`promocaoAte` são os da campanha: o Worker não precisa de saber de
 campanhas. Um catálogo v2 (um número por zona) continua a valer, como um escalão só.
 
+**As categorias de marca (10 nov 2026).** Uma categoria com `marca` (Apple, Samsung) junta os artigos
+dessa marca de todas as categorias (`categoriasDoArtigo` em `src/lib/regras.mjs`). Cada artigo do
+catálogo leva também `categorias` (a dele e as de marca: um iPhone recondicionado tem
+`["recondicionados", "apple"]`). Um cupão «só em certas categorias» apanha a linha se alguma das
+`categorias` dela estiver no cupão (o Worker, `contas.js`, e o carrinho, `carrinho.js`); sem
+`categorias` (um catálogo antigo), vale a `categoria`. A linha gravada na encomenda não muda.
+
 **Os portes** de uma encomenda com envio: o primeiro escalão cujo `ate` aguenta o peso total (a soma
 `peso × qtd`); mais pesada do que o último, «por confirmar» (em modo «online» o `/checkout` recusa, com
 a frase «A encomenda pesa mais de 30 kg…»). Grátis a partir de `gratisAPartirDe` em artigos, ou com um

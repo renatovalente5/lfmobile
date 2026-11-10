@@ -165,21 +165,24 @@ html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
 .topo__botao, .topo__accao { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 999px; color: var(--tinta); text-decoration: none; font-weight: 700; font-size: .92rem; transition: background-color .15s; }
 @media (hover: hover) { .topo__botao:hover, .topo__accao:hover { background: var(--cinza); } }
 .topo__accao .icone { color: var(--ouro-texto); }
+/* os serviços (Reparações e Retoma), juntos ao lado do carrinho; no telemóvel estão no menu */
+.topo__servicos { display: none; }
+@media (min-width: 900px) { .topo__servicos { display: flex; align-items: center; gap: 2px; } }
+.topo__accao[aria-current="page"] { background: var(--cinza); }
 .topo__menu { margin-left: -8px; }
 @media (min-width: 900px) { .topo__menu, .topo__lupa { display: none; } }
 .topo__conta { position: absolute; top: 3px; right: 1px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--ouro); color: var(--escuro); font-size: .7rem; font-weight: 800; line-height: 19px; text-align: center; }
-/* a fila das categorias (computador): as categorias à esquerda, os serviços à direita */
+/* a fila das categorias (computador): as categorias da loja; à direita, a campanha que está a correr */
 .topo__fila { display: none; }
 @media (min-width: 900px) {
   .topo__fila { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); height: 46px; }
-  .topo__categorias, .topo__servicos { display: flex; align-items: center; gap: 2px; min-width: 0; }
+  .topo__categorias { display: flex; align-items: center; gap: 2px; min-width: 0; }
   .topo__categorias { overflow-x: auto; scrollbar-width: none; }
   .topo__categorias::-webkit-scrollbar { display: none; }
   .topo__fila a { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: .92rem; color: var(--tinta-2); white-space: nowrap; transition: background-color .15s, color .15s; }
   .topo__fila a[aria-current="page"] { color: var(--tinta); background: var(--cinza); }
-  .topo__servicos a { color: var(--tinta); font-weight: 700; }
-  .topo__servicos .icone { width: 1.1em; height: 1.1em; color: var(--ouro-texto); }
-  .topo__fila .topo__campanha { background: var(--escuro); color: var(--ouro-claro); }
+  .topo__fila .topo__campanha { flex: none; background: var(--escuro); color: var(--ouro-claro); font-weight: 700; }
+  .topo__fila .topo__campanha .icone { width: 1.05em; height: 1.05em; }
 }
 @media (hover: hover) and (min-width: 900px) { .topo__fila a:hover { color: var(--tinta); background: var(--cinza); } .topo__fila .topo__campanha:hover { background: var(--escuro-3); color: var(--ouro-claro); } }
 
@@ -214,9 +217,9 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .menu__marca .logo { height: 36px; width: auto; }
 .menu__fechar, .gaveta__fechar { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 999px; }
 @media (hover: hover) { .menu__fechar:hover, .gaveta__fechar:hover { background: var(--cinza); } }
-.menu__servicos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0 22px; }
+.menu__servicos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 4px 0 20px; }
 .menu__servico-largo { grid-column: 1 / -1; }
-.menu__servico { display: flex; flex-direction: column; gap: 10px; height: 100%; padding: 14px; border-radius: var(--raio-m); background: var(--escuro); color: var(--branco); text-decoration: none; }
+.menu__servico { display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 12px 14px; border-radius: var(--raio-m); background: var(--escuro); color: var(--branco); text-decoration: none; }
 .menu__servico strong { display: block; font-size: 1rem; }
 .menu__servico small { display: block; color: var(--claro-2); font-size: .82rem; line-height: 1.35; }
 .menu__servico-icone { display: inline-flex; width: 36px; height: 36px; align-items: center; justify-content: center; border-radius: 10px; background: rgba(201, 162, 76, .16); color: var(--ouro-claro); }
@@ -224,8 +227,15 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .menu__servico--campanha small { color: var(--tinta-2); }
 .menu__servico--campanha .menu__servico-icone { background: var(--papel); color: var(--ouro-texto); }
 .menu__rotulo { font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); margin: 0 0 6px; }
-.menu__linhas { margin-bottom: 22px; border-top: 1px solid var(--linha); }
-.menu__linhas a { display: flex; align-items: center; justify-content: space-between; min-height: 52px; padding: 0 2px; border-bottom: 1px solid var(--linha); text-decoration: none; font-weight: 700; font-size: 1.05rem; }
+/* a loja numa grelha de duas colunas: cabe num ecrã de telemóvel sem rolar */
+.menu__grelha { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.menu__grelha a { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 12px; border-radius: var(--raio-m); background: var(--cinza); text-decoration: none; font-weight: 700; font-size: .95rem; line-height: 1.2; }
+.menu__grelha .icone { flex: none; width: 1.25em; height: 1.25em; color: var(--ouro-texto); }
+.menu__grelha a[aria-current="page"] { background: var(--tinta); color: var(--branco); }
+.menu__grelha a[aria-current="page"] .icone { color: var(--ouro-claro); }
+@media (hover: hover) { .menu__grelha a:hover { background: var(--cinza-2); } .menu__grelha a[aria-current="page"]:hover { background: var(--tinta); } }
+.menu__linhas { margin-bottom: 20px; border-top: 1px solid var(--linha); }
+.menu__linhas a { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 2px; border-bottom: 1px solid var(--linha); text-decoration: none; font-weight: 700; font-size: 1rem; }
 .menu__linhas .icone { color: var(--tinta-3); width: 1.1em; height: 1.1em; }
 .menu__linhas a[aria-current="page"] { color: var(--ouro-texto); }
 .menu__pe { margin-top: auto; display: grid; gap: 14px; padding-top: 8px; }
@@ -686,6 +696,10 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .ret-capa__dentro { display: grid; gap: 12px; justify-items: start; }
 .ret-capa__titulo { font-size: clamp(2.1rem, 1.4rem + 3vw, 3.6rem); font-weight: 800; letter-spacing: -.04em; line-height: 1.02; }
 .ret-capa__sub { color: rgba(255, 255, 255, .78); font-size: 1.08rem; }
+.ret-capa__formas { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; width: 100%; max-width: 620px; margin-top: 6px; }
+.ret-capa__formas li { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: var(--raio-m); background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .12); color: rgba(255, 255, 255, .78); font-size: .92rem; line-height: 1.35; }
+.ret-capa__formas .icone { flex: none; width: 1.4em; height: 1.4em; color: var(--ouro-claro); }
+.ret-capa__formas strong { display: block; color: var(--branco); font-size: 1rem; }
 .ret-capa__passos { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 8px; }
 .ret-capa__passos li { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
 .ret-capa__passos span { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; border-radius: 999px; background: var(--ouro); color: var(--escuro); font-weight: 800; font-size: .85rem; }

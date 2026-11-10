@@ -92,6 +92,12 @@ test('a regra do cupão: o código, o tipo, o valor, as datas, o limite, as cate
   assert.equal(descricaoDe({ tipo: 'portes' }), 'portes grátis');
 });
 
+test('o cupão de uma categoria de marca (Apple) apanha os artigos dessa marca de outras categorias (os recondicionados)', () => {
+  const linhas = [{ categoria: 'recondicionados', categorias: ['recondicionados', 'apple'], total_cents: 27990 }, { categoria: 'audio', categorias: ['audio'], total_cents: 5990 }];
+  assert.deepEqual(descontoDoCupao({ tipo: 'percentagem', valor: 10, categorias: ['apple'] }, linhas, 33980), { cents: 2799, portes: false });
+  assert.deepEqual(descontoDoCupao({ tipo: 'percentagem', valor: 10, categorias: ['recondicionados'] }, linhas, 33980), { cents: 2799, portes: false });
+  assert.deepEqual(descontoDoCupao({ tipo: 'percentagem', valor: 10, categorias: ['samsung'] }, linhas, 33980), { cents: 0, portes: false });
+});
 test('o desconto: a percentagem ao cêntimo, o valor fixo nunca acima dos artigos, só nas categorias do cupão', () => {
   const linhas = [{ categoria: 'audio', total_cents: 11980 }, { categorias: 'x', categoria: 'peliculas', total_cents: 990 }];
   assert.deepEqual(descontoDoCupao({ tipo: 'percentagem', valor: 10 }, linhas, 12970), { cents: 1297, portes: false });
