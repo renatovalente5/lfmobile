@@ -44,6 +44,60 @@
     addEventListener('scroll', () => { if (!pedido) { pedido = true; requestAnimationFrame(decidir); } }, { passive: true });
     addEventListener('pageshow', decidir);
     decidir();
+    /* Com a linha legal do rodapé à vista, o botão sai (html[data-whatsapp-fim]): tapava-a. */
+    const fimRodape = $('.rodape__fim');
+    if (flutuante && fimRodape && 'IntersectionObserver' in window) {
+      new IntersectionObserver((es) => { raiz.dataset.whatsappFim = es[0].isIntersecting ? 'sim' : 'nao'; }).observe(fimRodape);
+    }
+  }
+
+  // ---------------------------------------------------------------- o movimento ao descer
+  /* Os blocos abaixo do ecrã entram quando lá chegam (o CSS, em «o movimento ao descer»). Quando a
+     página abre, o que já se vê (ou está acima) fica como está e o que não se desenha (escondido por um
+     filtro) também; um bloco dentro de outro que entra não entra outra vez, e numa fila que desliza de
+     lado (as categorias no telemóvel) entra a fila inteira: os de fora do ecrã nunca chegavam a entrar.
+     Os que chegam juntos vão uns atrás dos outros (--d, até 6). No fim da entrada as classes saem: o
+     bloco fica igual ao que era, com as suas transições de sempre. */
+  const ALVOS = [
+    '.seccao__cabeca', '.titulo-seccao', '.seccao__texto',
+    '.cat-fila li', '.fila__pista', '.faixa-peliculas__texto', '.faixa-peliculas__tipos > li', '.loja-casa__foto', '.loja-casa__texto',
+    '.grelha > *', '.modelos-grelha > li', '.seletor__familias > li', '.problemas__grelha > li', '.passos-faixa__lista > li', '.reps__lista > *',
+    '.modelo-irmaos li', '.ret-antes__lista > li', '.sobre__foto', '.sobre__factos > li', '.contactos-cartoes > li', '.contactos-loja', '.mapa-loja',
+    '.pergunta', '.lista-ficha',
+  ].join(', ');
+  if (!menosMovimento.matches && 'IntersectionObserver' in window) {
+    const acabou = (e) => {
+      const el = e.currentTarget;
+      if (e.target !== el || e.animationName !== 'lf-acende') return;
+      el.removeEventListener('animationend', acabou);
+      el.classList.remove('revelar', 'visivel');
+      el.style.removeProperty('--d');
+    };
+    const entrada = new IntersectionObserver((es) => {
+      let d = 0;
+      for (const en of es) {
+        if (!en.isIntersecting) continue;
+        const el = en.target;
+        entrada.unobserve(el);
+        el.style.setProperty('--d', String(Math.min(d++, 6)));
+        el.addEventListener('animationend', acabou);
+        el.classList.add('visivel');
+      }
+    }, { rootMargin: '0px 0px -10% 0px' });
+    const deLado = new Map();
+    const rolaDeLado = (e) => {
+      if (!deLado.has(e)) { const o = getComputedStyle(e).overflowX; deLado.set(e, (o === 'auto' || o === 'scroll') && e.scrollWidth > e.clientWidth + 2); }
+      return deLado.get(e);
+    };
+    const blocos = new Set();
+    $$(ALVOS).forEach((el) => { if (!el.parentElement.closest(ALVOS)) blocos.add(rolaDeLado(el.parentElement) ? el.parentElement : el); });
+    const fundo = innerHeight;
+    blocos.forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (!r.width || r.top < fundo) return;
+      el.classList.add('revelar');
+      entrada.observe(el);
+    });
   }
 
   // ---------------------------------------------------------------- a faixa do topo

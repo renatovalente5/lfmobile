@@ -353,6 +353,8 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   // as garantias numa faixa só, a do rodapé (em todas as páginas): a nota do Google em primeiro, com
   // a ligação para as opiniões; a página inicial já não tem a faixa que as repetia
   assert.doesNotMatch(inicio, /confianca-faixa|Retoma do seu usado/);
+  // a escolha do modelo da capa fica fora da coluna do texto (no computador ocupa a largura do cartão)
+  assert.match(inicio, /<p class="mosaico__sub">[^<]*<\/p>\s*<\/div>\s*<form class="rapido"/);
   for (const html of [inicio, ler2('reparacoes/index.html')]) {
     const lis = html.match(/<div class="rodape__garantias">[\s\S]*?<\/ul>/)[0].match(/<li>[\s\S]*?<\/li>/g);
     assert.deepEqual(lis.map((li) => li.match(/<strong>(.*?)<\/strong>/)[1]), ['5,0 no Google', 'Orçamento grátis', 'Envios Nacex em 24/48 h', 'Levantamento grátis']);

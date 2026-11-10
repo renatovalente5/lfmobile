@@ -101,8 +101,8 @@ export function inicio(ctx) {
       <p class="rotulo rotulo--claro">Reparação de telemóveis</p>
       <h1 class="mosaico__h1" id="capa-titulo">${esc(h.capa.titulo)}</h1>
       ${h.capa.texto ? `<p class="mosaico__sub">${esc(h.capa.texto)}</p>` : ''}
-      ${escolhaRapida(ctx, h)}
     </div>
+    ${escolhaRapida(ctx, h)}
     ${h.capa.foto && ctx.manifesto.fotos[h.capa.foto] ? `<figure class="mosaico__foto">${imagem(ctx, h.capa.foto, { tamanhos: '(min-width: 1100px) 360px, (min-width: 700px) 40vw, 100vw', prioridade: true })}</figure>` : ''}
   </div>
   <a class="mosaico__cartao mosaico__cartao--retoma" href="${ctx.url('/retoma/')}">

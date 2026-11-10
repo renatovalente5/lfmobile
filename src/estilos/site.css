@@ -276,7 +276,9 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .mosaico { display: grid; gap: 12px; }
 @media (min-width: 900px) { .mosaico { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); grid-template-rows: auto auto; gap: 16px; } .mosaico__principal { grid-row: span 2; } }
 .mosaico__principal { position: relative; display: grid; gap: 20px; padding: clamp(22px, 4vw, 44px); border-radius: var(--raio-g); background: radial-gradient(120% 90% at 85% 0%, #2B2418 0%, rgba(43, 36, 24, 0) 55%), var(--escuro); color: var(--branco); overflow: hidden; }
-@media (min-width: 1100px) { .mosaico__principal { grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); align-items: center; } }
+/* no computador, a fotografia fica ao lado do texto e a escolha do modelo por baixo dos dois, a toda a largura
+   (o Renato, 10 nov 2026: no meio da coluna, o «Escolha o modelo» ficava cortado) */
+@media (min-width: 1100px) { .mosaico__principal { grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); grid-template-areas: "palavras foto" "rapido rapido"; align-items: center; row-gap: 28px; } .mosaico__palavras { grid-area: palavras; } .mosaico__foto { grid-area: foto; } .mosaico__principal > .rapido { grid-area: rapido; } }
 .mosaico__palavras { display: grid; gap: 14px; align-content: start; }
 .mosaico__h1 { font-size: clamp(2rem, 1.3rem + 3vw, 3.4rem); font-weight: 800; letter-spacing: -.035em; line-height: 1.02; max-width: 13ch; }
 .mosaico__sub { color: rgba(255, 255, 255, .78); font-size: clamp(1rem, .95rem + .25vw, 1.12rem); max-width: 42ch; }
@@ -305,7 +307,7 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .mosaico__cartao--campanha .mosaico__texto { color: var(--claro-2); }
 
 /* a escolha rápida do modelo (na capa) */
-.rapido { display: grid; gap: 10px; margin-top: 8px; padding: 10px; border-radius: var(--raio); background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .1); max-width: 620px; }
+.rapido { display: grid; gap: 10px; margin-top: 4px; padding: 10px; border-radius: var(--raio); background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .1); }
 @media (min-width: 560px) { .rapido { grid-template-columns: minmax(0, 1fr) auto; align-items: end; } }
 .rapido__campos { display: grid; grid-template-columns: minmax(118px, .55fr) minmax(0, 1fr); gap: 8px; }
 .rapido__campo { display: grid; gap: 4px; }
@@ -427,6 +429,7 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
 /* ---------------------------------------------------------------- a loja */
 .loja-casa { display: grid; gap: 24px; padding: 48px 0 8px; align-items: center; }
 @media (min-width: 900px) { .loja-casa { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 72px); } }
+.loja-casa__foto { border-radius: var(--raio-g); overflow: hidden; }
 .loja-casa__foto img { width: 100%; border-radius: var(--raio-g); object-fit: cover; }
 .loja-casa .rotulo { margin-bottom: 8px; }
 .loja-casa__dados { display: grid; gap: 20px; margin-top: 22px; max-width: 420px; }
@@ -967,11 +970,12 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .sobre__factos h2 { font-size: 1.02rem; font-weight: 800; letter-spacing: -.01em; }
 .sobre__factos p { margin-top: 2px; color: var(--tinta-2); font-size: .95rem; }
 .sobre__botoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 28px; }
+.sobre__foto { border-radius: var(--raio-g); overflow: hidden; }
 .sobre__foto img { width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--raio-g); }
 @media (min-width: 900px) { .sobre__foto img { aspect-ratio: 4 / 5; } }
 
 /* ---------------------------------------------------------------- rodapé */
-.rodape { margin-top: 64px; background: var(--cinza); padding: 0 0 104px; }
+.rodape { margin-top: 64px; background: var(--cinza); padding: 0 0 max(24px, env(safe-area-inset-bottom)); }
 .rodape__garantias { border-bottom: 1px solid var(--linha); }
 .rodape__garantias ul { max-width: var(--largura); margin: 0 auto; padding: 24px var(--margem); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 @media (min-width: 900px) { .rodape__garantias ul { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
@@ -1010,8 +1014,38 @@ html[data-whatsapp="sim"] .whatsapp-flutuante { opacity: 1; visibility: visible;
 @media (hover: hover) { .whatsapp-flutuante:hover { background: var(--verde-escuro); } }
 @media (min-width: 900px) { .whatsapp-flutuante { right: 28px; bottom: 28px; } }
 @media (prefers-reduced-motion: reduce) { .whatsapp-flutuante, html[data-whatsapp="sim"] .whatsapp-flutuante { transform: none; } }
-/* com a barra de baixo (o modelo, a retoma) a página precisa de espaço no fim, para a barra não tapar o rodapé */
-body:has(.barra-rep:not([hidden])) .rodape, body:has(.barra-sim:not([hidden])) .rodape { padding-bottom: 150px; }
+/* no fim da página o botão sai (site.js): tapava a linha legal do rodapé, que já tem o WhatsApp nas redes */
+html[data-whatsapp-fim="sim"] .whatsapp-flutuante { opacity: 0; visibility: hidden; transform: translateY(12px) scale(.96); transition: opacity .2s ease, transform .2s ease, visibility 0s linear .2s; }
+/* com a barra de baixo (o modelo, a retoma; só abaixo dos 1000 px) o fim do rodapé fica por cima da barra */
+@media (max-width: 999.98px) { body:has(.barra-rep:not([hidden])) .rodape, body:has(.barra-sim:not([hidden])) .rodape { padding-bottom: calc(92px + env(safe-area-inset-bottom)); } }
+
+/* ---------------------------------------------------------------- o movimento ao descer
+   Como no site da Apple (o dono pediu-o a 9 nov 2026): os blocos entram quando chegam ao ecrã — sobem
+   30 px em 0,7 s e acendem em 0,9 s, uns atrás dos outros (0,1 s). O site.js só põe .revelar no que
+   está abaixo do ecrã quando a página abre: o que já se vê nunca pisca, e sem JavaScript está tudo à
+   vista. Onde o browser anima com o próprio scroll (animation-timeline), as fotografias acompanham a
+   descida: os cartões da capa recuam ao sair, a fotografia da capa sobe mais devagar, a da loja e a
+   do «Sobre» aproximam-se ao entrar e as películas flutuam. Usa-se translate e scale (e não
+   transform), para não pisar o :hover dos cartões. Com «reduzir movimento» no sistema, nada disto. */
+@media (prefers-reduced-motion: no-preference) {
+  .revelar:not(.visivel) { opacity: 0; translate: 0 30px; }
+  .revelar.visivel { animation: lf-acende .9s ease both, lf-sobe .7s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--d, 0) * .1s); }
+  @keyframes lf-acende { from { opacity: 0; } }
+  @keyframes lf-sobe { from { translate: 0 30px; } }
+
+  @supports (animation-timeline: view()) {
+    .mosaico > * { animation: lf-recua linear both; animation-timeline: view(); animation-range: exit 0% exit 100%; }
+    @keyframes lf-recua { to { scale: .94; opacity: .8; } }
+    .mosaico__foto img { animation: lf-devagar linear both; animation-timeline: scroll(root); animation-range: 0 80vh; }
+    @keyframes lf-devagar { to { translate: 0 -40px; } }
+    .loja-casa__foto img, .sobre__foto img { animation: lf-aproxima linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
+    @keyframes lf-aproxima { from { scale: 1.14; } }
+    .faixa-peliculas__img img { animation: lf-flutua linear both; animation-timeline: view(); animation-range: cover; }
+    .faixa-peliculas__tipos li:nth-child(even) .faixa-peliculas__img img { animation-name: lf-flutua-mais; }
+    @keyframes lf-flutua { from { translate: 0 10px; } to { translate: 0 -10px; } }
+    @keyframes lf-flutua-mais { from { translate: 0 22px; } to { translate: 0 -22px; } }
+  }
+}
 
 /* ---------------------------------------------------------------- vídeo (ficha) */
 .video { position: relative; width: 100%; height: 100%; }

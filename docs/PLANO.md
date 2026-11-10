@@ -298,4 +298,15 @@ iPhone não tinha artigos novos (os iPhone estão em Recondicionados) e escondia
    página inicial a faixa por cima da loja (Google · desde 2020 · envios · loja em São Roque). Fica a
    do rodapé, em todas as páginas, que abre com a nota do Google e a ligação para as opiniões, no
    lugar da «Retoma do seu usado» (a Retoma já está no topo de todas as páginas).
+7. **Os efeitos ao descer, como no site da Apple** (o dono pediu-os na loja a 9 nov; no WhatsApp a 10:
+   «Se der para meter, dá um toque ao site!»). Vistos no apple.com/pt: os blocos entram quando chegam
+   ao ecrã (sobem 30 px em 0,7 s, acendem em 0,9 s, uns atrás dos outros), e as fotografias acompanham
+   o scroll. Aqui: `site.js` («o movimento ao descer») só esconde o que está abaixo do ecrã quando a
+   página abre (nada pisca; sem JavaScript está tudo à vista), e numa fila que desliza de lado entra a
+   fila inteira; o CSS anima com `translate`/`scale` (o `:hover` dos cartões fica intacto). Onde o
+   browser anima com o scroll (`animation-timeline`): os cartões da capa recuam ao sair, a fotografia
+   da capa sobe mais devagar, a da loja e a do «Sobre» aproximam-se e as películas flutuam. Com
+   «reduzir movimento» no sistema, nada disto. O rodapé acaba na linha legal (o botão do WhatsApp sai
+   quando ela aparece), e na capa a escolha do modelo passou para baixo do texto e da fotografia, a toda
+   a largura do cartão (cortava «Escolha o modelo»).
 
