@@ -599,7 +599,7 @@ export function problemasDoArtigo(a, ctx = {}) {
 /* content/site.json                                                   */
 /* ------------------------------------------------------------------ */
 
-export const SECCOES_SITE = Object.freeze({ contactos: 'Contactos', horario: 'Horário', aviso: 'Aviso do topo', entrega: 'Entrega e pagamento', pagamentos: 'Loja online', empresa: 'Dados legais', marca: 'A marca', extras: 'Google e fidelidade' });
+export const SECCOES_SITE = Object.freeze({ contactos: 'Contactos', horario: 'Horário', aviso: 'Aviso do topo', entrega: 'Entrega e pagamento', pagamentos: 'Loja online', empresa: 'Dados legais', marca: 'A marca', extras: 'Garantia, Google e fidelidade' });
 /* O que o painel nunca muda: a marca (o nome comercial, nos textos legais e no
    Google), as zonas de entrega e a localidade. */
 export const BLOQUEADOS_SITE = Object.freeze(['marca', 'entrega.zonas', 'local']);
