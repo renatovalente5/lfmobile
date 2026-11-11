@@ -30,6 +30,8 @@ import { retoma as paginaRetoma } from '../src/templates/retoma.mjs';
    _ferramentas/legal-comum/instalar.mjs; não se edita aqui). */
 import { livroCss, destinatariosHtml, CATALOGO_DESTINATARIOS, frasesPrivacidade, prazos as PRAZOS_LEGAIS, verificarIdentificacao, verificarPromocao, verificarProduto, AVISO_RETOMA, COMO_SE_FAZ_A_ENCOMENDA, BOTAO_ENCOMENDA, formularioLivreResolucao, ralHtml, textoGarantia, VERSAO as LEGAL_COMUM_VERSAO } from '../legal-comum/index.mjs';
 import { pecaLegal, categoriasComArtigos } from '../src/templates/componentes.mjs';
+// os prazos do pagamento no site: os mesmos números no Worker e nos termos
+import { PRAZO_MINUTOS, DIAS_MULTIBANCO } from '../worker/encomendas/prazos.js';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -365,32 +367,45 @@ function botoesDesistencia() {
 }
 
 /* Quem recebe dados (destinatariosHtml, da legal-comum): a Cloudflare (o alojamento e o Worker das
-   encomendas; na pré-visualização, o GitHub Pages), o GitHub (o código e a publicação), a Stripe (os
-   pagamentos), o Resend (os emails das encomendas), a Meta (WhatsApp, Instagram, Facebook) e o Renato,
-   que mantém o site e o painel (RGPD, art. 28.º). O mapa dos contactos é desenhado pelo
-   próprio site (scripts/mapa.mjs) e não manda nada a ninguém. */
+   encomendas; na pré-visualização, o GitHub Pages), o GitHub (o código e a publicação), a ifthenpay (os
+   pagamentos no site, desde 11 nov 2026; antes, a Stripe), o Resend (os emails das encomendas), a Meta
+   (WhatsApp, Instagram, Facebook) e o Renato, que mantém o site e o painel (RGPD, art. 28.º). O mapa dos
+   contactos é desenhado pelo próprio site (scripts/mapa.mjs) e não manda nada a ninguém. */
 const CONFIG_PRIVACIDADE = {
   alojamento: 'cloudflare', dns: dominio ? 'cloudflare' : undefined,
   whatsapp: true, instagram: true, facebookPage: true,
-  // a Stripe só recebe dados com o pagamento no site ligado (modo «online»)
-  pagamentos: site.pagamentos?.modo === 'online' ? 'stripe' : undefined, envioEmails: 'resend',
+  // a ifthenpay só recebe dados com o pagamento no site ligado (modo «online»)
+  pagamentos: site.pagamentos?.modo === 'online' ? 'ifthenpay' : undefined, envioEmails: 'resend',
   manutencao: { nome: 'Renato Valente', papel: 'subcontratante' },
   repositorioPublico: true,
 };
 const TRANSFERENCIA = { DPF: 'EUA: consta da lista do Data Privacy Framework (decisão de adequação da Comissão Europeia)', UE: 'Sem transferência: os dados ficam na União Europeia' };
+/* A finalidade da ifthenpay na legal-comum diz só «referências Multibanco e pedidos MB WAY»: aqui também
+   há o cartão. Se a frase da biblioteca mudar, a troca deixa de acontecer e a publicação pára (antes isso
+   do que um quadro a esconder o cartão). */
+const FINALIDADE_IFTHENPAY = ['referências Multibanco e pedidos MB WAY', 'pagamentos no site: referências Multibanco, pedidos MB WAY e cartão (os dados do cartão escrevem-se na página da ifthenpay, e nós nunca os vemos)'];
 function destinatariosComExtras() {
   const d = CATALOGO_DESTINATARIOS.github;
   const extra = `<tr><td>${esc(d.nome)}</td><td>${esc('código do site e publicação automática (GitHub Actions): o painel grava lá as mudanças da loja; não leva dados de clientes')}</td><td>${esc(d.pais)}</td><td>${esc(TRANSFERENCIA[d.transferencia] || 'Por confirmar')}</td></tr>`;
-  return destinatariosHtml(CONFIG_PRIVACIDADE).replace('</tbody>', `${extra}\n</tbody>`);
+  let html = destinatariosHtml(CONFIG_PRIVACIDADE);
+  if (CONFIG_PRIVACIDADE.pagamentos === 'ifthenpay') {
+    if (!html.includes(esc(FINALIDADE_IFTHENPAY[0]))) erros.push('privacidade: a frase da ifthenpay na legal-comum mudou (scripts/build.mjs, FINALIDADE_IFTHENPAY): o quadro dos destinatários tem de dizer o cartão');
+    html = html.replace(esc(FINALIDADE_IFTHENPAY[0]), esc(FINALIDADE_IFTHENPAY[1]));
+  }
+  return html.replace('</tbody>', `${extra}\n</tbody>`);
 }
 
 /* O PAGAMENTO, como se diz nas páginas, segue o modo da loja (site.json, pagamentos.modo). Com o
-   pagamento no site ligado («online», a Stripe), o texto da loja e os passos da legal-comum, que acabam
-   no botão «Encomendar e pagar». Enquanto não está («encomenda», até a Stripe da LF Mobile se ligar, no
-   fim): a encomenda envia-se, e a disponibilidade, a entrega e a forma de pagamento combinam-se depois;
-   prometer o cartão ou o Multibanco seria falso. */
+   pagamento no site ligado («online», a ifthenpay: MB WAY e Multibanco no próprio site, o cartão no
+   formulário dela), o texto da loja e os passos da legal-comum, que acabam no botão «Encomendar e pagar».
+   Enquanto não está («encomenda», até a ifthenpay aprovar a adesão da LF Mobile e haver chaves): a
+   encomenda envia-se, e a disponibilidade, a entrega e a forma de pagamento combinam-se depois; prometer
+   o cartão ou o Multibanco seria falso. */
 const pagamentoOnline = site.pagamentos?.modo === 'online';
 const PAGAMENTO_EM_MODO_ENCOMENDA = 'Envia a encomenda no site e nós confirmamos consigo, por email ou WhatsApp, a disponibilidade, a entrega e a forma de pagamento. Só paga depois dessa confirmação.';
+/* Como se paga no site (os termos): onde, os prazos (worker/encomendas/prazos.js) e quando a encomenda
+   fica sem efeito. */
+const PAGAMENTO_NO_SITE = `O MB WAY e a referência Multibanco pagam-se no próprio site; o cartão, na página segura da ifthenpay, que não nos dá acesso aos dados dele. O pedido MB WAY tem de ser aceite na app em 4 minutos (pode pedir outro), a referência Multibanco vale ${DIAS_MULTIBANCO} dias e, nos outros casos, tem ${PRAZO_MINUTOS} minutos para pagar; sem o pagamento nesse prazo, a encomenda fica sem efeito e nada é cobrado. Se um pagamento chegar duas vezes, devolvemos o que estiver a mais.`;
 function comoEncomendarSemPagamentoNoSite() {
   const passos = [
     'Escolhe os artigos e junta-os ao carrinho.',
@@ -423,15 +438,19 @@ function resolverMarcadores(fonte, onde) {
     prazo: () => (site.entrega.prazo ? esc(site.entrega.prazo) : guardar(ctx.marcador('o prazo de entrega'))),
     pagamento: () => (!pagamentoOnline ? esc(PAGAMENTO_EM_MODO_ENCOMENDA) : site.entrega.pagamento ? esc(site.entrega.pagamento) : guardar(ctx.marcador('as formas de pagamento'))),
     levantamento: () => esc(site.entrega.levantamento || ''),
-    pagamentoStripe: () => (pagamentoOnline ? ' O pagamento no site é feito na página segura da Stripe, que não nos dá acesso aos dados do seu cartão.' : ''),
-    pagamentoNaStripe: () => (pagamentoOnline ? ' O pagamento é feito na página da Stripe, para onde segue a partir da encomenda.' : ''),
+    // (os nomes antigos, pagamentoStripe e pagamentoNaStripe, ficam como sinónimos: uma página gravada
+    // pelo painel antes da troca para a ifthenpay continua a construir-se)
+    pagamentoNoSite: () => (pagamentoOnline ? ` ${PAGAMENTO_NO_SITE}` : ''),
+    pagamentoStripe: () => (pagamentoOnline ? ` ${PAGAMENTO_NO_SITE}` : ''),
+    pagamentoNoCartao: () => (pagamentoOnline ? ' O pagamento com cartão é feito na página da ifthenpay, para onde segue a partir da encomenda.' : ''),
+    pagamentoNaStripe: () => (pagamentoOnline ? ' O pagamento com cartão é feito na página da ifthenpay, para onde segue a partir da encomenda.' : ''),
     'privacidade.pagamento': () => esc(pagamentoOnline
-      ? 'O pagamento é feito na Stripe, na página dela: a Stripe recebe o seu email e o valor, e trata os dados do cartão ou do MB WAY segundo a sua própria política; nós nunca vemos os dados do cartão. O NIF e as observações não são enviados para a Stripe.'
+      ? 'Os pagamentos no site passam pela ifthenpay (Ifthenpay, Lda., em Portugal): recebe o número da encomenda e o valor e, no MB WAY, o seu número de telemóvel; os dados do cartão escrevem-se na página dela, e nós nunca os vemos. O nome, o email, a morada, o NIF e as observações não lhe são enviados. Se tivermos de lhe devolver um pagamento feito por Multibanco, pedimos-lhe o IBAN para a transferência.'
       : 'O pagamento combina-se consigo depois de confirmarmos a encomenda: o site não recebe dados de pagamento.'),
     portes: () => guardar(textoPortes()),
     botoesDesistencia: () => guardar(botoesDesistencia()),
     comoSeFazAEncomenda: () => guardar(pagamentoOnline
-      ? pecaLegal('como-encomendar', COMO_SE_FAZ_A_ENCOMENDA({ canal: 'site', pagamentos: ['cartão', 'MB WAY', 'Multibanco'], urlTermos: ctx.url('/termos-e-condicoes/') }))
+      ? pecaLegal('como-encomendar', COMO_SE_FAZ_A_ENCOMENDA({ canal: 'site', pagamentos: ['MB WAY', 'referência Multibanco', 'cartão'], urlTermos: ctx.url('/termos-e-condicoes/') }))
       : comoEncomendarSemPagamentoNoSite()),
     formularioLivreResolucao: () => guardar(pecaLegal('formulario-livre-resolucao', `<pre class="formulario-legal">${esc(formularioLivreResolucao({ nome: site.empresa.nome || `[${site.marca}]`, morada: site.empresa.morada ? moradaCompleta(site.empresa) : '[morada]', email: c.email || '[email]' }))}</pre>`)),
     avisoRetoma: () => guardar(pecaLegal('retoma', `<p>${esc(AVISO_RETOMA({ tipos: ['eee', 'pilhas', 'baterias'], como: { eee: 'diga-nos nas observações da encomenda ou pelo WhatsApp, e entregue-o na loja ou junte-o à devolução', pilhas: 'basta trazê-las à loja', baterias: 'diga-nos ao comprar e entregue-a na loja' } }))}</p>`)),
@@ -487,6 +506,7 @@ saidas.push(paginaRetoma(ctx));
 for (const c of campanhas) saidas.push(paginas.campanha(ctx, c));
 saidas.push(paginas.carrinho(ctx));
 saidas.push(paginas.checkout(ctx));
+saidas.push(paginas.pagar(ctx));
 saidas.push(paginas.obrigado(ctx));
 saidas.push(paginas.contactos(ctx));
 for (const f of fs.readdirSync(path.join(CONTEUDO, 'paginas')).filter((x) => x.endsWith('.md'))) saidas.push(paginas.texto(ctx, paginaMarkdown(f)));
@@ -502,7 +522,7 @@ for (const s of saidas) {
 }
 
 // ---------------------------------------------------------------- robots, sitemap, _headers
-const FORA_DO_MAPA = new Set(['/404.html', '/carrinho/', '/checkout/', '/obrigado/']);
+const FORA_DO_MAPA = new Set(['/404.html', '/carrinho/', '/checkout/', '/pagar/', '/obrigado/']);
 // as categorias da loja sem artigos publicados ficam fora do mapa (a página existe, mas vazia não se anuncia)
 const categoriasVazias = new Set(categorias.filter((k) => !categoriasComArtigos(ctx).some((x) => x.slug === k.slug)).map((k) => `/loja/${k.slug}/`));
 const indexaveis = saidas.filter((s) => !FORA_DO_MAPA.has(s.caminho) && s.indexar !== false && !categoriasVazias.has(s.caminho));
@@ -530,7 +550,7 @@ ${indexaveis.map((s) => `  <url><loc>${ctx.absoluto(s.caminho)}</loc><lastmod>${
 // Pré-visualização: fechada aos motores de busca, mas aberta aos robôs que fazem a pré-visualização
 // das ligações no WhatsApp e no Facebook (sem isto, partilhar o link mostra-se sem imagem).
 fs.writeFileSync(path.join(SAIDA, 'robots.txt'), producao
-  ? `User-agent: *\nAllow: /\nDisallow: /checkout/\nDisallow: /obrigado/\n\nSitemap: ${ctx.absoluto('/sitemap.xml')}\n`
+  ? `User-agent: *\nAllow: /\nDisallow: /checkout/\nDisallow: /pagar/\nDisallow: /obrigado/\n\nSitemap: ${ctx.absoluto('/sitemap.xml')}\n`
   : 'User-agent: facebookexternalhit\nAllow: /\n\nUser-agent: WhatsApp\nAllow: /\n\nUser-agent: *\nDisallow: /\n');
 // Em produção (Cloudflare): a cache dos ficheiros com o resumo no nome, e os cabeçalhos de segurança
 // em todas as respostas. O catalogo.json sem resumo fica fora (o Worker lê-o sempre fresco).

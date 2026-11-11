@@ -1,8 +1,10 @@
 /* LF Mobile — o carrinho e a encomenda.
    O carrinho junta os artigos (com a escolha de cada um e, nas películas, o modelo do telemóvel),
    soma os portes da entrega escolhida (pela Nacex, pelo peso da encomenda), aplica o cupão e, no
-   fim, envia a encomenda ao Worker (worker/): em modo «online» o Worker devolve a página segura da
-   Stripe; em modo «encomenda» regista a encomenda, manda os emails e devolve o número. No
+   fim, envia a encomenda ao Worker (worker/): em modo «online» com o método escolhido (MB WAY,
+   Multibanco ou cartão, pela ifthenpay), e o Worker diz para onde seguir — a página de pagamento do
+   site (/pagar/) ou o formulário do cartão; em modo «encomenda» regista a encomenda, manda os emails e
+   devolve o número. No
    armazenamento local fica só o carrinho (artigos, escolhas, modelos, quantidades, entrega e o
    código do cupão) — nunca o nome, o email ou a morada (a política de privacidade promete isto). Os
    preços nunca se guardam: lêem-se sempre do catálogo publicado (assets/catalogo-*.json); e o Worker
@@ -55,7 +57,7 @@
     return desenharTudo();
   }
   window.addEventListener('storage', (e) => { if (e.key === CHAVE) { estado = ler(); desenharTudo(); } });
-  // A página volta da memória do browser (o «voltar» depois da Stripe): lê-se outra vez o carrinho.
+  // A página volta da memória do browser (o «voltar» depois do formulário do cartão): lê-se outra vez o carrinho.
   window.addEventListener('pageshow', (e) => { if (e.persisted) { estado = ler(); desenharTudo(); } });
 
   let catalogoP = null;
@@ -459,7 +461,29 @@
     const erro = $('[data-erro-checkout]', form);
     if (b) { erro.textContent = b; erro.hidden = false; } else if (erro.dataset.doCarrinho === 'sim') { erro.hidden = true; }
     erro.dataset.doCarrinho = b ? 'sim' : '';
-    $('[data-botao-checkout]', form).disabled = Boolean(b);
+    $('[data-botao-checkout]', form).disabled = Boolean(b) || semMetodos;
+  }
+
+  /* OS MÉTODOS DE PAGAMENTO (só no pagamento no site): o Worker diz os que estão ligados (GET
+     /metodos), e os outros escondem-se. Sem resposta, ficam os três (o Worker recusa um que não esteja
+     ligado, e diz quais estão). Sem nenhum, o botão não segue. */
+  let semMetodos = false;
+  function mostrarMetodos(lista) {
+    const caixa = checkout && $('[data-metodos]', checkout);
+    if (!caixa || !Array.isArray(lista)) return;
+    $$('[data-metodo]', caixa).forEach((l) => {
+      const fora = !lista.includes(l.dataset.metodo);
+      l.hidden = fora;
+      const r = $('input', l);
+      r.disabled = fora;
+      if (fora && r.checked) r.checked = false;
+    });
+    semMetodos = !lista.length;
+    $('[data-sem-metodos]', caixa).hidden = !semMetodos;
+    $('[data-botao-checkout]', form).disabled = semMetodos;
+  }
+  if (checkout && $('[data-metodos]', checkout) && api()) {
+    fetch(`${api()}/metodos`).then((r) => (r.ok ? r.json() : null)).then((r) => { if (r) mostrarMetodos(r.metodos); }).catch(() => {});
   }
 
   const RE_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -505,16 +529,19 @@
         if (!/^\d{4}-\d{3}$/.test(cliente.codigoPostal)) falhas.push(['codigoPostal', 'Escreva o código postal no formato 0000-000.']);
         if (!cliente.localidade) falhas.push(['localidade', 'Escreva a localidade.']);
       }
+      const online = cat.modo === 'online';
+      const metodo = online && form.elements.metodo ? String(form.elements.metodo.value || '') : '';
+      if (online && !metodo) falhas.push(['metodo', 'Escolha como quer pagar.']);
       if (!form.elements.termos.checked) falhas.push(['termos', 'Para continuar, aceite os termos e condições.']);
       if (falhas.length) {
-        falhas.forEach(([n]) => form.elements[n].setAttribute('aria-invalid', 'true'));
+        falhas.forEach(([n]) => marcarCampo(n));
         mostrarErro(falhas[0][1]);
-        form.elements[falhas[0][0]].focus();
+        focarCampo(falhas[0][0]);
         return;
       }
       if (!api()) { mostrarErro('A encomenda no site ainda não está ligada. Envie-nos a encomenda pelo WhatsApp.'); return; }
       botao.disabled = true;
-      botao.lastElementChild.textContent = cat.modo === 'online' ? 'A abrir o pagamento…' : 'A enviar…';
+      botao.lastElementChild.textContent = !online ? 'A enviar…' : metodo === 'MBWAY' ? 'A enviar o pedido MB WAY…' : metodo === 'CCARD' ? 'A abrir o pagamento…' : 'A gerar a referência…';
       let resposta = null;
       let ok = false;
       const pedido = {
@@ -525,6 +552,7 @@
         cliente,
         termos: true,
         total_cents: c.totalCents,
+        ...(metodo ? { metodo } : {}),
       };
       try {
         const r = await fetch(`${api()}/checkout`, {
@@ -535,8 +563,14 @@
         resposta = await r.json().catch(() => ({}));
         ok = r.ok;
       } catch (_) { resposta = null; }
-      if (ok && resposta && (resposta.url || resposta.encomenda)) novaTentativa();
-      if (ok && resposta && resposta.url) { location.href = resposta.url; return; } // a página segura da Stripe
+      if (ok && resposta && resposta.encomenda) novaTentativa();
+      // O pagamento no site: a encomenda já existe (pendente), e o carrinho esvazia-se — o que falta faz-se
+      // na página de pagamento (ou no formulário do cartão, que volta para lá), na MESMA encomenda.
+      if (ok && resposta && resposta.encomenda && resposta.proxima) {
+        await esvaziar();
+        location.href = resposta.proxima;
+        return;
+      }
       if (ok && resposta && resposta.encomenda) {
         await esvaziar();
         location.href = `${cat.obrigado}?e=${encodeURIComponent(resposta.encomenda)}&c=${encodeURIComponent(resposta.chave || '')}`;
@@ -554,19 +588,36 @@
         await desenharTudo();
       }
       mostrarErro(resposta && typeof resposta.erro === 'string' && resposta.erro ? resposta.erro : 'Não conseguimos registar a encomenda. Tente outra vez ou fale connosco pelo WhatsApp.');
-      if (resposta && resposta.campo && form.elements[resposta.campo]) { form.elements[resposta.campo].setAttribute('aria-invalid', 'true'); form.elements[resposta.campo].focus(); }
+      // os métodos que o Worker diz que estão ligados (escolheu um que já não está)
+      if (resposta && resposta.campo === 'metodo' && Array.isArray(resposta.metodos)) mostrarMetodos(resposta.metodos);
+      if (resposta && resposta.campo && form.elements[resposta.campo]) { marcarCampo(resposta.campo); focarCampo(resposta.campo); }
     });
+  }
+  /* Um campo, ou um grupo de rádios (o método: form.elements dá uma lista, que não tem setAttribute). */
+  function marcarCampo(nome) {
+    const el = form.elements[nome];
+    if (!el) return;
+    if (typeof el.setAttribute === 'function') el.setAttribute('aria-invalid', 'true');
+    else $$(`input[name="${nome}"]`, form).forEach((r) => r.setAttribute('aria-invalid', 'true'));
+  }
+  function focarCampo(nome) {
+    const el = form.elements[nome];
+    if (!el) return;
+    if (typeof el.focus === 'function') { el.focus(); return; }
+    const primeiro = $$(`input[name="${nome}"]`, form).find((r) => !r.disabled);
+    if (primeiro) primeiro.focus();
   }
 
   // ---------------------------------------------------------------- página «obrigado»
-  /* Chega-se aqui depois de a encomenda seguir (?e=número&c=chave, em modo encomenda) ou depois de
-     pagar na Stripe (?s=sessão). O carrinho esvazia-se, e o Worker diz o que foi encomendado. */
+  /* Chega-se aqui depois de a encomenda seguir (?e=número&c=chave): em modo encomenda logo, e no
+     pagamento no site quando o pagamento entrou (a página de pagamento manda para cá), ou pelo «Ver a
+     encomenda» dos emails. O carrinho esvazia-se, e o Worker diz o que foi encomendado. Uma encomenda
+     ainda por pagar no site segue para a página de pagamento. */
   const obrigado = $('[data-obrigado]');
   if (obrigado) {
     const q = new URLSearchParams(location.search);
     const e = q.get('e');
-    const s = q.get('s');
-    if (e || s) {
+    if (e) {
       esvaziar();
       const detalhe = $('[data-obrigado-detalhe]', obrigado);
       const titulo = $('[data-obrigado-titulo]', obrigado);
@@ -583,6 +634,7 @@
       };
       const pintar = (enc) => {
         if (!enc || !enc.encomenda) return;
+        if (enc.estado === 'pendente' && enc.modo === 'online') { location.replace(`${obrigado.dataset.urlPagar}${location.search}`); return; }
         const nome = enc.cliente && enc.cliente.nome ? String(enc.cliente.nome).split(' ')[0] : '';
         if (nome) titulo.textContent = `Obrigado, ${nome}!`;
         if (TEXTOS[enc.estado]) texto.textContent = TEXTOS[enc.estado];
@@ -597,10 +649,233 @@
         detalhe.hidden = false;
       };
       if (api()) {
-        fetch(`${api()}/encomenda?${e ? `e=${encodeURIComponent(e)}&c=${encodeURIComponent(q.get('c') || '')}` : `s=${encodeURIComponent(s)}`}`)
+        fetch(`${api()}/encomenda?e=${encodeURIComponent(e)}&c=${encodeURIComponent(q.get('c') || '')}`)
           .then((r) => (r.ok ? r.json() : null)).then(pintar).catch(() => {});
       }
     }
+  }
+
+  // ---------------------------------------------------------------- a página de pagamento (/pagar/?e=&c=)
+  /* O cliente fica no site (o cartão sai para o formulário da ifthenpay e volta para aqui com
+     &cartao=ok|erro|cancelado). Lê-se tudo do Worker (GET /encomenda) e pinta-se um bloco de cada vez:
+     a espera do MB WAY com o relógio, a referência Multibanco, a confirmação do cartão, o que não se
+     concluiu (com os métodos para tentar outra vez, na mesma encomenda: POST /pagar) e o fim. Pago,
+     segue para a «obrigado». O relógio do MB WAY conta desde que o pedido saiu (recarregar a página não
+     devolve os 4 minutos) e prende-se nos dois extremos (o relógio do telemóvel pode estar errado). Duas
+     cadências: 1,5 s com o MB WAY (alguém está a olhar para o telemóvel), 20 s com a referência (paga-se
+     hoje à noite ou amanhã; durante 5 minutos, para quem paga logo no homebanking, e depois pára). */
+  const pagarRaiz = $('[data-pagar]');
+  if (pagarRaiz) iniciarPagar(pagarRaiz);
+  function iniciarPagar(raiz) {
+    const q = new URLSearchParams(location.search);
+    const e = q.get('e') || '';
+    const c = q.get('c') || '';
+    let cartao = q.get('cartao'); // como o formulário do cartão voltou: ok | erro | cancelado
+    const blocos = $$('[data-pagar-bloco]', raiz);
+    const carregar = $('[data-pagar-carregar]', raiz);
+    const escolha = $('[data-pagar-escolha]', raiz);
+    const erroEl = $('[data-pagar-erro]', raiz);
+    const escrever = (sel, t) => { const x = $(sel, raiz); if (x) x.textContent = t; };
+    const mostrar = (qual) => { carregar.hidden = true; blocos.forEach((b) => { b.hidden = b.dataset.pagarBloco !== qual; }); };
+    const naoHa = () => { blocos.forEach((b) => { b.hidden = true; }); escolha.hidden = true; carregar.hidden = false; carregar.textContent = 'Não encontrámos esta encomenda. Abra o link do email que lhe enviámos, ou fale connosco.'; };
+    if (!e || !api()) { naoHa(); return; }
+    const MBWAY_SEGUNDOS = 240;
+    const NOMES = { MBWAY: 'MB WAY', MB: 'Referência Multibanco', CCARD: 'Cartão' };
+    const emGrupos = (r) => String(r || '').replace(/\D/g, '').replace(/(\d{3})(?=\d)/g, '$1 ');
+    // a data da ifthenpay (AAAA-MM-DD) lida à mão: o new Date() dava o dia anterior a oeste de Greenwich
+    const porExtenso = (iso) => {
+      const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+      if (!m) return String(iso || '');
+      try { return new Intl.DateTimeFormat('pt-PT', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], 12))); } catch (_) { return iso; }
+    };
+    let metodos = null; // os ligados no Worker (GET /metodos); sem resposta, os três
+    const pedirMetodos = fetch(`${api()}/metodos`).then((r) => (r.ok ? r.json() : null)).then((r) => { if (r && Array.isArray(r.metodos)) metodos = r.metodos; }).catch(() => {});
+
+    // copiar: a entidade, a referência sem espaços (é para o campo de uma app do banco) e o valor
+    const copiaveis = {};
+    $$('[data-copiar]', raiz).forEach((b) => b.addEventListener('click', async () => {
+      const texto = copiaveis[b.dataset.copiar];
+      if (!texto) return;
+      let feito = false;
+      try { if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(texto); feito = true; } } catch (_) { feito = false; }
+      if (!feito) {
+        try {
+          const t = document.createElement('textarea');
+          t.value = texto; t.setAttribute('readonly', ''); t.style.cssText = 'position:fixed;top:-100px;opacity:0';
+          document.body.append(t); t.select(); feito = document.execCommand('copy'); t.remove();
+        } catch (_) { feito = false; }
+      }
+      const rotulo = $('span', b);
+      rotulo.textContent = feito ? 'Copiado' : 'Seleccione';
+      setTimeout(() => { rotulo.textContent = 'Copiar'; }, 2000);
+    }));
+
+    let relogio = null;
+    const pararRelogio = () => { if (relogio) { clearInterval(relogio); relogio = null; } };
+    function contar(desde) {
+      const nasceu = Date.parse(desde || '');
+      if (!Number.isFinite(nasceu)) return;
+      const pintar = () => {
+        const faltam = Math.min(MBWAY_SEGUNDOS, Math.max(0, MBWAY_SEGUNDOS - Math.floor((Date.now() - nasceu) / 1000)));
+        escrever('[data-pagar-relogio]', `${Math.floor(faltam / 60)}:${String(faltam % 60).padStart(2, '0')}`);
+        if (faltam === 0) pararRelogio();
+      };
+      pararRelogio();
+      pintar();
+      relogio = setInterval(pintar, 1000);
+    }
+
+    /* Os métodos para pagar de outra forma (ou outra vez): só com a encomenda à espera e dentro do prazo
+       (o Worker diz `pode_pedir`). Aberta quando o pagamento não se concluiu; fechada nos outros casos. */
+    function oferecer(enc, { aberta = false, titulo = 'Pagar de outra forma', sem = null } = {}) {
+      const pg = enc.pagamento || {};
+      const lista = metodos || ['MBWAY', 'MB', 'CCARD'];
+      let algum = false;
+      $$('[data-pagar-metodo]', escolha).forEach((b) => {
+        const m = b.dataset.pagarMetodo;
+        const ve = Boolean(pg.pode_pedir) && lista.includes(m) && m !== sem;
+        b.hidden = !ve;
+        if (ve) algum = true;
+        $('span', b).textContent = m === pg.metodo && aberta ? (m === 'MBWAY' ? 'Enviar outro pedido MB WAY' : m === 'CCARD' ? 'Tentar outra vez com cartão' : NOMES[m]) : NOMES[m];
+      });
+      escolha.hidden = !algum;
+      // abre-se (ou fecha-se) só quando o estado muda: a cada pergunta ao Worker, não fechava a quem a abriu
+      const chave = [aberta, titulo, sem, pg.metodo, (pg.mbway || {}).estado || '', cartao || ''].join('|');
+      if (escolha.dataset.chave !== chave) { escolha.open = aberta && algum; escolha.dataset.chave = chave; }
+      escrever('[data-pagar-escolha-titulo]', titulo);
+    }
+    function falhou(enc, titulo, texto) {
+      pararRelogio();
+      escrever('[data-pagar-falhou-titulo]', titulo);
+      escrever('[data-pagar-falhou-texto]', texto);
+      mostrar('falhou');
+      oferecer(enc, { aberta: true, titulo: 'Tentar outra vez' });
+    }
+    const FALHA_DO_PEDIDO = {
+      MBWAY: 'Não conseguimos enviar o pedido MB WAY. Confirme que o seu número tem MB WAY, ou pague de outra forma.',
+      MB: 'Não conseguimos gerar a referência Multibanco. Tente outra vez daqui a um minuto, ou pague de outra forma.',
+      CCARD: 'Não conseguimos abrir o pagamento com cartão. Tente outra vez daqui a um minuto, ou pague de outra forma.',
+    };
+
+    /* Pinta a encomenda; → se vale a pena perguntar outra vez. */
+    function pintar(enc) {
+      const pg = enc.pagamento || {};
+      const numero = $('[data-pagar-numero]', raiz);
+      $('strong', numero).textContent = enc.encomenda;
+      numero.hidden = false;
+      if (['paga', 'pronta', 'enviada', 'levantada'].includes(enc.estado) || enc.modo !== 'online' || !enc.pagamento) {
+        if (enc.estado === 'paga') esvaziar();
+        location.replace(`${raiz.dataset.urlObrigado}?e=${encodeURIComponent(e)}&c=${encodeURIComponent(c)}`);
+        return false;
+      }
+      if (enc.estado !== 'pendente') {
+        pararRelogio();
+        escolha.hidden = true;
+        escrever('[data-pagar-fim-titulo]', enc.estado === 'expirou' ? 'O prazo para pagar acabou' : enc.estado === 'anulada' ? 'Esta encomenda foi anulada' : 'Esta encomenda já não espera pagamento');
+        escrever('[data-pagar-fim-texto]', enc.estado === 'expirou' ? 'Nada foi cobrado. Se ainda quiser os artigos, faça a encomenda outra vez.' : 'Se tiver dúvidas, fale connosco.');
+        mostrar('fim');
+        return false;
+      }
+      if (pg.ultimo_falhou) { falhou(enc, 'Não conseguimos pedir o pagamento', FALHA_DO_PEDIDO[pg.ultimo_falhou] || 'Tente outra vez, ou pague de outra forma.'); return false; }
+      if (pg.metodo === 'MBWAY') {
+        const mw = pg.mbway || {};
+        if (mw.estado === 'recusado' || mw.estado === 'expirado') {
+          falhou(enc, mw.estado === 'recusado' ? 'O pagamento foi recusado no MB WAY' : 'O pedido MB WAY expirou', 'Nada foi cobrado. Pode enviar outro pedido, ou pagar de outra forma.');
+          return false;
+        }
+        escrever('[data-pagar-valor]', centimos(enc.total_cents));
+        contar(mw.pedido_em);
+        mostrar('mbway');
+        oferecer(enc, { sem: 'MBWAY' });
+        return true;
+      }
+      if (pg.metodo === 'MB' && pg.multibanco) {
+        const mb = pg.multibanco;
+        copiaveis.entidade = String(mb.entidade);
+        copiaveis.referencia = String(mb.referencia).replace(/\D/g, '');
+        copiaveis.valor = (enc.total_cents / 100).toFixed(2).replace('.', ',');
+        escrever('[data-pagar-entidade]', mb.entidade);
+        escrever('[data-pagar-referencia]', emGrupos(mb.referencia));
+        escrever('[data-pagar-valor-mb]', centimos(enc.total_cents));
+        $('[data-pagar-validade-frase]', raiz).hidden = !mb.expira;
+        if (mb.expira) escrever('[data-pagar-validade]', porExtenso(mb.expira));
+        pararRelogio();
+        mostrar('mb');
+        oferecer(enc, { sem: 'MB' });
+        return true;
+      }
+      if (pg.metodo === 'CCARD') {
+        if (cartao === 'erro' || cartao === 'cancelado') {
+          falhou(enc, cartao === 'cancelado' ? 'O pagamento com cartão foi cancelado' : 'O pagamento com cartão não se concluiu', 'Nada foi cobrado. Pode tentar outra vez, ou pagar de outra forma.');
+          return true; // e continua a perguntar um pouco: pode ter entrado na mesma
+        }
+        mostrar('cartao');
+        oferecer(enc);
+        return true;
+      }
+      falhou(enc, 'Falta escolher como pagar', 'Escolha uma das formas de pagamento.');
+      return false;
+    }
+
+    let encAgora = null;
+    async function ver() {
+      let r;
+      try { r = await fetch(`${api()}/encomenda?e=${encodeURIComponent(e)}&c=${encodeURIComponent(c)}`); } catch (_) { return true; } // sem rede, o ecrã fica como está (não se tira a referência a quem a copia)
+      if (r.status === 404 || r.status === 400) { naoHa(); return false; }
+      if (!r.ok) return true;
+      const enc = await r.json().catch(() => null);
+      if (!enc || !enc.encomenda) return true;
+      encAgora = enc;
+      await pedirMetodos;
+      return pintar(enc);
+    }
+    let voltas = 0;
+    let temporizador = null;
+    async function volta() {
+      const continuar = await ver();
+      voltas++;
+      if (!continuar) return;
+      const pg = (encAgora && encAgora.pagamento) || {};
+      let espera = 20000;
+      if (pg.metodo === 'MBWAY' && !(pg.mbway || {}).estado) { if (voltas > 200) return; espera = 1500; }
+      else if (pg.metodo === 'CCARD' && cartao !== 'erro' && cartao !== 'cancelado' && voltas < 40) espera = 3000;
+      else if (voltas > 15) return;
+      temporizador = setTimeout(volta, espera);
+    }
+    function recomecar() { clearTimeout(temporizador); temporizador = null; voltas = 0; volta(); }
+    // um separador escondido não corre os temporizadores com fiabilidade, e quem volta quer o estado de agora
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && temporizador) recomecar(); });
+
+    escolha.addEventListener('click', async (ev) => {
+      const b = ev.target.closest('[data-pagar-metodo]');
+      if (!b || b.disabled) return;
+      const botoes = $$('[data-pagar-metodo]', escolha);
+      botoes.forEach((x) => { x.disabled = true; });
+      erroEl.hidden = true;
+      const rotulo = $('span', b);
+      const antes = rotulo.textContent;
+      rotulo.textContent = 'Um momento…';
+      let r = null;
+      let j = {};
+      try {
+        r = await fetch(`${api()}/pagar`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ e, c, metodo: b.dataset.pagarMetodo }) });
+        j = await r.json().catch(() => ({}));
+      } catch (_) { j = { erro: 'Sem ligação. Verifique a internet e tente outra vez.' }; }
+      botoes.forEach((x) => { x.disabled = false; });
+      rotulo.textContent = antes;
+      if (r && r.ok && j.sai && j.proxima) { location.href = j.proxima; return; }
+      if ((r && r.ok) || (j && j.estado && j.estado !== 'pendente')) {
+        // outro pedido na mesma encomenda: o endereço perde o «cartao=» de um regresso anterior
+        cartao = null;
+        try { history.replaceState(null, '', `${location.pathname}?e=${encodeURIComponent(e)}&c=${encodeURIComponent(c)}`); } catch (_) { /* fica o endereço */ }
+        recomecar();
+        return;
+      }
+      erroEl.textContent = (j && typeof j.erro === 'string' && j.erro) || 'Não conseguimos pedir o pagamento. Tente outra vez.';
+      erroEl.hidden = false;
+    });
+
+    volta();
   }
 
   // ---------------------------------------------------------------- contador e redesenho

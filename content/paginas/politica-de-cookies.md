@@ -10,4 +10,4 @@ atualizado: 2026-11-09
 
 ## Conteúdo de outros sites
 
-O site não carrega nada de terceiros: as letras, as imagens e o mapa da página de contactos (desenhado pelo próprio site, com dados do OpenStreetMap) são servidos a partir dele.{{pagamentoNaStripe}} As ligações para o Instagram, o Facebook, o WhatsApp e o Google Maps só abrem esses sites quando carrega nelas.
+O site não carrega nada de terceiros: as letras, as imagens e o mapa da página de contactos (desenhado pelo próprio site, com dados do OpenStreetMap) são servidos a partir dele.{{pagamentoNoCartao}} As ligações para o Instagram, o Facebook, o WhatsApp e o Google Maps só abrem esses sites quando carrega nelas.

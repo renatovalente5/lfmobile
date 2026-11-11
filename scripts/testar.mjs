@@ -10,7 +10,7 @@
 // O CONTEÚDO DE ENSAIO: os testes usam scripts/testes/conteudo (uma cópia congelada do conteúdo a 9 nov
 // 2026, com seis artigos, três modelos, duas reparações e a retoma) e scripts/testes/fotos, NUNCA o
 // content/ do commit. O content/ é do dono,
-// que o muda no painel: preencher o NIF, ligar a Stripe ou esconder um artigo não pode parar a
+// que o muda no painel: preencher o NIF, ligar os pagamentos ou esconder um artigo não pode parar a
 // publicação neste passo (achado ao fazer o painel). Um problema no conteúdo verdadeiro pára no passo
 // seguinte, o do gerador, que escreve as razões para o painel (::error).
 import assert from 'node:assert/strict';
@@ -559,12 +559,59 @@ teste('a produção constrói com os dados legais preenchidos: aberta aos motore
   assert.ok(fs.existsSync(path.join(pasta, '_site/sitemap.xml')));
   for (const f of todosHtml(pasta)) assert.doesNotMatch(fs.readFileSync(f, 'utf8'), /por confirmar:/, f);
 });
-teste('em modo «online» o botão diz «Encomendar e pagar» (como os termos), e o catálogo leva o modo', () => {
+teste('em modo «online» (a ifthenpay): o botão «Encomendar e pagar», os três métodos sem nenhum escolhido, a página /pagar/, e os textos dizem a ifthenpay e os prazos', () => {
   const pasta = copia('online', (p) => json(p, 'content/site.json', (s) => { s.pagamentos.modo = 'online'; }));
-  assert.equal(construir(pasta).codigo, 0);
-  assert.match(fs.readFileSync(path.join(pasta, '_site/checkout/index.html'), 'utf8'), /Encomendar e pagar/);
-  assert.match(fs.readFileSync(path.join(pasta, '_site/termos-e-condicoes/index.html'), 'utf8'), /Encomendar e pagar/);
-  assert.equal(JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets/catalogo.json'), 'utf8')).modo, 'online');
+  const r = construir(pasta);
+  assert.equal(r.codigo, 0, r.saida);
+  const ler = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  const checkout = ler('checkout/index.html');
+  assert.match(checkout, /Encomendar e pagar/);
+  for (const m of ['MBWAY', 'MB', 'CCARD']) assert.match(checkout, new RegExp(`<input type="radio" name="metodo" value="${m}" required>`), m);
+  assert.doesNotMatch(checkout, /name="metodo" value="[A-Z]+" required checked/, 'nenhum método vem escolhido');
+  assert.match(checkout, /Sem o pagamento no prazo, a encomenda fica sem efeito e nada é cobrado\./);
+  const pagar = ler('pagar/index.html');
+  for (const bloco of ['mbway', 'mb', 'cartao', 'falhou', 'fim']) assert.match(pagar, new RegExp(`data-pagar-bloco="${bloco}"`), bloco);
+  assert.match(pagar, /data-copiar="referencia"/);
+  // o carrinho.js escolhe o código de cada página por um atributo: um atributo da outra página fazia correr
+  // as duas (o percurso de 11 nov apanhou-o: a /pagar/ tinha data-obrigado e rebentava)
+  assert.doesNotMatch(pagar, /\sdata-obrigado[\s=>]/);
+  assert.doesNotMatch(ler('obrigado/index.html'), /\sdata-pagar[\s=>]/);
+  assert.doesNotMatch(checkout, /\sdata-(pagar|obrigado)[\s=>]/);
+  assert.match(pagar, /<meta name="robots" content="noindex/);
+  const termos = ler('termos-e-condicoes/index.html');
+  assert.match(termos, /Encomendar e pagar/);
+  assert.match(termos, /Pode pagar por MB WAY, referência Multibanco ou cartão\. O MB WAY e a referência Multibanco pagam-se no próprio site; o cartão, na página segura da ifthenpay/);
+  assert.match(termos, /a referência Multibanco vale 3 dias e, nos outros casos, tem 60 minutos para pagar; sem o pagamento nesse prazo, a encomenda fica sem efeito e nada é cobrado/);
+  const privacidade = ler('politica-de-privacidade/index.html');
+  assert.match(privacidade, /Os pagamentos no site passam pela ifthenpay \(Ifthenpay, Lda\., em Portugal\)/);
+  assert.match(privacidade, /pedimos-lhe o IBAN para a transferência/);
+  assert.match(privacidade, /<td>Ifthenpay, Lda\.<\/td><td>pagamentos no site: referências Multibanco, pedidos MB WAY e cartão/);
+  assert.match(ler('politica-de-cookies/index.html'), /O pagamento com cartão é feito na página da ifthenpay/);
+  assert.equal(JSON.parse(ler('assets/catalogo.json')).modo, 'online');
+  for (const f of todosHtml(pasta)) assert.doesNotMatch(fs.readFileSync(f, 'utf8'), /stripe/i, `a Stripe saiu: ${f}`);
+  assert.doesNotMatch(fs.readFileSync(path.join(pasta, '_site/assets', fs.readdirSync(path.join(pasta, '_site/assets')).find((x) => /^site-.*\.js$/.test(x))), 'utf8'), /stripe/i, 'nem no JavaScript');
+});
+teste('em modo «encomenda» (o de agora): sem métodos nem a ifthenpay nos textos, e a página /pagar/ existe fora do mapa', () => {
+  const pasta = copia('encomenda', (p) => json(p, 'content/site.json', preencherDadosLegais));
+  const r = construir(pasta, '--producao');
+  assert.equal(r.codigo, 0, r.saida);
+  const ler = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  assert.doesNotMatch(ler('checkout/index.html'), /name="metodo"/);
+  assert.doesNotMatch(ler('termos-e-condicoes/index.html'), /ifthenpay/i, 'não se promete o que não está ligado');
+  assert.doesNotMatch(ler('politica-de-privacidade/index.html'), /Ifthenpay/);
+  assert.ok(fs.existsSync(path.join(pasta, '_site/pagar/index.html')));
+  assert.doesNotMatch(ler('sitemap.xml'), /\/pagar\//);
+  assert.match(ler('robots.txt'), /Disallow: \/pagar\//);
+});
+teste('um marcador antigo da Stripe ({{pagamentoStripe}}, de uma página gravada antes da troca) continua a construir, com o texto da ifthenpay', () => {
+  const pasta = copia('marcador-antigo', (p) => {
+    json(p, 'content/site.json', (s) => { s.pagamentos.modo = 'online'; });
+    const f = path.join(p, 'content/paginas/termos-e-condicoes.md');
+    fs.writeFileSync(f, fs.readFileSync(f, 'utf8').replace('{{pagamentoNoSite}}', '{{pagamentoStripe}}'));
+  });
+  const r = construir(pasta);
+  assert.equal(r.codigo, 0, r.saida);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/termos-e-condicoes/index.html'), 'utf8'), /na página segura da ifthenpay/);
 });
 teste('um artigo sem nome sai do site e a construção avisa, sem parar (o resto da loja publica-se)', () => {
   const pasta = copia('sem-nome', (p) => json(p, 'content/produtos/fones-p9.json', (a) => { a.nome = ''; }));

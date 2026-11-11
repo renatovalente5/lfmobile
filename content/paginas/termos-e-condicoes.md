@@ -34,7 +34,7 @@ Reservamo-nos o direito de corrigir erros manifestos de preço. Se isso acontece
 
 ## Pagamento
 
-{{pagamento}}{{pagamentoStripe}}
+{{pagamento}}{{pagamentoNoSite}}
 
 O NIF e as observações que escreve ficam só connosco.
 

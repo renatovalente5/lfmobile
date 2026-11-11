@@ -598,7 +598,7 @@ export function carrinho(ctx) {
       <div class="totais" data-totais aria-live="polite"></div>
       <p class="comprar__erro" data-erro-carrinho role="alert" hidden></p>
       <a class="botao botao--cheio botao--largo" href="${ctx.url('/checkout/')}" data-seguir>Continuar</a>
-      <p class="resumo__nota">${ctx.site.pagamentos?.modo === 'online' ? 'Pagamento seguro: cartão, MB WAY ou Multibanco.' : 'Pagamento: combinamos consigo depois de confirmar a encomenda.'}</p>
+      <p class="resumo__nota">${ctx.site.pagamentos?.modo === 'online' ? 'Pagamento no site: MB WAY, Multibanco ou cartão.' : 'Pagamento: combinamos consigo depois de confirmar a encomenda.'}</p>
     </aside>
   </div>
   <noscript><p class="nota">O carrinho precisa de JavaScript. Pode sempre encomendar pelo <a href="${ctx.whatsapp('Olá! Gostava de fazer uma encomenda.')}">WhatsApp</a>.</p></noscript>
@@ -634,10 +634,11 @@ export function checkout(ctx) {
         </div>
         <div class="campo"><label for="c-notas">Observações <span class="campo__opcional">(opcional)</span></label><textarea id="c-notas" name="notas" rows="2" maxlength="500"></textarea></div>
       </fieldset>
+      ${online ? metodosDePagamento() : ''}
       <label class="caixa caixa--termos"><input type="checkbox" name="termos" required><span>Li e aceito os <a href="${ctx.url('/termos-e-condicoes/')}" target="_blank" rel="noopener">termos e condições</a>. Posso desistir da compra em 14 dias.</span></label>
       <p class="comprar__erro" data-erro-checkout role="alert" hidden></p>
       <button class="botao botao--cheio botao--largo" type="submit" data-botao-checkout>${online ? icones.cadeado : icones.certo}<span>${online ? esc(BOTAO_ENCOMENDA) : 'Enviar encomenda'}</span></button>
-      <p class="formulario__nota">${online ? 'Segue para a página segura da Stripe (cartão, MB WAY ou Multibanco). Pode desistir até pagar.' : 'Registamos a encomenda e confirmamos consigo o pagamento e a entrega, por email ou WhatsApp. A encomenda fica feita quando a confirmarmos.'}</p>
+      <p class="formulario__nota">${online ? 'Sem o pagamento no prazo, a encomenda fica sem efeito e nada é cobrado.' : 'Registamos a encomenda e confirmamos consigo o pagamento e a entrega, por email ou WhatsApp. A encomenda fica feita quando a confirmarmos.'}</p>
     </form>
     <aside class="checkout__resumo" aria-labelledby="c-resumo-titulo">
       <h2 id="c-resumo-titulo" class="resumo__titulo">A sua encomenda</h2>
@@ -650,8 +651,82 @@ export function checkout(ctx) {
   return { caminho: '/checkout/', titulo: online ? 'Pagamento' : 'Encomenda', descricao: 'Os seus dados, a entrega e a confirmação da encomenda.', conteudo, classe: 'pagina-checkout', indexar: false };
 }
 
+/* COMO PAGAR (só no pagamento no site, pela ifthenpay): nenhum método vem escolhido (quem paga
+   escolhe). O finalizar pergunta ao Worker os que estão ligados (GET /metodos) e esconde os outros. O MB
+   WAY vai para o telemóvel dos dados de cima. */
+export const METODOS_PAGAMENTO = Object.freeze([
+  { id: 'MBWAY', nome: 'MB WAY', nota: 'Aceita o pedido na app, no telemóvel que escreveu acima.', icone: 'telemovel' },
+  { id: 'MB', nome: 'Referência Multibanco', nota: 'Paga num multibanco ou no homebanking.', icone: 'euro' },
+  { id: 'CCARD', nome: 'Cartão', nota: 'Na página segura da ifthenpay.', icone: 'cartao' },
+]);
+function metodosDePagamento() {
+  return `<fieldset class="checkout__bloco" data-metodos>
+        <legend>Pagamento</legend>
+        ${METODOS_PAGAMENTO.map((m) => `<label class="opcao-entrega opcao-metodo" data-metodo="${m.id}"><input type="radio" name="metodo" value="${m.id}" required><span class="opcao-entrega__nome">${esc(m.nome)}<small>${esc(m.nota)}</small></span>${icones[m.icone]}</label>`).join('\n        ')}
+        <p class="formulario__nota" data-sem-metodos hidden>O pagamento no site não está disponível agora. Fale connosco pelo WhatsApp.</p>
+      </fieldset>`;
+}
+
+/* A PÁGINA DE PAGAMENTO (/pagar/?e=<número>&c=<chave>): o cliente fica no site. Cada bloco é um estado, e
+   o carrinho.js mostra um de cada vez, com o que o Worker diz (GET /encomenda, de 1,5 em 1,5 s no MB WAY
+   e de 20 em 20 s na referência): a espera do MB WAY com o relógio dos 4 minutos, a referência Multibanco
+   (cada número copia-se), a confirmação do cartão, o pagamento que não se concluiu (com «Tentar outra
+   vez» e os outros métodos, na MESMA encomenda: POST /pagar) e o fim (o prazo acabou, ou foi anulada).
+   Pago, segue para a «obrigado». */
+export function pagar(ctx) {
+  const copiar = (qual) => `<button class="pagar__copiar" type="button" data-copiar="${qual}">${icones.copiar}<span>Copiar</span></button>`;
+  const conteudo = `<div class="contentor pagar" data-pagar data-url-obrigado="${ctx.url('/obrigado/')}">
+  <div class="pagar__cartao">
+    <p class="pagar__a-carregar" data-pagar-carregar role="status">A carregar o pagamento…</p>
+    <section class="pagar__bloco" data-pagar-bloco="mbway" hidden>
+      <span class="pagar__icone">${icones.telemovel}</span>
+      <h1 class="titulo-pagina">Aceite o pagamento no MB WAY</h1>
+      <p class="pagar__texto">Enviámos o pedido de <strong data-pagar-valor></strong> para o seu telemóvel. Abra a app MB WAY e aceite-o.</p>
+      <p class="pagar__relogio"><span>Tempo para aceitar</span><strong data-pagar-relogio>4:00</strong></p>
+    </section>
+    <section class="pagar__bloco" data-pagar-bloco="mb" hidden>
+      <span class="pagar__icone">${icones.euro}</span>
+      <h1 class="titulo-pagina">Pague com a referência Multibanco</h1>
+      <dl class="pagar__referencia">
+        <div><dt>Entidade</dt><dd data-pagar-entidade></dd>${copiar('entidade')}</div>
+        <div><dt>Referência</dt><dd data-pagar-referencia></dd>${copiar('referencia')}</div>
+        <div><dt>Valor</dt><dd data-pagar-valor-mb></dd>${copiar('valor')}</div>
+      </dl>
+      <p class="pagar__texto"><span data-pagar-validade-frase hidden>Válida até <strong data-pagar-validade></strong>. </span>Pague num multibanco ou no homebanking: a encomenda segue quando o pagamento entrar. Enviámos-lhe esta referência por email.</p>
+    </section>
+    <section class="pagar__bloco" data-pagar-bloco="cartao" hidden>
+      <span class="pagar__icone">${icones.cartao}</span>
+      <h1 class="titulo-pagina">A confirmar o pagamento</h1>
+      <p class="pagar__texto">Estamos a confirmar o pagamento com cartão. Não feche esta página.</p>
+    </section>
+    <section class="pagar__bloco" data-pagar-bloco="falhou" hidden>
+      <span class="pagar__icone pagar__icone--aviso">${icones.aviso}</span>
+      <h1 class="titulo-pagina" data-pagar-falhou-titulo>O pagamento não se concluiu</h1>
+      <p class="pagar__texto" data-pagar-falhou-texto>Nada foi cobrado.</p>
+    </section>
+    <section class="pagar__bloco" data-pagar-bloco="fim" hidden>
+      <span class="pagar__icone pagar__icone--aviso">${icones.aviso}</span>
+      <h1 class="titulo-pagina" data-pagar-fim-titulo>Esta encomenda já não espera pagamento</h1>
+      <p class="pagar__texto" data-pagar-fim-texto></p>
+      <a class="botao botao--cheio" href="${ctx.url('/loja/')}">Voltar à loja</a>
+    </section>
+    <details class="pagar__outra" data-pagar-escolha hidden>
+      <summary data-pagar-escolha-titulo>Pagar de outra forma</summary>
+      <div class="pagar__metodos">
+        ${METODOS_PAGAMENTO.map((m) => `<button class="botao botao--contorno" type="button" data-pagar-metodo="${m.id}" hidden>${icones[m.icone]}<span>${esc(m.nome)}</span></button>`).join('\n        ')}
+      </div>
+      <p class="comprar__erro" data-pagar-erro role="alert" hidden></p>
+    </details>
+    <p class="pagar__numero" data-pagar-numero hidden><span>Encomenda</span> <strong></strong></p>
+    ${ctx.site.contactos.whatsapp ? `<a class="botao botao--whatsapp-suave" href="${ctx.whatsapp('Olá! Fiz uma encomenda no site e tenho uma dúvida sobre o pagamento.')}" target="_blank" rel="noopener">${icones.whatsapp}<span>Falar no WhatsApp</span></a>` : ''}
+  </div>
+  <noscript><p class="nota">O pagamento precisa de JavaScript. Pode sempre falar connosco pelo <a href="${ctx.whatsapp('Olá! Fiz uma encomenda no site e tenho uma dúvida sobre o pagamento.')}">WhatsApp</a>.</p></noscript>
+</div>`;
+  return { caminho: '/pagar/', titulo: 'Pagamento', descricao: 'O pagamento da sua encomenda.', conteudo, classe: 'pagina-pagar', indexar: false };
+}
+
 export function obrigado(ctx) {
-  const conteudo = `<div class="contentor obrigado" data-obrigado>
+  const conteudo = `<div class="contentor obrigado" data-obrigado data-url-pagar="${ctx.url('/pagar/')}">
   <div class="obrigado__cartao">
     <span class="obrigado__icone">${icones.certo}</span>
     <h1 class="titulo-pagina" data-obrigado-titulo>Obrigado!</h1>

@@ -911,6 +911,50 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .referencia-mb { display: grid; gap: 4px; padding: 14px; border-radius: var(--raio-m); border: 1px dashed var(--linha-campo); font-variant-numeric: tabular-nums; }
 .referencia-mb strong { font-size: 1.15rem; letter-spacing: .04em; }
 
+/* ---------------------------------------------------------------- o pagamento no site (ifthenpay)
+   No finalizar, os métodos são opções como as da entrega, com o ícone à direita. A página /pagar/ é um
+   cartão como o da «obrigado»: um bloco de cada vez (o MB WAY com o relógio, a referência com os três
+   números para copiar, o cartão a confirmar, o que não se concluiu, o fim). */
+.opcao-metodo .icone { width: 26px; height: 26px; color: var(--tinta-2); }
+.opcao-metodo[hidden] { display: none; }
+.pagar { padding-top: 28px; padding-bottom: 48px; }
+.pagar__cartao { max-width: 560px; margin: 0 auto; padding: 28px 20px; border-radius: var(--raio-g); background: var(--cinza); display: grid; gap: 18px; justify-items: center; text-align: center; }
+.pagar__a-carregar { color: var(--tinta-2); padding: 24px 0; }
+.pagar__bloco { display: grid; gap: 12px; justify-items: center; width: 100%; }
+.pagar__bloco[hidden] { display: none; }
+.pagar__bloco .titulo-pagina { font-size: clamp(1.45rem, 1.2rem + 1.2vw, 1.9rem); }
+.pagar__icone { display: inline-flex; width: 56px; height: 56px; align-items: center; justify-content: center; border-radius: 999px; background: var(--escuro); color: var(--branco); }
+.pagar__icone .icone { width: 28px; height: 28px; }
+.pagar__icone--aviso { background: var(--ouro-fundo); color: var(--ouro-texto); }
+.pagar__texto { color: var(--tinta-2); max-width: 44ch; }
+.pagar__texto strong { color: var(--tinta); }
+.pagar__relogio { display: grid; gap: 2px; padding: 14px 28px; border-radius: var(--raio-m); background: var(--papel); }
+.pagar__relogio span { font-size: .86rem; color: var(--tinta-2); }
+.pagar__relogio strong { font-size: 2.4rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.pagar__referencia { width: 100%; margin: 0; padding: 6px 16px; border-radius: var(--raio-m); background: var(--papel); text-align: left; }
+.pagar__referencia div { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'dt botao' 'dd botao'; align-items: center; column-gap: 12px; padding: 12px 0; }
+.pagar__referencia div + div { border-top: 1px solid var(--linha); }
+.pagar__referencia dt { grid-area: dt; font-size: .84rem; color: var(--tinta-2); }
+.pagar__referencia dd { grid-area: dd; margin: 0; font-size: 1.45rem; font-weight: 800; letter-spacing: .03em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.pagar__copiar { grid-area: botao; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--linha-campo); background: var(--papel); color: var(--tinta); font-weight: 700; font-size: .9rem; cursor: pointer; }
+.pagar__copiar .icone { width: 18px; height: 18px; }
+@media (hover: hover) { .pagar__copiar:hover { background: var(--cinza); } }
+@media (min-width: 360px) { .pagar__copiar { min-width: 7rem; justify-content: center; } }
+.pagar__outra { width: 100%; border-radius: var(--raio-m); background: var(--papel); border: 1px solid var(--linha); text-align: left; }
+.pagar__outra[hidden] { display: none; }
+.pagar__outra summary { display: flex; align-items: center; min-height: 48px; padding: 0 16px; cursor: pointer; font-weight: 700; list-style: none; }
+.pagar__outra summary::-webkit-details-marker { display: none; }
+.pagar__outra summary::after { content: ''; margin-left: auto; width: 8px; height: 8px; border-right: 1.8px solid currentColor; border-bottom: 1.8px solid currentColor; transform: rotate(45deg); transition: transform .2s; }
+.pagar__outra[open] summary::after { transform: rotate(-135deg); }
+.pagar__metodos { display: grid; gap: 8px; padding: 0 16px 16px; }
+.pagar__metodos .botao { width: 100%; white-space: normal; }
+.pagar__metodos .botao[hidden] { display: none; }
+.pagar__metodos .botao:disabled { opacity: .6; cursor: progress; }
+.pagar__outra .comprar__erro { margin: 0 16px 16px; }
+.pagar__numero { display: flex; justify-content: center; gap: 8px; color: var(--tinta-2); font-size: .95rem; }
+.pagar__numero strong { color: var(--tinta); letter-spacing: .04em; }
+@media (max-width: 359px) { .pagar__cartao { padding: 22px 14px; } .pagar__referencia dd { font-size: 1.25rem; } .pagar__copiar { padding: 0 10px; } }
+
 /* ---------------------------------------------------------------- contactos */
 .contactos-pagina, .texto-pagina, .erro { padding-bottom: 48px; }
 .contactos-cartoes { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }

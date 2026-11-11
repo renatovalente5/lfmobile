@@ -276,7 +276,7 @@ export const ligacaoExternaValida = (v) => typeof v === 'string' && v.length <= 
    maior do que o de venda não conta (esquecido depois de uma promoção, mandava no
    preço). Sem preço (ainda por dizer), atual é null. A MESMA regra está no carrinho
    do site (src/scripts/carrinho.js, precoDe) e no Worker das encomendas
-   (worker/encomendas/contas.js): o site, o carrinho e a Stripe nunca discordam. */
+   (worker/encomendas/contas.js): o site, o carrinho e o pagamento nunca discordam. */
 export function precoDe(p, hoje) {
   if (typeof p.preco !== 'number') return { atual: null, anterior: null, ate: '' };
   const normal = typeof p.precoAnterior === 'number' && p.precoAnterior > p.preco ? p.precoAnterior : null;
@@ -609,9 +609,9 @@ export const SECCOES_SITE = Object.freeze({ contactos: 'Contactos', horario: 'Ho
    Google), as zonas de entrega e a localidade. */
 export const BLOQUEADOS_SITE = Object.freeze(['marca', 'entrega.zonas', 'local']);
 /* Os modos da loja online: «encomenda» (o site regista a encomenda e a loja combina o pagamento
-   com o cliente) e «online» (paga-se na Stripe, no próprio site). O Worker dos pagamentos lê o
+   com o cliente) e «online» (paga-se no próprio site, pela ifthenpay). O Worker dos pagamentos lê o
    mesmo valor do site publicado. */
-export const MODOS_PAGAMENTO = Object.freeze({ encomenda: 'Encomenda (a loja combina o pagamento com o cliente)', online: 'Pagamento no site (Stripe: cartão, MB WAY, Multibanco)' });
+export const MODOS_PAGAMENTO = Object.freeze({ encomenda: 'Encomenda (a loja combina o pagamento com o cliente)', online: 'Pagamento no site (ifthenpay: MB WAY, Multibanco, cartão)' });
 /* A garantia dos recondicionados e usados: 3 anos por lei (DL 84/2021, art. 12.º), ou 18 meses
    quando a loja o acorda com o cliente antes da compra (art. 12.º, n.º 3: é o que a ficha e os
    termos dizem). O dono escolhe; sem escolha, a produção pára. */
