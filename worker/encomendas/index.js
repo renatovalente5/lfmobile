@@ -21,8 +21,8 @@
 import { json, lerCorpoJson } from './http.js';
 import { lerCatalogo, modoDe, siteUrl } from './catalogo.js';
 import { validarPedido, contas as fazerContas, ErroDoPedido, hojeLisboa } from './contas.js';
-import { lerCupaoComUsos, porQueNaoVale, publico, contarUso, libertarUso, reservarUso, normalizarCodigo } from './cupoes.js';
-import { criarEncomenda, idLivre, novaChave, lerEncomenda, gravarEncomenda, vistaPublica, iguais, RE_ID, RE_CHAVE, TTL_ENCOMENDA, TTL_EVENTO, agoraISO } from './encomenda.js';
+import { lerCupaoComUsos, porQueNaoVale, publico, libertarUso, reservarUso, normalizarCodigo, acertarCupao, fazerAcerto } from './cupoes.js';
+import { criarEncomenda, idLivre, novaChave, lerEncomenda, gravarEncomenda, alterarEncomenda, vistaPublica, iguais, RE_ID, RE_CHAVE, TTL_ENCOMENDA, TTL_EVENTO, agoraISO } from './encomenda.js';
 import { criarSessao, stripeFetch, verificarAssinatura, aplicarEvento, idDoEvento, eventoNaoBate } from './stripe.js';
 import { avisar, falhou } from './email.js';
 import { rotaPainel } from './painel.js';
@@ -191,8 +191,8 @@ async function checkout(request, env, cors) {
   const resultado = await avisar(env, 'registada', enc, { cat });
   if (falhou(resultado)) {
     console.error('EMAIL NÃO ENVIADO', id, JSON.stringify(resultado));
-    enc.avisos = { registada: resultado };
-    try { await gravarEncomenda(env, enc); } catch (e) { console.error('aviso por gravar', id, e.message); }
+    // o resultado junta-se à encomenda de agora (outra escrita pode ter passado entretanto: o painel)
+    try { await alterarEncomenda(env, id, (x) => { x.avisos = { ...(x.avisos || {}), registada: resultado }; return {}; }); } catch (e) { console.error('aviso por gravar', id, e.message); }
   }
   return json({ encomenda: id, chave: enc.chave, estado: enc.estado, total_cents: enc.total_cents }, 200, cors);
 }
@@ -280,11 +280,11 @@ async function webhook(request, env) {
 
   const obj = (evento.data && evento.data.object) || {};
   const id = await idDoEvento(env, obj);
-  const enc = id ? await lerEncomenda(env, id) : null;
-  if (!enc) {
+  const primeira = id ? await lerEncomenda(env, id) : null;
+  if (!primeira) {
     if (id && RE_ID.test(id)) {
-      // Sabemos a encomenda mas o KV ainda não a mostra (é eventualmente consistente, e a Stripe
-      // entrega em segundos): pede-se reentrega em vez de deitar fora um pagamento.
+      // Sabemos a encomenda mas ainda não a encontramos (uma de antes do objecto, no KV, que é
+      // eventualmente consistente): pede-se reentrega em vez de deitar fora um pagamento.
       const idade = Math.floor(Date.now() / 1000) - (evento.created || 0);
       if (idade < JANELA_DE_REENTREGA_SEGUNDOS) return new Response('encomenda ainda não visível', { status: 409 });
       console.error('ENCOMENDA NÃO ENCONTRADA', id, evento.type, 'ao fim de', idade, 's');
@@ -297,55 +297,53 @@ async function webhook(request, env) {
   const em = agoraISO();
   // Só os eventos da sessão e do pagamento DESTA encomenda (com o valor dela) mexem nela; os outros
   // ficam no histórico, para o dono ver, e não se repetem.
-  const naoBate = eventoNaoBate(enc, evento);
+  const naoBate = eventoNaoBate(primeira, evento);
   if (naoBate) {
     console.error('EVENTO DA STRIPE QUE NÃO BATE COM A ENCOMENDA', id, evento.type, naoBate);
-    enc.historico = [...(enc.historico || []), { em, estado: enc.estado, por: 'stripe', nota: `Evento da Stripe ignorado (${evento.type}): ${naoBate}. Confirme na Stripe.` }];
-    await gravarEncomenda(env, enc, { em });
+    await alterarEncomenda(env, id, (x) => { x.historico = [...(x.historico || []), { em, estado: x.estado, por: 'stripe', nota: `Evento da Stripe ignorado (${evento.type}): ${naoBate}. Confirme na Stripe.` }]; return {}; }, { em });
     await env.ORDERS.put(marca, '1', { expirationTtl: TTL_EVENTO });
     return new Response('não é desta encomenda');
   }
-  const antes = JSON.stringify(enc);
-  const { avisos } = aplicarEvento(enc, evento, em);
-  // O pagamento não se fez (a página expirou, o Multibanco falhou): o uso do cupão volta.
-  if (enc.cupao && enc.cupao_contado && (enc.estado === 'expirou' || enc.estado === 'falhou')) {
-    try { await libertarUso(env, enc.cupao, (enc.cliente || {}).email, id); enc.cupao_contado = false; } catch (e) { console.error('uso do cupão por devolver', id, e.message); }
-  }
+  /* O evento aplica-se à encomenda como está AGORA (a do objecto dela), e grava-se sem perder outra
+     escrita (alterarEncomenda: se outra passou entretanto — o painel, outro evento —, relê-se e
+     aplica-se outra vez; o aplicarEvento só depende do estado e do evento). O uso do cupão acerta-se
+     na mesma versão (acertarCupao) e chama-se o objecto dos cupões só depois de gravar. */
+  const r = await alterarEncomenda(env, id, (x) => {
+    const antes = JSON.stringify(x);
+    const { avisos } = aplicarEvento(x, evento, em);
+    const acerto = acertarCupao(x);
+    const mudou = JSON.stringify(x) !== antes;
+    return mudou ? { avisos, mudou, acerto } : { avisos, mudou, parar: true };
+  }, { em });
+  if (!r.enc) return new Response('sem encomenda');
+  if (r.acerto) await fazerAcerto(env, r.acerto, r.enc);
   // O índice pi: quando se fica a saber o pagamento (é por ele que um reembolso chega cá).
-  const pi = enc.stripe && enc.stripe.payment_intent;
+  const pi = r.enc.stripe && r.enc.stripe.payment_intent;
   if (pi && (await env.ORDERS.get(`pi:${pi}`)) !== id) await env.ORDERS.put(`pi:${pi}`, id, { expirationTtl: TTL_ENCOMENDA });
-  // O cupão de uma encomenda paga conta agora (uma vez: a marca cupao_contado).
-  if (enc.cupao && enc.estado === 'paga' && !enc.cupao_contado) {
-    try { await contarUso(env, enc.cupao, (enc.cliente || {}).email, id); enc.cupao_contado = true; } catch (e) { console.error('uso do cupão por contar', id, e.message); }
-  }
-  let mudou = JSON.stringify(enc) !== antes;
-  if (mudou) await gravarEncomenda(env, enc, { em });
 
-  // Cada aviso vai uma vez (a marca enc.avisos). Relê-se antes de cada envio: um evento que chegue
-  // ao mesmo tempo pode já ter avisado. A janela não fecha de todo (o KV não tem escrita
-  // condicional): antes um email repetido, que se vê, do que um que nunca sai.
+  // Cada aviso vai uma vez (a marca enc.avisos, lida da encomenda de agora). O resultado junta-se às
+  // marcas com outra escrita condicional: nada se perde, e um evento repetido não repete o email.
   let enviou = false;
-  for (const aviso of avisos) {
-    const actual = (await lerEncomenda(env, id)) || enc;
-    const marcas = { ...(enc.avisos || {}), ...(actual.avisos || {}) };
-    if (marcas[aviso]) { enc.avisos = marcas; continue; }
-    const resultado = await avisar(env, aviso, { ...actual, ...enc, avisos: marcas }, { origem: 'stripe' });
+  for (const aviso of r.avisos) {
+    const actual = (await lerEncomenda(env, id)) || r.enc;
+    if (actual.avisos && actual.avisos[aviso]) continue;
+    const resultado = await avisar(env, aviso, actual, { origem: 'stripe' });
     if (falhou(resultado)) {
       console.error('EMAIL NÃO ENVIADO', aviso, id, JSON.stringify(resultado), '— 500 para a Stripe reentregar');
       return new Response('emails por enviar', { status: 500 });
     }
-    enc.avisos = { ...marcas, [aviso]: resultado };
+    await alterarEncomenda(env, id, (x) => { x.avisos = { ...(x.avisos || {}), [aviso]: resultado }; return {}; });
     enviou = true;
   }
-  if (enviou) await gravarEncomenda(env, enc);
   // A marca do evento só quando houve efeitos que não se querem repetir: cada escrita conta.
-  if (mudou || enviou) await env.ORDERS.put(marca, '1', { expirationTtl: TTL_EVENTO });
+  if (r.mudou || enviou) await env.ORDERS.put(marca, '1', { expirationTtl: TTL_EVENTO });
   return new Response('ok');
 }
 
 /* ---------------------------------------------------------------- o encaminhador */
 
-// o objecto durável dos cupões (wrangler.toml: CUPOES, class_name Cupoes)
+// os objectos duráveis (wrangler.toml): as encomendas (ENCOMENDA, Encomenda) e os cupões (CUPOES, Cupoes)
+export { Encomenda } from './objecto.js';
 export { Cupoes } from './cupoes.js';
 
 export default {

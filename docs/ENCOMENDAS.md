@@ -97,9 +97,20 @@ sem ela, ou errada, 404):
 `cliente.nome` é só o primeiro nome. Pela sessão da Stripe (`s`) responde o mesmo, se a sessão
 for de uma encomenda conhecida (índice `session:`).
 
-## 4. O que fica no KV (namespace `ORDERS`, só o Worker escreve)
+## 4. Onde ficam as encomendas: o objecto de cada uma, e a cópia no KV (`ORDERS`, só o Worker escreve)
 
-- `order:<id>` → a encomenda inteira (JSON abaixo), 400 dias.
+**A verdade de cada encomenda é o objecto durável dela** (`ENCOMENDA`, classe `Encomenda` em
+`objecto.js`; o nome é o id, na jurisdição da UE — desde 11 nov 2026). Lê-se sempre a de agora, e cada
+escrita leva a `versao` que leu: se outra passou entretanto, o objecto recusa e quem escreve relê e
+repete (`alterarEncomenda` em `encomenda.js`). Com o KV (eventualmente consistente, até 60 s noutro
+sítio, e sem escrita condicional), uma nota do painel escrita sobre uma leitura atrasada voltava a pôr
+«pendente» por cima do «paga», o `checkout.session.expired` gravava «expirou» por cima de uma anulação
+(com os emails), e duas mudanças ao mesmo tempo davam 200 as duas. O objecto apaga-se 400 dias depois
+da última escrita. As encomendas de antes do objecto lêem-se do KV até à primeira escrita, que as passa
+para lá.
+
+- `order:<id>` → a CÓPIA da última versão (JSON abaixo, com `versao`), 400 dias, escrita pelo objecto
+  na mesma passagem e pela ordem das versões, com os metadados da lista do painel.
 - `session:<id da Checkout Session>` → `<id>`, `pi:<PaymentIntent>` → `<id>` (modo «online»).
 - `evt:<id do evento Stripe>` → `1`, 30 dias (um webhook repetido não repete emails).
 - `idem:<pedido>` → a resposta do `/checkout` dessa tentativa, 1 dia (a tentativa repetida).
@@ -184,7 +195,11 @@ enviado), `stripe.multibanco` (entidade, referência, validade) e `stripe.reembo
   `"ok"` ou o erro de ler o catálogo publicado).
 
 A lista faz-se dos metadados das chaves do KV (sem ler cada encomenda, por causa do limite de
-subpedidos): uma mudança de estado pode levar até 60 s a aparecer na lista; a ficha é imediata.
+subpedidos): uma mudança de estado pode levar até 60 s a aparecer na lista; a ficha lê o objecto, é
+imediata. Mudar o estado grava PRIMEIRO o estado novo e só depois fecha a página da Stripe e manda o
+email (o resultado junta-se com outra escrita condicional); se a encomenda mudou entre a leitura e a
+escrita (outro aparelho, um pagamento que chegou), responde 409 com «A encomenda mudou entretanto: está
+«…»» — quem pediu decidiu sobre outro estado.
 A lista traz também `pagina`, `paginas`, `total` e, em cada resumo, `linhas_a_mais`.
 
 O segredo `PAINEL_SEGREDO` é o mesmo nos dois Workers (um `wrangler secret put` em cada).
@@ -220,7 +235,8 @@ o que falta ligar). Os testes: `cd worker/encomendas && npm test`.
 `LOGO_URL` (o PNG do logótipo para os emails: o Outlook não mostra WebP) e, opcional, `MODO = "encomenda"`
 como travão. Segredos: `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `PAINEL_SEGREDO`. Bindings: KV `ORDERS`, rate limit
-`TRAVAO_CHECKOUT`, objecto durável `CUPOES` (classe `Cupoes`, SQLite, migração `v1`; na jurisdição da UE —
+`TRAVAO_CHECKOUT`, objectos duráveis `CUPOES` (classe `Cupoes`, migração `v1`) e `ENCOMENDA` (classe
+`Encomenda`, migração `v2`), SQLite, na jurisdição da UE (
 num `wrangler dev` local, sem jurisdições, `ENCOMENDAS_LOCAL=1` no `.dev.vars`). `wrangler deploy --config worker/encomendas/wrangler.toml` sempre com
 `--config` (memória: wrangler-autoconfig-pasta-mae).
 

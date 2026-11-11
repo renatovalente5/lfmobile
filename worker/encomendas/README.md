@@ -67,8 +67,9 @@ Segredos (nunca no repositório; o valor passa pelo stdin a partir de um ficheir
 $WR secret put PAINEL_SEGREDO --config $CFG < ~/Websites/lfmobile/_cliente/segredos/PAINEL_SEGREDO
 ```
 
-Os cupões: o objecto durável `CUPOES` (classe `Cupoes`, SQLite — o tipo do plano gratuito —, migração
-`v1` no `wrangler.toml`), na jurisdição da UE. Num `wrangler dev` local não há jurisdições: põe-se
+As encomendas e os cupões em objectos duráveis (SQLite — o tipo do plano gratuito —, na jurisdição da
+UE): `ENCOMENDA` (classe `Encomenda`, migração `v2`; a verdade de cada encomenda, com versões; o KV fica
+com a cópia para a lista do painel) e `CUPOES` (classe `Cupoes`, migração `v1`). Num `wrangler dev` local não há jurisdições: põe-se
 `ENCOMENDAS_LOCAL=1` no `.dev.vars` (nunca no `wrangler.toml`). No primeiro pedido, o objecto traz do KV
 os cupões que lá estivessem.
 

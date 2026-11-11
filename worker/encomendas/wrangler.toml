@@ -39,6 +39,18 @@ class_name = "Cupoes"
 tag = "v1"
 new_sqlite_classes = ["Cupoes"]
 
+# Cada encomenda num objecto durável (objecto.js, a classe Encomenda; o nome é o id, na UE): a verdade
+# dela, lida sempre a de agora, com escritas que conferem a versão (o KV fica com a cópia para a lista
+# do painel). Com o KV, uma nota do painel logo a seguir a um pagamento voltava a pôr «pendente» por
+# cima do «paga». As encomendas de antes lêem-se do KV até à primeira escrita.
+[[durable_objects.bindings]]
+name = "ENCOMENDA"
+class_name = "Encomenda"
+
+[[migrations]]
+tag = "v2"
+new_sqlite_classes = ["Encomenda"]
+
 [vars]
 # A pré-visualização no GitHub Pages; passa ao domínio quando o houver (e o catálogo, o logótipo
 # e as origens com ele).

@@ -373,6 +373,7 @@ Corrigido, cada coisa com um teste que falha no código antigo:
 Por decidir: os emails e o email do dono antes de abrir (hoje uma encomenda só fica no KV); o
 fabricante de cada artigo (Regulamento (UE) 2023/988); ~~um Durable Object para os cupões com limite~~
 (feito no mesmo dia: os cupões num objecto durável, `Cupoes`, e três encomendas simultâneas com um cupão
-de um uso já não passam as três);
+de um uso já não passam as três; e as encomendas também, `Encomenda`, com versões — uma nota sobre uma
+leitura atrasada do KV já não apaga um pagamento, nem o «expirou» uma anulação);
 o horário nocturno do `publicar.yml` quando houver domínio (as campanhas mudam à meia-noite).
 

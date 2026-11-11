@@ -272,3 +272,26 @@ export async function apagarCupao(env, codigo) {
   if (!c) return false;
   return Boolean((await pedirCupoes(env, { op: 'apagar', codigo: c })).ok);
 }
+
+/* ---------------------------------------------------------------- o uso e o estado da encomenda */
+
+/* Depois de a encomenda mudar de estado (o webhook, o painel): o uso do cupão volta quando ela acaba sem
+   se fazer (expirou, falhou, anulada) e volta a contar quando se paga depois disso. Muda `cupao_contado`
+   (grava-se com a mudança, na mesma versão) e diz o que fazer DEPOIS de gravar: 'libertar', 'contar' ou
+   null — o objecto dos cupões só se chama com a encomenda já gravada (o mesmo da Franja Kids). */
+export function acertarCupao(x) {
+  if (!x || !x.cupao) return null;
+  const semEfeito = ['expirou', 'falhou', 'anulada'].includes(x.estado);
+  if (semEfeito && x.cupao_contado) { x.cupao_contado = false; return 'libertar'; }
+  if (!semEfeito && !['registada', 'pendente'].includes(x.estado) && !x.cupao_contado) { x.cupao_contado = true; return 'contar'; }
+  return null;
+}
+/* Nunca rebenta quem chama: um uso que não volta (ou não conta) vê-se no painel, na lista dos cupões. */
+export async function fazerAcerto(env, acerto, enc) {
+  try {
+    if (acerto === 'libertar') await libertarUso(env, enc.cupao, (enc.cliente || {}).email, enc.encomenda);
+    else if (acerto === 'contar') await contarUso(env, enc.cupao, (enc.cliente || {}).email, enc.encomenda);
+  } catch (e) {
+    console.error('o uso do cupão não se acertou', enc.encomenda, enc.cupao, acerto, e.message);
+  }
+}
