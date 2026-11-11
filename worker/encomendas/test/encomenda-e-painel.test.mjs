@@ -43,7 +43,7 @@ test('GET /encomenda?s=: pela sessão da Stripe, e a sessão paga adianta-se ao 
       ? Response.json({ id: 'cs_test_a1b2c3d4e5f6', payment_status: paga ? 'paid' : 'unpaid' })
       : Response.json({ id: 'cs_test_a1b2c3d4e5f6', url: 'https://checkout.stripe.com/c/pay/cs_test_a1b2c3d4e5f6' })),
   });
-  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x' });
+  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: 'whsec_x' });
   const { encomenda } = await registar(worker, env);
   const antes = await pedir(worker, env, 'GET', '/encomenda?s=cs_test_a1b2c3d4e5f6');
   assert.equal(antes.status, 200);

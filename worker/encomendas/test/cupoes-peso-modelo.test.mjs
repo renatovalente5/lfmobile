@@ -197,7 +197,7 @@ test('cupão de portes grátis: tira os portes da Nacex, sem desconto nos artigo
   assert.equal(enc.cupao_portes, true);
 });
 
-test('modo «online» com cupão: a Stripe recebe um cupão de uso único com o desconto, e o uso conta quando paga', async () => {
+test('modo «online» com cupão: a Stripe recebe um cupão de uso único com o desconto, e o uso conta logo na encomenda (reserva)', async () => {
   const cat = comNacex(); cat.modo = 'online';
   const pedidosStripe = [];
   rede = redeFalsa({
@@ -221,8 +221,8 @@ test('modo «online» com cupão: a Stripe recebe um cupão de uso único com o 
   const sessao = new URLSearchParams(pedidosStripe.find((p) => p.url.endsWith('/checkout/sessions')).corpo);
   assert.equal(sessao.get('discounts[0][coupon]'), 'cup_teste_123');
   assert.equal(sessao.get('line_items[0][price_data][unit_amount]'), '5990', 'os artigos vão ao preço normal; o desconto é o cupão');
-  assert.equal(await usosDe(env, 'BEMVINDO'), 0, 'em modo online, ainda não conta: falta pagar');
-  // a Stripe diz que foi paga: conta (pelo webhook, ver o index.js); aqui, a regra do evento
+  assert.equal(await usosDe(env, 'BEMVINDO'), 1, 'em modo online conta já: é uma reserva (antes, várias encomendas abertas gastavam um cupão de um uso)');
+  // a Stripe diz que foi paga: a regra do evento (o webhook não conta outra vez: cupao_contado)
   const enc = JSON.parse(await env.ORDERS.get(`order:${r.json.encomenda}`));
   aplicarEvento(enc, { type: 'checkout.session.completed', data: { object: { id: 'cs_test_a1b2c3d4e5f6', payment_status: 'paid', payment_method_types: ['card'] } } });
   assert.equal(enc.estado, 'paga');

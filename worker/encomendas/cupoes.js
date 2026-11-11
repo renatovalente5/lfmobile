@@ -106,9 +106,21 @@ export async function usosDe(env, codigo) {
   return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
+/* O email como pessoa, para o «um por cliente»: sem invisíveis nem maiúsculas, sem o que vem depois
+   de um «+» (ana+1@… é a ana@…), e no Gmail sem os pontos (a.na@gmail.com é a ana@gmail.com). */
+export function emailCanonico(email) {
+  const e = String(email || '').replace(/[\u0000-\u001F\u007F­​-‍⁠﻿\s]/g, '').toLowerCase();
+  const i = e.lastIndexOf('@');
+  if (i < 1) return e;
+  const local = e.slice(0, i).split('+')[0];
+  const dominio = e.slice(i + 1);
+  if (dominio === 'gmail.com' || dominio === 'googlemail.com') return `${local.replace(/\./g, '')}@gmail.com`;
+  return `${local}@${dominio}`;
+}
+
 /* O resumo do email de um cliente (para o «um por cliente», sem guardar o email). */
 export async function resumoDoEmail(email) {
-  const dados = new TextEncoder().encode(`lfmobile-cupao:${String(email || '').trim().toLowerCase()}`);
+  const dados = new TextEncoder().encode(`lfmobile-cupao:${emailCanonico(email)}`);
   const h = await crypto.subtle.digest('SHA-256', dados);
   return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
 }
@@ -125,13 +137,29 @@ export async function porQueNaoVale(env, r, { hoje = hojeLisboa(), artigos_cents
   return null;
 }
 
-/* Conta um uso (a encomenda ficou registada ou paga). Lê e escreve: ver a nota do topo. */
+/* Conta um uso: logo que a encomenda fica registada, também em modo «online» (é uma reserva: antes,
+   só contava quando o pagamento entrava, e um cupão de um uso servia a várias encomendas abertas ao
+   mesmo tempo). Lê e escreve: ver a nota do topo (dois pedidos no MESMO instante ainda passam os
+   dois; fechar isso de todo pede um Durable Object). */
 export async function contarUso(env, codigo, email, id) {
   const c = normalizarCodigo(codigo);
   if (!c) return;
   await env.ORDERS.put(chaveUsos(c), String((await usosDe(env, c)) + 1));
   const r = await lerCupao(env, c);
   if (r && r.porCliente && email) await env.ORDERS.put(`cupao-cliente:${c}:${await resumoDoEmail(email)}`, id || '1', { expirationTtl: TTL_ENCOMENDA });
+}
+
+/* Devolve o uso de uma encomenda que não se fez (o pagamento expirou ou falhou, ou o dono anulou-a):
+   o contador desce um, e a marca do «um por cliente» sai se for desta encomenda. */
+export async function libertarUso(env, codigo, email, id) {
+  const c = normalizarCodigo(codigo);
+  if (!c) return;
+  await env.ORDERS.put(chaveUsos(c), String(Math.max(0, (await usosDe(env, c)) - 1)));
+  if (email) {
+    const k = `cupao-cliente:${c}:${await resumoDoEmail(email)}`;
+    const de = await env.ORDERS.get(k);
+    if (de && (de === id || de === '1')) await env.ORDERS.delete(k);
+  }
 }
 
 /* ---------------------------------------------------------------- o painel */

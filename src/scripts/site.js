@@ -113,13 +113,28 @@
   if (estadoLoja && horario.length) {
     const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
     const agoraLisboa = () => {
-      const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Lisbon', weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).map((x) => [x.type, x.value]));
-      return { dia: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday), hora: `${p.hour}:${p.minute}` };
+      const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Lisbon', weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).map((x) => [x.type, x.value]));
+      return { dia: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(p.weekday), hora: `${p.hour}:${p.minute}`, data: Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day)) };
     };
-    const blocos = (d) => horario.filter((h) => h.dias.includes(d)).sort((a, b) => a.abre.localeCompare(b.abre));
+    /* Os feriados nacionais (o horário diz «Domingos e feriados: encerrado»): os de data fixa, a
+       Sexta-feira Santa e o Corpo de Deus (pela Páscoa). Sem isto, a 1 e a 8 de dezembro dizia «Loja aberta». */
+    const DIA_MS = 86400000;
+    const pascoa = (y) => {
+      const a = y % 19, b = Math.floor(y / 100), c = y % 100, d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+      const h = (19 * a + b - d - g + 15) % 30, i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+      return Date.UTC(y, Math.floor((h + l - 7 * m + 114) / 31) - 1, ((h + l - 7 * m + 114) % 31) + 1);
+    };
+    const feriado = (t) => {
+      const x = new Date(t);
+      const md = `${String(x.getUTCMonth() + 1).padStart(2, '0')}-${String(x.getUTCDate()).padStart(2, '0')}`;
+      if (['01-01', '04-25', '05-01', '06-10', '08-15', '10-05', '11-01', '12-01', '12-08', '12-25'].includes(md)) return true;
+      const p = pascoa(x.getUTCFullYear());
+      return t === p - 2 * DIA_MS || t === p + 60 * DIA_MS;
+    };
+    const blocos = (d, t) => (feriado(t) ? [] : horario.filter((h) => h.dias.includes(d)).sort((a, b) => a.abre.localeCompare(b.abre)));
     const pintar = () => {
-      const { dia, hora } = agoraLisboa();
-      const hoje = blocos(dia);
+      const { dia, hora, data } = agoraLisboa();
+      const hoje = blocos(dia, data);
       const aberto = hoje.find((h) => hora >= h.abre && hora < h.fecha);
       let texto;
       if (aberto) texto = `Loja aberta · fecha às ${aberto.fecha}`;
@@ -127,9 +142,9 @@
         const depois = hoje.find((h) => hora < h.abre);
         if (depois) texto = `Loja fechada · abre às ${depois.abre}`;
         else {
-          for (let i = 1; i <= 7; i++) {
+          for (let i = 1; i <= 8; i++) {
             const d = (dia + i) % 7;
-            const b = blocos(d)[0];
+            const b = blocos(d, data + i * DIA_MS)[0];
             if (b) { texto = `Loja fechada · abre ${i === 1 ? 'amanhã' : DIAS[d] === 'sábado' || DIAS[d] === 'domingo' ? `no ${DIAS[d]}` : `na ${DIAS[d]}`} às ${b.abre}`; break; }
           }
         }

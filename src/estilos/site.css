@@ -696,6 +696,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .rep__icone .icone { width: 24px; height: 24px; }
 .rep__texto { display: grid; gap: 2px; min-width: 0; }
 .rep__nome { font-weight: 800; letter-spacing: -.01em; }
+.rep__nivel { font-weight: 600; color: var(--tinta-2); }
 .rep__resumo { color: var(--tinta-3); font-size: .86rem; line-height: 1.35; }
 .rep__preco { font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right; }
 .rep__preco--orcamento { font-weight: 700; color: var(--verde); font-size: .88rem; white-space: normal; max-width: 9em; }

@@ -344,3 +344,33 @@ telemóvel são uma lista agrupada num painel só, com as linhas a começar depo
 640 px, cartões (dois por linha, e os quatro numa linha a partir dos 1000 px), que sobem um pouco ao
 passar o rato. Entram ao descer como o resto: no telemóvel o painel inteiro, no computador os cartões um
 a um. O rodapé começa no logótipo.
+
+### 13.10 O Renato, 11 nov: o modelo das películas, e «uma revisão geral… para o cliente não perder dinheiro»
+
+O modelo das películas era uma caixa com sugestões (`<datalist>`): chegando das reparações com o
+iPhone 16e, o Chrome só sugeria o que começa por «iPhone 16e». Passou a duas listas, como na capa (o
+modelo agrupado pela família, «Outro modelo (escrever)» no fim, «Outra marca» com o campo); as listas
+do site têm todas a mesma seta. Depois a revisão: dois revisores só de leitura (o caminho do
+dinheiro; o que as páginas dizem contra os dados), uma compra de ponta a ponta com o Worker no mesmo
+processo (envio, levantamento, cupão, preço mudado a meio), e as páginas todas a 320 e 390 px.
+Corrigido, cada coisa com um teste que falha no código antigo:
+- **O dinheiro:** a promoção agendada já se cobrava (o `promocaoDesde` contava em lado nenhum); o
+  webhook aceitava qualquer sessão da conta; os cupões de um uso usavam-se várias vezes (agora
+  reservam-se na encomenda e voltam se não se fizer); o cupão juntava-se às promoções e às campanhas;
+  os portes grátis de um cupão com categorias valiam para tudo, e acima dos 30 kg apagavam o «por
+  confirmar»; o máximo de 20 contornava-se com linhas repetidas; a resposta perdida fazia duas
+  encomendas; o 409 «os preços mudaram» não redesenhava (o catálogo em cache); o painel anulava uma
+  encomenda pendente sem fechar a página de pagamento; os metadados do KV mediam-se em caracteres.
+- **As páginas:** o ecrã das reparações diz se é compatível ou original; sem películas nos tablets e
+  relógios; a loja fechada nos feriados nacionais; a retoma arredonda ao cêntimo antes dos 5 €; o
+  topo da Retoma alargava a página; a ordenação da loja a 14,4 px no iPhone; sem `paymentAccepted` nem
+  a marca «LF Mobile» nos artigos dos outros; a categoria vazia fora do mapa; a privacidade diz EUA (o
+  KV não está na UE); a frase do Portal do Consumidor repetida; as consolas na pergunta das marcas; o
+  texto do pagamento (em online não há «pagar na loja ao levantar»).
+- **O painel:** a ficha da encomenda mostra o cupão; o fabricante incompleto diz a verdade (a ficha não
+  o mostra); um lembrete quando a promoção ainda não começou.
+
+Por decidir: os emails e o email do dono antes de abrir (hoje uma encomenda só fica no KV); o
+fabricante de cada artigo (Regulamento (UE) 2023/988); um Durable Object para os cupões com limite;
+o horário nocturno do `publicar.yml` quando houver domínio (as campanhas mudam à meia-noite).
+

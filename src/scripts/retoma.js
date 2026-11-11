@@ -44,7 +44,8 @@
       if (r.avaliar) avaliar = true;
       else if (r.fator < 1) { fator *= r.fator; descontos.push({ pergunta: q.texto, resposta: r.texto, fator: r.fator }); }
     }
-    let v = avaliar ? null : Math.floor((maximo * fator) / 5) * 5;
+    // ao cêntimo antes de descer aos 5 € (regras.mjs, valorDaRetoma): 400 × 0,95 × 0,75 dá 284,999… em vírgula flutuante
+    let v = avaliar ? null : Math.floor(Math.round(maximo * fator * 100) / 500) * 5;
     if (v !== null && v < D.minimo) { v = null; avaliar = true; }
     return { maximo, valor: v, avaliar, descontos };
   }

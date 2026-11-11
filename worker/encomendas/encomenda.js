@@ -142,12 +142,16 @@ export function metadadosDe(enc) {
     telefone: corte(c.telefone, 20),
     email: corte(c.email, 80),
   };
+  // o limite do KV é em BYTES: um nome com acentos, noutra escrita ou com emojis ocupa mais do que os
+  // caracteres que tem (a 1 018 bytes, uma encomenda ficava por gravar)
+  const bytes = (x) => new TextEncoder().encode(JSON.stringify(x)).length;
   const linhas = (enc.linhas || []).map((l) => [corte(l.nome, 50), l.qtd]);
   let m = { ...base, linhas };
-  while (JSON.stringify(m).length > 1000 && linhas.length) {
+  while (bytes(m) > 1000 && linhas.length) {
     linhas.pop();
     m = { ...base, linhas, mais: (enc.linhas || []).length - linhas.length };
   }
+  if (bytes(m) > 1000) m = { ...m, nome: corte(c.nome, 20), email: corte(c.email, 40) };
   return m;
 }
 

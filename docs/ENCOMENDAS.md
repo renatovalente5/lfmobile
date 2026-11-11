@@ -31,7 +31,8 @@ catálogo publicado leva o `modo`; o Worker lê-o de lá (`MODO` nas vars só o 
   "cliente": { "nome": "…", "email": "…", "telefone": "…", "nif": "123456789",
                "morada": "…", "codigoPostal": "0000-000", "localidade": "…", "notas": "…" },
   "termos": true,
-  "total_cents": 11980
+  "total_cents": 11980,
+  "pedido": "9f2c7a1b3d4e5f6a7b-1c2d3e4f"
 }
 ```
 
@@ -44,15 +45,25 @@ catálogo publicado leva o `modo`; o Worker lê-o de lá (`MODO` nas vars só o 
   postal, além da forma `0000-000`, tem de ser do continente (começa por 1 a 8): o site só envia
   para lá, e o Worker responde 400 com `campo: "codigoPostal"` e a frase a dizer isso.
 - `total_cents`: o que o site mostrou. É só para comparar: se o Worker chegar a outro total
-  (um preço mudou entretanto) responde 409 `{ erro: 'Os preços mudaram. Veja o carrinho outra vez.' }`
-  e o site redesenha.
+  (um preço mudou entretanto) responde 409 `{ erro: 'Os preços mudaram entretanto. Actualizámos o
+  carrinho: veja o total e envie outra vez.', campo: 'precos' }`; o carrinho vai buscar o catálogo
+  sem a cache do browser (o GitHub Pages guarda-o 10 minutos), confere o cupão outra vez e
+  redesenha o resumo com o total de agora.
+- `pedido` (opcional): a tentativa de encomenda — uma semente por separador e o resumo (FNV-1a) do
+  pedido, `[A-Za-z0-9_-]{16,80}`. A mesma tentativa duas vezes (a resposta perdeu-se e a pessoa
+  carregou outra vez) devolve a MESMA encomenda (`idem:<pedido>` no KV, 1 dia); outro carrinho ou
+  outros dados dão outro identificador, e outra encomenda.
 
 **O Worker refaz as contas** com o catálogo publicado (`SITE_URL/assets/catalogo.json`, sem
-cache mais de 60 s): o preço de cada artigo pela regra `precoDe` (acabada a promoção volta o
-preço normal), os acréscimos das escolhas, os portes (`portes.continente`, grátis a partir de
-`portes.gratisAPartirDe`, zero no levantamento). Recusa (400, `{ erro, campo? }`, frases em
-português para o site mostrar tal e qual): artigo que não existe ou não é `compravel`; artigo
-`enviavel: false` com entrega `continente` («só se levanta na loja»); quantidade fora de 1–20;
+cache mais de 60 s): o preço de cada artigo pela regra `precoDe` (a promoção só entre
+`promocaoDesde` e `promocaoAte` — antes de começar e depois de acabar, o preço normal; um preço
+anterior que não é maior do que o de venda não conta), os acréscimos das escolhas, os portes
+(`portes.continente`, grátis a partir de `portes.gratisAPartirDe`, zero no levantamento; acima do
+último escalão de peso ficam por confirmar, mesmo com os portes grátis ou um cupão de portes).
+Recusa (400, `{ erro, campo? }`, frases em português para o site mostrar tal e qual): artigo que
+não existe ou não é `compravel`; artigo `enviavel: false` com entrega `continente` («só se levanta
+na loja»); quantidade fora de 1–20 (por linha, e somada por artigo: três linhas iguais de 7 não
+passam);
 email inválido; telefone sem 9 a 15 algarismos; NIF com dígito de controlo errado; `termos`
 que não seja `true`; portes por definir (`null`) com entrega `continente` em modo «online» (em
 modo «encomenda» a encomenda segue com `portes_por_confirmar: true` e o email diz-o).
@@ -91,6 +102,19 @@ for de uma encomenda conhecida (índice `session:`).
 - `order:<id>` → a encomenda inteira (JSON abaixo), 400 dias.
 - `session:<id da Checkout Session>` → `<id>`, `pi:<PaymentIntent>` → `<id>` (modo «online»).
 - `evt:<id do evento Stripe>` → `1`, 30 dias (um webhook repetido não repete emails).
+- `idem:<pedido>` → a resposta do `/checkout` dessa tentativa, 1 dia (a tentativa repetida).
+
+**Os eventos da Stripe só mexem na encomenda se forem dela** (`eventoNaoBate`): a sessão é a que este
+Worker abriu (`stripe.session_id`) e, nos de pagamento, `amount_total` e `currency` são os da
+encomenda; o PaymentIntent leva `metadata.encomenda` dela (e é o guardado, quando o há); a cobrança
+é desse PaymentIntent. Os outros (um Payment Link da loja com `client_reference_id=LF-…`, por
+exemplo) ficam no histórico como «Evento da Stripe ignorado» e não mudam nada. Em modo «online»,
+sem `STRIPE_WEBHOOK_SECRET`, o `/checkout` responde 503 (a Stripe cobrava e ninguém sabia). Um
+pagamento que chega com a encomenda já anulada, ou marcada paga à mão, não a muda: fica no
+histórico e o dono recebe «Pagamento recebido numa encomenda …» (aviso `paga-fora`), para conferir
+e, se for o caso, reembolsar. Quando o dono tira uma encomenda de «pendente» no painel, a página de
+pagamento fecha-se (`/checkout/sessions/<id>/expire`; se já tem referência Multibanco, cancela-se o
+PaymentIntent), e fica dito no histórico.
 
 Os ids: `LF-AAAAMMDD-XXXXXX` (6 caracteres de `23456789ABCDEFGHJKLMNPQRSTUVWXYZ`, sem 0/O/1/I):
 ordenam por data no `list({ prefix: 'order:' })` e dizem-se ao telefone. A chave: 20 caracteres
@@ -244,9 +268,18 @@ emails, no painel e na página da Stripe.
   (`GET /encomenda`) mostra `cupao` e `desconto_cents`.
 - Em modo «online», a Stripe recebe um cupão de uso único com o valor calculado (`POST /coupons`
   `amount_off`, `max_redemptions: 1`, `name: "Cupão <CÓDIGO>"`) e a sessão leva `discounts: [{ coupon }]`.
-- Os usos contam-se quando a encomenda fica registada (modo «encomenda») ou paga (webhook, uma vez:
-  `cupao_contado`). O KV não tem escrita condicional: dois pedidos ao mesmo tempo podem passar um uso
-  acima do limite.
+- **Os descontos não se juntam** (como diz a página da campanha): o cupão desconta só os artigos que
+  não estão em promoção nem numa campanha. O de portes grátis, com categorias, só vale quando a
+  encomenda é toda delas. Um cupão que não dá nada nesta encomenda (só artigos em promoção; portes
+  grátis num levantamento ou com os portes já grátis): o `/checkout` recusa-o com `campo: "cupao"`, e o
+  carrinho, que faz a mesma conta, já não o manda (diz porquê ao lado do cupão) — o uso não se gasta.
+- **Os usos reservam-se quando a encomenda fica registada, nos dois modos** (antes, em «online», só
+  quando o pagamento entrava: um cupão de um uso servia a várias encomendas abertas). Voltam
+  (`libertarUso`, `cupao_contado: false`) quando o pagamento expira ou falha (webhook) e quando o dono
+  anula a encomenda no painel; uma encomenda paga depois disso conta outra vez. O «um por cliente»
+  confere o email como pessoa (`emailCanonico`: sem invisíveis nem maiúsculas, sem o `+etiqueta`, no
+  Gmail sem os pontos). O KV não tem escrita condicional: dois pedidos no MESMO instante ainda podem
+  passar um uso acima do limite (fechar isso de todo pede um Durable Object).
 - O painel: `GET /painel/cupoes` → `{ cupoes: [regra + usos + descricao] }`; `PUT /painel/cupoes/<CÓDIGO>`
   com a regra (400 `{ erro, campo }` quando não presta; as categorias conferem-se com o catálogo);
   `DELETE /painel/cupoes/<CÓDIGO>`.

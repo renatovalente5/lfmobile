@@ -58,7 +58,7 @@ async function pendente(extra = {}) {
   env.ORDERS.escritas = 0;
   return { env, encomenda, ler: async () => JSON.parse(await env.ORDERS.get(`order:${encomenda}`)) };
 }
-const sessaoPaga = (encomenda, id = 'evt_pago') => ({ id, type: 'checkout.session.completed', data: { object: { id: 'cs_test_a1b2c3d4e5f6', object: 'checkout.session', payment_status: 'paid', payment_intent: 'pi_1', amount_total: 11980, payment_method_types: ['card'], client_reference_id: encomenda, metadata: { encomenda } } } });
+const sessaoPaga = (encomenda, id = 'evt_pago') => ({ id, type: 'checkout.session.completed', data: { object: { id: 'cs_test_a1b2c3d4e5f6', object: 'checkout.session', payment_status: 'paid', payment_intent: 'pi_1', amount_total: 11980, currency: 'eur', payment_method_types: ['card'], client_reference_id: encomenda, metadata: { encomenda } } } });
 
 test('o webhook: a sessão paga marca «paga», avisa o cliente e o dono uma vez, e o evento repetido não repete nada', async () => {
   const { env, encomenda, ler } = await pendente();
@@ -116,7 +116,7 @@ test('o webhook: Multibanco — a sessão fica «pendente», a referência chega
   assert.match(emails[0].html, /123 456 789/);
   // Pagou: async_payment_succeeded → paga.
   rede.chamadas.length = 0;
-  const pagou = { id: 'evt_mb_3', type: 'checkout.session.async_payment_succeeded', data: { object: { id: 'cs_test_a1b2c3d4e5f6', object: 'checkout.session', payment_status: 'paid', payment_intent: 'pi_mb', payment_method_types: ['multibanco'], metadata: { encomenda } } } };
+  const pagou = { id: 'evt_mb_3', type: 'checkout.session.async_payment_succeeded', data: { object: { id: 'cs_test_a1b2c3d4e5f6', object: 'checkout.session', payment_status: 'paid', payment_intent: 'pi_mb', amount_total: 11980, currency: 'eur', payment_method_types: ['multibanco'], metadata: { encomenda } } } };
   assert.equal((await webhook(env, pagou)).status, 200);
   enc = await ler();
   assert.equal(enc.estado, 'paga');
@@ -204,12 +204,22 @@ test('o webhook: com o Resend em baixo responde 500 (a Stripe reentrega) e o est
 });
 
 test('aplicarEvento: um estado do painel nunca recua por um evento atrasado', () => {
-  const base = () => ({ encomenda: 'LF-20261108-ABCDEF', estado: 'pronta', entrega: 'levantamento', total_cents: 100, historico: [], stripe: { session_id: 'cs_1' } });
+  // paga pela Stripe, e depois «pronta» no painel: um evento atrasado não a faz recuar
+  const base = () => ({ encomenda: 'LF-20261108-ABCDEF', estado: 'pronta', entrega: 'levantamento', total_cents: 100, historico: [], stripe: { session_id: 'cs_1', pago_em: '2026-11-08T10:00:00.000Z' } });
   for (const type of ['checkout.session.completed', 'checkout.session.async_payment_succeeded']) {
     const enc = base();
     const { avisos } = aplicarEvento(enc, { type, data: { object: { id: 'cs_1', payment_status: 'paid' } } });
     assert.equal(enc.estado, 'pronta', type);
     assert.deepEqual(avisos, ['paga'], 'o aviso pede-se na mesma: a marca decide se já foi');
+  }
+  // anulada, ou marcada paga à mão, sem a Stripe ter recebido antes: o pagamento chega fora de
+  // tempo — só o dono é avisado (reembolsar?), e fica no histórico; o estado não muda
+  for (const estado of ['anulada', 'paga']) {
+    const enc = { ...base(), estado, stripe: { session_id: 'cs_1' } };
+    const { avisos } = aplicarEvento(enc, { type: 'checkout.session.completed', data: { object: { id: 'cs_1', payment_status: 'paid' } } });
+    assert.equal(enc.estado, estado);
+    assert.deepEqual(avisos, ['paga-fora'], estado);
+    assert.match(enc.historico.at(-1).nota, /A Stripe recebeu 1,00 € com a encomenda «(anulada|paga)»: confirme na Stripe e, se não segue, reembolse\./);
   }
   for (const type of ['checkout.session.expired', 'checkout.session.async_payment_failed']) {
     const enc = base();

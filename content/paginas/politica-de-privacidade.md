@@ -19,7 +19,7 @@ Quando faz uma encomenda no site, tratamos o nome, o email, o telemóvel, a mora
 - registar, confirmar, preparar e entregar a encomenda, e emitir a factura (fundamento: execução de um contrato e obrigação legal);
 - tratar de uma garantia, de uma desistência ou de uma reclamação (fundamento: obrigação legal).
 
-Esses dados ficam no servidor das encomendas, na Cloudflare, dentro da União Europeia. Quando usa um cupão que só vale uma vez por cliente, guardamos também um código feito a partir do seu email (e não o email), para saber que já foi usado. {{privacidade.pagamento}}
+Esses dados ficam no servidor das encomendas, na Cloudflare (nos EUA, com as garantias que o quadro mais abaixo indica). Quando usa um cupão que só vale uma vez por cliente, guardamos também um código feito a partir do seu email (e não o email), para saber que já foi usado. {{privacidade.pagamento}}
 
 ## O que tratamos quando nos contacta
 

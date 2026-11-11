@@ -20,7 +20,7 @@ Na maioria das reparações não, mas pode acontecer. Faça sempre uma cópia de
 
 ## Que marcas reparam?
 
-Todas: iPhone, Samsung, Xiaomi, Huawei, OPPO, Google e as outras, e também tablets e relógios. No site está o preço de cada modelo; se o seu não estiver, pergunte-nos pelo WhatsApp. As películas servem qualquer telemóvel.
+Todas: iPhone, Samsung, Xiaomi, Huawei, OPPO, Google e as outras, e também tablets, relógios e consolas PlayStation. No site está o preço de cada modelo; se o seu não estiver, pergunte-nos pelo WhatsApp. As películas servem qualquer telemóvel.
 
 ## As reparações têm garantia?
 

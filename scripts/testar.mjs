@@ -20,6 +20,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import * as R from '../src/lib/regras.mjs';
+import { precoDe as precoDoWorker } from '../worker/encomendas/contas.js';
 import { markdown, euros, hojeEmLisboa } from '../src/templates/util.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -154,12 +155,36 @@ for (const f of ['src/scripts/site.js', 'src/scripts/carrinho.js', 'src/scripts/
     assert.equal(r.status, 0, r.stderr);
   });
 }
-teste('o carrinho usa a mesma regra de preço das regras (precoDe copiada) e a chave de armazenamento prometida na política de cookies', () => {
+teste('o carrinho e o Worker usam a mesma regra de preço das regras (precoDe), e a chave de armazenamento prometida na política de cookies', () => {
   const js = fs.readFileSync(path.join(RAIZ, 'src/scripts/carrinho.js'), 'utf8');
   assert.match(js, /const CHAVE = 'lfmobile:carrinho'/);
   assert.match(fs.readFileSync(path.join(RAIZ, 'content/paginas/politica-de-cookies.md'), 'utf8'), /lfmobile:carrinho/);
-  assert.match(js, /p\.precoAnterior > p\.preco && \(!p\.promocaoAte \|\| hoje <= p\.promocaoAte\)/);
+  // a função do carrinho, tirada do ficheiro e corrida aqui, contra a das regras e a do Worker, numa tabela de casos
+  const doCarrinho = new Function(`${js.match(/function precoDe\(p, hoje\) \{[\s\S]*?\n  \}/)[0]}; return precoDe;`)();
+  const casos = [
+    [{ preco: 40, precoAnterior: 60, promocaoDesde: '2026-11-27', promocaoAte: '2026-11-30' }, ['2026-11-11', '2026-11-27', '2026-11-30', '2026-12-01']],
+    [{ preco: 45, precoAnterior: 55, promocaoAte: '2026-10-31' }, ['2026-10-31', '2026-11-11']],
+    [{ preco: 60, precoAnterior: 55, promocaoAte: '2026-10-31' }, ['2026-11-11']],
+    [{ preco: 45, precoAnterior: 55 }, ['2026-11-11']],
+    [{ preco: 9.9 }, ['2026-11-11']],
+    [{ preco: null }, ['2026-11-11']],
+  ];
+  for (const [p, dias] of casos) {
+    for (const d of dias) {
+      const r = R.precoDe(p, d);
+      assert.deepEqual(doCarrinho(p, d), { atual: r.atual, anterior: r.anterior }, `carrinho ${JSON.stringify(p)} ${d}`);
+      assert.deepEqual(precoDoWorker(p, d), { atual: r.atual, anterior: r.anterior }, `Worker ${JSON.stringify(p)} ${d}`);
+    }
+  }
+  assert.deepEqual(R.precoDe(casos[0][0], '2026-11-11'), { atual: 60, anterior: null, ate: '' }, 'uma promoção agendada ainda não vale');
+  assert.deepEqual(R.precoDe(casos[2][0], '2026-11-11'), { atual: 60, anterior: null, ate: '' }, 'um preço anterior esquecido, mais baixo, não manda');
   assert.doesNotMatch(js, /obriga[çc][ãa]o de pagar/i);
+});
+teste('a retoma desce aos 5 € depois de arredondar ao cêntimo (400 × 0,95 × 0,75 = 285 €, não 280 €)', () => {
+  const r = { valores: { x: { 256: 400 } }, perguntas: [{ id: 'a', respostas: [{ fator: 1 }, { fator: 0.95, texto: 'riscos' }] }, { id: 'b', respostas: [{ fator: 1 }, { fator: 0.75, texto: 'bateria' }] }], minimo: 10 };
+  assert.equal(R.valorDaRetoma(r, 'x', 256, { a: 1, b: 1 }).valor, 285);
+  const js = fs.readFileSync(path.join(RAIZ, 'src/scripts/retoma.js'), 'utf8');
+  assert.match(js, /Math\.floor\(Math\.round\(maximo \* fator \* 100\) \/ 500\) \* 5/, 'o simulador faz a mesma conta');
 });
 
 // ---------------------------------------------------------------- construções numa cópia
@@ -383,6 +408,38 @@ teste('as estrelas seguem a nota do Google (4,6 → 4,6 estrelas), e sem a liga�
   const g2 = fs.readFileSync(path.join(pasta2, '_site/index.html'), 'utf8').match(/<section class="garantias"[\s\S]*?<\/section>/)[0];
   assert.doesNotMatch(g2, /no Google|estrelas/);
   assert.match(g2, /<strong class="garantia__titulo">Orçamento grátis<\/strong>/);
+});
+teste('a revisão de 11 nov: a promoção agendada ainda não se mostra, as películas só nos telemóveis, a peça do ecrã na linha, e as categorias vazias fora do mapa', () => {
+  const amanha2 = (() => { const x = new Date(`${hojeEmLisboa()}T12:00:00Z`); x.setUTCDate(x.getUTCDate() + 14); return x.toISOString().slice(0, 10); })();
+  const pasta = copia('revisao', (p) => {
+    json(p, 'content/produtos/fones-p9.json', (a) => { a.precoAnterior = a.preco; a.preco = Math.round(a.preco * 80) / 100; a.promocaoDesde = amanha2; a.promocaoAte = amanha2; });
+    json(p, 'content/aparelhos.json', (a) => {
+      a.familias.push({ id: 'ipad', marca: 'apple', nome: 'iPad', tipo: 'tablet' });
+      a.modelos.push({ id: 'ipad-air-teste', nome: 'iPad Air Teste', familia: 'ipad', ano: 2024, desenho: 'tablet' });
+    });
+    json(p, 'content/reparacoes.json', (r) => { r.precos['iphone-13'].ecra = { compativel: 129.9 }; });
+    json(p, 'content/categorias.json', (cs) => { cs.push({ slug: 'vazia', nome: 'Vazia', titulo: 'Categoria vazia', resumo: 'Ainda sem artigos.' }); });
+  });
+  assert.equal(construir(pasta).codigo, 0);
+  const ler2 = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  // a promoção começa daqui a duas semanas: a ficha mostra o preço normal, sem riscado nem nota, e o
+  // catálogo leva a data de início (o carrinho e o Worker também esperam por ela)
+  const ficha = ler2('produtos/fones-p9/index.html');
+  const p9 = JSON.parse(ler2('assets/catalogo.json')).produtos['fones-p9'];
+  assert.equal(p9.promocaoDesde, amanha2);
+  assert.doesNotMatch(ficha, /preco__promocao|<s\b|<del\b/, 'nada de preço riscado antes de começar');
+  assert.match(ficha, new RegExp(euros(p9.precoAnterior).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), 'o preço normal');
+  // as películas são para telemóveis: a página do iPad não as sugere, a do iPhone sim
+  assert.doesNotMatch(ler2('reparacoes/ipad-air-teste/index.html'), /modelo-peliculas/);
+  assert.match(ler2('reparacoes/iphone-13/index.html'), /modelo-peliculas/);
+  // o ecrã com um nível só (o compatível): a linha diz qual é
+  assert.match(ler2('reparacoes/iphone-13/index.html'), /<span class="rep__nome">Substituição do ecrã <span class="rep__nivel">\(compatível\)<\/span><\/span>/);
+  assert.match(ler2('reparacoes/index.html'), /Ecrã compatível ou original, conforme o modelo/);
+  // o mapa do site: as categorias com artigos sim, a vazia não (a página existe na mesma)
+  const mapa = ler2('sitemap.xml');
+  assert.doesNotMatch(mapa, /\/loja\/vazia\//);
+  assert.ok(fs.existsSync(path.join(pasta, '_site/loja/vazia/index.html')));
+  assert.match(mapa, /\/loja\/audio\//);
 });
 teste('as consolas: a PlayStation tem os problemas dela (não os dos telemóveis), diz-se «da PlayStation», sem películas, e a procura acha «ps5»', () => {
   const pasta = copia('consolas', (p) => {

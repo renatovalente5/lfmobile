@@ -22,13 +22,15 @@ export const centimos = (v) => Math.round(v * 100);
    ainda vale: o Worker corre em UTC, e à meia-noite de Lisboa a promoção acaba em Lisboa. */
 export const hojeLisboa = (d = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Lisbon', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 
-/* O preço que vale hoje (regras.mjs, precoDe): acabada a promoção, volta o preço normal. */
+/* O preço que vale hoje (regras.mjs, precoDe): a promoção só entre «promocaoDesde» e «promocaoAte»
+   (os dois incluídos; antes de começar e depois de acabar vale o preço normal), e o preço anterior
+   só conta se for maior do que o de venda (um anterior esquecido, mais baixo, não manda no preço). */
 export function precoDe(p, hoje) {
   if (typeof p.preco !== 'number') return { atual: null, anterior: null };
-  const emPromocao = Boolean(p.precoAnterior) && p.precoAnterior > p.preco && (!p.promocaoAte || hoje <= p.promocaoAte);
-  if (emPromocao) return { atual: p.preco, anterior: p.precoAnterior };
-  if (p.precoAnterior && p.promocaoAte && hoje > p.promocaoAte) return { atual: p.precoAnterior, anterior: null };
-  return { atual: p.preco, anterior: null };
+  const normal = typeof p.precoAnterior === 'number' && p.precoAnterior > p.preco ? p.precoAnterior : null;
+  if (normal === null) return { atual: p.preco, anterior: null };
+  const foraDoPrazo = (p.promocaoDesde && hoje < p.promocaoDesde) || (p.promocaoAte && hoje > p.promocaoAte);
+  return foraDoPrazo ? { atual: normal, anterior: null } : { atual: p.preco, anterior: normal };
 }
 
 /* As escolhas de uma linha (carrinho.js, escolhasDe): o valor escolhido em cada grupo, ou o
@@ -82,16 +84,22 @@ export function contas(cat, linhas, zona, hoje = hojeLisboa(), { cupao = null } 
   // as categorias de cada linha para o cupão: a do artigo e as de marca do catálogo (Apple, Samsung),
   // à parte das linhas (a forma da encomenda gravada não muda)
   const categoriasDasLinhas = [];
+  const emPromocaoDasLinhas = [];
+  const qtdPorArtigo = new Map();
   let artigos_cents = 0;
   let peso = 0;
   for (const l of linhas) {
     if (!l || typeof l !== 'object' || typeof l.produto !== 'string') throw new ErroDoPedido('Um artigo do carrinho não se reconhece. Veja o carrinho outra vez.');
     const p = Object.prototype.hasOwnProperty.call(cat.produtos || {}, l.produto) ? cat.produtos[l.produto] : null;
     if (!p) throw new ErroDoPedido('Um artigo do carrinho já não está à venda. Tire-o do carrinho para continuar.');
-    const base = precoDe(p, hoje).atual;
+    const preco = precoDe(p, hoje);
+    const base = preco.atual;
     if (!p.compravel || base === null) throw new ErroDoPedido(`«${nomeDe(p)}» já não está disponível. Tire-o do carrinho para continuar.`);
     if (envio && p.enviavel === false) throw new ErroDoPedido(`«${nomeDe(p)}» só se levanta na loja: escolha o levantamento ou tire-o do carrinho.`, { campo: 'entrega' });
     if (!Number.isInteger(l.qtd) || l.qtd < 1 || l.qtd > MAX_QTD) throw new ErroDoPedido(`A quantidade de cada artigo vai de 1 a ${MAX_QTD}.`);
+    // o máximo é por artigo, e não por linha: três linhas iguais de 20 não fazem 60
+    qtdPorArtigo.set(l.produto, (qtdPorArtigo.get(l.produto) || 0) + l.qtd);
+    if (qtdPorArtigo.get(l.produto) > MAX_QTD) throw new ErroDoPedido(`No máximo ${MAX_QTD} unidades de «${nomeDe(p)}» por encomenda.`);
     if (l.opcoes !== undefined && (!Array.isArray(l.opcoes) || !l.opcoes.every((x) => Number.isInteger(x) && x >= 0))) throw new ErroDoPedido('As escolhas de um artigo não se reconhecem. Veja o carrinho outra vez.');
     const escolhas = escolhasDe(p, l.opcoes);
     // O modelo do telemóvel: obrigatório nos artigos que o pedem (as películas); nos outros ignora-se.
@@ -102,6 +110,7 @@ export function contas(cat, linhas, zona, hoje = hojeLisboa(), { cupao = null } 
     artigos_cents += total_cents;
     peso += (typeof p.peso === 'number' && Number.isFinite(p.peso) && p.peso > 0 ? p.peso : 0.3) * l.qtd;
     categoriasDasLinhas.push(Array.isArray(p.categorias) && p.categorias.length ? p.categorias.filter((c) => typeof c === 'string') : [p.categoria || '']);
+    emPromocaoDasLinhas.push(preco.anterior !== null);
     saida.push({
       produto: l.produto,
       nome: p.nome,
@@ -114,37 +123,48 @@ export function contas(cat, linhas, zona, hoje = hojeLisboa(), { cupao = null } 
       total_cents,
     });
   }
-  // O desconto do cupão (cupoes.js, descontoDoCupao), sobre os artigos (ou só os das categorias dele).
-  const desc = cupao ? descontoDoCupao(cupao, saida.map((l, i) => ({ ...l, categorias: categoriasDasLinhas[i] })), artigos_cents) : { cents: 0, portes: false };
-  // Os portes (carrinho.js, contas): zero no levantamento; grátis a partir de X em artigos ou com o
-  // cupão de portes grátis; pelo peso da encomenda (o escalão da Nacex); por confirmar (null) quando
-  // não há escalão que a aguente, ou o dono ainda não os definiu.
+  // O desconto do cupão (descontoDoCupao), sobre os artigos (ou só os das categorias dele), fora os
+  // que já estão em promoção ou numa campanha: os descontos não se juntam.
+  const desc = cupao ? descontoDoCupao(cupao, saida.map((l, i) => ({ ...l, categorias: categoriasDasLinhas[i], emPromocao: emPromocaoDasLinhas[i] })), artigos_cents) : { cents: 0, portes: false };
+  // Os portes (carrinho.js, contas): zero no levantamento; pelo peso da encomenda (o escalão da
+  // Nacex); por confirmar (null) quando não há escalão que a aguente, ou o dono ainda não os definiu
+  // — e então nem os portes grátis nem o cupão os apagam (uma encomenda de 80 kg não segue grátis);
+  // grátis a partir de X em artigos, ou com o cupão de portes grátis.
   let portes_cents = 0;
   let portes_por_confirmar = false;
   let escalao = null;
+  let portesSemCupao = 0;
   if (envio) {
     const gratis = (cat.portes || {}).gratisAPartirDe;
     escalao = escalaoDoPeso(peso, (cat.portes || {})[zona.id]);
-    if (desc.portes || (typeof gratis === 'number' && artigos_cents >= centimos(gratis))) portes_cents = 0;
-    else if (escalao) portes_cents = centimos(escalao.preco);
-    else portes_por_confirmar = true;
+    if (!escalao) portes_por_confirmar = true;
+    else {
+      portesSemCupao = typeof gratis === 'number' && artigos_cents >= centimos(gratis) ? 0 : centimos(escalao.preco);
+      portes_cents = desc.portes ? 0 : portesSemCupao;
+    }
   }
+  // Um cupão que não dá nada nesta encomenda (nenhum artigo dele fora de promoção; portes grátis num
+  // levantamento, ou com os portes já grátis): o /checkout recusa-o, para não se gastar um uso.
+  const cupaoSemEfeito = Boolean(cupao) && desc.cents === 0 && !(desc.portes && portesSemCupao > 0);
   const peso_kg = Math.round(peso * 1000) / 1000;
   return {
-    linhas: saida, artigos_cents, desconto_cents: desc.cents, ...(cupao ? { cupao: cupao.codigo, cupao_portes: desc.portes } : {}),
+    linhas: saida, artigos_cents, desconto_cents: desc.cents, ...(cupao ? { cupao: cupao.codigo, cupao_portes: desc.portes && portesSemCupao > 0, cupao_sem_efeito: cupaoSemEfeito } : {}),
     peso_kg, escalao_kg: escalao && Number.isFinite(escalao.ate) ? escalao.ate : null,
     portes_cents, portes_por_confirmar, total_cents: artigos_cents - desc.cents + portes_cents,
   };
 }
 
 /* O DESCONTO DE UM CUPÃO (a mesma conta do carrinho, carrinho.js, descontoDo): em cêntimos, sobre os
-   artigos (ou só os das categorias do cupão); a percentagem arredonda ao cêntimo; o valor fixo
-   nunca passa dos artigos a que se aplica; o de portes grátis tira os portes (desconto zero nos
-   artigos). → { cents, portes } */
+   artigos das categorias do cupão (todos, sem categorias) que NÃO estão em promoção nem numa
+   campanha — os descontos não se juntam, como diz a página da campanha; a percentagem arredonda ao
+   cêntimo; o valor fixo nunca passa dos artigos a que se aplica. O de portes grátis tira os portes
+   (desconto zero nos artigos); com categorias, só quando a encomenda é toda delas (um cupão de
+   portes grátis nas películas não manda grátis um telemóvel). → { cents, portes } */
 export function descontoDoCupao(regra, linhas, artigos_cents) {
   const cats = Array.isArray(regra.categorias) ? regra.categorias : [];
-  const base = linhas.filter((l) => !cats.length || (Array.isArray(l.categorias) ? l.categorias : [l.categoria]).some((c) => cats.includes(c))).reduce((s, l) => s + l.total_cents, 0);
-  if (regra.tipo === 'portes') return { cents: 0, portes: true };
+  const daCategoria = (l) => !cats.length || (Array.isArray(l.categorias) ? l.categorias : [l.categoria]).some((c) => cats.includes(c));
+  if (regra.tipo === 'portes') return { cents: 0, portes: linhas.length > 0 && linhas.every(daCategoria) };
+  const base = linhas.filter((l) => daCategoria(l) && !l.emPromocao).reduce((s, l) => s + l.total_cents, 0);
   if (regra.tipo === 'percentagem') return { cents: Math.round((base * regra.valor) / 100), portes: false };
   if (regra.tipo === 'valor') return { cents: Math.min(centimos(regra.valor), base), portes: false };
   void artigos_cents;

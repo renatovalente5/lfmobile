@@ -118,7 +118,7 @@ export function reparacoes(ctx) {
       <p class="rep-capa__sub">Telemóveis de todas as marcas, tablets, relógios e consolas PlayStation. Escolha o seu modelo e veja quanto custa. Diagnóstico e orçamento grátis, na loja ou pelo WhatsApp.</p>
       <ul class="rep-capa__pontos">
         <li>${icones.certo}Orçamento grátis e sem compromisso</li>
-        <li>${icones.certo}Ecrã compatível ou original, à escolha</li>
+        <li>${icones.certo}Ecrã compatível ou original, conforme o modelo</li>
         <li>${icones.certo}Na loja, em ${esc(ctx.site.local.localidade)}</li>
       </ul>
     </div>
@@ -182,11 +182,14 @@ export function modelo(ctx, x) {
   const lista = reps.map((r) => {
     const niveisComPreco = r.niveis.filter((n) => n.preco !== null);
     const escolherNivel = r.niveis.length > 1 && niveisComPreco.length > 1;
+    /* Com um nível só com preço (o ecrã compatível, na maioria dos modelos), a linha diz qual é: o preço
+       de um ecrã não diz nada sem a peça (revisão de 11 nov 2026: só o resumo, depois de marcar, o dizia). */
+    const nivelUnico = !escolherNivel && r.niveis.length > 1 && niveisComPreco.length === 1 ? niveisComPreco[0].nome : '';
     return `<div class="rep" id="${esc(r.id)}" data-rep="${esc(r.id)}" data-nome="${esc(r.nome)}">
       <label class="rep__cabeca">
         <input type="checkbox" name="reparacao" value="${esc(r.id)}" data-preco="${r.preco ?? ''}" data-gratis="${r.gratis ? 'sim' : ''}"${!escolherNivel && r.niveis.length > 1 && niveisComPreco.length === 1 ? ` data-nivel="${esc(niveisComPreco[0].nome)}"` : ''}>
         <span class="rep__icone">${iconeReparacao(r.icone)}</span>
-        <span class="rep__texto"><span class="rep__nome">${esc(r.titulo)}</span><span class="rep__resumo">${esc(r.resumo)}</span></span>
+        <span class="rep__texto"><span class="rep__nome">${esc(r.titulo)}${nivelUnico ? ` <span class="rep__nivel">(${esc(nivelUnico.replace(/^ecrã\s+/i, ''))})</span>` : ''}</span><span class="rep__resumo">${esc(r.resumo)}</span></span>
         <span class="rep__preco${r.preco === null && !r.gratis ? ' rep__preco--orcamento' : ''}">${esc(precoDaReparacao(r))}</span>
         <span class="rep__marca" aria-hidden="true">${icones.certo}</span>
       </label>
@@ -200,7 +203,8 @@ export function modelo(ctx, x) {
       </fieldset>` : ''}
     </div>`;
   }).join('\n');
-  const peliculas = x.tipo === 'consola' ? [] : ctx.produtos.filter((p) => p.categoria === 'peliculas' && p.pedeModelo === true).slice(0, 4);
+  // as películas são para telemóveis («para qualquer telemóvel»): nem os tablets, nem os relógios, nem as consolas
+  const peliculas = x.tipo !== 'telemovel' ? [] : ctx.produtos.filter((p) => p.categoria === 'peliculas' && p.pedeModelo === true).slice(0, 4);
   const irmaos = modelosDaFamilia(ctx, f.id).filter((y) => y.id !== x.id);
   const msgBase = `Olá! Quero marcar uma reparação.\n\nEquipamento: ${x.nome}`;
   const conteudo = `<div class="contentor modelo-pagina" data-modelo="${esc(x.id)}" data-nome-modelo="${esc(x.nome)}"${porConfirmar ? ' data-por-confirmar="sim"' : ''}>

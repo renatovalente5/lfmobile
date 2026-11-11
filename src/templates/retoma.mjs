@@ -34,6 +34,8 @@ export function formasDaRetoma(receber) {
 export function retoma(ctx) {
   const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: 'Retoma', caminho: '/retoma/' }]);
   const r = ctx.retoma;
+  // as formas de entregar (content/retoma.json): com o envio, a capa e a descrição dizem-no (diziam só «na loja»)
+  const porEnvio = (Array.isArray(r.entregar) ? r.entregar : []).some((t) => /envio/i.test(String(t)));
   const familias = ctx.aparelhos.familias.filter((f) => r.familias.includes(f.id));
   const modelos = ctx.aparelhos.modelos.filter((x) => r.familias.includes(x.familia));
   const marcas = ctx.aparelhos.marcas.filter((mm) => familias.some((f) => f.marca === mm.id));
@@ -59,7 +61,7 @@ export function retoma(ctx) {
     ${formas.length ? `<ul class="ret-capa__formas">${formas.map((f) => `<li>${f.icone}<span><strong>${esc(f.titulo)}</strong>${esc(f.texto)}</span></li>`).join('')}</ul>` : ''}
     <ol class="ret-capa__passos">
       <li><span>1</span>Simule aqui</li>
-      <li><span>2</span>Entregue na loja</li>
+      <li><span>2</span>${porEnvio ? 'Entregue na loja ou envie' : 'Entregue na loja'}</li>
       <li><span>3</span>Receba o valor</li>
     </ol>
   </div>
@@ -101,7 +103,7 @@ export function retoma(ctx) {
   return {
     caminho: '/retoma/',
     titulo: 'Retoma: quanto vale o seu iPhone ou Samsung?',
-    descricao: `Simule a retoma do seu iPhone ou Samsung Galaxy e veja o valor na hora. Entregue na loja da ${ctx.site.marca}, em ${ctx.site.local.localidade}, e receba o valor.`,
+    descricao: `Simule a retoma do seu iPhone ou Samsung Galaxy e veja o valor na hora. Entregue na loja da ${ctx.site.marca}, em ${ctx.site.local.localidade}${porEnvio ? ', ou envie-o,' : ''} e receba o valor.`,
     classe: 'pagina-retoma',
     jsonld: [m.ld],
     conteudo,

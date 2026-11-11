@@ -60,9 +60,13 @@
 
   let catalogoP = null;
   let catalogoPronto = null; // o catálogo já carregado: o envio usa-o sem esperar
-  function catalogo() {
+  /* `fresco`: sem a cache do browser (o GitHub Pages guarda-o 10 minutos) — depois de o Worker dizer
+     que os preços mudaram, para o carrinho redesenhar com os de agora. */
+  function catalogo({ fresco = false } = {}) {
+    if (fresco) catalogoP = null;
     if (!catalogoP) {
-      catalogoP = fetch(document.body.dataset.catalogo).then((r) => {
+      const url = document.body.dataset.catalogo;
+      catalogoP = fetch(fresco ? `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}` : url, fresco ? { cache: 'no-store' } : undefined).then((r) => {
         if (!r.ok) throw new Error(`catálogo ${r.status}`);
         return r.json();
       }).then((cat) => { catalogoPronto = cat; return cat; });
@@ -73,13 +77,15 @@
   const api = () => String(document.body.dataset.api || '').replace(/\/$/, '');
 
   // ---------------------------------------------------------------- contas
-  // A mesma regra do site (src/lib/regras.mjs, precoDe): acabada a promoção, volta o preço normal.
+  // A mesma regra do site (src/lib/regras.mjs, precoDe) e do Worker: a promoção só entre «promocaoDesde» e
+  // «promocaoAte» (antes de começar e depois de acabar, o preço normal); um preço anterior mais baixo do
+  // que o de venda não conta.
   function precoDe(p, hoje) {
     if (typeof p.preco !== 'number') return { atual: null, anterior: null };
-    const emPromocao = Boolean(p.precoAnterior) && p.precoAnterior > p.preco && (!p.promocaoAte || hoje <= p.promocaoAte);
-    if (emPromocao) return { atual: p.preco, anterior: p.precoAnterior };
-    if (p.precoAnterior && p.promocaoAte && hoje > p.promocaoAte) return { atual: p.precoAnterior, anterior: null };
-    return { atual: p.preco, anterior: null };
+    const normal = typeof p.precoAnterior === 'number' && p.precoAnterior > p.preco ? p.precoAnterior : null;
+    if (normal === null) return { atual: p.preco, anterior: null };
+    const foraDoPrazo = (p.promocaoDesde && hoje < p.promocaoDesde) || (p.promocaoAte && hoje > p.promocaoAte);
+    return foraDoPrazo ? { atual: normal, anterior: null } : { atual: p.preco, anterior: normal };
   }
   /* As escolhas de uma linha, com o valor escolhido em cada grupo (ou o primeiro sem acréscimo, se a
      escolha já não existe: o artigo mudou no painel). */
@@ -94,17 +100,22 @@
      null (mais pesada do que o último: combina-se). */
   const escaloes = (lista) => (Array.isArray(lista) ? lista.filter((e) => e && typeof e.ate === 'number' && typeof e.preco === 'number').sort((a, b) => a.ate - b.ate) : []);
   const escalaoDo = (peso, lista) => escaloes(lista).find((x) => peso <= x.ate + 1e-9) || null;
-  /* O desconto do cupão (a mesma conta do Worker, worker/encomendas/cupoes.js): sobre os artigos
-     (ou só os das categorias do cupão), em cêntimos; o de portes grátis tira os portes. → { cents,
-     portes: bool, falta: texto | '' } */
+  /* O desconto do cupão (a mesma conta do Worker, worker/encomendas/contas.js, descontoDoCupao): sobre
+     os artigos das categorias do cupão (todos, sem categorias) que não estão em promoção nem numa
+     campanha — os descontos não se juntam —, em cêntimos; o de portes grátis tira os portes, e com
+     categorias só quando a encomenda é toda delas. → { cents, portes: bool, falta: texto | '' } */
   function descontoDo(regra, validas, artigosCents) {
     if (!regra) return { cents: 0, portes: false, falta: '' };
     if (typeof regra.minimo === 'number' && artigosCents < emCentimos(regra.minimo)) return { cents: 0, portes: false, falta: `O cupão ${regra.codigo} é para compras a partir de ${euros(regra.minimo)}.` };
     const cats = Array.isArray(regra.categorias) ? regra.categorias : [];
     // a categoria do artigo e as de marca (Apple, Samsung), como o Worker
-    const base = validas.filter((d) => !cats.length || (Array.isArray(d.p.categorias) && d.p.categorias.length ? d.p.categorias : [d.p.categoria]).some((c) => cats.includes(c))).reduce((s, d) => s + d.totalCents, 0);
-    if (regra.tipo === 'portes') return { cents: 0, portes: true, falta: '' };
-    if (!base) return { cents: 0, portes: false, falta: `O cupão ${regra.codigo} não se aplica a estes artigos.` };
+    const daCategoria = (d) => !cats.length || (Array.isArray(d.p.categorias) && d.p.categorias.length ? d.p.categorias : [d.p.categoria]).some((c) => cats.includes(c));
+    if (regra.tipo === 'portes') {
+      const todas = validas.length > 0 && validas.every(daCategoria);
+      return { cents: 0, portes: todas, falta: todas ? '' : `O cupão ${regra.codigo} só dá portes grátis quando a encomenda é toda dos artigos dele.` };
+    }
+    const base = validas.filter((d) => daCategoria(d) && !d.emPromocao).reduce((s, d) => s + d.totalCents, 0);
+    if (!base) return { cents: 0, portes: false, falta: validas.some(daCategoria) ? `O cupão ${regra.codigo} não se junta a artigos em promoção.` : `O cupão ${regra.codigo} não se aplica a estes artigos.` };
     if (regra.tipo === 'percentagem') return { cents: Math.round((base * regra.valor) / 100), portes: false, falta: '' };
     if (regra.tipo === 'valor') return { cents: Math.min(emCentimos(regra.valor), base), portes: false, falta: '' };
     return { cents: 0, portes: false, falta: '' };
@@ -117,30 +128,43 @@
       const p = cat.produtos[l.produto];
       if (!p) return { linha: l, p: null, ok: false };
       const escolhas = escolhasDe(p, l);
-      const base = precoDe(p, hoje).atual;
+      const preco = precoDe(p, hoje);
+      const base = preco.atual;
       const unidadeCents = base === null ? null : emCentimos(base) + escolhas.reduce((s, x) => s + emCentimos(x.suplemento), 0);
       const totalCents = unidadeCents === null ? null : unidadeCents * l.qtd;
       const semModelo = p.pedeModelo && !l.modelo;
       const ok = Boolean(p.compravel) && unidadeCents !== null;
       if (ok) { artigosCents += totalCents; peso += (typeof p.peso === 'number' ? p.peso : 0.3) * l.qtd; }
-      return { linha: l, p, escolhas, unidadeCents, totalCents, ok, soLoja: p.enviavel === false, semModelo };
+      return { linha: l, p, escolhas, unidadeCents, totalCents, ok, soLoja: p.enviavel === false, semModelo, emPromocao: preco.anterior !== null };
     });
     const validas = detalhe.filter((d) => d.ok);
     const indisponiveis = detalhe.filter((d) => !d.ok);
     const soLoja = zona !== 'levantamento' ? validas.filter((d) => d.soLoja) : [];
-    const desc = descontoDo(estado.cupao && estado.cupao.regra, validas, artigosCents);
+    const regra = estado.cupao && estado.cupao.regra;
+    const desc = descontoDo(regra, validas, artigosCents);
+    // Os portes (o Worker faz a mesma conta): pelo peso (o escalão); acima do último, por combinar — e
+    // aí nem os portes grátis nem o cupão os apagam; grátis a partir de X, ou com o cupão.
     let portesCents = 0;
     let portesPorConfirmar = false;
     let escalao = null;
+    let portesSemCupao = 0;
     if (zona !== 'levantamento' && validas.length) {
       const gratis = (cat.portes || {}).gratisAPartirDe;
       escalao = escalaoDo(peso, (cat.portes || {})[zona]);
-      if (desc.portes || (typeof gratis === 'number' && artigosCents >= emCentimos(gratis))) portesCents = 0;
-      else if (escalao) portesCents = emCentimos(escalao.preco); else portesPorConfirmar = true;
+      if (!escalao) portesPorConfirmar = true;
+      else {
+        portesSemCupao = typeof gratis === 'number' && artigosCents >= emCentimos(gratis) ? 0 : emCentimos(escalao.preco);
+        portesCents = desc.portes ? 0 : portesSemCupao;
+      }
     }
+    // Um cupão que não dá nada nesta encomenda não vai no pedido (o Worker recusava-o, e o uso não se
+    // gasta): diz-se porquê ao lado do cupão.
+    const cupaoSemEfeito = Boolean(regra) && desc.cents === 0 && !(desc.portes && portesSemCupao > 0);
+    let falta = desc.falta;
+    if (regra && !falta && cupaoSemEfeito && regra.tipo === 'portes') falta = zona === 'levantamento' ? `O cupão ${regra.codigo} é de portes grátis: vale com o envio.` : portesPorConfirmar ? `O cupão ${regra.codigo} não se aplica: os portes desta encomenda combinam-se connosco.` : `Os portes já são grátis: o cupão ${regra.codigo} fica para outra vez.`;
     return {
-      detalhe, validas, indisponiveis, soLoja, peso, escalao,
-      artigosCents, descontoCents: desc.cents, portesGratisCupao: desc.portes, cupaoFalta: desc.falta,
+      detalhe, validas, indisponiveis, soLoja, peso, escalao, cupaoSemEfeito, cupaoPortes: desc.portes,
+      artigosCents, descontoCents: desc.cents, portesGratisCupao: desc.portes && portesSemCupao > 0, cupaoFalta: falta,
       portesCents, portesPorConfirmar, totalCents: artigosCents - desc.cents + portesCents,
       unidades: validas.reduce((s, d) => s + d.linha.qtd, 0),
     };
@@ -151,6 +175,11 @@
     if (c.indisponiveis.length) return `${c.indisponiveis[0].p ? `«${c.indisponiveis[0].p.nomeCurto}»` : 'Um artigo'} já não está disponível. Tire-o do carrinho para continuar.`;
     const sm = c.validas.find((d) => d.semModelo);
     if (sm) return `Falta dizer o modelo do telemóvel para «${sm.p.nomeCurto}». Tire-a do carrinho e junte-a outra vez, a partir da ficha.`;
+    // o máximo é por artigo (o Worker conta igual): várias linhas do mesmo artigo somam-se
+    const porArtigo = new Map();
+    c.validas.forEach((d) => porArtigo.set(d.linha.produto, (porArtigo.get(d.linha.produto) || 0) + d.linha.qtd));
+    const demais = c.validas.find((d) => porArtigo.get(d.linha.produto) > MAX_QTD);
+    if (demais) return `No máximo ${MAX_QTD} unidades de «${demais.p.nomeCurto}» por encomenda.`;
     if (c.soLoja.length) return `«${c.soLoja[0].p.nomeCurto}» só se levanta na loja: escolha o levantamento ou tire-o do carrinho.`;
     if (zona !== 'levantamento' && c.portesPorConfirmar && cat.modo === 'online') {
       const e = escaloes((cat.portes || {})[zona]);
@@ -239,9 +268,11 @@
       const z = s.dataset.precoZona;
       if (z === 'levantamento') { s.textContent = 'Grátis'; return; }
       const gratis = (cat.portes || {}).gratisAPartirDe;
-      if (c.validas.length && (c.portesGratisCupao || (typeof gratis === 'number' && c.artigosCents >= emCentimos(gratis)))) { s.textContent = 'Grátis'; return; }
       const e = escalaoDo(c.peso, (cat.portes || {})[z]);
-      s.textContent = e ? euros(e.preco) : (escaloes((cat.portes || {})[z]).length ? 'a combinar' : 'a confirmar');
+      // acima do último escalão combina-se, mesmo com os portes grátis (o Worker faz igual)
+      if (!e) { s.textContent = escaloes((cat.portes || {})[z]).length ? 'a combinar' : 'a confirmar'; return; }
+      if (c.validas.length && (c.cupaoPortes || (typeof gratis === 'number' && c.artigosCents >= emCentimos(gratis)))) { s.textContent = 'Grátis'; return; }
+      s.textContent = euros(e.preco);
     });
   }
   const rotuloSeguir = (cat) => (cat.modo === 'online' ? 'Finalizar e pagar' : 'Finalizar a encomenda');
@@ -289,6 +320,40 @@
       await guardar();
     } catch (_) { mostrar('Não conseguimos confirmar o cupão. Verifique a ligação e tente outra vez.', 'erro'); }
   }
+  /* O cupão outra vez (depois de os preços mudarem: o desconto ou o mínimo podem ser outros). Já não
+     vale: sai, e a frase do Worker fica ao lado do cupão. */
+  async function reconferirCupao() {
+    if (!estado.cupao || !api()) return;
+    try {
+      const cat = await catalogo();
+      const zona = zonaValida(cat);
+      const c = contas(cat, estado.linhas, zona);
+      const r = await fetch(`${api()}/cupao`, {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ codigo: estado.cupao.codigo, entrega: zona, linhas: c.validas.map((d) => ({ produto: d.linha.produto, opcoes: d.escolhas.map((x) => x.indice), qtd: d.linha.qtd })) }),
+      });
+      const j = await r.json().catch(() => ({}));
+      estado.cupao = r.ok && j.cupao ? { codigo: j.cupao.codigo, regra: j.cupao } : null;
+      try { localStorage.setItem(CHAVE, JSON.stringify(estado)); } catch (_) { /* sem armazenamento */ }
+    } catch (_) { /* sem rede: fica o que havia; o Worker confere no envio */ }
+  }
+  /* A tentativa de encomenda: o mesmo identificador enquanto o carrinho, a entrega e os dados não
+     mudam — se a resposta se perder e a pessoa carregar outra vez, o Worker devolve a MESMA
+     encomenda em vez de fazer outra. Uma semente por separador, que se renova depois de seguir. */
+  const SEMENTE = 'lfmobile-tentativa';
+  function idDaTentativa(pedido) {
+    let semente = '';
+    try { semente = sessionStorage.getItem(SEMENTE) || ''; } catch (_) { /* sem armazenamento */ }
+    if (!/^[0-9a-f]{18}$/.test(semente)) {
+      semente = Array.from(crypto.getRandomValues(new Uint8Array(9)), (b) => b.toString(16).padStart(2, '0')).join('');
+      try { sessionStorage.setItem(SEMENTE, semente); } catch (_) { /* sem armazenamento: uma por página */ }
+    }
+    let h = 0x811c9dc5; // FNV-1a do pedido
+    const s = JSON.stringify(pedido);
+    for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+    return `${semente}-${h.toString(16).padStart(8, '0')}`;
+  }
+  function novaTentativa() { try { sessionStorage.removeItem(SEMENTE); } catch (_) { /* sem armazenamento */ } }
   document.addEventListener('click', (e) => {
     const usar = e.target.closest('[data-cupao-usar]');
     if (usar) { usarCupao(usar.closest('[data-cupao]')); return; }
@@ -452,22 +517,25 @@
       botao.lastElementChild.textContent = cat.modo === 'online' ? 'A abrir o pagamento…' : 'A enviar…';
       let resposta = null;
       let ok = false;
+      const pedido = {
+        linhas: c.validas.map((d) => ({ produto: d.linha.produto, opcoes: d.escolhas.map((x) => x.indice), qtd: d.linha.qtd, ...(d.linha.modelo ? { modelo: d.linha.modelo } : {}) })),
+        entrega: zona,
+        // um cupão que não dá nada nesta encomenda não vai (o uso não se gasta): o carrinho já disse porquê
+        ...(estado.cupao && !c.cupaoSemEfeito ? { cupao: estado.cupao.codigo } : {}),
+        cliente,
+        termos: true,
+        total_cents: c.totalCents,
+      };
       try {
         const r = await fetch(`${api()}/checkout`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            linhas: c.validas.map((d) => ({ produto: d.linha.produto, opcoes: d.escolhas.map((x) => x.indice), qtd: d.linha.qtd, ...(d.linha.modelo ? { modelo: d.linha.modelo } : {}) })),
-            entrega: zona,
-            ...(estado.cupao ? { cupao: estado.cupao.codigo } : {}),
-            cliente,
-            termos: true,
-            total_cents: c.totalCents,
-          }),
+          body: JSON.stringify({ ...pedido, pedido: idDaTentativa(pedido) }),
         });
         resposta = await r.json().catch(() => ({}));
         ok = r.ok;
       } catch (_) { resposta = null; }
+      if (ok && resposta && (resposta.url || resposta.encomenda)) novaTentativa();
       if (ok && resposta && resposta.url) { location.href = resposta.url; return; } // a página segura da Stripe
       if (ok && resposta && resposta.encomenda) {
         await esvaziar();
@@ -478,6 +546,13 @@
       botao.lastElementChild.textContent = textoBotao;
       // um cupão que já não vale sai do carrinho, e a conta refaz-se
       if (resposta && resposta.campo === 'cupao') { estado.cupao = null; guardar(); }
+      // os preços mudaram entretanto (o catálogo que o browser guardou era o de antes): vai-se buscar o
+      // de agora, confere-se o cupão outra vez, e o resumo redesenha-se com o total certo
+      if (resposta && resposta.campo === 'precos') {
+        try { await catalogo({ fresco: true }); } catch (_) { /* fica o que havia; a frase diz para ver o total */ }
+        await reconferirCupao();
+        await desenharTudo();
+      }
       mostrarErro(resposta && typeof resposta.erro === 'string' && resposta.erro ? resposta.erro : 'Não conseguimos registar a encomenda. Tente outra vez ou fale connosco pelo WhatsApp.');
       if (resposta && resposta.campo && form.elements[resposta.campo]) { form.elements[resposta.campo].setAttribute('aria-invalid', 'true'); form.elements[resposta.campo].focus(); }
     });

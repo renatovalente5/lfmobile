@@ -103,7 +103,7 @@ export const CAMPOS_ARTIGO = Object.freeze([
 ]);
 /* A informação legal de cada artigo, toda opcional e só mostrada na ficha quando está
    preenchida: a referência e o fabricante (Regulamento (UE) 2023/988, art. 19.º: nome, morada e
-   email — vazio, a ficha diz os dados da loja) e os avisos de segurança (um por linha). E a data
+   email — incompleto, a ficha não o mostra) e os avisos de segurança (um por linha). E a data
    de início da promoção (DL 70/2007, art. 5.º: o período e o preço mais baixo dos 30 dias
    anteriores). */
 export const CAMPOS_FABRICANTE = Object.freeze(['nome', 'morada', 'email']);
@@ -269,16 +269,20 @@ export const eTelemovel = (v) => /^9[1236]\d{7}$/.test(numeroPortugues(v) ?? '')
 export const ligacaoExternaValida = (v) => typeof v === 'string' && v.length <= TAMANHOS.ligacao && /^https:\/\/[^\s"'<>]+$/.test(v);
 
 /* O preço que vale num dia («AAAA-MM-DD», em Lisboa). «preco» é o preço de venda
-   (o da promoção, quando há uma) e «precoAnterior» o normal. Acabada a promoção,
-   volta o preço normal. Sem preço (ainda por dizer), atual é null. A MESMA regra
-   está no carrinho do site (src/scripts/carrinho.js, precoDe) e no Worker dos
-   pagamentos: o site, o carrinho e a Stripe nunca discordam. */
+   (o da promoção, quando há uma) e «precoAnterior» o normal. A promoção só vale
+   entre «promocaoDesde» e «promocaoAte» (os dois incluídos): antes de começar e
+   depois de acabar, vale o preço normal (uma promoção agendada para daqui a duas
+   semanas já se cobrava hoje: revisão de 11 nov 2026). Um preço anterior que não é
+   maior do que o de venda não conta (esquecido depois de uma promoção, mandava no
+   preço). Sem preço (ainda por dizer), atual é null. A MESMA regra está no carrinho
+   do site (src/scripts/carrinho.js, precoDe) e no Worker das encomendas
+   (worker/encomendas/contas.js): o site, o carrinho e a Stripe nunca discordam. */
 export function precoDe(p, hoje) {
   if (typeof p.preco !== 'number') return { atual: null, anterior: null, ate: '' };
-  const emPromocao = Boolean(p.precoAnterior) && p.precoAnterior > p.preco && (!p.promocaoAte || hoje <= p.promocaoAte);
-  if (emPromocao) return { atual: p.preco, anterior: p.precoAnterior, ate: p.promocaoAte || '' };
-  if (p.precoAnterior && p.promocaoAte && hoje > p.promocaoAte) return { atual: p.precoAnterior, anterior: null, ate: '' };
-  return { atual: p.preco, anterior: null, ate: '' };
+  const normal = typeof p.precoAnterior === 'number' && p.precoAnterior > p.preco ? p.precoAnterior : null;
+  if (normal === null) return { atual: p.preco, anterior: null, ate: '' };
+  const foraDoPrazo = (p.promocaoDesde && hoje < p.promocaoDesde) || (p.promocaoAte && hoje > p.promocaoAte);
+  return foraDoPrazo ? { atual: normal, anterior: null, ate: '' } : { atual: p.preco, anterior: normal, ate: p.promocaoAte || '' };
 }
 
 /* As escolhas de um artigo (a cor, a capacidade), já limpas: só os grupos com nome e
@@ -487,6 +491,7 @@ export function problemasDoArtigo(a, ctx = {}) {
     if (!dataValida(desde)) avisa('promocaoDesde', 'promocaoDesde', 'A data de início da promoção não é uma data válida.');
     else if (vazio(pa)) avisa('promocaoDesde', 'promocaoDesde', 'Há data de início da promoção, mas não há preço anterior: escreva o preço anterior, ou apague a data.');
     else if (dataValida(ate) && desde > ate) avisa('promocaoDesde', 'promocaoDesde', 'A promoção começa depois de acabar: confira as duas datas.');
+    else if (emPromocao && typeof ctx.hoje === 'string' && desde > ctx.hoje && noSite(a)) lembra('promocao-agendada', 'promocaoDesde', `A promoção começa a ${desde.split('-').reverse().join('/')}: até lá, o site mostra e cobra o preço normal (${pa} €).`);
   } else if (emPromocao && !acabou && noSite(a)) {
     lembra('promocao-sem-inicio', 'promocaoDesde', 'Falta a data de início da promoção: a lei pede o período e o preço mais baixo dos 30 dias anteriores (DL 70/2007). Com a data, a ficha diz «Promoção de … a … · preço mais baixo nos 30 dias anteriores: …».');
   }
@@ -583,7 +588,7 @@ export function problemasDoArtigo(a, ctx = {}) {
       if (!vazio(fab.email) && !emailValido(fab.email)) avisa('fabricante.email', 'fabricante.email', 'O email do fabricante não parece estar certo (ex.: nome@exemplo.pt).');
       const dados = CAMPOS_FABRICANTE.filter((k) => temTexto(fab[k]));
       if (dados.length && dados.length < CAMPOS_FABRICANTE.length && noSite(a)) {
-        lembra('fabricante:incompleto', `fabricante.${CAMPOS_FABRICANTE.find((k) => !temTexto(fab[k]))}`, 'O fabricante está incompleto: a lei pede o nome, a morada e o email (Regulamento (UE) 2023/988, art. 19.º). Até estar completo, a ficha mostra os dados da loja.');
+        lembra('fabricante:incompleto', `fabricante.${CAMPOS_FABRICANTE.find((k) => !temTexto(fab[k]))}`, 'O fabricante está incompleto: a lei pede o nome, a morada e o email (Regulamento (UE) 2023/988, art. 19.º). Até estar completo, a ficha não mostra o fabricante.');
       }
     }
   }
@@ -1157,7 +1162,8 @@ export function valorDaRetoma(retoma, modeloId, capacidade, respostas = {}) {
     if (r.avaliar) avaliar = true;
     else if (r.fator < 1) { fator *= r.fator; descontos.push({ pergunta: q.texto, resposta: r.texto, fator: r.fator }); }
   }
-  let valor = avaliar ? null : Math.floor((maximo * fator) / 5) * 5;
+  // ao cêntimo antes de descer aos 5 €: em vírgula flutuante, 400 × 0,95 × 0,75 dá 284,999…, e 280 € em vez de 285 €
+  let valor = avaliar ? null : Math.floor(Math.round(maximo * fator * 100) / 500) * 5;
   if (valor !== null && valor < retoma.minimo) { valor = null; avaliar = true; }
   return { maximo, valor, avaliar, descontos };
 }

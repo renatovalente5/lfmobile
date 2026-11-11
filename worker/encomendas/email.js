@@ -162,6 +162,15 @@ const AVISOS = {
       rodape: [`Método: ${(enc.stripe || {}).metodo || '—'} · Stripe: ${(enc.stripe || {}).payment_intent || '—'}`, 'Emita a factura e prepare a encomenda.'],
     }) : null,
   }),
+  // Um pagamento que chegou com a encomenda já anulada, ou já marcada como paga à mão: só ao dono.
+  'paga-fora': (env, enc) => ({
+    cliente: null,
+    dono: emailDono(env, enc, {
+      assunto: `Pagamento recebido numa encomenda «${enc.estado}»: ${enc.encomenda} — ${eur(enc.total_cents)}`,
+      cabecalho: `A STRIPE RECEBEU O PAGAMENTO DA ENCOMENDA ${enc.encomenda} (${eur(enc.total_cents)}), mas a encomenda está «${enc.estado}» no painel.`,
+      rodape: [`Stripe: ${(enc.stripe || {}).payment_intent || (enc.stripe || {}).session_id || '—'}`, 'Confirme na Stripe e, se a encomenda não segue, reembolse o cliente.'],
+    }),
+  }),
   multibanco: (env, enc) => ({
     cliente: emailCliente(env, enc, {
       assunto: `Falta pagar: referência Multibanco da encomenda ${enc.encomenda}`,

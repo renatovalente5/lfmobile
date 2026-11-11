@@ -15,5 +15,3 @@ Pode apresentar uma reclamação no [Livro de Reclamações Electrónico](https:
 Em caso de litígio de consumo, pode recorrer a uma entidade de resolução alternativa de litígios (Lei n.º 144/2015):
 
 {{ral}}
-
-A lista actualizada está no [Portal do Consumidor](https://www.consumidor.gov.pt).

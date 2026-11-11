@@ -17,7 +17,8 @@ import { lerEncomenda, gravarEncomenda, mudarEstado, razaoParaNao, resumoDeMetad
 import { lerCatalogo, modoDe } from './catalogo.js';
 import { avisar } from './email.js';
 import { limpar } from './contas.js';
-import { listarCupoes, validarRegra, gravarCupao, apagarCupao, normalizarCodigo } from './cupoes.js';
+import { listarCupoes, validarRegra, gravarCupao, apagarCupao, normalizarCodigo, libertarUso } from './cupoes.js';
+import { fecharPagamento } from './stripe.js';
 
 const POR_PAGINA = 200;
 /* As transições do painel que avisam o cliente (§6). «levantada» não manda nada. */
@@ -163,7 +164,15 @@ async function mudar(request, env, id) {
     if (novo === 'pronta') { try { cat = await lerCatalogo(env); } catch (e) { console.error('catálogo por ler para o email «pronta»:', e.message); } }
     resultado = await avisar(env, novo, { ...enc, estado: novo }, { cat, nota, origem: 'painel' });
   }
+  // Saiu de «pendente» pelo painel (anulada, ou paga à mão): a página de pagamento da Stripe fecha-se,
+  // para o cliente não pagar uma encomenda anulada nem pagar duas vezes. Fica dito no histórico.
+  const fechou = enc.estado === 'pendente' && novo !== 'pendente' ? await fecharPagamento(env, enc) : null;
   mudarEstado(enc, novo, { por, nota, em });
+  if (fechou) enc.historico = [...(enc.historico || []), { em, estado: novo, por: 'painel', nota: fechou }];
+  // Anulada: o uso do cupão volta (uma vez: a marca cupao_contado).
+  if (novo === 'anulada' && enc.cupao && enc.cupao_contado) {
+    try { await libertarUso(env, enc.cupao, (enc.cliente || {}).email, id); enc.cupao_contado = false; } catch (e) { console.error('uso do cupão por devolver', id, e.message); }
+  }
   if (resultado) enc.avisos = { ...(enc.avisos || {}), [novo]: resultado };
   await gravarEncomenda(env, enc, { em });
   return json(enc);

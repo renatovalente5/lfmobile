@@ -21,9 +21,9 @@
 import { json, lerCorpoJson } from './http.js';
 import { lerCatalogo, modoDe, siteUrl } from './catalogo.js';
 import { validarPedido, contas as fazerContas, ErroDoPedido, hojeLisboa } from './contas.js';
-import { lerCupao, porQueNaoVale, publico, contarUso, normalizarCodigo } from './cupoes.js';
+import { lerCupao, porQueNaoVale, publico, contarUso, libertarUso, normalizarCodigo } from './cupoes.js';
 import { criarEncomenda, idLivre, novaChave, lerEncomenda, gravarEncomenda, vistaPublica, iguais, RE_ID, RE_CHAVE, TTL_ENCOMENDA, TTL_EVENTO, agoraISO } from './encomenda.js';
-import { criarSessao, stripeFetch, verificarAssinatura, aplicarEvento, idDoEvento } from './stripe.js';
+import { criarSessao, stripeFetch, verificarAssinatura, aplicarEvento, idDoEvento, eventoNaoBate } from './stripe.js';
 import { avisar, falhou } from './email.js';
 import { rotaPainel } from './painel.js';
 
@@ -78,6 +78,15 @@ async function checkout(request, env, cors) {
   const { corpo, resposta } = await lerCorpoJson(request, cors);
   if (resposta) return resposta;
 
+  // Uma tentativa repetida (a resposta perdeu-se e a pessoa carregou outra vez) devolve a MESMA
+  // encomenda: o carrinho manda um identificador por tentativa (carrinho.js, «pedido»), que muda
+  // quando o carrinho ou os dados mudam. Sem ele, segue como sempre.
+  const idem = corpo && typeof corpo.pedido === 'string' && /^[A-Za-z0-9_-]{16,80}$/.test(corpo.pedido) ? `idem:${corpo.pedido}` : null;
+  if (idem) {
+    const ja = await env.ORDERS.get(idem);
+    if (ja) { try { return json(JSON.parse(ja), 200, cors); } catch (_) { /* estragada: segue como nova */ } }
+  }
+
   let cat;
   try {
     cat = await lerCatalogo(env);
@@ -86,7 +95,9 @@ async function checkout(request, env, cors) {
     return json({ erro: 'Não conseguimos confirmar os preços agora. Tente daqui a um minuto.' }, 503, cors);
   }
   const modo = modoDe(cat, env);
-  if (modo === 'online' && !env.STRIPE_SECRET_KEY) return json({ erro: 'O pagamento no site não está ligado. Encomende pelo WhatsApp.' }, 503, cors);
+  // Sem a chave, não há pagamento; sem o segredo do webhook, a Stripe cobrava e a encomenda nunca
+  // sabia (ficava «pendente», sem aviso a ninguém).
+  if (modo === 'online' && (!env.STRIPE_SECRET_KEY || !env.STRIPE_WEBHOOK_SECRET)) return json({ erro: 'O pagamento no site não está ligado. Encomende pelo WhatsApp.' }, 503, cors);
 
   const hoje = hojeLisboa();
   // O cupão: tem de existir e valer hoje, para estes artigos e para este email (o «um por cliente»).
@@ -96,9 +107,12 @@ async function checkout(request, env, cors) {
     cupao = await lerCupao(env, corpo.cupao);
     let razao = cupao ? null : 'Este cupão não existe ou já não vale.';
     if (!razao) {
+      // o mínimo confere-se com os artigos de hoje (as contas sem o cupão, que não recusam por causa
+      // dos portes: antes, com portes por confirmar em modo online, o mínimo ficava por conferir)
       let previa = null;
-      try { previa = validarPedido(corpo, cat, modo, hoje); } catch (_) { /* o erro do pedido diz-se a seguir, sem o cupão */ }
-      razao = await porQueNaoVale(env, cupao, { hoje, artigos_cents: previa ? previa.contas.artigos_cents : null, email: corpo.cliente && typeof corpo.cliente.email === 'string' ? corpo.cliente.email : '' });
+      const zonaDoPedido = (Array.isArray(cat.zonas) ? cat.zonas : []).find((z) => z && z.id === corpo.entrega);
+      try { previa = zonaDoPedido ? fazerContas(cat, corpo.linhas, zonaDoPedido, hoje) : null; } catch (_) { /* o erro do pedido diz-se a seguir, sem o cupão */ }
+      razao = await porQueNaoVale(env, cupao, { hoje, artigos_cents: previa ? previa.artigos_cents : null, email: corpo.cliente && typeof corpo.cliente.email === 'string' ? corpo.cliente.email : '' });
     }
     if (razao) return json({ erro: `${razao} Tirámo-lo do carrinho: veja o total outra vez.`, campo: 'cupao' }, 400, cors);
   }
@@ -109,12 +123,23 @@ async function checkout(request, env, cors) {
     if (e instanceof ErroDoPedido) return json(e.campo ? { erro: e.message, campo: e.campo } : { erro: e.message }, e.status, cors);
     throw e;
   }
-  // O que o site mostrou tem de ser o que se cobra: se um preço mudou entretanto, o site redesenha.
-  if (pedido.contas.total_cents !== corpo.total_cents) return json({ erro: 'Os preços mudaram. Veja o carrinho outra vez.' }, 409, cors);
+  // Um cupão que não dá nada nesta encomenda não se aceita: gastava o uso a troco de nada.
+  if (cupao && pedido.contas.cupao_sem_efeito) {
+    const porque = cupao.tipo === 'portes'
+      ? `O cupão ${cupao.codigo} é de portes grátis e não se aplica a esta encomenda.`
+      : `O cupão ${cupao.codigo} não dá desconto nestes artigos (os que já estão em promoção ficam de fora).`;
+    return json({ erro: `${porque} Tirámo-lo do carrinho: veja o total outra vez.`, campo: 'cupao' }, 400, cors);
+  }
+  // O que o site mostrou tem de ser o que se cobra: se um preço mudou entretanto, o carrinho vai
+  // buscar o catálogo outra vez e redesenha (campo «precos»).
+  if (pedido.contas.total_cents !== corpo.total_cents) return json({ erro: 'Os preços mudaram entretanto. Actualizámos o carrinho: veja o total e envie outra vez.', campo: 'precos' }, 409, cors);
 
   const em = agoraISO();
   const id = await idLivre(env, hoje);
   const enc = criarEncomenda({ id, chave: novaChave(), modo, estado: modo === 'online' ? 'pendente' : 'registada', zona: pedido.zona, contas: pedido.contas, cliente: pedido.cliente, termosPagina: `${siteUrl(env)}/termos-e-condicoes/`, em });
+  // O uso do cupão conta já, nos dois modos (é uma reserva: se o pagamento expirar ou falhar, ou o
+  // dono anular a encomenda, o uso volta — libertarUso).
+  if (enc.cupao) enc.cupao_contado = true;
 
   if (modo === 'online') {
     // A sessão da Stripe primeiro, a encomenda depois: um pedido que a Stripe recuse não gasta
@@ -135,7 +160,12 @@ async function checkout(request, env, cors) {
       console.error('ENCOMENDA NÃO GRAVADA (KV)', id, sessao.id, e.message);
       return json({ erro: 'Não foi possível registar a encomenda agora. Tente daqui a pouco ou fale connosco pelo WhatsApp.' }, 503, cors);
     }
-    return json({ encomenda: id, chave: enc.chave, url: sessao.url, total_cents: enc.total_cents }, 200, cors);
+    if (enc.cupao) {
+      try { await contarUso(env, enc.cupao, enc.cliente.email, id); } catch (e) { console.error('uso do cupão por contar', id, enc.cupao, e.message); }
+    }
+    const resp = { encomenda: id, chave: enc.chave, url: sessao.url, total_cents: enc.total_cents };
+    if (idem) { try { await env.ORDERS.put(idem, JSON.stringify(resp), { expirationTtl: 86400 }); } catch (e) { console.error('tentativa por gravar', id, e.message); } }
+    return json(resp, 200, cors);
   }
 
   try {
@@ -144,11 +174,10 @@ async function checkout(request, env, cors) {
     console.error('ENCOMENDA NÃO GRAVADA (KV)', id, e.message);
     return json({ erro: 'Não foi possível registar a encomenda agora. Tente daqui a pouco ou fale connosco pelo WhatsApp.' }, 503, cors);
   }
-  // Em modo «encomenda» o cupão conta logo (a encomenda ficou feita); em «online», quando a Stripe
-  // disser que foi paga (webhook).
   if (enc.cupao) {
     try { await contarUso(env, enc.cupao, enc.cliente.email, id); } catch (e) { console.error('uso do cupão por contar', id, enc.cupao, e.message); }
   }
+  if (idem) { try { await env.ORDERS.put(idem, JSON.stringify({ encomenda: id, chave: enc.chave, estado: enc.estado, total_cents: enc.total_cents }), { expirationTtl: 86400 }); } catch (e) { console.error('tentativa por gravar', id, e.message); } }
   // Os emails saem antes de responder (num waitUntil um erro não se vê). Uma falha do Resend não
   // apaga a encomenda, que já está gravada: fica registada nela, e só então se grava outra vez.
   const resultado = await avisar(env, 'registada', enc, { cat });
@@ -256,8 +285,22 @@ async function webhook(request, env) {
   }
 
   const em = agoraISO();
+  // Só os eventos da sessão e do pagamento DESTA encomenda (com o valor dela) mexem nela; os outros
+  // ficam no histórico, para o dono ver, e não se repetem.
+  const naoBate = eventoNaoBate(enc, evento);
+  if (naoBate) {
+    console.error('EVENTO DA STRIPE QUE NÃO BATE COM A ENCOMENDA', id, evento.type, naoBate);
+    enc.historico = [...(enc.historico || []), { em, estado: enc.estado, por: 'stripe', nota: `Evento da Stripe ignorado (${evento.type}): ${naoBate}. Confirme na Stripe.` }];
+    await gravarEncomenda(env, enc, { em });
+    await env.ORDERS.put(marca, '1', { expirationTtl: TTL_EVENTO });
+    return new Response('não é desta encomenda');
+  }
   const antes = JSON.stringify(enc);
   const { avisos } = aplicarEvento(enc, evento, em);
+  // O pagamento não se fez (a página expirou, o Multibanco falhou): o uso do cupão volta.
+  if (enc.cupao && enc.cupao_contado && (enc.estado === 'expirou' || enc.estado === 'falhou')) {
+    try { await libertarUso(env, enc.cupao, (enc.cliente || {}).email, id); enc.cupao_contado = false; } catch (e) { console.error('uso do cupão por devolver', id, e.message); }
+  }
   // O índice pi: quando se fica a saber o pagamento (é por ele que um reembolso chega cá).
   const pi = enc.stripe && enc.stripe.payment_intent;
   if (pi && (await env.ORDERS.get(`pi:${pi}`)) !== id) await env.ORDERS.put(`pi:${pi}`, id, { expirationTtl: TTL_ENCOMENDA });

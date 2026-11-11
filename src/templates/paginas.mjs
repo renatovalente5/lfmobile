@@ -344,7 +344,7 @@ export function organizacao(ctx) {
     address: { '@type': 'PostalAddress', ...(e.morada ? { streetAddress: e.morada } : {}), ...(e.codigoPostal ? { postalCode: e.codigoPostal } : {}), addressLocality: e.localidade || ctx.site.local.localidade, addressRegion: ctx.site.local.distrito, addressCountry: 'PT' },
     areaServed: { '@type': 'Country', name: 'Portugal' },
     currenciesAccepted: 'EUR',
-    paymentAccepted: 'Cartão, MB WAY, Multibanco, numerário',
+    // sem paymentAccepted: escrito à mão, dizia «Cartão» com a loja em modo «encomenda» (e os meios da loja não estão confirmados)
     sameAs: [c.instagram && `https://www.instagram.com/${c.instagram}/`, c.facebook && `https://www.facebook.com/${c.facebook}/`].filter(Boolean),
   };
   if (coords) ld.geo = { '@type': 'GeoCoordinates', latitude: Number(coords[1]), longitude: Number(coords[2]) };
@@ -434,7 +434,7 @@ export function produto(ctx, p) {
       <div class="campo" data-modelo-lista-campo hidden><label for="m-lista-${idm}">Modelo</label><select id="m-lista-${idm}" data-modelo-lista disabled><option value="">Escolha primeiro a marca</option></select></div>
       <div class="campo" data-modelo-nome-campo><label for="m-modelo-${idm}" data-modelo-nome-rotulo>Modelo</label><input id="m-modelo-${idm}" name="modelo" type="text" maxlength="60" required autocomplete="off" placeholder="Ex.: iPhone 13, Galaxy A55" data-modelo-nome></div>
     </div>
-    <p class="campo__ajuda">Cortamos a película para este modelo. Se não souber o nome, veja em Definições › Geral › Informações (iPhone) ou Definições › Acerca do telemóvel (Android).</p>
+    <p class="campo__ajuda">Preparamos a película para este modelo. Se não souber o nome, veja em Definições › Geral › Informações (iPhone) ou Definições › Acerca do telemóvel (Android).</p>
   </fieldset>` : '';
   const blocoOpcoes = grupos.map((g, i) => `<fieldset class="campo escolha" data-escolha="${i}">
     <legend>${esc(g.nome)}</legend>
@@ -535,7 +535,8 @@ ${p.pedeModelo === true ? `<script type="application/json" id="dados-modelos">${
       const mm = ctx.manifesto.fotos[f];
       return ctx.absoluto(`/assets/img/${f}-${mm.resumo}-${mm.larguras[mm.larguras.length - 1]}.webp`);
     }),
-    brand: { '@type': 'Brand', name: p.marca || ctx.site.marca },
+    // a marca do artigo; sem ela, nenhuma (a LF Mobile não fabrica os InPods nem as películas)
+    ...(p.marca ? { brand: { '@type': 'Brand', name: p.marca } } : {}),
     category: c.titulo,
   };
   if (v.atual !== null) {
@@ -789,7 +790,7 @@ export function erro404(ctx) {
 }
 
 /* O fabricante de um artigo, quando o painel o diz por inteiro (nome, morada e email); senão null,
-   e a ficha diz a loja. */
+   e a ficha não o mostra (só o que existe: memória sites-so-o-essencial). */
 export function fabricanteDoArtigo(p) {
   const f = p.fabricante;
   if (!f || typeof f !== 'object') return null;

@@ -105,7 +105,7 @@ test('409 quando o total do site não bate com as contas do Worker', async () =>
   const env = envFalso();
   const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ total_cents: 11979 }) });
   assert.equal(r.status, 409);
-  assert.deepEqual(r.json, { erro: 'Os preços mudaram. Veja o carrinho outra vez.' });
+  assert.deepEqual(r.json, { erro: 'Os preços mudaram entretanto. Actualizámos o carrinho: veja o total e envie outra vez.', campo: 'precos' });
   assert.equal(env.ORDERS.escritas, 0, 'um pedido recusado não gasta escritas');
 });
 
@@ -156,7 +156,7 @@ test('modo «online»: abre a sessão da Stripe em português, grava «pendente�
   cat.modo = 'online';
   cat.portes = { continente: 4.5, gratisAPartirDe: null };
   rede = redeFalsa({ catalogo: cat });
-  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x' });
+  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: 'whsec_x' });
   const corpo = pedidoValido({ entrega: 'continente', total_cents: 12430, cliente: { ...pedidoValido().cliente, ...moradaValida() } });
   const r = await pedir(worker, env, 'POST', '/checkout', { corpo });
   assert.equal(r.status, 200, r.texto);
@@ -199,7 +199,7 @@ test('modo «online»: a Stripe a recusar dá 502 e não gasta o KV; portes null
   const cat = clone(catalogoBase());
   cat.modo = 'online';
   rede = redeFalsa({ catalogo: cat, stripe: () => new Response('{"error":{"message":"Invalid API Key"}}', { status: 401 }) });
-  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x' });
+  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: 'whsec_x' });
   const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido() });
   assert.equal(r.status, 502);
   assert.equal(env.ORDERS.escritas, 0);

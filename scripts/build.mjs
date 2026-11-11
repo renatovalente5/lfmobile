@@ -29,7 +29,7 @@ import { retoma as paginaRetoma } from '../src/templates/retoma.mjs';
 /* As peças legais comuns aos sites do Renato (a cópia em legal-comum/, instalada por
    _ferramentas/legal-comum/instalar.mjs; não se edita aqui). */
 import { livroCss, destinatariosHtml, CATALOGO_DESTINATARIOS, frasesPrivacidade, prazos as PRAZOS_LEGAIS, verificarIdentificacao, verificarPromocao, verificarProduto, AVISO_RETOMA, COMO_SE_FAZ_A_ENCOMENDA, BOTAO_ENCOMENDA, formularioLivreResolucao, ralHtml, textoGarantia, VERSAO as LEGAL_COMUM_VERSAO } from '../legal-comum/index.mjs';
-import { pecaLegal } from '../src/templates/componentes.mjs';
+import { pecaLegal, categoriasComArtigos } from '../src/templates/componentes.mjs';
 
 const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const args = process.argv.slice(2);
@@ -292,7 +292,7 @@ const catalogo = {
   loja: ctx.url('/loja/'),
   produtos: Object.fromEntries(produtos.map((p) => [p.slug, {
     nome: p.nome, nomeCurto: p.nomeCurto || p.nome, url: ctx.url(`/produtos/${p.slug}/`), foto: fotoPequena(p.fotos[0]),
-    preco: typeof p.preco === 'number' ? p.preco : null, precoAnterior: p.precoAnterior || null, promocaoAte: p.promocaoAte || '',
+    preco: typeof p.preco === 'number' ? p.preco : null, precoAnterior: p.precoAnterior || null, promocaoDesde: p.promocaoDesde || '', promocaoAte: p.promocaoAte || '',
     opcoes: R.opcoesDe(p), estado: R.estadoDe(p), disponibilidade: R.disponibilidadeDe(p), compravel: R.compravel(p), enviavel: R.enviavel(p),
     // a categoria do artigo e as de marca (Apple, Samsung): os cupões de uma categoria apanham as duas
     categoria: p.categoria, categorias: R.categoriasDoArtigo(p, categorias), peso: R.pesoDe(p, categorias), pedeModelo: p.pedeModelo === true, campanha: p.campanha || '',
@@ -503,7 +503,9 @@ for (const s of saidas) {
 
 // ---------------------------------------------------------------- robots, sitemap, _headers
 const FORA_DO_MAPA = new Set(['/404.html', '/carrinho/', '/checkout/', '/obrigado/']);
-const indexaveis = saidas.filter((s) => !FORA_DO_MAPA.has(s.caminho) && s.indexar !== false);
+// as categorias da loja sem artigos publicados ficam fora do mapa (a página existe, mas vazia não se anuncia)
+const categoriasVazias = new Set(categorias.filter((k) => !categoriasComArtigos(ctx).some((x) => x.slug === k.slug)).map((k) => `/loja/${k.slug}/`));
+const indexaveis = saidas.filter((s) => !FORA_DO_MAPA.has(s.caminho) && s.indexar !== false && !categoriasVazias.has(s.caminho));
 let lastmod = {};
 try {
   // a data da última alteração de cada página sai do git (o conteúdo de que ela é feita), com a hora

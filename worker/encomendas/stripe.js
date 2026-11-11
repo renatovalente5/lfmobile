@@ -175,17 +175,78 @@ export const EVENTOS = Object.freeze([
    (o dono marcou a encomenda, ou a Stripe devolveu o dinheiro). */
 const PODE_FICAR_PAGA = ['pendente', 'registada', 'falhou', 'expirou'];
 
+/* O método usado, só quando a sessão só permitia um (payment_method_types é a lista dos PERMITIDOS:
+   o primeiro dizia «card» a um pagamento por MB WAY). */
 const metodoDe = (obj) => {
-  const t = Array.isArray(obj.payment_method_types) ? obj.payment_method_types[0] : null;
+  const t = Array.isArray(obj.payment_method_types) && obj.payment_method_types.length === 1 ? obj.payment_method_types[0] : null;
   return typeof t === 'string' ? t : null;
 };
 
 function marcarPaga(enc, obj, em, avisos) {
   enc.stripe = enc.stripe || {};
-  if (PODE_FICAR_PAGA.includes(enc.estado)) mudarEstado(enc, 'paga', { por: 'stripe', em });
+  const jaPagaPelaStripe = Boolean(enc.stripe.pago_em);
+  if (PODE_FICAR_PAGA.includes(enc.estado)) {
+    mudarEstado(enc, 'paga', { por: 'stripe', em });
+    avisos.push('paga');
+  } else if (!jaPagaPelaStripe) {
+    // A encomenda já não esperava este pagamento (o dono anulou-a, ou marcou-a paga à mão): nada de
+    // «Pagamento recebido» ao cliente nem de «prepare a encomenda» ao dono; o dono é avisado para
+    // confirmar na Stripe e, se for o caso, reembolsar.
+    enc.historico = [...(enc.historico || []), { em, estado: enc.estado, por: 'stripe', nota: `A Stripe recebeu ${(enc.total_cents / 100).toFixed(2).replace('.', ',')} € com a encomenda «${enc.estado}»: confirme na Stripe e, se não segue, reembolse.` }];
+    avisos.push('paga-fora');
+  } else {
+    avisos.push('paga');   // um evento repetido: a marca enc.avisos.paga não deixa repetir o email
+  }
   enc.stripe.pago_em = enc.stripe.pago_em || em;
   if (!enc.stripe.metodo && metodoDe(obj)) enc.stripe.metodo = metodoDe(obj);
-  avisos.push('paga');
+}
+
+/* Um evento só mexe na encomenda se for DELA: a sessão que este Worker abriu, com o valor dela em
+   euros; o pagamento dessa sessão. Os eventos chegam da conta inteira (um Payment Link da loja com
+   ?client_reference_id=LF-… pagava 1 € e marcava «paga» uma encomenda de 549,90 €). → a razão, ou
+   null quando bate. */
+export function eventoNaoBate(enc, evento) {
+  const obj = (evento.data && evento.data.object) || {};
+  const s = enc.stripe || {};
+  if (obj.object === 'checkout.session') {
+    if (!s.session_id || obj.id !== s.session_id) return `a sessão ${obj.id || '?'} não é a desta encomenda`;
+    if (evento.type === 'checkout.session.completed' || evento.type === 'checkout.session.async_payment_succeeded') {
+      if (obj.currency !== 'eur' || obj.amount_total !== enc.total_cents) return `o valor (${obj.amount_total} ${obj.currency}) não é o da encomenda (${enc.total_cents} eur)`;
+    }
+    return null;
+  }
+  if (obj.object === 'payment_intent') {
+    if ((obj.metadata || {}).encomenda !== enc.encomenda) return `o pagamento ${obj.id || '?'} não é desta encomenda`;
+    if (s.payment_intent && obj.id !== s.payment_intent) return `o pagamento ${obj.id || '?'} não é o desta encomenda`;
+    return null;
+  }
+  if (obj.object === 'charge') {
+    if (!s.payment_intent || obj.payment_intent !== s.payment_intent) return `a cobrança ${obj.id || '?'} não é desta encomenda`;
+    return null;
+  }
+  return `um objecto «${obj.object || '?'}» que não se espera`;
+}
+
+/* O dono tirou a encomenda de «pendente» no painel (anulou-a, ou marcou-a paga à mão): fecha-se a
+   página de pagamento, para o cliente já não pagar (a sessão expira; se já está completa à espera
+   do Multibanco, cancela-se o pagamento). → a frase para o histórico, ou null (nada a fechar). */
+export async function fecharPagamento(env, enc) {
+  const s = enc.stripe || {};
+  if (!env.STRIPE_SECRET_KEY || !s.session_id) return null;
+  try {
+    await stripeFetch(env, `/checkout/sessions/${encodeURIComponent(s.session_id)}/expire`, { body: {} });
+    return 'Fechámos a página de pagamento da Stripe.';
+  } catch (e) {
+    if (s.payment_intent) {
+      try {
+        await stripeFetch(env, `/payment_intents/${encodeURIComponent(s.payment_intent)}/cancel`, { body: { cancellation_reason: 'abandoned' } });
+        return 'Cancelámos o pagamento pendente na Stripe (a referência Multibanco deixa de valer).';
+      } catch (e2) {
+        return `Não foi possível cancelar o pagamento na Stripe (${e2.message}): confirme lá.`;
+      }
+    }
+    return `Não foi possível fechar a página de pagamento da Stripe (${e.message}): confirme lá.`;
+  }
 }
 
 /* Aplica um evento à encomenda (muda-a no sítio) e devolve os avisos que ele pede. Quem decide
