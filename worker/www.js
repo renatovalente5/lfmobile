@@ -1,6 +1,6 @@
 // O www do domínio vai para o domínio sem www (301, o mesmo caminho e a mesma pesquisa).
-// O DOMÍNIO é por confirmar (o Renato compra-o quando o site estiver pronto): é o mesmo nome do
-// scripts/build.mjs (DOMINIO) e do wrangler.jsonc.
+// O DOMÍNIO (lfmobile.pt, desde 11 nov 2026) é o mesmo nome do scripts/build.mjs (DOMINIO) e do
+// wrangler.jsonc.
 // Tudo o resto são os ficheiros do site (_site/), servidos pelo binding ASSETS, com a
 // 404.html quando a morada não existe. É o único código do site: sem ele, o www
 // mostrava o site inteiro numa segunda morada.

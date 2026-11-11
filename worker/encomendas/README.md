@@ -82,11 +82,9 @@ estado; a ficha (`get`) é imediata.
 
 ## O que falta ligar
 
-1. **Resend com o domínio** — criar a conta do Resend (idealmente no email da loja), verificar o
-   domínio (DKIM, SPF, DMARC), e:
-   `$WR secret put RESEND_API_KEY --config $CFG < …`; no toml, `MAIL_FROM = "LF Mobile <encomendas@<domínio>>"`.
-   Até lá `onboarding@resend.dev` só entrega ao dono da conta, e sem a chave não se manda nada
-   (a encomenda fica gravada na mesma).
+1. ~~Os emails pelo domínio~~ — feito a 11 nov 2026: o lfmobile.pt está no Email Sending da
+   Cloudflare, e o Worker manda pelo binding `EMAIL`, de `encomendas@lfmobile.pt` (o Resend fica só
+   como plano B, sem chave).
 2. **O email do dono** — `STORE_EMAIL` no toml (recebe «Nova encomenda», «Encomenda paga», os
    falhados; é o reply-to dos emails ao cliente). Vazio, o dono não recebe nada.
 3. **A Stripe** (modo «online», quando o cliente a quiser) — na conta da loja, activar cartão,
@@ -97,8 +95,7 @@ estado; a ficha (`get`) é imediata.
    `checkout.session.expired`, `payment_intent.requires_action`, `charge.refunded`
    (a lista está em `stripe.js`, `EVENTOS`) e `$WR secret put STRIPE_WEBHOOK_SECRET --config $CFG < …`;
    por fim `pagamentos.modo = "online"` no `site.json` (pelo painel) — o catálogo leva o modo.
-4. **O domínio** — no toml, `SITE_URL`, `CATALOGO_URL`, `LOGO_URL` e `ALLOWED_ORIGINS` passam do
-   `renatovalente5.github.io/lfmobile` ao domínio (e o `localhost:4870` sai). Se o logótipo mudar,
-   o nome do ficheiro muda (leva a assinatura): copiar o novo do `<img class="logo">` do
-   `_site/index.html` gerado.
+4. ~~O domínio~~ — feito a 11 nov 2026: `SITE_URL`, `CATALOGO_URL`, `LOGO_URL` e `ALLOWED_ORIGINS`
+   em `https://lfmobile.pt`. Se o logótipo mudar, o nome do ficheiro muda (leva a assinatura):
+   copiar o novo do `<img class="logo">` do `_site/index.html` gerado.
 5. **O painel** — o mesmo `PAINEL_SEGREDO` no Worker do painel (`wrangler secret put` lá).

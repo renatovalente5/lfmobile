@@ -124,3 +124,29 @@ test('avisar(): sem chave do Resend não manda e di-lo; com ela manda ao cliente
   assert.equal(eur(5), '0,05 €');
   assert.equal(eur(123456), '1234,56 €');
 });
+
+/* A CLOUDFLARE (Email Sending, o binding EMAIL) vem antes do Resend: com ele, o email sai por ele, com o
+   remetente partido em { email, name } e a resposta para o dono; uma recusa dá «falhou». */
+test('com o binding EMAIL da Cloudflare: sai por ele, com o remetente e o reply-to certos; uma recusa é «falhou»', async () => {
+  const { remetenteDe } = await import('../email.js');
+  assert.deepEqual(remetenteDe({ MAIL_FROM: 'LF Mobile <encomendas@lfmobile.pt>' }), { email: 'encomendas@lfmobile.pt', name: 'LF Mobile' });
+  assert.deepEqual(remetenteDe({ MAIL_FROM: 'encomendas@lfmobile.pt' }), { email: 'encomendas@lfmobile.pt' });
+  const rede = redeFalsa({ catalogo: cat });
+  try {
+    const enviados = [];
+    const EMAIL = { send: async (m) => { enviados.push(m); return { messageId: 'm1' }; } };
+    const r = await avisar(envFalso({ EMAIL, MAIL_FROM: 'LF Mobile <encomendas@lfmobile.pt>', STORE_EMAIL: 'dono@exemplo.pt', RESEND_API_KEY: 're_nao_usar' }), 'registada', enc, { cat });
+    assert.equal(r.cliente, 'enviado');
+    assert.equal(r.dono, 'enviado');
+    assert.equal(enviados.length, 2);
+    assert.equal(rede.resend().length, 0, 'o Resend não se usa');
+    const aoCliente = enviados.find((m) => m.to === 'maria@exemplo.pt');
+    assert.deepEqual(aoCliente.from, { email: 'encomendas@lfmobile.pt', name: 'LF Mobile' });
+    assert.equal(aoCliente.replyTo, 'dono@exemplo.pt');
+    assert.ok(aoCliente.text && aoCliente.html && aoCliente.subject.includes('LF-20261108-7K2Q9M'));
+    const recusa = await avisar(envFalso({ EMAIL: { send: async () => { const e = new Error('não'); e.code = 'E_SENDER_NOT_VERIFIED'; throw e; } }, MAIL_FROM: 'x@lfmobile.pt' }), 'pronta', { ...enc, entrega: 'levantamento' }, { cat });
+    assert.equal(recusa.cliente, 'falhou');
+  } finally {
+    rede.repor();
+  }
+});

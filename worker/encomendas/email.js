@@ -1,12 +1,12 @@
-/* OS EMAILS DAS ENCOMENDAS (Resend, RESEND_API_KEY). Texto E HTML, curtos, em português, com o
- * logótipo do site no topo, o número da encomenda, as linhas, o total, a entrega e os contactos
- * da loja; e, ao cliente, o aviso dos 14 dias com a ligação a /desistir/ (DL 24/2014, art. 4.º e
- * 5.º: a confirmação em suporte duradouro leva as condições).
+/* OS EMAILS DAS ENCOMENDAS (pela Cloudflare, o binding EMAIL; ou pelo Resend, RESEND_API_KEY: ver
+ * enviar()). Texto E HTML, curtos, em português, com o logótipo do site no topo, o número da
+ * encomenda, as linhas, o total, a entrega e os contactos da loja; e, ao cliente, o aviso dos 14 dias
+ * com a ligação a /desistir/ (DL 24/2014, art. 4.º e 5.º: a confirmação em suporte duradouro leva as
+ * condições).
  *
- * Sem RESEND_API_KEY não se manda nada e a encomenda fica gravada na mesma: até haver domínio, o
- * remetente onboarding@resend.dev só chega ao Renato. Sem STORE_EMAIL, o email ao dono não se
- * manda. O `text` nunca se omite: a versão de texto de um email que é documento é deliberada,
- * não um subproduto do HTML.
+ * Sem o binding nem RESEND_API_KEY não se manda nada e a encomenda fica gravada na mesma. Sem
+ * STORE_EMAIL, o email ao dono não se manda. O `text` nunca se omite: a versão de texto de um email
+ * que é documento é deliberada, não um subproduto do HTML.
  *
  * Cada momento (§6 do contrato) é uma entrada de AVISOS: quem a chama é o /checkout (registada),
  * o webhook da Stripe (paga, multibanco, reembolsada, falhou, expirou) e o painel (paga, pronta,
@@ -15,6 +15,7 @@
 
 import { documento, tabelaArtigos, caixaMultibanco, botao, separador, bloco, h2, p, pequeno, ligacao, esc } from './email-html.js';
 import { primeiroNome } from './encomenda.js';
+import { pedirAoObjecto } from './objecto.js';
 import { siteUrl } from './catalogo.js';
 
 const RESEND = 'https://api.resend.com/emails';
@@ -242,8 +243,27 @@ export function mensagens(env, aviso, enc, extras = {}) {
 
 /* ---------------------------------------------------------------- o envio */
 
+/* O remetente do MAIL_FROM («LF Mobile <encomendas@lfmobile.pt>»), na forma do binding EMAIL. */
+export function remetenteDe(env) {
+  const v = String(env.MAIL_FROM || '').trim();
+  const m = /^(.*?)\s*<([^<>\s]+@[^<>\s]+)>$/.exec(v);
+  return m ? { email: m[2], name: m[1].replace(/^"|"$/g, '').trim() || undefined } : { email: v };
+}
+
+/* POR ONDE SAI UM EMAIL: pela Cloudflare (Email Sending, o binding EMAIL do wrangler.toml; o domínio
+   lfmobile.pt está nele desde 11 nov 2026, e o plano Workers Paid da conta deixa mandar a qualquer
+   pessoa), e só sem ele pelo Resend (RESEND_API_KEY). Sem nenhum dos dois não se manda nada. */
 export async function enviar(env, { para, assunto, texto, html, responderA }) {
-  if (!env.RESEND_API_KEY) { console.log('email não enviado (sem RESEND_API_KEY):', assunto); return 'sem chave'; }
+  if (env.EMAIL && typeof env.EMAIL.send === 'function') {
+    try {
+      await env.EMAIL.send({ from: remetenteDe(env), to: para, subject: assunto, text: texto, html: html || undefined, replyTo: responderA || undefined });
+      return 'enviado';
+    } catch (e) {
+      console.error('a Cloudflare recusou o email', e && e.code, assunto, e && e.message);
+      return 'falhou';
+    }
+  }
+  if (!env.RESEND_API_KEY) { console.log('email não enviado (sem o EMAIL da Cloudflare nem RESEND_API_KEY):', assunto); return 'sem chave'; }
   try {
     const r = await fetch(RESEND, {
       method: 'POST',
@@ -260,15 +280,40 @@ export async function enviar(env, { para, assunto, texto, html, responderA }) {
 
 /* Manda os emails de um momento e diz o que aconteceu a cada um:
    'enviado' | 'falhou' | 'sem chave' | 'sem email' (o cliente) | 'sem destinatário' (o dono) |
-   'não se aplica' (o momento não tem esse email). */
+   'não se aplica' (o momento não tem esse email) | 'travado: …' (extras.semCliente: o travão por
+   endereço não deixou o do cliente). */
 export async function avisar(env, aviso, enc, extras = {}) {
   const m = mensagens(env, aviso, enc, extras);
   const email = (enc.cliente || {}).email;
   const [cliente, dono] = await Promise.all([
-    !m.cliente ? 'não se aplica' : !email ? 'sem email' : enviar(env, { para: email, ...m.cliente, responderA: env.STORE_EMAIL || undefined }),
+    !m.cliente ? 'não se aplica' : !email ? 'sem email' : extras.semCliente ? String(extras.semCliente) : enviar(env, { para: email, ...m.cliente, responderA: env.STORE_EMAIL || undefined }),
     !m.dono ? 'não se aplica' : !env.STORE_EMAIL ? 'sem destinatário' : enviar(env, { para: env.STORE_EMAIL, ...m.dono, responderA: email || undefined }),
   ]);
   return { em: new Date().toISOString(), cliente, dono };
 }
 
 export const falhou = (r) => Boolean(r) && (r.cliente === 'falhou' || r.dono === 'falhou');
+
+/* O TRAVÃO DOS EMAILS DE ENCOMENDAS POR PAGAR (11 nov 2026, ao ligar o envio pelo domínio; o mesmo da
+   Franja Kids). Qualquer pessoa pode encomendar com o email de outra, e a «registada» (modo encomenda),
+   o «falta pagar» do Multibanco, o «falhou» e o «expirou» levam a essa pessoa o nome, a morada e as
+   notas que quem encomendou escreveu, a partir de lfmobile.pt. Por endereço, no máximo
+   MAX_EMAILS_POR_PAGAR por dia; o do dono sai sempre, e o «paga» não tem travão (houve pagamento).
+   Conta-se num objecto durável por endereço (o resumo SHA-256, nunca o email); se o contador falhar,
+   o email segue (antes um a mais do que uma encomenda sem aviso). */
+export const MAX_EMAILS_POR_PAGAR = 3;
+export const TRAVADO = 'travado: emails de mais para este endereço hoje';
+async function resumoDe(texto) {
+  const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(texto));
+  return [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, '0')).join('');
+}
+export async function podeAvisarCliente(env, email) {
+  if (!email || !env.CONTADOR) return true;
+  try {
+    const { ok } = await pedirAoObjecto(env, 'CONTADOR', `email:${await resumoDe(String(email).trim().toLowerCase())}`, { max: MAX_EMAILS_POR_PAGAR });
+    return ok !== false;
+  } catch (e) {
+    console.error('o contador dos emails falhou (o email segue):', e.message);
+    return true;
+  }
+}

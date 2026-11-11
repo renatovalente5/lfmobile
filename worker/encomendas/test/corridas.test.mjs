@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import worker from '../index.js';
 import { assinar } from '../stripe.js';
 import { gravarCupao, usosDe } from '../cupoes.js';
+import { MAX_EMAILS_POR_PAGAR } from '../email.js';
 import { catalogoBase, envFalso, redeFalsa, pedir, pedidoValido, bearer } from './ajuda.mjs';
 
 let rede;
@@ -127,4 +128,45 @@ test('o KV fica com a cópia da última versão (a lista do painel lê-a), e uma
   assert.equal(ficha.json.estado, 'registada');
   assert.equal((await mudar(env, 'LF-20261101-ABCDEF', 'paga')).status, 200);
   assert.equal(env.ENCOMENDA.instancias.get('LF-20261101-ABCDEF').ctx.dados.get('enc').estado, 'paga', 'passou para o objecto');
+});
+
+test(`o travão dos emails: a mesma pessoa recebe no máximo ${MAX_EMAILS_POR_PAGAR} emails de encomendas por registar por dia; o dono recebe sempre`, async () => {
+  rede = redeFalsa({ catalogo: catalogoBase() });
+  const env = envFalso({ RESEND_API_KEY: 're_x', STORE_EMAIL: 'dono@exemplo.pt' });
+  const ids = [];
+  for (let i = 0; i <= MAX_EMAILS_POR_PAGAR; i++) {
+    const cliente = { nome: 'Alguém', email: i % 2 ? 'VITIMA@exemplo.pt' : 'vitima@exemplo.pt', telefone: '912 345 678' };
+    const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ cliente }) });
+    assert.equal(r.status, 200, r.texto);
+    ids.push(r.json.encomenda);
+  }
+  const para = (quem) => rede.resend().filter((m) => [].concat(m.to).some((x) => x.toLowerCase() === quem));
+  assert.equal(para('vitima@exemplo.pt').length, MAX_EMAILS_POR_PAGAR, 'maiúsculas ou não, é o mesmo endereço');
+  assert.equal(para('dono@exemplo.pt').length, MAX_EMAILS_POR_PAGAR + 1);
+  const ultima = await lerKV(env, ids.at(-1));
+  assert.match(ultima.avisos.registada.cliente, /^travado/);
+  assert.equal(ultima.estado, 'registada', 'a encomenda grava-se na mesma');
+  assert.ok(![...env.CONTADOR.instancias.keys()].some((k) => k.includes('@')), 'o contador guarda o resumo, nunca o email');
+});
+
+test(`o travão também nos emails da Stripe sem pagamento («não se concluiu»): no máximo ${MAX_EMAILS_POR_PAGAR} por dia`, async () => {
+  const cat = catalogoBase(); cat.modo = 'online';
+  rede = redeFalsa({ catalogo: cat });
+  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: SEGREDO_WEBHOOK, RESEND_API_KEY: 're_x', STORE_EMAIL: 'dono@exemplo.pt' });
+  const ids = [];
+  for (let i = 0; i <= MAX_EMAILS_POR_PAGAR; i++) {
+    const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido() });
+    assert.equal(r.status, 200, r.texto);
+    ids.push(r.json.encomenda);
+  }
+  rede.chamadas.length = 0;
+  for (const [i, id] of ids.entries()) {
+    const r = await webhook(env, { id: `evt_exp_${i}`, type: 'checkout.session.expired', data: { object: sessao(id, { payment_status: 'unpaid' }) } });
+    assert.equal(r.status, 200, r.texto);
+  }
+  const aoCliente = rede.resend().filter((m) => [].concat(m.to).includes('Maria@Exemplo.pt') || [].concat(m.to).includes('maria@exemplo.pt'));
+  assert.equal(aoCliente.length, MAX_EMAILS_POR_PAGAR);
+  const ultima = await lerKV(env, ids.at(-1));
+  assert.equal(ultima.estado, 'expirou');
+  assert.match(ultima.avisos.expirou.cliente, /^travado/);
 });

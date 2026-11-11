@@ -51,26 +51,42 @@ class_name = "Encomenda"
 tag = "v2"
 new_sqlite_classes = ["Encomenda"]
 
+# O travão dos emails de encomendas por pagar (email.js, podeAvisarCliente): um contador por endereço
+# (o nome é o resumo do email, na UE), no máximo 3 por dia a quem não pagou.
+[[durable_objects.bindings]]
+name = "CONTADOR"
+class_name = "Contador"
+
+[[migrations]]
+tag = "v3"
+new_sqlite_classes = ["Contador"]
+
+# Os emails saem pela Cloudflare (Email Sending, desde 11 nov 2026): o domínio lfmobile.pt está no
+# Email Sending da conta, e o plano Workers Paid deixa mandar a qualquer pessoa. Só deste remetente.
+[[send_email]]
+name = "EMAIL"
+allowed_sender_addresses = ["encomendas@lfmobile.pt"]
+
 [vars]
-# A pré-visualização no GitHub Pages; passa ao domínio quando o houver (e o catálogo, o logótipo
-# e as origens com ele).
-SITE_URL = "https://renatovalente5.github.io/lfmobile"
-CATALOGO_URL = "https://renatovalente5.github.io/lfmobile/assets/catalogo.json"
+# O site no domínio (lfmobile.pt, desde 11 nov 2026). Este Worker vive no workers.dev, fora da zona:
+# lê o site do domínio sem a restrição dos pedidos entre Workers da mesma zona (memória
+# worker-na-mesma-zona).
+SITE_URL = "https://lfmobile.pt"
+CATALOGO_URL = "https://lfmobile.pt/assets/catalogo.json"
 # A mesma imagem do topo do site (o PNG, que todos os clientes de email mostram). Se o logótipo
 # mudar, o nome muda (leva a assinatura do ficheiro): copiar o novo do <img class="logo"> do
 # _site/index.html.
-LOGO_URL = "https://renatovalente5.github.io/lfmobile/assets/img/logo-b72d7bbaa1-128.png"
-# As origens que podem chamar /checkout e /encomenda. O localhost:4870 é o build local
-# (node scripts/build.mjs): sai quando houver domínio.
-ALLOWED_ORIGINS = "https://renatovalente5.github.io,http://localhost:4870"
+LOGO_URL = "https://lfmobile.pt/assets/img/logo-b72d7bbaa1-128.png"
+# As origens que podem chamar /checkout e /encomenda: só o domínio (a pré-visualização do GitHub
+# Pages reencaminha para lá; os testes no Mac usam um Worker de faz-de-conta).
+ALLOWED_ORIGINS = "https://lfmobile.pt"
 STORE_NAME = "LF Mobile"
 STORE_PHONE = "916 537 957"
 # O email do dono: recebe «Nova encomenda», «Encomenda paga» e os falhados, e é o reply-to dos
 # emails ao cliente. Vazio enquanto o dono não o der — e sem ele não se manda nada ao dono.
 STORE_EMAIL = ""
-# O remetente. onboarding@resend.dev só entrega ao dono da conta do Resend (o Renato): quando
-# houver domínio verificado no Resend, passa a «LF Mobile <encomendas@dominio>».
-MAIL_FROM = "LF Mobile <onboarding@resend.dev>"
+# O remetente (o binding EMAIL só deixa este endereço).
+MAIL_FROM = "LF Mobile <encomendas@lfmobile.pt>"
 # A versão da API da Stripe, fixada (a mesma do Armazém dos Pneus). Não subir sem ler o changelog.
 STRIPE_API_VERSION = "2026-07-29.dahlia"
 # MODO = "encomenda" força o modo «encomenda» mesmo com o catálogo em «online» (travão de
@@ -82,5 +98,5 @@ STRIPE_API_VERSION = "2026-07-29.dahlia"
 #   PAINEL_SEGREDO        o mesmo do Worker do painel (openssl rand -hex 32)
 #   STRIPE_SECRET_KEY     sk_live_… ou rk_live_… da conta do cliente (quando a houver)
 #   STRIPE_WEBHOOK_SECRET whsec_… do endpoint /stripe/webhook
-#   RESEND_API_KEY        re_… da conta do Resend com o domínio verificado
+#   RESEND_API_KEY        só sem o binding EMAIL: re_… de uma conta do Resend com o domínio verificado
 # ---------------------------------------------------------------------------------------------

@@ -1,30 +1,38 @@
-# Constrói o site da LF Mobile e publica-o na Cloudflare, no domínio — QUANDO O HOUVER.
+# Constrói o site da LF Mobile e publica-o na Cloudflare, em https://lfmobile.pt (desde 11 nov 2026).
 #
 # O site é o Worker «lfmobile-site» (wrangler.jsonc): os ficheiros que o build escreve em _site/,
-# nos Custom Domains do domínio e do www (o www vai para o domínio sem www, e os vídeos respondem
-# por intervalos para o iPhone: worker/www.js). Os termos do GitHub Pages proíbem lá uma loja; por
-# isso a loja a sério vive aqui, e o Pages fica com a pré-visualização (pre-visualizacao.yml).
+# nos Custom Domains lfmobile.pt e www.lfmobile.pt (o www vai para o domínio sem www, e os vídeos
+# respondem por intervalos para o iPhone: worker/www.js). Os termos do GitHub Pages não deixam lá
+# uma loja: a pré-visualização antiga reencaminha para o domínio (reencaminhar-pre-visualizacao.yml).
 #
-# AINDA NÃO CORRE SOZINHO: só à mão (workflow_dispatch). Falta o domínio (o Renato: «só quando o
-# site estiver pronto», 8 nov 2026) e faltam os dados legais (o nome ou firma, o NIF, o email, os
-# portes, a garantia dos recondicionados), e o --producao RECUSA publicar enquanto faltarem
-# (regras.mjs). Quando o domínio existir: comprar, pôr a zona na Cloudflare, ligar os Custom
-# Domains com um `wrangler deploy --config wrangler.jsonc` à mão (uma vez), passar o `on:` para
-# push + schedule como no pre-visualizacao.yml, e pôr o SITE_PRODUCAO do painel a "1".
+# AINDA FECHADO AO GOOGLE: constrói-se com --dominio (noindex, e os dados legais que faltam à vista
+# como «[por confirmar: …]»), não com --producao, até o dono dar o nome ou firma, o NIF, o email,
+# os portes e a garantia dos recondicionados. Nesse dia, «Construir» passa a `--producao`, e o
+# SITE_PRODUCAO do painel passa a "1". O --producao RECUSA publicar enquanto faltar um dado que a
+# lei pede (regras.mjs).
 #
-# O PAINEL (renatovalente5/lfmobile-painel) acompanhará este workflow: o job «publicar» acabado
+# O PAINEL (renatovalente5/lfmobile-painel) acompanha este workflow: o job «publicar» acabado
 # bem quer dizer «publicado»; o nome do passo que falha aparece ao dono (por isso os nomes são em
 # português); as razões de uma publicação parada são as anotações ::error do build.
 #
 # Precisa do segredo CLOUDFLARE_API_TOKEN e da variável CLOUDFLARE_ACCOUNT_ID. O token é do
-# Renato, com Account › Workers Scripts: Edit e Account › Account Settings: Read, e NADA das
-# zonas: os Custom Domains ligam-se uma vez, à mão, e este workflow publica sem rotas (ver o
-# passo «Preparar o site»). Sem o token a publicação FALHA, de propósito: melhor um CI vermelho do
-# que edições que nunca chegam ao site.
+# Renato («lfmobile CI»), com Account › Workers Scripts: Edit e Account › Account Settings: Read, e
+# NADA das zonas: os Custom Domains ligaram-se uma vez, à mão, e este workflow publica sem rotas
+# (ver o passo «Preparar o site»). Sem o token a publicação FALHA, de propósito: melhor um CI
+# vermelho do que edições que nunca chegam ao site.
 name: Publicar o site na Cloudflare
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
+  # Todos os dias às 00:15 de Lisboa: as campanhas, as promoções e o aviso do topo têm datas, e o
+  # site só muda quando se publica. O cron é em UTC e Lisboa muda de hora: 23:15 UTC é a 00:15 de
+  # verão e 00:15 UTC a de inverno (só com a primeira, no inverno publicava às 23:15 — uma campanha
+  # que começa hoje só aparecia amanhã à noite).
+  schedule:
+    - cron: '15 23 * * *'
+    - cron: '15 0 * * *'
 
 permissions: {}
 
@@ -66,7 +74,7 @@ jobs:
         env:
           PYTHON: python # o do setup-python, com o Pillow (as imagens do conteúdo de ensaio)
       - name: Construir
-        run: node scripts/build.mjs --producao --sem-imagens
+        run: node scripts/build.mjs --dominio --sem-imagens
       # O que o job «publicar» precisa, num ficheiro só: o site, o script do www e a
       # configuração do Worker. O job «publicar» não faz checkout: nenhum código do
       # repositório corre ao lado do token.

@@ -5,10 +5,12 @@ Azeméis. Gerador estático em Node (sem dependências), à imagem dos outros si
 é a Mimices). O plano e as decisões estão em [docs/PLANO.md](docs/PLANO.md); o contrato das
 encomendas (site ↔ Worker ↔ painel) em [docs/ENCOMENDAS.md](docs/ENCOMENDAS.md).
 
-- **Pré-visualização**: https://renatovalente5.github.io/lfmobile/ (noindex; `pre-visualizacao.yml`,
-  a cada envio para a `main`). Os dados legais por escrever aparecem como «[por confirmar: …]».
-- **Produção**: um Worker da Cloudflare com os ficheiros do site (`wrangler.jsonc`, `worker/www.js`,
-  `publicar.yml`), no domínio — quando o houver. Até lá o `publicar.yml` só corre à mão.
+- **No ar**: https://lfmobile.pt (desde 11 nov 2026), um Worker da Cloudflare com os ficheiros do site
+  (`wrangler.jsonc`, `worker/www.js`, `publicar.yml`, a cada envio para a `main` e todos os dias às
+  00:15). Ainda fechado ao Google (`--dominio`: noindex, e os dados legais por escrever aparecem como
+  «[por confirmar: …]»); com eles, `--producao`. A pré-visualização antiga
+  (https://renatovalente5.github.io/lfmobile/) reencaminha para o domínio
+  (`reencaminhar-pre-visualizacao.yml`, corrido uma vez).
 - **Encomendas**: `worker/encomendas/` (o Worker `lfmobile-encomendas`): regista as encomendas, manda
   os emails e, quando a Stripe estiver ligada, abre a página segura de pagamento.
 - **Painel**: `renatovalente5/lfmobile-painel`, onde o dono edita a loja sozinho.
@@ -18,8 +20,8 @@ encomendas (site ↔ Worker ↔ painel) em [docs/ENCOMENDAS.md](docs/ENCOMENDAS.
 ```bash
 python3 scripts/imagens.py        # as versões web das fotografias (Pillow), para .cache/imagens
 node scripts/build.mjs            # o site em _site/, para http://localhost:4870 (python3 -m http.server 4870 --directory _site)
-node scripts/build.mjs --base=/lfmobile   # como no GitHub Pages
-node scripts/build.mjs --producao         # como no domínio: pára se faltar um dado que a lei pede
+node scripts/build.mjs --dominio          # como no domínio hoje (noindex)
+node scripts/build.mjs --producao         # o domínio aberto ao Google: pára se faltar um dado que a lei pede
 node scripts/testar.mjs           # os testes (regras, scripts, construções de ensaio)
 scripts/recortes.sh               # (num Mac) os recortes que faltam das fotografias novas dos artigos
 ```

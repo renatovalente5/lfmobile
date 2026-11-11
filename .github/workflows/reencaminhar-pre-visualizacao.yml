@@ -1,0 +1,61 @@
+# Põe na pré-visualização antiga (https://renatovalente5.github.io/lfmobile/) uma página que manda
+# cada morada para a mesma em https://lfmobile.pt: /lfmobile/reparacoes/ vai para
+# https://lfmobile.pt/reparacoes/. É a mesma página em index.html e em 404.html (o Pages
+# serve a 404.html em qualquer morada que não exista), sem nada da loja.
+#
+# Corre-se UMA vez, à mão (Actions › «Reencaminhar a pré-visualização» › Run workflow), depois de o
+# publicar.yml publicar no domínio (11 nov 2026; antes, o pre-visualizacao.yml publicava a loja aqui):
+# os links da pré-visualização que o cliente recebeu continuam a dar ao site. O painel não vê este
+# workflow (lê só as corridas do publicar.yml). (Como na Mimices e na Franja Kids.)
+name: Reencaminhar a pré-visualização
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  reencaminhar:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.publicacao.outputs.page_url }}
+    steps:
+      - name: Escrever a página
+        run: |
+          mkdir pagina
+          cat > pagina/index.html <<'HTML'
+          <!doctype html>
+          <html lang="pt-PT">
+          <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <meta name="robots" content="noindex">
+          <meta name="generator" content="redirect-stub">
+          <title>LF Mobile · lfmobile.pt</title>
+          <link rel="canonical" href="https://lfmobile.pt/">
+          <script>
+            /* A mesma morada no domínio, sem o /lfmobile da pré-visualização. */
+            var caminho = location.pathname.replace(/^\/lfmobile(?=\/|$)/, '') || '/';
+            location.replace('https://lfmobile.pt' + caminho + location.search + location.hash);
+          </script>
+          <!-- Só sem JavaScript: um refresh com ele ligado podia trocar a navegação do script,
+               a que leva a morada certa, pela da raiz. -->
+          <noscript><meta http-equiv="refresh" content="0; url=https://lfmobile.pt/"></noscript>
+          </head>
+          <body>
+          <p>O site da LF Mobile está em <a href="https://lfmobile.pt/">lfmobile.pt</a>.</p>
+          </body>
+          </html>
+          HTML
+          cp pagina/index.html pagina/404.html
+          touch pagina/.nojekyll
+          ls -la pagina
+      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3.0.1
+        with:
+          path: pagina
+      - id: publicacao
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5

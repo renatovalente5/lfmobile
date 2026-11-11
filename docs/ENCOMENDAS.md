@@ -77,8 +77,7 @@ O site: com `url` segue para lá; com `encomenda` esvazia o carrinho e segue par
 `/obrigado/?e=<encomenda>&c=<chave>`. A Stripe volta para `SITE_URL/obrigado/?s={CHECKOUT_SESSION_ID}`
 (sucesso) e para `SITE_URL/checkout/?cancelado=1` (cancelar).
 
-CORS: só as origens de `ALLOWED_ORIGINS` (a pré-visualização `https://renatovalente5.github.io`
-e, depois, o domínio); `OPTIONS` responde às duas rotas públicas. Um travão de 5 pedidos por
+CORS: só as origens de `ALLOWED_ORIGINS` (o domínio `https://lfmobile.pt`, desde 11 nov 2026); `OPTIONS` responde às duas rotas públicas. Um travão de 5 pedidos por
 minuto por IP no `/checkout` (rate limit binding, como no Armazém dos Pneus).
 
 ## 3. O que o site lê: `GET /encomenda?e=<id>&c=<chave>` ou `GET /encomenda?s=<sessão Stripe>`
@@ -204,14 +203,16 @@ A lista traz também `pagina`, `paginas`, `total` e, em cada resumo, `linhas_a_m
 
 O segredo `PAINEL_SEGREDO` é o mesmo nos dois Workers (um `wrangler secret put` em cada).
 
-## 6. Emails (Resend, `RESEND_API_KEY`; sem a chave não se manda nada e a encomenda fica na mesma)
+## 6. Emails (pela Cloudflare, o binding `EMAIL`; sem ele, o Resend, `RESEND_API_KEY`; sem nenhum não se manda nada e a encomenda fica na mesma)
 
 Texto e HTML (memória email-transaccional-texto-e-html), em português, curtos, com o logótipo
 no topo (`SITE_URL/assets/img/logo-…`, a mesma imagem do site), o número da encomenda, as
 linhas, o total, a entrega e os contactos da loja; sem «obrigação de pagar»; e com o aviso dos
 14 dias e a ligação a `/desistir/` (DL 24/2014, art. 4.º e 5.º: a confirmação em suporte
-duradouro leva as condições). Remetente `MAIL_FROM` (um endereço do domínio, quando o houver;
-até lá `onboarding@resend.dev` só chega ao Renato — por isso os emails são opcionais).
+duradouro leva as condições). Remetente `MAIL_FROM` = `LF Mobile <encomendas@lfmobile.pt>` (o domínio
+está no Email Sending da Cloudflare desde 11 nov 2026). Os emails ao cliente de uma encomenda por pagar
+(registada, Multibanco pendente, falhou, expirou) têm um travão: no máximo 3 por dia para o mesmo
+endereço (qualquer pessoa pode encomendar com o email de outra); o do dono sai sempre.
 
 | momento | ao cliente | ao dono (`STORE_EMAIL`) |
 |---|---|---|
@@ -229,14 +230,15 @@ O Worker está publicado desde 8 nov 2026 em `https://lfmobile-encomendas.renato
 (KV `lfmobile-encomendas-ORDERS`; só o `PAINEL_SEGREDO` instalado; o README em `worker/encomendas/` diz
 o que falta ligar). Os testes: `cd worker/encomendas && npm test`.
 
-`SITE_URL` (a pré-visualização `https://renatovalente5.github.io/lfmobile`, depois o domínio),
+`SITE_URL` (`https://lfmobile.pt`),
 `ALLOWED_ORIGINS`, `MAIL_FROM`, `STORE_EMAIL`, `STORE_NAME = "LF Mobile"`, `STORE_PHONE`,
 `STRIPE_API_VERSION = "2026-07-29.dahlia"`, `CATALOGO_URL` (por omissão `${SITE_URL}/assets/catalogo.json`),
 `LOGO_URL` (o PNG do logótipo para os emails: o Outlook não mostra WebP) e, opcional, `MODO = "encomenda"`
 como travão. Segredos: `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `PAINEL_SEGREDO`. Bindings: KV `ORDERS`, rate limit
-`TRAVAO_CHECKOUT`, objectos duráveis `CUPOES` (classe `Cupoes`, migração `v1`) e `ENCOMENDA` (classe
-`Encomenda`, migração `v2`), SQLite, na jurisdição da UE (
+`TRAVAO_CHECKOUT`, `send_email` `EMAIL` (só de `encomendas@lfmobile.pt`), objectos duráveis `CUPOES`
+(classe `Cupoes`, migração `v1`), `ENCOMENDA` (classe `Encomenda`, migração `v2`) e `CONTADOR` (classe
+`Contador`, migração `v3`: o travão dos emails), SQLite, na jurisdição da UE (
 num `wrangler dev` local, sem jurisdições, `ENCOMENDAS_LOCAL=1` no `.dev.vars`). `wrangler deploy --config worker/encomendas/wrangler.toml` sempre com
 `--config` (memória: wrangler-autoconfig-pasta-mae).
 

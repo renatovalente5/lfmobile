@@ -24,10 +24,12 @@ import { validarPedido, contas as fazerContas, ErroDoPedido, hojeLisboa } from '
 import { lerCupaoComUsos, porQueNaoVale, publico, libertarUso, reservarUso, normalizarCodigo, acertarCupao, fazerAcerto } from './cupoes.js';
 import { criarEncomenda, idLivre, novaChave, lerEncomenda, gravarEncomenda, alterarEncomenda, vistaPublica, iguais, RE_ID, RE_CHAVE, TTL_ENCOMENDA, TTL_EVENTO, agoraISO } from './encomenda.js';
 import { criarSessao, stripeFetch, verificarAssinatura, aplicarEvento, idDoEvento, eventoNaoBate } from './stripe.js';
-import { avisar, falhou } from './email.js';
+import { avisar, falhou, podeAvisarCliente, TRAVADO } from './email.js';
 import { rotaPainel } from './painel.js';
 
 const JANELA_DE_REENTREGA_SEGUNDOS = 3600;   // até quando vale pedir à Stripe que reentregue
+// Os avisos ao cliente sem pagamento, com o travão por endereço (email.js, podeAvisarCliente).
+const TRAVADOS = Object.freeze(['expirou', 'falhou', 'multibanco']);
 
 /* ---------------------------------------------------------------- CORS
    Só as origens de ALLOWED_ORIGINS. Um pedido SEM Origin (o curl, um servidor) não é um pedido
@@ -186,11 +188,15 @@ async function checkout(request, env, cors) {
     return json({ erro: 'Não foi possível registar a encomenda agora. Tente daqui a pouco ou fale connosco pelo WhatsApp.' }, 503, cors);
   }
   if (idem) { try { await env.ORDERS.put(idem, JSON.stringify({ encomenda: id, chave: enc.chave, estado: enc.estado, total_cents: enc.total_cents }), { expirationTtl: 86400 }); } catch (e) { console.error('tentativa por gravar', id, e.message); } }
-  // Os emails saem antes de responder (num waitUntil um erro não se vê). Uma falha do Resend não
-  // apaga a encomenda, que já está gravada: fica registada nela, e só então se grava outra vez.
-  const resultado = await avisar(env, 'registada', enc, { cat });
-  if (falhou(resultado)) {
-    console.error('EMAIL NÃO ENVIADO', id, JSON.stringify(resultado));
+  // Os emails saem antes de responder (num waitUntil um erro não se vê). Uma falha do envio não
+  // apaga a encomenda, que já está gravada: fica registada nela, e só então se grava outra vez. O
+  // email ao cliente tem travão por endereço (qualquer pessoa pode encomendar com o email de outra):
+  // o do dono sai sempre.
+  const extras = { cat };
+  if (!(await podeAvisarCliente(env, enc.cliente.email))) extras.semCliente = TRAVADO;
+  const resultado = await avisar(env, 'registada', enc, extras);
+  if (falhou(resultado) || extras.semCliente) {
+    if (falhou(resultado)) console.error('EMAIL NÃO ENVIADO', id, JSON.stringify(resultado));
     // o resultado junta-se à encomenda de agora (outra escrita pode ter passado entretanto: o painel)
     try { await alterarEncomenda(env, id, (x) => { x.avisos = { ...(x.avisos || {}), registada: resultado }; return {}; }); } catch (e) { console.error('aviso por gravar', id, e.message); }
   }
@@ -322,12 +328,16 @@ async function webhook(request, env) {
   if (pi && (await env.ORDERS.get(`pi:${pi}`)) !== id) await env.ORDERS.put(`pi:${pi}`, id, { expirationTtl: TTL_ENCOMENDA });
 
   // Cada aviso vai uma vez (a marca enc.avisos, lida da encomenda de agora). O resultado junta-se às
-  // marcas com outra escrita condicional: nada se perde, e um evento repetido não repete o email.
+  // marcas com outra escrita condicional: nada se perde, e um evento repetido não repete o email. Os
+  // emails ao cliente sem pagamento (o «expirou», o «falta pagar» do Multibanco e o «falhou») têm o
+  // travão por endereço.
   let enviou = false;
   for (const aviso of r.avisos) {
     const actual = (await lerEncomenda(env, id)) || r.enc;
     if (actual.avisos && actual.avisos[aviso]) continue;
-    const resultado = await avisar(env, aviso, actual, { origem: 'stripe' });
+    const extras = { origem: 'stripe' };
+    if (TRAVADOS.includes(aviso) && !(await podeAvisarCliente(env, actual.cliente && actual.cliente.email))) extras.semCliente = TRAVADO;
+    const resultado = await avisar(env, aviso, actual, extras);
     if (falhou(resultado)) {
       console.error('EMAIL NÃO ENVIADO', aviso, id, JSON.stringify(resultado), '— 500 para a Stripe reentregar');
       return new Response('emails por enviar', { status: 500 });
@@ -342,8 +352,9 @@ async function webhook(request, env) {
 
 /* ---------------------------------------------------------------- o encaminhador */
 
-// os objectos duráveis (wrangler.toml): as encomendas (ENCOMENDA, Encomenda) e os cupões (CUPOES, Cupoes)
-export { Encomenda } from './objecto.js';
+// os objectos duráveis (wrangler.toml): as encomendas (ENCOMENDA, Encomenda), os cupões (CUPOES, Cupoes)
+// e o travão dos emails (CONTADOR, Contador)
+export { Encomenda, Contador } from './objecto.js';
 export { Cupoes } from './cupoes.js';
 
 export default {

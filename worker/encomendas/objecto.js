@@ -13,6 +13,8 @@
  *     primeira escrita, que as passa para cá. O objecto apaga-se TTL_ENCOMENDA depois da última escrita.
  *   · Cupoes (cupoes.js): um cupão de um uso nunca passa o limite, nem com dois clientes no mesmo
  *     instante.
+ *   · Contador (aqui): quantos emails de encomendas por pagar recebeu hoje um endereço (o nome é o
+ *     resumo do email, nunca o email): o travão de email.js, podeAvisarCliente.
  *
  * Na jurisdição da UE (os dados pessoais ficam na UE). O workerd local (o wrangler dev) não tem
  * jurisdições: só aí (ENCOMENDAS_LOCAL=1, nunca no wrangler.toml) vai sem ela — memória
@@ -73,6 +75,35 @@ export class Encomenda {
       let kv = true;
       try { await espelhar(this.env, novo); } catch (e) { kv = false; console.error('CÓPIA NO KV POR GRAVAR', novo.encomenda, e.message); }
       resposta = { enc: novo, kv };
+    });
+    return respostaJson(resposta);
+  }
+
+  async alarm() {
+    await this.ctx.storage.deleteAll();
+  }
+}
+
+/* O contador de um endereço: { max } → { ok, n }. Conta o dia (UTC); passado o máximo, recusa sem
+   contar. Apaga-se dois dias depois da última conta. */
+export class Contador {
+  constructor(ctx) {
+    this.ctx = ctx;
+  }
+
+  async fetch(request) {
+    let corpo;
+    try { corpo = await request.json(); } catch { return respostaJson({ erro: 'pedido' }, 400); }
+    const max = Number(corpo.max) || 0;
+    const dia = new Date().toISOString().slice(0, 10);
+    let resposta;
+    await this.ctx.blockConcurrencyWhile(async () => {
+      const c = (await this.ctx.storage.get('c')) ?? { dia, n: 0 };
+      const n = c.dia === dia ? c.n : 0;
+      if (n >= max) { resposta = { ok: false, n }; return; }
+      await this.ctx.storage.put('c', { dia, n: n + 1 });
+      await this.ctx.storage.setAlarm(Date.now() + 2 * 86400 * 1000);
+      resposta = { ok: true, n: n + 1 };
     });
     return respostaJson(resposta);
   }
