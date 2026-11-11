@@ -7,7 +7,7 @@ import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../index.js';
 import { precoDe, contas } from '../contas.js';
-import { gravarCupao, usosDe, emailCanonico } from '../cupoes.js';
+import { gravarCupao, usosDe, emailCanonico, lerCupaoComUsos, listarCupoes, resumoDoEmail } from '../cupoes.js';
 import { metadadosDe } from '../encomenda.js';
 import { assinar } from '../stripe.js';
 import { catalogoBase, envFalso, redeFalsa, pedir, pedidoValido, moradaValida, bearer } from './ajuda.mjs';
@@ -226,6 +226,46 @@ test('o painel: anular uma encomenda pendente fecha a página da Stripe e devolv
   assert.equal(depois.estado, 'anulada');
   assert.ok(depois.avisos['paga-fora']);
   assert.equal(depois.avisos.paga, undefined, 'nada de «Pagamento recebido» numa encomenda anulada');
+});
+
+// ---------------------------------------------------------------- o objecto dos cupões (11 nov, a seguir à revisão)
+test('dois clientes no MESMO instante com um cupão de um uso: só um passa (o objecto dos cupões conta num passo)', async () => {
+  rede = redeFalsa({ catalogo: catalogoBase() });
+  const env = envFalso();
+  await gravarCupao(env, { codigo: 'SO1', tipo: 'valor', valor: 5, ativo: true, limite: 1 });
+  const de = (email) => pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ cupao: 'SO1', cliente: { ...pedidoValido().cliente, email }, total_cents: 11480 }) });
+  const respostas = await Promise.all([de('ana@exemplo.pt'), de('rui@exemplo.pt'), de('joao@exemplo.pt')]);
+  assert.deepEqual(respostas.map((r) => r.status).sort(), [200, 400, 400], respostas.map((r) => r.texto).join(' | '));
+  assert.ok(respostas.filter((r) => r.status === 400).every((r) => r.json.campo === 'cupao' && /número de vezes que podia/.test(r.json.erro)));
+  assert.equal(await usosDe(env, 'SO1'), 1);
+  assert.equal([...env.ORDERS.dados.keys()].filter((k) => k.startsWith('order:')).length, 1, 'uma encomenda só');
+});
+
+test('os cupões que estavam no KV passam para o objecto na primeira vez (a regra, os usos, quem já o usou)', async () => {
+  rede = redeFalsa({ catalogo: catalogoBase() });
+  const env = envFalso();
+  await env.ORDERS.put('cupao:ANTIGO', JSON.stringify({ codigo: 'ANTIGO', tipo: 'valor', valor: 5, ativo: true, limite: 10, porCliente: true, criado_em: '2026-11-09T10:00:00.000Z', actualizado_em: '2026-11-09T10:00:00.000Z' }));
+  await env.ORDERS.put('cupao-usos:ANTIGO', '3');
+  await env.ORDERS.put(`cupao-cliente:ANTIGO:${await resumoDoEmail('ana@exemplo.pt')}`, 'LF-20261109-AAAAAA');
+  const lido = await lerCupaoComUsos(env, 'antigo');
+  assert.equal(lido.regra.valor, 5);
+  assert.equal(lido.usos, 3);
+  assert.equal((await listarCupoes(env)).length, 1);
+  const ana = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ cupao: 'ANTIGO', cliente: { ...pedidoValido().cliente, email: 'ana@exemplo.pt' }, total_cents: 11480 }) });
+  assert.equal(ana.status, 400, 'a Ana já o tinha usado (a marca veio do KV)');
+  const rui = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ cupao: 'ANTIGO', cliente: { ...pedidoValido().cliente, email: 'rui@exemplo.pt' }, total_cents: 11480 }) });
+  assert.equal(rui.status, 200, rui.texto);
+  assert.equal(await usosDe(env, 'ANTIGO'), 4);
+});
+
+test('a Stripe não abre a página: a encomenda não se faz e o uso do cupão volta', async () => {
+  const cat = catalogoBase(); cat.modo = 'online';
+  rede = redeFalsa({ catalogo: cat, stripe: () => new Response(JSON.stringify({ error: { message: 'em baixo' } }), { status: 500 }) });
+  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: 'whsec_x' });
+  await gravarCupao(env, { codigo: 'SO1', tipo: 'valor', valor: 5, ativo: true, limite: 1 });
+  const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ cupao: 'SO1', total_cents: 11480 }) });
+  assert.equal(r.status, 502);
+  assert.equal(await usosDe(env, 'SO1'), 0, 'o uso voltou');
 });
 
 // ---------------------------------------------------------------- os metadados do KV

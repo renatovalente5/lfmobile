@@ -220,7 +220,8 @@ o que falta ligar). Os testes: `cd worker/encomendas && npm test`.
 `LOGO_URL` (o PNG do logótipo para os emails: o Outlook não mostra WebP) e, opcional, `MODO = "encomenda"`
 como travão. Segredos: `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `PAINEL_SEGREDO`. Bindings: KV `ORDERS`, rate limit
-`TRAVAO_CHECKOUT`. `wrangler deploy --config worker/encomendas/wrangler.toml` sempre com
+`TRAVAO_CHECKOUT`, objecto durável `CUPOES` (classe `Cupoes`, SQLite, migração `v1`; na jurisdição da UE —
+num `wrangler dev` local, sem jurisdições, `ENCOMENDAS_LOCAL=1` no `.dev.vars`). `wrangler deploy --config worker/encomendas/wrangler.toml` sempre com
 `--config` (memória: wrangler-autoconfig-pasta-mae).
 
 ## 8. O site novo (9 nov 2026): o catálogo v3, o peso, o modelo e os cupões
@@ -250,18 +251,24 @@ cupão de portes grátis. A encomenda guarda `peso_kg`.
 encomenda fica em `linhas[].modelo` e nas escolhas («Modelo: Samsung Galaxy A55»), por isso aparece nos
 emails, no painel e na página da Stripe.
 
-**Os cupões** (worker/encomendas/cupoes.js) vivem no KV deste Worker, nunca no repositório:
+**Os cupões** (worker/encomendas/cupoes.js) vivem num **objecto durável** deste Worker (`Cupoes`, um só
+para a loja, na UE — desde 11 nov 2026; até aí no KV), nunca no repositório. Ler, conferir e contar um
+uso é um passo só (`blockConcurrencyWhile`): dois clientes no MESMO instante nunca passam o limite nem o
+«um por cliente» (com o KV, três encomendas simultâneas com um cupão de um uso passavam as três). Na
+primeira vez, o objecto traz do KV os cupões de antes (`cupao:`, `cupao-usos:`, `cupao-cliente:`).
 
-- `cupao:<CÓDIGO>` → a regra `{ codigo, tipo: "percentagem" | "valor" | "portes", valor, minimo?, desde?,
+- `regra:<CÓDIGO>` → a regra `{ codigo, tipo: "percentagem" | "valor" | "portes", valor, minimo?, desde?,
   ate?, limite?, porCliente?, categorias?, ativo, nota?, criado_em, actualizado_em }`;
-  `cupao-usos:<CÓDIGO>` → o número de usos; `cupao-cliente:<CÓDIGO>:<resumo SHA-256 do email>` → o id da
-  encomenda (400 dias), quando é «um por cliente».
+  `usos:<CÓDIGO>` → o número de usos; `cliente:<CÓDIGO>:<resumo SHA-256 do email>` → o id da encomenda,
+  quando é «um por cliente» (o email nunca se guarda).
 - `POST /cupao` `{ codigo, entrega, linhas }` (público, CORS, o mesmo travão do `/checkout`) → 200
   `{ cupao: { codigo, tipo, valor, minimo, categorias, descricao }, desconto_cents }`, ou 400
   `{ erro, campo: "cupao" }` (não existe, inactivo, fora das datas, abaixo do mínimo, gasto). O carrinho
   guarda o código e a regra e faz a conta (a mesma de `descontoDoCupao`).
-- `/checkout` com `"cupao": "BEMVINDO"`: o Worker lê a regra, confere tudo outra vez (e o «um por
-  cliente», pelo email) e faz as contas com o desconto: `desconto_cents` (a percentagem arredonda ao
+- `/checkout` com `"cupao": "BEMVINDO"`: o Worker lê a regra e os usos, confere outra vez, faz as contas
+  com o desconto e, antes de gravar a encomenda, RESERVA o uso no objecto (`reservar`: as datas, o
+  mínimo, o limite e o «um por cliente», pelo email, conferidos e contados num passo; se a Stripe não
+  abrir a página ou a encomenda não se gravar, o uso volta). As contas: `desconto_cents` (a percentagem arredonda ao
   cêntimo; o valor fixo nunca passa dos artigos a que se aplica), e `total_cents = artigos − desconto +
   portes`. Um cupão que deixou de valer: 400 com `campo: "cupao"` (o carrinho tira-o e redesenha). A
   encomenda guarda `cupao`, `desconto_cents` e, nos de portes, `cupao_portes: true`; a vista pública
@@ -278,8 +285,8 @@ emails, no painel e na página da Stripe.
   (`libertarUso`, `cupao_contado: false`) quando o pagamento expira ou falha (webhook) e quando o dono
   anula a encomenda no painel; uma encomenda paga depois disso conta outra vez. O «um por cliente»
   confere o email como pessoa (`emailCanonico`: sem invisíveis nem maiúsculas, sem o `+etiqueta`, no
-  Gmail sem os pontos). O KV não tem escrita condicional: dois pedidos no MESMO instante ainda podem
-  passar um uso acima do limite (fechar isso de todo pede um Durable Object).
+  Gmail sem os pontos). Um pagamento que chega depois de o uso ter voltado conta outra vez, sem
+  limite (`contar`: o dinheiro entrou).
 - O painel: `GET /painel/cupoes` → `{ cupoes: [regra + usos + descricao] }`; `PUT /painel/cupoes/<CÓDIGO>`
   com a regra (400 `{ erro, campo }` quando não presta; as categorias conferem-se com o catálogo);
   `DELETE /painel/cupoes/<CÓDIGO>`.

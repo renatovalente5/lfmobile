@@ -15,7 +15,7 @@ Publicado em `https://lfmobile-encomendas.renato-lima-valente-dcb.workers.dev` (
   número e a chave; em modo **online** abre a página segura da Stripe (em português) e devolve o URL.
 - `GET /encomenda?e=<id>&c=<chave>` (ou `?s=<sessão Stripe>`) — o que a página «obrigado» mostra,
   sem dados pessoais.
-- `POST /cupao` — o carrinho confere um código de cupão (os cupões vivem no KV: `cupoes.js`; o
+- `POST /cupao` — o carrinho confere um código de cupão (os cupões vivem num objecto durável, `Cupoes`, na UE: `cupoes.js` e `objecto.js`; o
   contrato no §8 do `docs/ENCOMENDAS.md`).
 - `POST /stripe/webhook` — os eventos da Stripe, com assinatura verificada e idempotência por
   evento (`evt:`); um webhook que falhe a enviar emails responde 500 para a Stripe reentregar.
@@ -66,6 +66,11 @@ Segredos (nunca no repositório; o valor passa pelo stdin a partir de um ficheir
 ```sh
 $WR secret put PAINEL_SEGREDO --config $CFG < ~/Websites/lfmobile/_cliente/segredos/PAINEL_SEGREDO
 ```
+
+Os cupões: o objecto durável `CUPOES` (classe `Cupoes`, SQLite — o tipo do plano gratuito —, migração
+`v1` no `wrangler.toml`), na jurisdição da UE. Num `wrangler dev` local não há jurisdições: põe-se
+`ENCOMENDAS_LOCAL=1` no `.dev.vars` (nunca no `wrangler.toml`). No primeiro pedido, o objecto traz do KV
+os cupões que lá estivessem.
 
 O KV: binding `ORDERS`, título «lfmobile-encomendas-ORDERS» (o título «ORDERS» sem prefixo é
 do Armazém dos Pneus), id `b1609f701d5f43e7ad515c939b39ca6d`. Apagar uma encomenda de teste:

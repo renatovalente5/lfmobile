@@ -21,7 +21,7 @@
 import { json, lerCorpoJson } from './http.js';
 import { lerCatalogo, modoDe, siteUrl } from './catalogo.js';
 import { validarPedido, contas as fazerContas, ErroDoPedido, hojeLisboa } from './contas.js';
-import { lerCupao, porQueNaoVale, publico, contarUso, libertarUso, normalizarCodigo } from './cupoes.js';
+import { lerCupaoComUsos, porQueNaoVale, publico, contarUso, libertarUso, reservarUso, normalizarCodigo } from './cupoes.js';
 import { criarEncomenda, idLivre, novaChave, lerEncomenda, gravarEncomenda, vistaPublica, iguais, RE_ID, RE_CHAVE, TTL_ENCOMENDA, TTL_EVENTO, agoraISO } from './encomenda.js';
 import { criarSessao, stripeFetch, verificarAssinatura, aplicarEvento, idDoEvento, eventoNaoBate } from './stripe.js';
 import { avisar, falhou } from './email.js';
@@ -104,7 +104,9 @@ async function checkout(request, env, cors) {
   // Um cupão que deixou de valer recusa a encomenda com campo «cupao»: o carrinho tira-o e refaz a conta.
   let cupao = null;
   if (corpo && corpo.cupao !== undefined && corpo.cupao !== null && corpo.cupao !== '') {
-    cupao = await lerCupao(env, corpo.cupao);
+    let lido;
+    try { lido = await lerCupaoComUsos(env, corpo.cupao); } catch (e) { console.error('cupões por ler', e.message); return json({ erro: 'Não conseguimos confirmar o cupão agora. Tente daqui a um minuto.' }, 503, cors); }
+    cupao = lido.regra;
     let razao = cupao ? null : 'Este cupão não existe ou já não vale.';
     if (!razao) {
       // o mínimo confere-se com os artigos de hoje (as contas sem o cupão, que não recusam por causa
@@ -112,7 +114,7 @@ async function checkout(request, env, cors) {
       let previa = null;
       const zonaDoPedido = (Array.isArray(cat.zonas) ? cat.zonas : []).find((z) => z && z.id === corpo.entrega);
       try { previa = zonaDoPedido ? fazerContas(cat, corpo.linhas, zonaDoPedido, hoje) : null; } catch (_) { /* o erro do pedido diz-se a seguir, sem o cupão */ }
-      razao = await porQueNaoVale(env, cupao, { hoje, artigos_cents: previa ? previa.artigos_cents : null, email: corpo.cliente && typeof corpo.cliente.email === 'string' ? corpo.cliente.email : '' });
+      razao = porQueNaoVale(cupao, { hoje, artigos_cents: previa ? previa.artigos_cents : null, usos: lido.usos });
     }
     if (razao) return json({ erro: `${razao} Tirámo-lo do carrinho: veja o total outra vez.`, campo: 'cupao' }, 400, cors);
   }
@@ -136,6 +138,15 @@ async function checkout(request, env, cors) {
 
   const em = agoraISO();
   const id = await idLivre(env, hoje);
+  // O uso do cupão reserva-se já, num passo só no objecto dos cupões (as datas, o mínimo, o limite e o
+  // «um por cliente» conferem-se lá): dois clientes no mesmo instante não passam o limite. Volta se a
+  // encomenda não se gravar (ou a Stripe não abrir a página).
+  if (cupao) {
+    let r;
+    try { r = await reservarUso(env, { codigo: cupao.codigo, email: pedido.cliente.email, encomenda: id, hoje, artigos_cents: pedido.contas.artigos_cents }); } catch (e) { console.error('cupão por reservar', id, e.message); return json({ erro: 'Não conseguimos confirmar o cupão agora. Tente daqui a um minuto.' }, 503, cors); }
+    if (r.erro) return json({ erro: `${r.erro} Tirámo-lo do carrinho: veja o total outra vez.`, campo: 'cupao' }, 400, cors);
+  }
+  const devolverUso = async () => { if (cupao) { try { await libertarUso(env, cupao.codigo, pedido.cliente.email, id); } catch (e) { console.error('uso do cupão por devolver', id, e.message); } } };
   const enc = criarEncomenda({ id, chave: novaChave(), modo, estado: modo === 'online' ? 'pendente' : 'registada', zona: pedido.zona, contas: pedido.contas, cliente: pedido.cliente, termosPagina: `${siteUrl(env)}/termos-e-condicoes/`, em });
   // O uso do cupão conta já, nos dois modos (é uma reserva: se o pagamento expirar ou falhar, ou o
   // dono anular a encomenda, o uso volta — libertarUso).
@@ -150,6 +161,7 @@ async function checkout(request, env, cors) {
       sessao = await criarSessao(env, enc, pedido.zona);
     } catch (e) {
       console.error('a Stripe não abriu a sessão', id, e.status, e.codigo, e.message);
+      await devolverUso();
       return json({ erro: 'Não foi possível abrir o pagamento. Tente outra vez ou fale connosco pelo WhatsApp.' }, 502, cors);
     }
     enc.stripe = { session_id: sessao.id };
@@ -158,10 +170,8 @@ async function checkout(request, env, cors) {
       await env.ORDERS.put(`session:${sessao.id}`, id, { expirationTtl: TTL_ENCOMENDA });
     } catch (e) {
       console.error('ENCOMENDA NÃO GRAVADA (KV)', id, sessao.id, e.message);
+      await devolverUso();
       return json({ erro: 'Não foi possível registar a encomenda agora. Tente daqui a pouco ou fale connosco pelo WhatsApp.' }, 503, cors);
-    }
-    if (enc.cupao) {
-      try { await contarUso(env, enc.cupao, enc.cliente.email, id); } catch (e) { console.error('uso do cupão por contar', id, enc.cupao, e.message); }
     }
     const resp = { encomenda: id, chave: enc.chave, url: sessao.url, total_cents: enc.total_cents };
     if (idem) { try { await env.ORDERS.put(idem, JSON.stringify(resp), { expirationTtl: 86400 }); } catch (e) { console.error('tentativa por gravar', id, e.message); } }
@@ -172,10 +182,8 @@ async function checkout(request, env, cors) {
     await gravarEncomenda(env, enc, { em });
   } catch (e) {
     console.error('ENCOMENDA NÃO GRAVADA (KV)', id, e.message);
+    await devolverUso();
     return json({ erro: 'Não foi possível registar a encomenda agora. Tente daqui a pouco ou fale connosco pelo WhatsApp.' }, 503, cors);
-  }
-  if (enc.cupao) {
-    try { await contarUso(env, enc.cupao, enc.cliente.email, id); } catch (e) { console.error('uso do cupão por contar', id, enc.cupao, e.message); }
   }
   if (idem) { try { await env.ORDERS.put(idem, JSON.stringify({ encomenda: id, chave: enc.chave, estado: enc.estado, total_cents: enc.total_cents }), { expirationTtl: 86400 }); } catch (e) { console.error('tentativa por gravar', id, e.message); } }
   // Os emails saem antes de responder (num waitUntil um erro não se vê). Uma falha do Resend não
@@ -201,7 +209,9 @@ async function conferirCupao(request, env, cors) {
   if (resposta) return resposta;
   const codigo = normalizarCodigo(corpo.codigo);
   if (!codigo) return json({ erro: 'Escreva o código do cupão como está (letras e algarismos).', campo: 'cupao' }, 400, cors);
-  const regra = await lerCupao(env, codigo);
+  let lido;
+  try { lido = await lerCupaoComUsos(env, codigo); } catch (e) { console.error('cupões por ler', e.message); return json({ erro: 'Não conseguimos confirmar o cupão agora. Tente daqui a um minuto.' }, 503, cors); }
+  const regra = lido.regra;
   if (!regra) return json({ erro: 'Este cupão não existe ou já não vale.', campo: 'cupao' }, 400, cors);
   let cat;
   try { cat = await lerCatalogo(env); } catch (e) { return json({ erro: 'Não conseguimos confirmar o cupão agora. Tente daqui a um minuto.' }, 503, cors); }
@@ -209,7 +219,7 @@ async function conferirCupao(request, env, cors) {
   const zona = (Array.isArray(cat.zonas) ? cat.zonas : []).find((z) => z && z.id === corpo.entrega) || (cat.zonas || [])[0];
   let c = null;
   try { c = fazerContas(cat, Array.isArray(corpo.linhas) && corpo.linhas.length ? corpo.linhas : [], zona, hoje, { cupao: regra }); } catch (_) { c = null; }
-  const razao = await porQueNaoVale(env, regra, { hoje, artigos_cents: c ? c.artigos_cents : null });
+  const razao = porQueNaoVale(regra, { hoje, artigos_cents: c ? c.artigos_cents : null, usos: lido.usos });
   if (razao) return json({ erro: razao, campo: 'cupao' }, 400, cors);
   const nomes = Object.fromEntries((Array.isArray(cat.categorias) ? cat.categorias : []).map((k) => [k.slug, k.nome]));
   return json({ cupao: publico(regra, nomes), desconto_cents: c ? c.desconto_cents : 0 }, 200, cors);
@@ -334,6 +344,9 @@ async function webhook(request, env) {
 }
 
 /* ---------------------------------------------------------------- o encaminhador */
+
+// o objecto durável dos cupões (wrangler.toml: CUPOES, class_name Cupoes)
+export { Cupoes } from './cupoes.js';
 
 export default {
   async fetch(request, env) {

@@ -5,6 +5,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Cupoes } from '../cupoes.js';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 
@@ -35,8 +36,44 @@ export const SITE = 'https://renatovalente5.github.io/lfmobile';
 export const CATALOGO_URL = `${SITE}/assets/catalogo.json`;
 export const SEGREDO = 'segredo-do-painel-de-teste';
 
-export function envFalso(extra = {}) {
+/* OS OBJECTOS DURÁVEIS DE FAZ-DE-CONTA (objecto.js; o mesmo da Franja Kids): uma instância por nome, com
+   um storage em memória e o blockConcurrencyWhile como uma FILA — como na Cloudflare, o que corre lá
+   dentro não se mistura com outro pedido. A jurisdição devolve o mesmo espaço (aqui não há sítios).
+   `instancias` deixa os testes ver dentro. */
+function ctxFalso() {
+  const m = new Map();
+  let fila = Promise.resolve();
   return {
+    dados: m,
+    storage: {
+      // como o da Cloudflare: uma lista de chaves dá um Map com as que existem
+      async get(k) { if (Array.isArray(k)) return new Map(k.filter((x) => m.has(x)).map((x) => [x, structuredClone(m.get(x))])); return m.has(k) ? structuredClone(m.get(k)) : undefined; },
+      async put(k, v) { m.set(k, structuredClone(v)); },
+      async delete(k) { return m.delete(k); },
+      async list({ prefix = '' } = {}) { return new Map([...m.keys()].filter((x) => x.startsWith(prefix)).sort().map((x) => [x, structuredClone(m.get(x))])); },
+      async deleteAll() { m.clear(); },
+      async setAlarm() { /* o prazo não corre nos testes */ },
+    },
+    blockConcurrencyWhile(fn) { const p = fila.then(fn); fila = p.catch(() => {}); return p; },
+  };
+}
+export function objectosFalsos(Classe, env) {
+  const instancias = new Map();
+  const ns = {
+    instancias,
+    jurisdiction() { return ns; },
+    idFromName(n) { return String(n); },
+    get(id) {
+      if (!instancias.has(id)) instancias.set(id, new Classe(ctxFalso(), env));
+      const o = instancias.get(id);
+      return { fetch: (url, init) => o.fetch(new Request(url, init)) };
+    },
+  };
+  return ns;
+}
+
+export function envFalso(extra = {}) {
+  const env = {
     ORDERS: kvFalso(),
     TRAVAO_CHECKOUT: { limit: async () => ({ success: true }) },
     SITE_URL: SITE,
@@ -51,6 +88,8 @@ export function envFalso(extra = {}) {
     PAINEL_SEGREDO: SEGREDO,
     ...extra,
   };
+  if (!('CUPOES' in extra)) env.CUPOES = objectosFalsos(Cupoes, env);
+  return env;
 }
 
 /* A rede: `catalogo` é o objecto (ou uma função que o devolve, para o mudar a meio); `stripe` e

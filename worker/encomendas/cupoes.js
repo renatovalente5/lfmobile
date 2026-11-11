@@ -1,32 +1,34 @@
 /* OS CUPÕES (o Renato, 9 nov 2026: «Vai ser para criar campanhas, cupões para os clientes usarem na
- * compra, vai ser para integrar com o Stripe»). Vivem no KV deste Worker, nunca no repositório do
- * site (que é público: um código lá escrito via-se). O dono cria-os no painel (/painel/cupoes); o
- * carrinho confere um código (POST /cupao) para mostrar o desconto; o /checkout confere tudo outra
- * vez e grava o desconto na encomenda; em modo «online» a Stripe recebe um cupão de uso único com o
- * valor já calculado (stripe.js), e mostra «Cupão X −5,00 €» na página dela.
+ * compra, vai ser para integrar com o Stripe»). Nunca no repositório do site (que é público: um código
+ * lá escrito via-se). O dono cria-os no painel (/painel/cupoes); o carrinho confere um código (POST
+ * /cupao) para mostrar o desconto; o /checkout confere tudo outra vez, RESERVA um uso e grava o
+ * desconto na encomenda; em modo «online» a Stripe recebe um cupão de uso único com o valor já
+ * calculado (stripe.js), e mostra «Cupão X −5,00 €» na página dela.
  *
- * Chaves no KV (ORDERS):
- *   cupao:<CÓDIGO>                     a regra (JSON), sem prazo
- *   cupao-usos:<CÓDIGO>                quantas vezes foi usado (texto com o número)
- *   cupao-cliente:<CÓDIGO>:<resumo>    o email (resumo SHA-256) de quem já o usou, quando é «um por
- *                                      cliente»; 400 dias, como as encomendas
+ * GUARDADOS NUM OBJECTO DURÁVEL (Cupoes, um só para a loja, na UE — 11 nov 2026; até aí no KV): ler,
+ * conferir e contar um uso é um passo só, e dois clientes no mesmo instante nunca passam o limite nem o
+ * «um por cliente». O KV não tem escrita condicional: com ele, dois pedidos ao mesmo tempo liam os
+ * dois «0 usos» e passavam os dois (memória kv-ler-mudar-gravar-perde-escritas; o desenho é o da
+ * Franja Kids). Na primeira vez, o objecto traz do KV os cupões de antes.
+ *
+ * No objecto: regra:<CÓDIGO> → a regra; usos:<CÓDIGO> → o número; cliente:<CÓDIGO>:<resumo> → a
+ * encomenda que o usou, quando é «um por cliente» (o resumo SHA-256 do email, nunca o email).
  *
  * A regra: { codigo, tipo: 'percentagem' | 'valor' | 'portes', valor (% ou €; nada nos portes),
  *   minimo?: € em artigos, desde?: 'AAAA-MM-DD', ate?: 'AAAA-MM-DD', limite?: usos, porCliente?: bool,
  *   categorias?: [slug] (vazio: tudo), ativo: bool, nota?: texto do dono, criado_em, actualizado_em }
- * Os usos contam-se quando a encomenda fica registada (modo «encomenda») ou paga (modo «online»).
- * O KV não tem escrita condicional: dois pedidos ao mesmo tempo podem passar um uso acima do limite.
- * Para uma loja pequena chega, e o painel mostra os usos.
+ * O uso reserva-se quando a encomenda fica registada (nos dois modos) e volta quando ela não se faz (o
+ * pagamento expirou ou falhou, o dono anulou-a); uma que se paga depois de expirar volta a contar, sem
+ * limite (o dinheiro entrou).
  */
 
-import { TTL_ENCOMENDA } from './encomenda.js';
 import { hojeLisboa } from './contas.js';
+import { pedirAoObjecto, respostaJson } from './objecto.js';
 
 export const RE_CODIGO = /^[A-Z0-9][A-Z0-9_-]{2,29}$/;
 export const TIPOS = Object.freeze({ percentagem: 'Percentagem', valor: 'Valor fixo', portes: 'Portes grátis' });
 const RE_DIA = /^\d{4}-\d{2}-\d{2}$/;
-const chave = (c) => `cupao:${c}`;
-const chaveUsos = (c) => `cupao-usos:${c}`;
+const dia = (d) => d.split('-').reverse().join('/');
 
 /* O código como se guarda: maiúsculas, sem espaços. Inválido: ''. */
 export function normalizarCodigo(c) {
@@ -94,22 +96,10 @@ export function validarRegra(bruto, { categorias = null } = {}) {
   return { regra: r };
 }
 
-export async function lerCupao(env, codigo) {
-  const c = normalizarCodigo(codigo);
-  if (!c) return null;
-  const bruto = await env.ORDERS.get(chave(c));
-  if (!bruto) return null;
-  try { return JSON.parse(bruto); } catch (_) { return null; }
-}
-export async function usosDe(env, codigo) {
-  const n = parseInt((await env.ORDERS.get(chaveUsos(codigo))) || '0', 10);
-  return Number.isFinite(n) && n > 0 ? n : 0;
-}
-
 /* O email como pessoa, para o «um por cliente»: sem invisíveis nem maiúsculas, sem o que vem depois
    de um «+» (ana+1@… é a ana@…), e no Gmail sem os pontos (a.na@gmail.com é a ana@gmail.com). */
 export function emailCanonico(email) {
-  const e = String(email || '').replace(/[\u0000-\u001F\u007F­​-‍⁠﻿\s]/g, '').toLowerCase();
+  const e = String(email || '').replace(/[\p{Cc}\p{Cf}\s]/gu, '').toLowerCase();
   const i = e.lastIndexOf('@');
   if (i < 1) return e;
   const local = e.slice(0, i).split('+')[0];
@@ -125,28 +115,135 @@ export async function resumoDoEmail(email) {
   return [...new Uint8Array(h)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
 }
 
-/* Porque é que este cupão não vale agora (a frase para o carrinho), ou null. `email` só no
-   /checkout (o «um por cliente» confere-se aí). */
-export async function porQueNaoVale(env, r, { hoje = hojeLisboa(), artigos_cents = null, email = '' } = {}) {
+/* Porque é que este cupão não vale agora (a frase para o carrinho), ou null. `usos`: os que já tem;
+   `usado`: esta pessoa já o usou (só conta nos «um por cliente»); `artigos_cents` null não confere o
+   mínimo. Sem leituras: o objecto (reservar) e o /cupao chamam-na com o que leram. */
+export function porQueNaoVale(r, { hoje = hojeLisboa(), artigos_cents = null, usos = 0, usado = false } = {}) {
   if (!r || r.ativo === false) return 'Este cupão não existe ou já não vale.';
-  if (r.desde && hoje < r.desde) return `O cupão ${r.codigo} só vale a partir de ${r.desde.split('-').reverse().join('/')}.`;
-  if (r.ate && hoje > r.ate) return `O cupão ${r.codigo} acabou a ${r.ate.split('-').reverse().join('/')}.`;
+  if (r.desde && hoje < r.desde) return `O cupão ${r.codigo} só vale a partir de ${dia(r.desde)}.`;
+  if (r.ate && hoje > r.ate) return `O cupão ${r.codigo} acabou a ${dia(r.ate)}.`;
   if (typeof r.minimo === 'number' && r.minimo > 0 && artigos_cents !== null && artigos_cents < Math.round(r.minimo * 100)) return `O cupão ${r.codigo} é para compras a partir de ${eur(r.minimo)}.`;
-  if (r.limite && (await usosDe(env, r.codigo)) >= r.limite) return `O cupão ${r.codigo} já foi usado o número de vezes que podia.`;
-  if (r.porCliente && email && (await env.ORDERS.get(`cupao-cliente:${r.codigo}:${await resumoDoEmail(email)}`))) return `O cupão ${r.codigo} só se usa uma vez por cliente, e já foi usado com este email.`;
+  if (r.limite && usos >= r.limite) return `O cupão ${r.codigo} já foi usado o número de vezes que podia.`;
+  if (r.porCliente && usado) return `O cupão ${r.codigo} só se usa uma vez por cliente, e já foi usado com este email.`;
   return null;
 }
 
-/* Conta um uso: logo que a encomenda fica registada, também em modo «online» (é uma reserva: antes,
-   só contava quando o pagamento entrava, e um cupão de um uso servia a várias encomendas abertas ao
-   mesmo tempo). Lê e escreve: ver a nota do topo (dois pedidos no MESMO instante ainda passam os
-   dois; fechar isso de todo pede um Durable Object). */
+/* ---------------------------------------------------------------- o objecto durável */
+
+export class Cupoes {
+  constructor(ctx, env) {
+    this.ctx = ctx;
+    this.env = env;
+  }
+
+  /* Uma vez: os cupões que estavam no KV (cupao:, cupao-usos:, cupao-cliente:) passam para cá. */
+  async migrar(s) {
+    if (await s.get('migrado')) return;
+    const kv = this.env && this.env.ORDERS;
+    if (kv) {
+      for (const prefixo of ['cupao:', 'cupao-cliente:']) {
+        let cursor;
+        do {
+          const r = await kv.list({ prefix: prefixo, cursor });
+          for (const k of r.keys || []) {
+            const bruto = await kv.get(k.name);
+            if (bruto === null) continue;
+            const resto = k.name.slice(prefixo.length);
+            if (prefixo === 'cupao-cliente:') { await s.put(`cliente:${resto}`, bruto); continue; }
+            let regra;
+            try { regra = JSON.parse(bruto); } catch (_) { continue; }
+            await s.put(`regra:${resto}`, regra);
+            const usos = parseInt((await kv.get(`cupao-usos:${resto}`)) || '0', 10);
+            if (usos > 0) await s.put(`usos:${resto}`, usos);
+          }
+          cursor = r.list_complete ? null : r.cursor;
+        } while (cursor);
+      }
+    }
+    await s.put('migrado', new Date().toISOString());
+  }
+
+  async fetch(request) {
+    let c;
+    try { c = await request.json(); } catch { return respostaJson({ erro: 'pedido' }, 400); }
+    const s = this.ctx.storage;
+    let resposta = { erro: 'operação' };
+    // tudo num passo: ler, conferir e escrever sem outro pedido a meio
+    await this.ctx.blockConcurrencyWhile(async () => {
+      await this.migrar(s);
+      if (c.op === 'listar') {
+        const regras = [...(await s.list({ prefix: 'regra:' })).values()];
+        const usos = regras.length ? await s.get(regras.map((r) => `usos:${r.codigo}`)) : new Map();
+        resposta = { cupoes: regras.map((r) => ({ ...r, usos: usos.get(`usos:${r.codigo}`) || 0 })) };
+        return;
+      }
+      const codigo = normalizarCodigo(c.codigo);
+      if (!codigo) { resposta = { erro: 'código' }; return; }
+      const regra = (await s.get(`regra:${codigo}`)) ?? null;
+      const usos = (await s.get(`usos:${codigo}`)) || 0;
+      if (c.op === 'ler') { resposta = { regra, usos }; return; }
+      if (c.op === 'gravar') {
+        const agora = typeof c.agora === 'string' ? c.agora : new Date().toISOString();
+        const nova = { ...c.regra, codigo, criado_em: regra ? regra.criado_em : agora, actualizado_em: agora };
+        await s.put(`regra:${codigo}`, nova);
+        resposta = { regra: nova, usos };
+        return;
+      }
+      if (c.op === 'apagar') {
+        if (!regra) { resposta = { naoHa: true }; return; }
+        await s.delete(`regra:${codigo}`);   // os usos e as marcas ficam: um cupão novo com o mesmo código continua a contar
+        resposta = { ok: true };
+        return;
+      }
+      const marca = typeof c.cliente === 'string' && c.cliente ? `cliente:${codigo}:${c.cliente}` : null;
+      if (c.op === 'reservar' || c.op === 'contar') {
+        // «reservar» confere tudo (as datas, o mínimo, o limite, o «um por cliente»); «contar» é o
+        // pagamento que entrou depois de o uso voltar: conta sempre
+        if (c.op === 'reservar') {
+          const de = marca ? await s.get(marca) : null;
+          const erro = porQueNaoVale(regra, { hoje: c.hoje || undefined, artigos_cents: c.artigos_cents ?? null, usos, usado: Boolean(de && de !== c.encomenda) });
+          if (erro) { resposta = { erro }; return; }
+        }
+        await s.put(`usos:${codigo}`, usos + 1);
+        if (marca && regra && regra.porCliente) await s.put(marca, c.encomenda || '1');
+        resposta = { ok: true, usos: usos + 1 };
+        return;
+      }
+      if (c.op === 'libertar') {
+        await s.put(`usos:${codigo}`, Math.max(0, usos - 1));
+        const de = marca ? await s.get(marca) : null;
+        if (de && (de === c.encomenda || de === '1')) await s.delete(marca);
+        resposta = { ok: true, usos: Math.max(0, usos - 1) };
+      }
+    });
+    return respostaJson(resposta, ['pedido', 'operação', 'código'].includes(resposta.erro) ? 400 : 200);
+  }
+}
+
+/* Um pedido ao objecto dos cupões (um só para a loja toda). */
+export const pedirCupoes = (env, corpo) => pedirAoObjecto(env, 'CUPOES', 'cupoes', corpo);
+
+/* A regra e os usos de um código (sem a regra: null). */
+export async function lerCupaoComUsos(env, codigo) {
+  const c = normalizarCodigo(codigo);
+  if (!c) return { regra: null, usos: 0 };
+  const r = await pedirCupoes(env, { op: 'ler', codigo: c });
+  return { regra: r.regra || null, usos: r.usos || 0 };
+}
+export const lerCupao = async (env, codigo) => (await lerCupaoComUsos(env, codigo)).regra;
+export const usosDe = async (env, codigo) => (await lerCupaoComUsos(env, codigo)).usos;
+
+/* Reserva um uso para uma encomenda: num passo só, confere as datas, o mínimo, o limite e o «um por
+   cliente», e conta. → { ok, usos } ou { erro } (a frase para o carrinho). */
+export async function reservarUso(env, { codigo, email, encomenda, hoje = hojeLisboa(), artigos_cents = null }) {
+  return pedirCupoes(env, { op: 'reservar', codigo: normalizarCodigo(codigo), cliente: email ? await resumoDoEmail(email) : '', encomenda, hoje, artigos_cents });
+}
+
+/* Conta um uso sem conferir (um pagamento que entrou depois de o uso ter voltado: o dinheiro entrou). */
 export async function contarUso(env, codigo, email, id) {
   const c = normalizarCodigo(codigo);
   if (!c) return;
-  await env.ORDERS.put(chaveUsos(c), String((await usosDe(env, c)) + 1));
-  const r = await lerCupao(env, c);
-  if (r && r.porCliente && email) await env.ORDERS.put(`cupao-cliente:${c}:${await resumoDoEmail(email)}`, id || '1', { expirationTtl: TTL_ENCOMENDA });
+  await pedirCupoes(env, { op: 'contar', codigo: c, cliente: email ? await resumoDoEmail(email) : '', encomenda: id || '' });
 }
 
 /* Devolve o uso de uma encomenda que não se fez (o pagamento expirou ou falhou, ou o dono anulou-a):
@@ -154,45 +251,24 @@ export async function contarUso(env, codigo, email, id) {
 export async function libertarUso(env, codigo, email, id) {
   const c = normalizarCodigo(codigo);
   if (!c) return;
-  await env.ORDERS.put(chaveUsos(c), String(Math.max(0, (await usosDe(env, c)) - 1)));
-  if (email) {
-    const k = `cupao-cliente:${c}:${await resumoDoEmail(email)}`;
-    const de = await env.ORDERS.get(k);
-    if (de && (de === id || de === '1')) await env.ORDERS.delete(k);
-  }
+  await pedirCupoes(env, { op: 'libertar', codigo: c, cliente: email ? await resumoDoEmail(email) : '', encomenda: id || '' });
 }
 
 /* ---------------------------------------------------------------- o painel */
 
 export async function listarCupoes(env) {
-  const out = [];
-  let cursor;
-  do {
-    const r = await env.ORDERS.list({ prefix: 'cupao:', cursor, limit: 1000 });
-    for (const k of r.keys || []) {
-      const bruto = await env.ORDERS.get(k.name);
-      if (!bruto) continue;
-      try {
-        const regra = JSON.parse(bruto);
-        out.push({ ...regra, usos: await usosDe(env, regra.codigo), descricao: descricaoDe(regra) });
-      } catch (_) { /* uma regra estragada não pára a lista */ }
-    }
-    cursor = r.list_complete ? null : r.cursor;
-  } while (cursor);
-  return out.sort((a, b) => String(b.actualizado_em || '').localeCompare(String(a.actualizado_em || '')));
+  const { cupoes } = await pedirCupoes(env, { op: 'listar' });
+  return (cupoes || []).map((r) => ({ ...r, descricao: descricaoDe(r) }))
+    .sort((a, b) => String(b.actualizado_em || '').localeCompare(String(a.actualizado_em || '')));
 }
 
-export async function gravarCupao(env, regra, { agora = new Date().toISOString() } = {}) {
-  const antes = await lerCupao(env, regra.codigo);
-  const r = { ...regra, criado_em: (antes && antes.criado_em) || agora, actualizado_em: agora };
-  await env.ORDERS.put(chave(regra.codigo), JSON.stringify(r));
-  return r;
+export async function gravarCupao(env, regra, { agora } = {}) {
+  const r = await pedirCupoes(env, { op: 'gravar', codigo: regra.codigo, regra, ...(agora ? { agora } : {}) });
+  return r.regra;
 }
 
 export async function apagarCupao(env, codigo) {
   const c = normalizarCodigo(codigo);
   if (!c) return false;
-  if (!(await env.ORDERS.get(chave(c)))) return false;
-  await env.ORDERS.delete(chave(c));
-  return true;
+  return Boolean((await pedirCupoes(env, { op: 'apagar', codigo: c })).ok);
 }

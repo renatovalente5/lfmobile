@@ -5,7 +5,7 @@ import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../index.js';
 import { contas, validarPedido, ErroDoPedido, escaloesDe, escalaoDoPeso, descontoDoCupao } from '../contas.js';
-import { validarRegra, descricaoDe, normalizarCodigo, porQueNaoVale, contarUso, usosDe, gravarCupao, lerCupao } from '../cupoes.js';
+import { validarRegra, descricaoDe, normalizarCodigo, porQueNaoVale, contarUso, usosDe, gravarCupao, lerCupao, reservarUso, libertarUso } from '../cupoes.js';
 import { aplicarEvento } from '../stripe.js';
 import { catalogoBase, envFalso, redeFalsa, pedir, pedidoValido, moradaValida, bearer, SEGREDO } from './ajuda.mjs';
 
@@ -106,24 +106,32 @@ test('o desconto: a percentagem ao cêntimo, o valor fixo nunca acima dos artigo
   assert.deepEqual(descontoDoCupao({ tipo: 'portes', valor: 0 }, linhas, 12970), { cents: 0, portes: true });
 });
 
-test('porque é que um cupão não vale: inactivo, antes, depois, abaixo do mínimo, gasto, já usado por este email', async () => {
-  const env = envFalso();
+test('porque é que um cupão não vale: inactivo, antes, depois, abaixo do mínimo, gasto, já usado por este email — e o objecto confere e conta num passo', async () => {
   const r = { codigo: 'NATAL10', tipo: 'percentagem', valor: 10, ativo: true, minimo: 20, desde: '2026-12-01', ate: '2026-12-24', limite: 2, porCliente: true };
-  assert.match(await porQueNaoVale(env, { ...r, ativo: false }, { hoje: '2026-12-10' }), /não existe ou já não vale/);
-  assert.match(await porQueNaoVale(env, r, { hoje: '2026-11-30' }), /só vale a partir de 01\/12\/2026/);
-  assert.match(await porQueNaoVale(env, r, { hoje: '2026-12-25' }), /acabou a 24\/12\/2026/);
-  assert.match(await porQueNaoVale(env, r, { hoje: '2026-12-10', artigos_cents: 1999 }), /a partir de 20 €/);
-  assert.equal(await porQueNaoVale(env, r, { hoje: '2026-12-10', artigos_cents: 2000 }), null, 'exactamente o mínimo vale');
+  assert.match(porQueNaoVale({ ...r, ativo: false }, { hoje: '2026-12-10' }), /não existe ou já não vale/);
+  assert.match(porQueNaoVale(r, { hoje: '2026-11-30' }), /só vale a partir de 01\/12\/2026/);
+  assert.match(porQueNaoVale(r, { hoje: '2026-12-25' }), /acabou a 24\/12\/2026/);
+  assert.match(porQueNaoVale(r, { hoje: '2026-12-10', artigos_cents: 1999 }), /a partir de 20 €/);
+  assert.equal(porQueNaoVale(r, { hoje: '2026-12-10', artigos_cents: 2000 }), null, 'exactamente o mínimo vale');
+  assert.match(porQueNaoVale(r, { hoje: '2026-12-10', usos: 2 }), /número de vezes que podia/);
+  assert.match(porQueNaoVale(r, { hoje: '2026-12-10', usado: true }), /uma vez por cliente/);
+  // no objecto dos cupões: reservar confere tudo e conta, sem outro pedido a meio
+  const env = envFalso();
   await gravarCupao(env, r);
-  await contarUso(env, 'NATAL10', 'Ana@Exemplo.pt', 'LF-20261210-AAAAAA');
+  const reservar = (email, encomenda, artigos_cents = 2000) => reservarUso(env, { codigo: 'NATAL10', email, encomenda, hoje: '2026-12-10', artigos_cents });
+  assert.deepEqual(await reservar('Ana@Exemplo.pt', 'LF-20261210-AAAAAA'), { ok: true, usos: 1 });
+  assert.match((await reservar('ana@exemplo.pt ', 'LF-20261210-CCCCCC')).erro, /uma vez por cliente/, 'o mesmo email noutra encomenda');
+  assert.match((await reservar('rui@exemplo.pt', 'LF-20261210-DDDDDD', 1999)).erro, /a partir de 20 €/, 'o mínimo também se confere ao reservar');
+  assert.deepEqual(await reservar('rui@exemplo.pt', 'LF-20261210-BBBBBB'), { ok: true, usos: 2 });
+  assert.match((await reservar('joao@exemplo.pt', 'LF-20261210-EEEEEE')).erro, /número de vezes que podia/);
+  assert.equal(await usosDe(env, 'NATAL10'), 2);
+  const dentro = [...env.CUPOES.instancias.get('cupoes').ctx.dados.keys()];
+  assert.equal(dentro.filter((k) => k.startsWith('cliente:')).length, 2);
+  assert.ok(dentro.every((k) => !k.includes('@')), 'o email nunca fica guardado, só o resumo');
+  // o uso volta (e a marca do «um por cliente» sai, só a desta encomenda)
+  await libertarUso(env, 'NATAL10', 'ana@exemplo.pt', 'LF-20261210-AAAAAA');
   assert.equal(await usosDe(env, 'NATAL10'), 1);
-  assert.match(await porQueNaoVale(env, r, { hoje: '2026-12-10', email: 'ana@exemplo.pt ' }), /uma vez por cliente/);
-  assert.equal(await porQueNaoVale(env, r, { hoje: '2026-12-10', email: 'rui@exemplo.pt' }), null);
-  await contarUso(env, 'NATAL10', 'rui@exemplo.pt', 'LF-20261210-BBBBBB');
-  assert.match(await porQueNaoVale(env, r, { hoje: '2026-12-10', email: 'joao@exemplo.pt' }), /número de vezes que podia/);
-  const chaves = [...env.ORDERS.dados.keys()].filter((k) => k.startsWith('cupao-cliente:'));
-  assert.equal(chaves.length, 2);
-  assert.ok(chaves.every((k) => !k.includes('@')), 'o email nunca fica no KV, só o resumo');
+  assert.deepEqual(await reservar('ana@exemplo.pt', 'LF-20261210-FFFFFF'), { ok: true, usos: 2 }, 'devolvido o uso, a Ana pode usá-lo outra vez');
 });
 
 // ---------------------------------------------------------------- o /cupao e o /checkout

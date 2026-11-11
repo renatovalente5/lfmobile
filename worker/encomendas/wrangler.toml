@@ -26,6 +26,19 @@ name = "TRAVAO_CHECKOUT"
 namespace_id = "1102"
 simple = { limit = 5, period = 60 }
 
+# Os cupões num objecto durável (cupoes.js, a classe Cupoes; um só para a loja, na jurisdição da UE —
+# objecto.js): ler, conferir e contar um uso é um passo só, e dois clientes no mesmo instante nunca
+# passam o limite (o KV não tem escrita condicional). SQLite: o único tipo do plano gratuito. Na
+# primeira vez, o objecto traz do KV os cupões de antes. Localmente (wrangler dev), sem jurisdições:
+# ENCOMENDAS_LOCAL=1 no .dev.vars, nunca aqui.
+[[durable_objects.bindings]]
+name = "CUPOES"
+class_name = "Cupoes"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Cupoes"]
+
 [vars]
 # A pré-visualização no GitHub Pages; passa ao domínio quando o houver (e o catálogo, o logótipo
 # e as origens com ele).

@@ -371,6 +371,8 @@ Corrigido, cada coisa com um teste que falha no código antigo:
   o mostra); um lembrete quando a promoção ainda não começou.
 
 Por decidir: os emails e o email do dono antes de abrir (hoje uma encomenda só fica no KV); o
-fabricante de cada artigo (Regulamento (UE) 2023/988); um Durable Object para os cupões com limite;
+fabricante de cada artigo (Regulamento (UE) 2023/988); ~~um Durable Object para os cupões com limite~~
+(feito no mesmo dia: os cupões num objecto durável, `Cupoes`, e três encomendas simultâneas com um cupão
+de um uso já não passam as três);
 o horário nocturno do `publicar.yml` quando houver domínio (as campanhas mudam à meia-noite).
 
