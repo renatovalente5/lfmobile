@@ -72,7 +72,9 @@ async function saude(env) {
     modo: null,
     stripe: Boolean(env.STRIPE_SECRET_KEY),
     webhook: Boolean(env.STRIPE_WEBHOOK_SECRET),
-    email: Boolean(env.RESEND_API_KEY),
+    // Há por onde mandar: pela Cloudflare (o binding EMAIL, desde 11 nov 2026) ou pelo Resend, como
+    // no enviar() do email.js. O painel lê isto para dizer ao dono se o cliente recebe os emails.
+    email: Boolean((env.EMAIL && typeof env.EMAIL.send === 'function') || env.RESEND_API_KEY),
     dono: Boolean(env.STORE_EMAIL),
     catalogo: 'ok',
   };

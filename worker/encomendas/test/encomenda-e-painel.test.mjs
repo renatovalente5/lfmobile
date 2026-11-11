@@ -73,6 +73,10 @@ test('GET /painel/saude diz o modo e o que está ligado', async () => {
   rede = redeFalsa({ catalogo: catalogoBase() });
   const r = await pedir(worker, envFalso({ RESEND_API_KEY: 're_x' }), 'GET', '/painel/saude', { cabecalhos: bearer() });
   assert.deepEqual(r.json, { ok: true, modo: 'encomenda', stripe: false, webhook: false, email: true, dono: false, catalogo: 'ok' });
+  // os emails pela Cloudflare (o binding EMAIL), sem a chave do Resend: também estão ligados
+  const pelaCloudflare = await pedir(worker, envFalso({ EMAIL: { send: async () => ({}) } }), 'GET', '/painel/saude', { cabecalhos: bearer() });
+  assert.equal(pelaCloudflare.json.email, true);
+  assert.equal((await pedir(worker, envFalso(), 'GET', '/painel/saude', { cabecalhos: bearer() })).json.email, false, 'sem nenhum dos dois, não');
   rede.repor();
   rede = redeFalsa({ catalogo: null });
   const semCat = await pedir(worker, envFalso(), 'GET', '/painel/saude', { cabecalhos: bearer() });

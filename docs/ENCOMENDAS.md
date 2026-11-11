@@ -190,8 +190,9 @@ enviado), `stripe.multibanco` (entidade, referência, validade) e `stripe.reembo
   → a encomenda inteira depois de mudar. Só as transições do painel (tabela acima); outra, 409.
   Manda o email ao cliente que a transição pede (§6) — `"avisar": false` não manda.
 - `POST /painel/encomendas/<id>/nota` `{ "texto": "…", "por": "…" }` → acrescenta a `notas_painel`.
-- `GET /painel/saude` → `{ ok, modo, stripe, webhook, email, dono, catalogo }` (booleanos; `catalogo` é
-  `"ok"` ou o erro de ler o catálogo publicado).
+- `GET /painel/saude` → `{ ok, modo, stripe, webhook, email, dono, catalogo }` (booleanos; `email` diz se
+  há por onde mandar, o binding `EMAIL` ou o `RESEND_API_KEY`; `catalogo` é `"ok"` ou o erro de ler o
+  catálogo publicado).
 
 A lista faz-se dos metadados das chaves do KV (sem ler cada encomenda, por causa do limite de
 subpedidos): uma mudança de estado pode levar até 60 s a aparecer na lista; a ficha lê o objecto, é
