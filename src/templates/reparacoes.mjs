@@ -22,6 +22,8 @@ const modelosDaFamilia = (ctx, id) => ctx.aparelhos.modelos.filter((m) => m.fami
 /* «do iPhone», mas «da PlayStation»: as consolas dizem-se no feminino («a PS5»). */
 const doAparelho = (x) => (x?.tipo === 'consola' ? 'da' : 'do');
 const oMeu = (x) => (x?.tipo === 'consola' ? 'a minha' : 'o meu');
+/* «Reparação iPhone 15», mas «Reparação de portátil»: os computadores não são modelos com nome. */
+const reparacaoDe = (x) => (x.tipo === 'computador' ? `de ${x.nome.toLowerCase()}` : x.nome);
 
 /* O preço de uma reparação, como se diz na lista: «129,90 €», «desde 129,90 €», «Grátis» ou
    «Orçamento grátis». */
@@ -39,12 +41,14 @@ export function seletorDeModelo(ctx, { id = 'escolher', destino = 'reparacoes', 
   const comModelos = familias.filter((f) => modelosDaFamilia(ctx, f.id).length);
   // Apple e Samsung à vista; as outras marcas (o dono repara todas, 9 nov 2026) atrás de «Outras»
   const comFamilias = marcas.filter((m) => comModelos.some((f) => f.marca === m.id));
-  const principais = comFamilias.slice(0, 2);
-  const outras = comFamilias.slice(2);
+  // os computadores (11 nov 2026) não são uma marca: ficam à vista, depois da Apple e da Samsung
+  const deComputadores = (m) => comModelos.some((f) => f.marca === m.id && f.tipo === 'computador');
+  const principais = [...comFamilias.filter((m) => !deComputadores(m)).slice(0, 2), ...comFamilias.filter(deComputadores)];
+  const outras = comFamilias.filter((m) => !principais.includes(m));
   return `<div class="seletor" id="${id}" data-seletor="${destino}">
   <p class="seletor__titulo">${esc(titulo)}</p>
   <div class="seletor__marcas${outras.length ? ' seletor__marcas--com-outras' : ''}" role="group" aria-label="Marca">
-    ${principais.map((m, i) => `<button class="seletor__marca" type="button" data-marca="${esc(m.id)}" aria-pressed="${i === 0 ? 'true' : 'false'}">${esc(m.nome)}</button>`).join('')}
+    ${principais.map((m, i) => `<button class="seletor__marca" type="button" data-marca="${esc(m.id)}" aria-pressed="${i === 0 ? 'true' : 'false'}">${deComputadores(m) ? 'PC<span class="visualmente-escondido"> e portáteis</span>' : esc(m.nome)}</button>`).join('')}
     ${outras.length ? `<button class="seletor__marca" type="button" data-outras aria-pressed="false" aria-expanded="false" aria-controls="${id}-outras">Outras<span class="visualmente-escondido"> marcas</span></button>` : ''}
   </div>
   ${outras.length ? `<div class="seletor__outras" id="${id}-outras" role="group" aria-label="Outras marcas" hidden>
@@ -115,7 +119,7 @@ export function reparacoes(ctx) {
     <div class="rep-capa__texto">
       <p class="rotulo rotulo--claro">Reparações</p>
       <h1 class="rep-capa__titulo">Reparação de telemóveis, com o preço à vista.</h1>
-      <p class="rep-capa__sub">Telemóveis de todas as marcas, tablets, relógios e consolas PlayStation. Escolha o seu modelo e veja quanto custa. Diagnóstico e orçamento grátis, na loja ou pelo WhatsApp.</p>
+      <p class="rep-capa__sub">Telemóveis de todas as marcas, tablets, relógios, consolas PlayStation e computadores. Escolha o seu modelo e veja quanto custa. Diagnóstico e orçamento grátis, na loja ou pelo WhatsApp.</p>
       <ul class="rep-capa__pontos">
         <li>${icones.certo}Orçamento grátis e sem compromisso</li>
         <li>${icones.certo}Ecrã compatível ou original, conforme o modelo</li>
@@ -133,10 +137,10 @@ export function reparacoes(ctx) {
   return {
     caminho: '/reparacoes/',
     titulo: 'Reparação de telemóveis de todas as marcas — preços por modelo',
-    descricao: `Reparação de telemóveis de todas as marcas, tablets, relógios e consolas PlayStation em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}. Veja o preço do seu modelo; orçamento grátis.`,
+    descricao: `Reparação de telemóveis de todas as marcas, tablets, relógios, consolas PlayStation e computadores em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}. Veja o preço do seu modelo; orçamento grátis.`,
     classe: 'pagina-reparacoes',
     jsonld: [m.ld, {
-      '@context': 'https://schema.org', '@type': 'Service', name: 'Reparação de telemóveis, tablets, relógios e consolas', provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },
+      '@context': 'https://schema.org', '@type': 'Service', name: 'Reparação de telemóveis, tablets, relógios, consolas e computadores', provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },
       hasOfferCatalog: { '@type': 'OfferCatalog', name: 'Reparações', itemListElement: ctx.tiposReparacao.map((t) => ({ '@type': 'Offer', itemOffered: { '@type': 'Service', name: t.titulo, description: t.resumo } })) },
     }],
     conteudo,
@@ -153,18 +157,22 @@ export function familia(ctx, f) {
   ${m.html}
   <header class="cabeca">
     <p class="rotulo">${esc(nomeMarca(ctx, f.marca))}</p>
-    <h1 class="titulo-pagina">Reparação ${esc(f.nome)}</h1>
-    <p class="cabeca__sub">Escolha o seu modelo para ver as reparações e os preços.</p>
+    <h1 class="titulo-pagina">${f.tipo === 'computador' ? 'Reparação de computadores' : `Reparação ${esc(f.nome)}`}</h1>
+    <p class="cabeca__sub">${f.tipo === 'computador' ? 'Portáteis e computadores fixos, de qualquer marca. Escolha o seu para ver as reparações; o orçamento é grátis.' : 'Escolha o seu modelo para ver as reparações e os preços.'}</p>
   </header>
   <ul class="modelos-grelha">
     ${lista.map((x) => `<li><a class="modelo-cartao" href="${ctx.url(`/reparacoes/${x.id}/`)}">${usarAparelho(x.desenho)}<span class="modelo-cartao__nome">${esc(x.nome)}</span>${x.ano ? `<span class="modelo-cartao__ano">${x.ano}</span>` : ''}</a></li>`).join('')}
   </ul>
-  ${convite(ctx, { titulo: 'O seu modelo não está na lista? Pergunte-nos.', texto: `Olá! Queria um orçamento para reparar ${oMeu(f)} ${f.nome}: ` })}
+  ${f.tipo === 'computador'
+    ? convite(ctx, { titulo: 'Uma dúvida? Pergunte-nos.', texto: 'Olá! Queria um orçamento para reparar o meu computador: ' })
+    : convite(ctx, { titulo: 'O seu modelo não está na lista? Pergunte-nos.', texto: `Olá! Queria um orçamento para reparar ${oMeu(f)} ${f.nome}: ` })}
 </div>`;
   return {
     caminho,
-    titulo: `Reparação ${f.nome} — escolha o modelo`,
-    descricao: `Reparação de ${f.nome} em ${ctx.site.local.localidade}: ${lista.slice(0, 6).map((x) => x.nome).join(', ')} e outros. ${f.tipo === 'consola' ? 'Porta HDMI, limpeza, comandos' : 'Ecrã, bateria'} e mais, com o preço de cada modelo.`,
+    titulo: f.tipo === 'computador' ? 'Reparação de computadores — portáteis e fixos' : `Reparação ${f.nome} — escolha o modelo`,
+    descricao: f.tipo === 'computador'
+      ? `Reparação de portáteis e computadores fixos em ${ctx.site.local.localidade}: limpeza e pasta térmica, formatação, placa gráfica e montagem de PC gaming. Orçamento grátis.`
+      : `Reparação de ${f.nome} em ${ctx.site.local.localidade}: ${lista.slice(0, 6).map((x) => x.nome).join(', ')} e outros. ${f.tipo === 'consola' ? 'Porta HDMI, limpeza, comandos' : 'Ecrã, bateria'} e mais, com o preço de cada modelo.`,
     classe: 'pagina-familia',
     jsonld: [m.ld],
     conteudo,
@@ -212,8 +220,8 @@ export function modelo(ctx, x) {
   <header class="modelo-cabeca">
     <div class="modelo-cabeca__desenho">${usarAparelho(x.desenho, 'aparelho--grande')}</div>
     <div class="modelo-cabeca__texto">
-      <p class="rotulo">${esc(marca)} · ${esc(f.nome)}</p>
-      <h1 class="titulo-pagina">Reparação ${esc(x.nome)}</h1>
+      <p class="rotulo">${marca === f.nome ? esc(f.nome) : `${esc(marca)} · ${esc(f.nome)}`}</p>
+      <h1 class="titulo-pagina">Reparação ${esc(reparacaoDe(x))}</h1>
       <p class="cabeca__sub">Escolha o que quer reparar: pode juntar mais do que uma. O diagnóstico e o orçamento são grátis.</p>
       ${porConfirmar ? notaPorConfirmar(ctx, 'preços de referência do mercado, a confirmar pela loja') : ''}
     </div>
@@ -244,7 +252,7 @@ export function modelo(ctx, x) {
     <div class="grelha grelha--4">${peliculas.map((p) => cartaoProduto(ctx, p, { comBotao: false }).replace(`href="${ctx.url(`/produtos/${p.slug}/`)}"`, `href="${ctx.url(`/produtos/${p.slug}/`)}?modelo=${encodeURIComponent(`${marca}|${x.nome}`)}"`)).join('\n')}</div>
   </section>` : ''}
   ${irmaos.length ? `<section class="modelo-irmaos" aria-labelledby="irmaos-titulo">
-    <h2 class="titulo-pequeno" id="irmaos-titulo">Outros ${esc(f.nome)}</h2>
+    <h2 class="titulo-pequeno" id="irmaos-titulo">Outros ${f.tipo === 'computador' ? 'computadores' : esc(f.nome)}</h2>
     <ul class="pilulas">${irmaos.map((y) => `<li><a class="pilula" href="${ctx.url(`/reparacoes/${y.id}/`)}">${esc(y.nome)}</a></li>`).join('')}</ul>
   </section>` : ''}
 </div>
@@ -252,8 +260,10 @@ ${spriteAparelhos()}`;
   const comPreco = ctx.producao ? reps.filter((r) => r.preco !== null && !r.porConfirmar) : [];
   return {
     caminho,
-    titulo: `Reparação ${x.nome} — ${x.tipo === 'consola' ? 'porta HDMI, limpeza e mais' : 'ecrã, bateria e mais'}`,
-    descricao: `Reparação ${doAparelho(x)} ${x.nome} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ${reps.slice(0, 5).map((r) => r.nome.toLowerCase()).join(', ')}. Veja o preço e marque pelo WhatsApp; diagnóstico grátis.`.slice(0, 160),
+    titulo: `Reparação ${reparacaoDe(x)} — ${x.tipo === 'consola' ? 'porta HDMI, limpeza e mais' : x.tipo === 'computador' ? 'limpeza, formatação e mais' : 'ecrã, bateria e mais'}`,
+    descricao: (x.tipo === 'computador'
+      ? `Reparação ${reparacaoDe(x)} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ${reps.filter((r) => !r.gratis).map((r) => (/^PC/.test(r.nome) ? r.nome : r.nome.toLowerCase())).join(', ').replace(/, ([^,]*)$/, ' e $1')}. Diagnóstico e orçamento grátis.`
+      : `Reparação ${doAparelho(x)} ${x.nome} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ${reps.slice(0, 5).map((r) => r.nome.toLowerCase()).join(', ')}. Veja o preço e marque pelo WhatsApp; diagnóstico grátis.`).slice(0, 160),
     classe: 'pagina-modelo',
     jsonld: [m.ld, {
       '@context': 'https://schema.org', '@type': 'Service', name: `Reparação ${x.nome}`, provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },

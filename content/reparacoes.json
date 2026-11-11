@@ -815,9 +815,73 @@
         "nokia",
         "zte",
         "alcatel",
-        "playstation"
+        "playstation",
+        "computadores"
       ],
       "gratis": true
+    },
+    {
+      "id": "pc-limpeza",
+      "nome": "Limpeza e pasta térmica",
+      "titulo": "Limpeza interna e pasta térmica",
+      "icone": "temperatura",
+      "resumo": "Aquece muito, faz barulho ou desliga-se sozinho.",
+      "sintomas": [
+        "Ventoinha sempre no máximo",
+        "Desliga-se ou bloqueia quando aquece",
+        "Muito quente ao toque"
+      ],
+      "familias": [
+        "computadores"
+      ]
+    },
+    {
+      "id": "pc-formatacao",
+      "nome": "Formatação",
+      "titulo": "Formatação e instalação do sistema",
+      "icone": "sistema",
+      "resumo": "Lento, com vírus ou com erros a arrancar: formatamos e instalamos o sistema de novo.",
+      "sintomas": [
+        "Muito lento a arrancar",
+        "Erros ou ecrã azul",
+        "Publicidade e programas que não instalou"
+      ],
+      "familias": [
+        "computadores"
+      ]
+    },
+    {
+      "id": "pc-grafica",
+      "nome": "Placa gráfica",
+      "titulo": "Reparação da placa gráfica",
+      "icone": "placa",
+      "resumo": "Sem imagem, riscos no ecrã, ou vai abaixo a meio de um jogo.",
+      "sintomas": [
+        "Liga mas não dá imagem",
+        "Riscos ou quadrados no ecrã",
+        "Vai abaixo a meio de um jogo"
+      ],
+      "familias": [
+        "computadores"
+      ]
+    },
+    {
+      "id": "pc-gaming",
+      "nome": "PC gaming",
+      "titulo": "Montagem e manutenção de PC gaming",
+      "icone": "ventoinha",
+      "resumo": "Montamos o seu PC com as peças que escolher, ou trocamos as que já não chegam.",
+      "sintomas": [
+        "Montar um PC novo",
+        "Trocar a gráfica, a memória ou o disco",
+        "Limpeza e manutenção do PC gaming"
+      ],
+      "familias": [
+        "computadores"
+      ],
+      "excluir": [
+        "portatil"
+      ]
     }
   ],
   "precos": {

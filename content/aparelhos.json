@@ -67,6 +67,10 @@
     {
       "id": "alcatel",
       "nome": "Alcatel"
+    },
+    {
+      "id": "computadores",
+      "nome": "Computadores"
     }
   ],
   "familias": [
@@ -321,6 +325,12 @@
       "marca": "alcatel",
       "nome": "Alcatel",
       "tipo": "telemovel"
+    },
+    {
+      "id": "computadores",
+      "marca": "computadores",
+      "tipo": "computador",
+      "nome": "Computadores"
     }
   ],
   "modelos": [
@@ -5501,6 +5511,18 @@
       "nome": "Alcatel 1SE 2020",
       "familia": "alcatel",
       "desenho": "galaxy"
+    },
+    {
+      "id": "portatil",
+      "nome": "Portátil",
+      "familia": "computadores",
+      "desenho": "portatil"
+    },
+    {
+      "id": "computador-fixo",
+      "nome": "Computador fixo",
+      "familia": "computadores",
+      "desenho": "torre"
     }
   ],
   "outrasMarcas": [

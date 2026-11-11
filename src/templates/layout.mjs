@@ -199,7 +199,7 @@ function rodape(ctx) {
       <div class="rodape__coluna">
         <h2>Reparações</h2>
         <ul>
-          ${[...familias.slice(0, 6), ...comModelos.filter((f) => f.tipo === 'consola')].map((f) => ligacao(`/reparacoes/${f.id}/`, `${f.nome}`)).join('')}
+          ${[...familias.slice(0, 6), ...comModelos.filter((f) => f.tipo === 'consola' || f.tipo === 'computador')].map((f) => ligacao(`/reparacoes/${f.id}/`, `${f.nome}`)).join('')}
           ${ligacao('/reparacoes/', 'Todas as reparações')}
         </ul>
       </div>
