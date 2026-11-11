@@ -5,7 +5,7 @@
   "contactos": {
     "whatsapp": "916 537 957",
     "telefone": "916 537 957",
-    "email": "",
+    "email": "geral.lfmobile@gmail.com",
     "instagram": "lfmobile.store",
     "facebook": "p/LF-Mobile-61576225421851"
   },
@@ -31,9 +31,9 @@
     "coordenadas": "40.8814323,-8.473417"
   },
   "empresa": {
-    "nome": "",
-    "tipo": "",
-    "nif": "",
+    "nome": "Leandro José Santos Florêncio",
+    "tipo": "Empresário em nome individual",
+    "nif": "248679880",
     "morada": "Rua das Marcadas, 253",
     "codigoPostal": "3720-684",
     "localidade": "São Roque",
@@ -82,7 +82,7 @@
     "modo": "encomenda"
   },
   "garantias": {
-    "recondicionados": null
+    "recondicionados": 18
   },
   "google": {
     "nota": "5,0",

@@ -7,8 +7,7 @@ encomendas (site ↔ Worker ↔ painel) em [docs/ENCOMENDAS.md](docs/ENCOMENDAS.
 
 - **No ar**: https://lfmobile.pt (desde 11 nov 2026), um Worker da Cloudflare com os ficheiros do site
   (`wrangler.jsonc`, `worker/www.js`, `publicar.yml`, a cada envio para a `main` e todos os dias às
-  00:15). Ainda fechado ao Google (`--dominio`: noindex, e os dados legais por escrever aparecem como
-  «[por confirmar: …]»); com eles, `--producao`. A pré-visualização antiga
+  00:15), aberto ao Google desde 11 nov 2026 (`--producao`: pára se faltar um dado que a lei pede). A pré-visualização antiga
   (https://renatovalente5.github.io/lfmobile/) reencaminha para o domínio
   (`reencaminhar-pre-visualizacao.yml`, corrido uma vez).
 - **Encomendas**: `worker/encomendas/` (o Worker `lfmobile-encomendas`): regista as encomendas, manda

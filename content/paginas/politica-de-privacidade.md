@@ -1,6 +1,6 @@
 titulo: Política de privacidade
 descricao: Que dados pessoais tratamos, para quê e por quanto tempo: as encomendas, os pedidos de orçamento e de retoma, e o que este site guarda no seu browser.
-atualizado: 2026-11-09
+atualizado: 2026-11-11
 ---
 ## Quem trata os seus dados
 

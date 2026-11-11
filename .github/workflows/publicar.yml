@@ -5,11 +5,10 @@
 # respondem por intervalos para o iPhone: worker/www.js). Os termos do GitHub Pages não deixam lá
 # uma loja: a pré-visualização antiga reencaminha para o domínio (reencaminhar-pre-visualizacao.yml).
 #
-# AINDA FECHADO AO GOOGLE: constrói-se com --dominio (noindex, e os dados legais que faltam à vista
-# como «[por confirmar: …]»), não com --producao, até o dono dar o nome ou firma, o NIF, o email,
-# os portes e a garantia dos recondicionados. Nesse dia, «Construir» passa a `--producao`, e o
-# SITE_PRODUCAO do painel passa a "1". O --producao RECUSA publicar enquanto faltar um dado que a
-# lei pede (regras.mjs).
+# ABERTO AO GOOGLE desde 11 nov 2026: constrói-se com --producao, com os dados legais que o dono deu
+# (Leandro José Santos Florêncio, empresário em nome individual, NIF, geral.lfmobile@gmail.com, a
+# garantia de 18 meses dos recondicionados). O --producao RECUSA publicar se faltar um dado que a
+# lei pede (regras.mjs); o SITE_PRODUCAO do painel é "1" (anda com este passo).
 #
 # O PAINEL (renatovalente5/lfmobile-painel) acompanha este workflow: o job «publicar» acabado
 # bem quer dizer «publicado»; o nome do passo que falha aparece ao dono (por isso os nomes são em
@@ -74,7 +73,7 @@ jobs:
         env:
           PYTHON: python # o do setup-python, com o Pillow (as imagens do conteúdo de ensaio)
       - name: Construir
-        run: node scripts/build.mjs --dominio --sem-imagens
+        run: node scripts/build.mjs --producao --sem-imagens
       # O que o job «publicar» precisa, num ficheiro só: o site, o script do www e a
       # configuração do Worker. O job «publicar» não faz checkout: nenhum código do
       # repositório corre ao lado do token.

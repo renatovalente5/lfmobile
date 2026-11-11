@@ -1,7 +1,7 @@
 titulo: Garantia
 tituloSeo: Os seus direitos de garantia legal
 descricao: O aviso harmonizado da União Europeia sobre a garantia legal e o que vale em Portugal: 3 anos nos equipamentos novos e a garantia dos recondicionados.
-atualizado: 2026-11-08
+atualizado: 2026-11-11
 ---
 Tudo o que compra na {{marca}} como consumidor tem garantia legal. Este é o aviso harmonizado da União Europeia sobre a garantia legal, tal como a Comissão Europeia o publica (Regulamento de Execução (UE) 2025/1960):
 

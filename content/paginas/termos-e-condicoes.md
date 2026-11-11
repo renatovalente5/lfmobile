@@ -1,6 +1,6 @@
 titulo: Termos e condições
 descricao: As condições das compras feitas no site da LF Mobile: quem vende, preços, portes, como se faz a encomenda, pagamento, prazos, desistência e garantia.
-atualizado: 2026-11-09
+atualizado: 2026-11-11
 ---
 ## Quem vende
 
