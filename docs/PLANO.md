@@ -24,7 +24,7 @@ confiança». Pouco texto; o óbvio não se explica.
 
 | Página | Conteúdo |
 |---|---|
-| `/` | Capa (a escolha do modelo para reparar, com a retoma ao lado), as categorias, a campanha a correr, os destaques, as películas e a loja. Em todas as páginas, por cima do rodapé: 5,0 no Google (com a ligação para as opiniões) · orçamento grátis · envios 24/48 h · levantamento grátis |
+| `/` | Capa (a escolha do modelo para reparar, com a retoma ao lado), as categorias, a campanha a correr, os destaques, as películas, a loja e, no fim, as garantias em cartões (só aqui): 5,0 no Google (as estrelas da nota e a ligação para as opiniões) · orçamento grátis · envios 24/48 h · levantamento grátis |
 | `/loja/` | Catálogo com filtros por categoria e procura; cartões com preço c/ IVA, «Adicionar» |
 | `/loja/<artigo>/` | Ficha: fotografias, preço, descrição, características, disponibilidade, «Adicionar ao carrinho», «Perguntar no WhatsApp» |
 | `/reparacoes/` | Serviços por tipo de equipamento; «Pedir orçamento gratuito» → WhatsApp com a mensagem composta |
@@ -297,7 +297,8 @@ iPhone não tinha artigos novos (os iPhone estão em Recondicionados) e escondia
 6. **As garantias numa faixa só** (o Renato, com uma captura: «estão um bocado repetidos»): saiu da
    página inicial a faixa por cima da loja (Google · desde 2020 · envios · loja em São Roque). Fica a
    do rodapé, em todas as páginas, que abre com a nota do Google e a ligação para as opiniões, no
-   lugar da «Retoma do seu usado» (a Retoma já está no topo de todas as páginas).
+   lugar da «Retoma do seu usado» (a Retoma já está no topo de todas as páginas). A 11 nov passou para
+   o fim da página inicial, só lá (§13.9).
 7. **Os efeitos ao descer, como no site da Apple** (o dono pediu-os na loja a 9 nov; no WhatsApp a 10:
    «Se der para meter, dá um toque ao site!»). Vistos no apple.com/pt: os blocos entram quando chegam
    ao ecrã (sobem 30 px em 0,7 s, acendem em 0,9 s, uns atrás dos outros), e as fotografias acompanham
@@ -331,3 +332,15 @@ A grelha dos problemas da página das reparações continua a dos telemóveis (o
 página de cada uma); a PlayStation está em Outras › Sony, no rodapé e na procura («ps5», «consola»), e
 diz-se no feminino («Reparação da PlayStation 5», «a minha PlayStation»). Sem películas nas consolas.
 
+### 13.9 O Renato, 11 nov: «Melhora esta parte e só deve aparecer na página principal»
+
+Com a captura da faixa do rodapé. As garantias saíram do rodapé de todas as páginas e passaram para o
+fim da página inicial, depois da loja, numa secção própria (`garantias`, com o título «Porquê a LF
+Mobile» só para os leitores de ecrã). Cada uma é um cartão que leva ao sítio onde isso se explica: a
+nota do Google às opiniões (noutro separador), o orçamento às Reparações, os envios a «Envios e
+devoluções» e o levantamento aos Contactos. O ícone vai num círculo dourado. A nota do Google leva as
+estrelas da própria nota (com 4,6, as douradas cortam-se nos 92 %: nunca cinco por defeito). No
+telemóvel são uma lista agrupada num painel só, com as linhas a começar depois do ícone; a partir dos
+640 px, cartões (dois por linha, e os quatro numa linha a partir dos 1000 px), que sobem um pouco ao
+passar o rato. Entram ao descer como o resto: no telemóvel o painel inteiro, no computador os cartões um
+a um. O rodapé começa no logótipo.

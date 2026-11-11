@@ -141,8 +141,29 @@ export function inicio(ctx) {
   <ul class="faixa-peliculas__tipos">${pels.slice(0, 5).map((p) => `<li><a href="${ctx.url(`/produtos/${p.slug}/`)}"><span class="faixa-peliculas__img">${imagem(ctx, p.fotos[0], { tamanhos: '140px', alt: '', recorte: true })}</span><span class="faixa-peliculas__nome">${esc(p.nomeCurto || p.nome).replace(/^Película (de |para a )?/i, '')}</span>${precoDe(p, ctx.hoje).atual !== null ? `<span class="faixa-peliculas__preco">${euros(precoDe(p, ctx.hoje).atual)}</span>` : ''}</a></li>`).join('')}</ul>
 </section>` : '';
 
-  /* A nota do Google e as garantias (envios, levantamento) estão na faixa do rodapé, em todas as
-     páginas: a faixa que havia aqui repetia-as (o Renato, 10 nov 2026). */
+  /* AS GARANTIAS, no fim da página inicial e só nela (o Renato, 11 nov 2026; antes estavam no rodapé
+     de todas as páginas): a nota do Google primeiro, com as estrelas da própria nota e a ligação para
+     as opiniões (para quem quiser conferir; as opiniões em si não se copiam, DL 57/2008, art. 8.º,
+     al. cc) — sem a nota ou sem a ligação, não aparece —, e depois o orçamento, os envios e o
+     levantamento. Cada cartão leva ao sítio onde isso se explica. */
+  const g = ctx.site.google || {};
+  const transp = ctx.site.entrega.transportadora;
+  const nota = Math.min(5, Math.max(0, Number(String(g.nota).replace(',', '.')) || 0));
+  const estrelas = `<span class="estrelas" style="--nota: ${nota}" aria-hidden="true"><span class="estrelas__fundo">${icones.estrela.repeat(5)}</span><span class="estrelas__cheias">${icones.estrela.repeat(5)}</span></span>`;
+  const garantia = (href, icone, titulo, texto, fora = false) => `<li><a class="garantia" href="${esc(href)}"${fora ? ' target="_blank" rel="noopener"' : ''}>
+      <span class="garantia__icone">${icone}</span>
+      <span class="garantia__corpo"><strong class="garantia__titulo">${titulo}</strong><span class="garantia__texto">${texto}</span></span>
+      <span class="garantia__seta">${fora ? icones.externo : icones.seta}</span>
+    </a></li>`;
+  const garantias = `<section class="garantias" aria-labelledby="garantias-titulo">
+  <h2 class="visualmente-escondido" id="garantias-titulo">Porquê a ${esc(ctx.site.marca)}</h2>
+  <ul class="garantias__lista">
+    ${g.nota && g.ligacao ? garantia(g.ligacao, icones.estrela, `${esc(String(g.nota).replace('.', ','))} no Google`, `${estrelas}${g.opinioes ? `${g.opinioes} opiniões.` : 'Ver as opiniões.'}`, true) : ''}
+    ${garantia(ctx.url('/reparacoes/'), icones.ferramentas, 'Orçamento grátis', 'Dizemos o preço antes de reparar.')}
+    ${garantia(ctx.url('/envios-e-devolucoes/'), icones.camiao, `${transp ? `Envios ${esc(transp)}` : 'Envios'} em 24/48 h`, 'Para Portugal Continental.')}
+    ${garantia(ctx.url('/contactos/'), icones.loja, 'Levantamento grátis', `Na loja, em ${esc(ctx.site.local.localidade)}.`)}
+  </ul>
+</section>`;
 
   /* A LOJA: a fotografia da fachada, a morada, o horário e os botões. */
   const loja = `<section class="loja-casa" aria-labelledby="loja-titulo">
@@ -177,6 +198,7 @@ export function inicio(ctx) {
   ${destaques}
   ${faixaPeliculas}
   ${loja}
+  ${garantias}
 </div>`,
   };
 }

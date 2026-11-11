@@ -350,24 +350,34 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   assert.match(menu, /<strong>Retoma<\/strong><small>Compramos o seu<\/small>/);
   assert.match(menu, /<ul class="menu__grelha" aria-labelledby="menu-loja">\s*<li><a href="\/loja\/apple\/">/);
   assert.match(menu, /id="menu-ajuda">Ajuda</);
-  // as garantias numa faixa só, a do rodapé (em todas as páginas): a nota do Google em primeiro, com
-  // a ligação para as opiniões; a página inicial já não tem a faixa que as repetia
-  assert.doesNotMatch(inicio, /confianca-faixa|Retoma do seu usado/);
+  // as garantias uma vez só, em cartões no fim da página inicial, depois da loja (o Renato, 11 nov
+  // 2026): a nota do Google em primeiro, com as estrelas da nota e a ligação para as opiniões; cada
+  // cartão leva ao sítio onde isso se explica. Nem a faixa de cima da loja, nem a do rodapé.
+  assert.doesNotMatch(inicio, /confianca-faixa|Retoma do seu usado|rodape__garantias/);
   // a escolha do modelo da capa fica fora da coluna do texto (no computador ocupa a largura do cartão)
   assert.match(inicio, /<p class="mosaico__sub">[^<]*<\/p>\s*<\/div>\s*<form class="rapido"/);
-  for (const html of [inicio, ler2('reparacoes/index.html')]) {
-    const lis = html.match(/<div class="rodape__garantias">[\s\S]*?<\/ul>/)[0].match(/<li>[\s\S]*?<\/li>/g);
-    assert.deepEqual(lis.map((li) => li.match(/<strong>(.*?)<\/strong>/)[1]), ['5,0 no Google', 'Orçamento grátis', 'Envios Nacex em 24/48 h', 'Levantamento grátis']);
-    assert.match(lis[0], /<a href="https:\/\/www\.google\.com\/maps\/place\/LF\+Mobile\/[^"]*!9m1!1b1[^"]*" target="_blank" rel="noopener">/);
-    assert.match(lis[0], /<\/strong>20 opiniões\.<\/span>/);
+  assert.match(inicio, /<section class="loja-casa"[\s\S]*?<\/section>\s*<section class="garantias" aria-labelledby="garantias-titulo">\s*<h2 class="visualmente-escondido" id="garantias-titulo">Porquê a LF Mobile<\/h2>/);
+  const lis = inicio.match(/<section class="garantias"[\s\S]*?<\/section>/)[0].match(/<li>[\s\S]*?<\/li>/g);
+  assert.deepEqual(lis.map((li) => li.match(/<strong class="garantia__titulo">(.*?)<\/strong>/)[1]), ['5,0 no Google', 'Orçamento grátis', 'Envios Nacex em 24/48 h', 'Levantamento grátis']);
+  assert.match(lis[0], /<a class="garantia" href="https:\/\/www\.google\.com\/maps\/place\/LF\+Mobile\/[^"]*!9m1!1b1[^"]*" target="_blank" rel="noopener">/);
+  assert.match(lis[0], /<span class="estrelas" style="--nota: 5" aria-hidden="true">/);
+  assert.match(lis[0], /<\/span><\/span>20 opiniões\.<\/span>/);
+  assert.deepEqual(lis.slice(1).map((li) => li.match(/href="([^"]*)"/)[1]), ['/reparacoes/', '/envios-e-devolucoes/', '/contactos/']);
+  for (const c of ['reparacoes/index.html', 'contactos/index.html', 'loja/index.html', 'envios-e-devolucoes/index.html']) {
+    assert.doesNotMatch(ler2(c), /class="garantias|rodape__garantias|no Google<\/strong>/, c);
   }
 });
-teste('sem a ligação das opiniões, a faixa do rodapé não mostra a nota do Google', () => {
-  const pasta = copia('sem-google', (p) => json(p, 'content/site.json', (s) => { delete s.google.ligacao; }));
+teste('as estrelas seguem a nota do Google (4,6 → 4,6 estrelas), e sem a ligação das opiniões a nota não aparece', () => {
+  const pasta = copia('nota-google', (p) => json(p, 'content/site.json', (s) => { s.google.nota = '4,6'; }));
   assert.equal(construir(pasta).codigo, 0);
-  const faixa = fs.readFileSync(path.join(pasta, '_site/index.html'), 'utf8').match(/<div class="rodape__garantias">[\s\S]*?<\/ul>/)[0];
-  assert.doesNotMatch(faixa, /no Google/);
-  assert.match(faixa, /<strong>Orçamento grátis<\/strong>/);
+  const g1 = fs.readFileSync(path.join(pasta, '_site/index.html'), 'utf8').match(/<section class="garantias"[\s\S]*?<\/section>/)[0];
+  assert.match(g1, /<strong class="garantia__titulo">4,6 no Google<\/strong>/);
+  assert.match(g1, /<span class="estrelas" style="--nota: 4.6" aria-hidden="true">/);
+  const pasta2 = copia('sem-google', (p) => json(p, 'content/site.json', (s) => { delete s.google.ligacao; }));
+  assert.equal(construir(pasta2).codigo, 0);
+  const g2 = fs.readFileSync(path.join(pasta2, '_site/index.html'), 'utf8').match(/<section class="garantias"[\s\S]*?<\/section>/)[0];
+  assert.doesNotMatch(g2, /no Google|estrelas/);
+  assert.match(g2, /<strong class="garantia__titulo">Orçamento grátis<\/strong>/);
 });
 teste('as consolas: a PlayStation tem os problemas dela (não os dos telemóveis), diz-se «da PlayStation», sem películas, e a procura acha «ps5»', () => {
   const pasta = copia('consolas', (p) => {

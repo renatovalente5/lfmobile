@@ -175,25 +175,13 @@ function folhaProcura(ctx) {
    bloco dos contactos e do horário (o Renato, 8 nov 2026): estão na página dos contactos. */
 function rodape(ctx) {
   const e = ctx.site.empresa || {};
-  /* A FAIXA DAS GARANTIAS, por cima do rodapé: a nota do Google primeiro, com a ligação para as
-     opiniões (para quem quiser conferir; as opiniões em si não se copiam, DL 57/2008, art. 8.º,
-     al. cc). Sem a nota ou sem a ligação, não aparece. */
-  const g = ctx.site.google || {};
-  const google = g.nota && g.ligacao ? `<li><a href="${esc(g.ligacao)}" target="_blank" rel="noopener">${icones.estrela}<span><strong>${esc(String(g.nota).replace('.', ','))} no Google</strong>${g.opinioes ? `${g.opinioes} opiniões.` : 'Ver as opiniões.'}</span></a></li>` : '';
+  /* As garantias (a nota do Google, o orçamento, os envios e o levantamento) estão só no fim da
+     página inicial, em cartões (o Renato, 11 nov 2026): já não há faixa por cima do rodapé. */
   const ligacao = (caminho, texto) => `<li><a href="${ctx.url(caminho)}">${esc(texto)}</a></li>`;
   const comModelos = ctx.aparelhos.familias.filter((f) => ctx.aparelhos.modelos.some((m) => m.familia === f.id));
   // as reparações no rodapé: a primeira família de cada marca (iPhone, Galaxy S, Redmi…), até seis
   const familias = ctx.aparelhos.marcas.map((m) => comModelos.find((f) => f.marca === m.id)).filter(Boolean);
-  const t = ctx.site.entrega.transportadora;
   return `<footer class="rodape">
-  <div class="rodape__garantias">
-    <ul>
-      ${google}
-      <li>${icones.ferramentas}<span><strong>Orçamento grátis</strong>Dizemos o preço antes de reparar.</span></li>
-      <li>${icones.camiao}<span><strong>${t ? `Envios ${esc(t)}` : 'Envios'} em 24/48 h</strong>Para Portugal Continental.</span></li>
-      <li>${icones.loja}<span><strong>Levantamento grátis</strong>Na loja, em ${esc(ctx.site.local.localidade)}.</span></li>
-    </ul>
-  </div>
   <div class="rodape__corpo">
     <div class="rodape__marca">
       <a class="rodape__logo" href="${ctx.url('/')}">${logotipo(ctx, { alto: 52, classe: 'rodape__logo-img' })}<span class="visualmente-escondido"> — página inicial</span></a>

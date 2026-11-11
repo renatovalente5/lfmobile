@@ -441,6 +441,48 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
 .horario dt { color: var(--tinta-2); }
 .horario dd { font-weight: 700; text-align: right; white-space: nowrap; margin: 0; }
 
+/* ---------------------------------------------------------------- as garantias (fim da página inicial)
+   No telemóvel, uma lista agrupada (como no iPhone): o ícone num círculo dourado, o título, a frase e a
+   seta, com as linhas a começar depois do ícone. A partir dos 640 px, cartões: dois por linha e, no
+   computador, os quatro numa linha. Cada cartão é uma ligação. */
+.garantias { margin-top: 56px; }
+.garantias__lista { display: grid; grid-template-columns: minmax(0, 1fr); border-radius: var(--raio); background: var(--cinza); }
+.garantia { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; height: 100%; padding: 16px 18px; color: var(--tinta); text-decoration: none; -webkit-tap-highlight-color: transparent; transition: background-color .15s, transform .2s, box-shadow .2s; }
+.garantias__lista > li:first-child .garantia { border-radius: var(--raio) var(--raio) 0 0; }
+.garantias__lista > li:last-child .garantia { border-radius: 0 0 var(--raio) var(--raio); }
+.garantias__lista > li + li .garantia::before { content: ''; position: absolute; top: 0; left: 72px; right: 0; border-top: 1px solid var(--linha); }
+.garantia:active { background-color: var(--cinza-2); }
+.garantia__icone { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--ouro-fundo); color: var(--ouro-texto); }
+.garantia__icone .icone { width: 22px; height: 22px; }
+.garantia__corpo { display: grid; gap: 3px; }
+.garantia__titulo { font-size: 1rem; font-weight: 800; letter-spacing: -.01em; line-height: 1.3; }
+.garantia__texto { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: .9rem; line-height: 1.4; color: var(--tinta-2); }
+.garantia__seta { color: var(--tinta-3); transition: transform .2s; }
+.garantia__seta .icone { width: 18px; height: 18px; }
+/* as estrelas da nota: as cinco por baixo, e por cima as douradas, cortadas na nota (4,6 → 92 %) */
+.estrelas { position: relative; display: inline-flex; flex: none; color: var(--cinza-3); }
+.estrelas__fundo, .estrelas__cheias { display: inline-flex; }
+.estrelas__cheias { position: absolute; inset: 0 auto 0 0; width: calc(var(--nota, 5) / 5 * 100%); overflow: hidden; color: var(--ouro); }
+.estrelas .icone { flex: none; width: 16px; height: 16px; }
+@media (min-width: 640px) {
+  .garantias__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; border-radius: 0; background: none; }
+  .garantia, .garantias__lista > li:first-child .garantia, .garantias__lista > li:last-child .garantia { grid-template-columns: minmax(0, 1fr); align-content: start; align-items: start; gap: 18px; padding: 24px; border-radius: var(--raio); background-color: var(--cinza); }
+  .garantias__lista > li + li .garantia::before { content: none; }
+  .garantia__icone { width: 48px; height: 48px; }
+  .garantia__icone .icone { width: 24px; height: 24px; }
+  .garantia__corpo { gap: 6px; }
+  .garantia__titulo { font-size: 1.08rem; }
+  .garantia__seta { position: absolute; top: 24px; right: 24px; }
+  .garantia:active { background-color: var(--cinza-2); }
+}
+@media (min-width: 1000px) { .garantias__lista { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; } }
+@media (hover: hover) {
+  .garantia:hover { background-color: var(--cinza-2); }
+  .garantia:hover .garantia__seta { transform: translateX(3px); color: var(--tinta); }
+  .garantia[target="_blank"]:hover .garantia__seta { transform: translate(2px, -2px); }
+}
+@media (hover: hover) and (min-width: 640px) { .garantia:hover { transform: translateY(-2px); box-shadow: var(--sombra-leve); background-color: var(--cinza); } }
+
 /* ---------------------------------------------------------------- cabeça das páginas, migalhas, chips */
 .cabeca { padding: 32px 0 24px; }
 .cabeca .rotulo { margin-bottom: 8px; }
@@ -976,16 +1018,6 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 
 /* ---------------------------------------------------------------- rodapé */
 .rodape { margin-top: 64px; background: var(--cinza); padding: 0 0 max(24px, env(safe-area-inset-bottom)); }
-.rodape__garantias { border-bottom: 1px solid var(--linha); }
-.rodape__garantias ul { max-width: var(--largura); margin: 0 auto; padding: 24px var(--margem); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-@media (min-width: 900px) { .rodape__garantias ul { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-.rodape__garantias li, .rodape__garantias a { display: flex; gap: 12px; align-items: flex-start; font-size: .88rem; color: var(--tinta-2); }
-.rodape__garantias a { text-decoration: none; }
-@media (hover: hover) { .rodape__garantias a:hover strong { text-decoration: underline; } }
-/* a 320 px, «Levantamento» não cabia na coluna: menos espaço entre as colunas e o ícone */
-@media (max-width: 359.98px) { .rodape__garantias ul { column-gap: 10px; } .rodape__garantias li, .rodape__garantias a { gap: 8px; } }
-.rodape__garantias strong { display: block; color: var(--tinta); font-size: .92rem; }
-.rodape__garantias .icone { width: 26px; height: 26px; color: var(--ouro-texto); margin-top: 1px; }
 .rodape__corpo { max-width: var(--largura); margin: 0 auto; padding: 40px var(--margem) 0; display: grid; gap: 32px; }
 .rodape__nav { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 @media (min-width: 760px) { .rodape__corpo { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); } .rodape__nav { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; } }

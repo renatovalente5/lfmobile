@@ -64,6 +64,8 @@
     '.grelha > *', '.modelos-grelha > li', '.seletor__familias > li', '.problemas__grelha > li', '.passos-faixa__lista > li', '.reps__lista > *',
     '.modelo-irmaos li', '.ret-antes__lista > li', '.sobre__foto', '.sobre__factos > li', '.contactos-cartoes > li', '.contactos-loja', '.mapa-loja',
     '.pergunta', '.lista-ficha',
+    // as garantias: no telemóvel são uma lista num painel só (entra o painel); a partir dos 640 px, cartões (um a um)
+    matchMedia('(min-width: 640px)').matches ? '.garantias__lista > li' : '.garantias__lista',
   ].join(', ');
   if (!menosMovimento.matches && 'IntersectionObserver' in window) {
     const acabou = (e) => {
