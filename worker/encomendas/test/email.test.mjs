@@ -77,7 +77,8 @@ test('os artigos, os portes e o total como o site os mostra; o aviso dos 14 dias
 });
 
 test('os emails ao dono: só nos momentos certos, com tudo o que precisa (NIF, telefone, notas)', () => {
-  const comDono = { registada: true, paga: true, multibanco: false, pronta: false, enviada: false, anulada: false, reembolsada: false, falhou: true, expirou: true };
+  // ao dono só o que lhe pede alguma coisa (o «expirou» e o «falhou» saíram a 11 nov 2026, a pedido do Renato)
+  const comDono = { registada: true, paga: true, multibanco: false, pronta: false, enviada: false, anulada: false, reembolsada: false, falhou: false, expirou: false };
   for (const momento of MOMENTOS) {
     const m = mensagens(env, momento, enc, { cat, origem: 'stripe' });
     assert.equal(Boolean(m.dono), comDono[momento], momento);

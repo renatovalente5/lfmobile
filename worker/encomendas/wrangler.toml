@@ -82,7 +82,8 @@ LOGO_URL = "https://lfmobile.pt/assets/img/logo-b72d7bbaa1-128.png"
 ALLOWED_ORIGINS = "https://lfmobile.pt"
 STORE_NAME = "LF Mobile"
 STORE_PHONE = "916 537 957"
-# O email do dono: recebe «Nova encomenda», «Encomenda paga» e os falhados, e é o reply-to dos
+# O email do dono: recebe só o que lhe pede alguma coisa («Nova encomenda», «Encomenda paga» e um
+# pagamento numa encomenda anulada; o «expirou» e o «falhou» vão só ao cliente), e é o reply-to dos
 # emails ao cliente. Vazio enquanto o dono não o der — e sem ele não se manda nada ao dono.
 STORE_EMAIL = ""
 # O remetente (o binding EMAIL só deixa este endereço).

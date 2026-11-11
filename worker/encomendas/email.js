@@ -11,6 +11,11 @@
  * Cada momento (§6 do contrato) é uma entrada de AVISOS: quem a chama é o /checkout (registada),
  * o webhook da Stripe (paga, multibanco, reembolsada, falhou, expirou) e o painel (paga, pronta,
  * enviada, anulada). `avisar()` manda e devolve o que aconteceu a cada destinatário.
+ *
+ * Ao dono só vai o que lhe pede alguma coisa: a encomenda nova (confirmar com o cliente), a paga
+ * (faturar, preparar) e um pagamento que chega a uma encomenda anulada (reembolsar). O «expirou» e o
+ * «falhou» não lhe pedem nada — a encomenda não se fez e o painel mostra-a —: só o cliente é avisado
+ * (o Renato, 11 nov 2026, como na Franja Kids).
  */
 
 import { documento, tabelaArtigos, caixaMultibanco, botao, separador, bloco, h2, p, pequeno, ligacao, esc } from './email-html.js';
@@ -216,11 +221,12 @@ const AVISOS = {
     }),
     dono: null,
   }),
-  falhou: (env, enc) => naoConcluido(env, enc, 'O pagamento não se concluiu.', 'falhou'),
-  expirou: (env, enc) => naoConcluido(env, enc, 'A página de pagamento expirou sem o pagamento.', 'expirou'),
+  falhou: (env, enc) => naoConcluido(env, enc, 'O pagamento não se concluiu.'),
+  expirou: (env, enc) => naoConcluido(env, enc, 'A página de pagamento expirou sem o pagamento.'),
 };
 
-function naoConcluido(env, enc, razao, palavra) {
+/* O pagamento que não se fez: só ao cliente (ao dono não pede nada; o painel mostra a encomenda). */
+function naoConcluido(env, enc, razao) {
   return {
     cliente: emailCliente(env, enc, {
       assunto: `O pagamento da encomenda ${enc.encomenda} não se concluiu`,
@@ -228,10 +234,7 @@ function naoConcluido(env, enc, razao, palavra) {
       frase: `${razao} Nada foi cobrado. Pode voltar a encomendar no site ou falar connosco pelo WhatsApp.`,
       semDesistencia: true,
     }),
-    dono: emailDono(env, enc, {
-      assunto: `${enc.encomenda} ${palavra}`,
-      cabecalho: `A ENCOMENDA ${enc.encomenda} ${palavra.toUpperCase()}: ${razao} O cliente foi avisado.`,
-    }),
+    dono: null,
   };
 }
 

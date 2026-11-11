@@ -129,15 +129,16 @@ test('o webhook: Multibanco — a sessão fica «pendente», a referência chega
   assert.equal((await ler()).estado, 'paga');
 });
 
-test('o webhook: a sessão expirada e o pagamento falhado avisam; depois de paga, não desfazem nada', async () => {
+test('o webhook: a sessão expirada avisa só o cliente (ao dono não pede nada); depois de paga, uma falha atrasada não desfaz nada', async () => {
   const { env, encomenda, ler } = await pendente();
   const expirou = { id: 'evt_exp', type: 'checkout.session.expired', data: { object: { id: 'cs_test_a1b2c3d4e5f6', object: 'checkout.session', payment_status: 'unpaid', metadata: { encomenda } } } };
   assert.equal((await webhook(env, expirou)).status, 200);
   assert.equal((await ler()).estado, 'expirou');
   const emails = rede.resend();
-  assert.equal(emails.length, 2);
-  assert.match(emails.find((e) => e.to[0] === 'maria@exemplo.pt').text, /Nada foi cobrado/);
-  assert.match(emails.find((e) => e.to[0] === 'dono@exemplo.pt').subject, /expirou$/);
+  assert.deepEqual(emails.map((e) => e.to[0]), ['maria@exemplo.pt'], 'só ao cliente: o dono vê-a no painel');
+  assert.equal(emails[0].subject, `O pagamento da encomenda ${encomenda} não se concluiu`);
+  assert.match(emails[0].text, /A página de pagamento expirou sem o pagamento\. Nada foi cobrado\./);
+  assert.equal((await ler()).avisos.expirou.dono, 'não se aplica');
   // Pagou afinal (de outra forma, na Stripe): fica paga.
   rede.chamadas.length = 0;
   assert.equal((await webhook(env, sessaoPaga(encomenda))).status, 200);
@@ -148,6 +149,19 @@ test('o webhook: a sessão expirada e o pagamento falhado avisam; depois de paga
   assert.equal((await webhook(env, falhou)).status, 200);
   assert.equal((await ler()).estado, 'paga');
   assert.equal(rede.resend().length, 0);
+});
+
+test('o webhook: o pagamento falhado numa encomenda pendente marca «falhou» e avisa só o cliente (ao dono não pede nada)', async () => {
+  const { env, encomenda, ler } = await pendente();
+  const falhou = { id: 'evt_falhou', type: 'checkout.session.async_payment_failed', data: { object: { id: 'cs_test_a1b2c3d4e5f6', object: 'checkout.session', metadata: { encomenda } } } };
+  assert.equal((await webhook(env, falhou)).status, 200);
+  const enc = await ler();
+  assert.equal(enc.estado, 'falhou');
+  const emails = rede.resend();
+  assert.deepEqual(emails.map((e) => e.to[0]), ['maria@exemplo.pt']);
+  assert.equal(emails[0].subject, `O pagamento da encomenda ${encomenda} não se concluiu`);
+  assert.match(emails[0].text, /O pagamento não se concluiu\. Nada foi cobrado\./);
+  assert.deepEqual({ ...enc.avisos.falhou, em: 'x' }, { em: 'x', cliente: 'enviado', dono: 'não se aplica' });
 });
 
 test('o webhook: o reembolso total marca «reembolsada» e avisa; o parcial fica no histórico', async () => {

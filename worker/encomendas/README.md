@@ -85,8 +85,9 @@ estado; a ficha (`get`) é imediata.
 1. ~~Os emails pelo domínio~~ — feito a 11 nov 2026: o lfmobile.pt está no Email Sending da
    Cloudflare, e o Worker manda pelo binding `EMAIL`, de `encomendas@lfmobile.pt` (o Resend fica só
    como plano B, sem chave).
-2. **O email do dono** — `STORE_EMAIL` no toml (recebe «Nova encomenda», «Encomenda paga», os
-   falhados; é o reply-to dos emails ao cliente). Vazio, o dono não recebe nada.
+2. **O email do dono** — `STORE_EMAIL` no toml (recebe só o que lhe pede alguma coisa: «Nova
+   encomenda», «Encomenda paga» e um pagamento numa encomenda anulada; o «expirou» e o «falhou» vão só
+   ao cliente; é o reply-to dos emails ao cliente). Vazio, o dono não recebe nada.
 3. **A Stripe** (modo «online», quando o cliente a quiser) — na conta da loja, activar cartão,
    MB WAY e Multibanco; `$WR secret put STRIPE_SECRET_KEY --config $CFG < …` (uma chave
    restrita, `rk_live_…`, com Checkout Sessions e leitura); criar o endpoint

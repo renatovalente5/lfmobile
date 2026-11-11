@@ -222,7 +222,11 @@ endereço (qualquer pessoa pode encomendar com o email de outra); o do dono sai 
 | pronta | «A sua encomenda está pronta para levantar» + morada e horário | — |
 | enviada | «A sua encomenda seguiu» + nota (rastreio) | — |
 | anulada | «A sua encomenda foi anulada» + nota | — |
-| reembolsada / falhou / expirou | «Reembolso feito» / «O pagamento não se concluiu» | «LF-… falhou/expirou» |
+| reembolsada / falhou / expirou | «Reembolso feito» / «O pagamento não se concluiu» | — (não lhe pedem nada: a encomenda não se fez e o painel mostra-a; até 11 nov 2026 ia «LF-… falhou/expirou») |
+| pagamento numa encomenda anulada ou já paga à mão (Stripe) | — | «Pagamento recebido numa encomenda …» (conferir na Stripe e, se não segue, reembolsar) |
+
+Ao dono só vai o que lhe pede alguma coisa: a encomenda nova, a paga e um pagamento numa anulada (o
+Renato, 11 nov 2026, como na Franja Kids).
 
 ## 7. Vars do Worker (wrangler)
 
