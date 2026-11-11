@@ -44,10 +44,17 @@
     addEventListener('scroll', () => { if (!pedido) { pedido = true; requestAnimationFrame(decidir); } }, { passive: true });
     addEventListener('pageshow', decidir);
     decidir();
-    /* Com a linha legal do rodapé à vista, o botão sai (html[data-whatsapp-fim]): tapava-a. */
-    const fimRodape = $('.rodape__fim');
-    if (flutuante && fimRodape && 'IntersectionObserver' in window) {
-      new IntersectionObserver((es) => { raiz.dataset.whatsappFim = es[0].isIntersecting ? 'sim' : 'nao'; }).observe(fimRodape);
+    /* Com a linha legal do rodapé à vista, ou o botão principal da página (juntar ao carrinho,
+       continuar, enviar a encomenda), o botão sai (html[data-whatsapp-fim]): no telemóvel tapava-lhes
+       a ponta. Volta quando nenhum deles se vê. */
+    const tapados = [$('.rodape__fim'), ...$$('.comprar button[type="submit"], [data-seguir], [data-botao-checkout]')].filter(Boolean);
+    if (flutuante && tapados.length && 'IntersectionObserver' in window) {
+      const vistos = new Set();
+      const io = new IntersectionObserver((es) => {
+        es.forEach((e) => { if (e.isIntersecting) vistos.add(e.target); else vistos.delete(e.target); });
+        raiz.dataset.whatsappFim = vistos.size ? 'sim' : 'nao';
+      });
+      tapados.forEach((t) => io.observe(t));
     }
   }
 
