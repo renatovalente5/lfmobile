@@ -8,18 +8,20 @@ construir sem ver as outras.
   `const catalogo`) e fala com o Worker em `document.body.dataset.api` (o `--api=` do build;
   por omissão `https://lfmobile-encomendas.renato-lima-valente-dcb.workers.dev`).
 - **O Worker das encomendas** (`worker/encomendas/`, nome `lfmobile-encomendas`): recebe a
-  encomenda, volta a fazer as contas do seu lado com o catálogo publicado, guarda-a no KV,
-  manda os emails e, em modo «online», abre a página segura da Stripe e ouve os webhooks.
+  encomenda, volta a fazer as contas do seu lado com o catálogo publicado, guarda-a, manda os emails
+  e, em modo «online», pede o pagamento à ifthenpay (desde 11 nov 2026; antes era a Stripe) e confirma-o
+  com ela (o callback, a página de pagamento e uma varredura por cron: §9).
 - **O painel** (`renatovalente5/lfmobile-painel`): lista e marca as encomendas através do
   Worker (nunca lê o KV directamente), com um segredo partilhado.
 
 ## 1. Modos
 
 O `content/site.json` do site diz `pagamentos.modo`: `"encomenda"` (o de agora: sem chaves da
-Stripe; a encomenda regista-se e o dono confirma o pagamento e a entrega) ou `"online"` (a
-Stripe: cartão, MB WAY, Multibanco; quando o Renato ligar a conta do cliente, no fim). O
-catálogo publicado leva o `modo`; o Worker lê-o de lá (`MODO` nas vars só o pode forçar para
-`encomenda`, como travão). Em modo «online» sem `STRIPE_SECRET_KEY` o Worker responde 503 com
+ifthenpay; a encomenda regista-se e o dono confirma o pagamento e a entrega) ou `"online"` (o pagamento
+no site pela ifthenpay: MB WAY, referência Multibanco, cartão; quando a adesão do Leandro for aprovada e
+houver chaves). O catálogo publicado leva o `modo`; o Worker lê-o de lá (`MODO` nas vars só o pode forçar
+para `encomenda`, como travão). Em modo «online» sem nenhum método ligado (`IFTHENPAY_ACCOUNTS` e a
+`IFTHENPAY_BACKOFFICE_KEY`, que confirma os pagamentos) o Worker responde 503 com
 `{ erro: 'O pagamento no site não está ligado. Encomende pelo WhatsApp.' }`.
 
 ## 2. O que o site envia: `POST /checkout`
@@ -32,9 +34,16 @@ catálogo publicado leva o `modo`; o Worker lê-o de lá (`MODO` nas vars só o 
                "morada": "…", "codigoPostal": "0000-000", "localidade": "…", "notas": "…" },
   "termos": true,
   "total_cents": 11980,
-  "pedido": "9f2c7a1b3d4e5f6a7b-1c2d3e4f"
+  "pedido": "9f2c7a1b3d4e5f6a7b-1c2d3e4f",
+  "metodo": "MBWAY"
 }
 ```
+
+- `metodo` (só em modo «online»): `MBWAY`, `MB` ou `CCARD`, um dos ligados (`GET /metodos` →
+  `{ metodos: [...] }`, que o finalizar usa para esconder os outros); outro, ou nenhum, 400
+  `{ erro: 'Escolha como quer pagar.', campo: 'metodo', metodos }`. O MB WAY vai para `telemovel` (se
+  vier) ou para o `cliente.telefone`, que tem de ser um telemóvel português: senão 400 com
+  `campo: 'telefone'`, antes de gravar nada.
 
 - `opcoes`: o índice escolhido em cada grupo de `produto.opcoes` do catálogo (o mesmo índice do
   site); `[]` quando o artigo não tem escolhas. O Worker ignora índices a mais e trata um índice
@@ -71,16 +80,18 @@ modo «encomenda» a encomenda segue com `portes_por_confirmar: true` e o email 
 Respostas boas (200):
 
 - modo «encomenda»: `{ "encomenda": "LF-20261108-7K2Q9M", "chave": "…", "estado": "registada", "total_cents": 11980 }`
-- modo «online»: `{ "encomenda": "…", "chave": "…", "url": "https://checkout.stripe.com/…", "total_cents": 11980 }`
+- modo «online»: `{ "encomenda": "…", "chave": "…", "estado": "pendente", "total_cents": 11980, "metodo": "MBWAY", "proxima": "https://lfmobile.pt/pagar/?e=…&c=…", "sai": false }`
+  — `proxima` é a página de pagamento do site (MB WAY e Multibanco) ou o formulário do cartão da
+  ifthenpay (`sai: true`), que volta a `/pagar/?e=…&c=…&cartao=ok|erro|cancelado`.
 
-O site: com `url` segue para lá; com `encomenda` esvazia o carrinho e segue para
-`/obrigado/?e=<encomenda>&c=<chave>`. A Stripe volta para `SITE_URL/obrigado/?s={CHECKOUT_SESSION_ID}`
-(sucesso) e para `SITE_URL/checkout/?cancelado=1` (cancelar).
+O site: esvazia o carrinho (a encomenda já existe) e segue para `proxima`, ou, em modo «encomenda»,
+para `/obrigado/?e=<encomenda>&c=<chave>`. Se a ifthenpay não criar o pagamento, a encomenda fica
+«pendente» na mesma e a página de pagamento diz qual falhou e deixa tentar outra vez (§9).
 
-CORS: só as origens de `ALLOWED_ORIGINS` (o domínio `https://lfmobile.pt`, desde 11 nov 2026); `OPTIONS` responde às duas rotas públicas. Um travão de 5 pedidos por
+CORS: só as origens de `ALLOWED_ORIGINS` (o domínio `https://lfmobile.pt`, desde 11 nov 2026); `OPTIONS` responde às rotas públicas (`/checkout`, `/encomenda`, `/pagar`, `/metodos`, `/cupao`). Um travão de 5 pedidos por
 minuto por IP no `/checkout` (rate limit binding, como no Armazém dos Pneus).
 
-## 3. O que o site lê: `GET /encomenda?e=<id>&c=<chave>` ou `GET /encomenda?s=<sessão Stripe>`
+## 3. O que o site lê: `GET /encomenda?e=<id>&c=<chave>`
 
 Só o que a pessoa já sabe, sem email, telefone nem morada (a chave é o segredo da encomenda;
 sem ela, ou errada, 404):
@@ -93,8 +104,20 @@ sem ela, ou errada, 404):
   "cliente": { "nome": "Maria" } }
 ```
 
-`cliente.nome` é só o primeiro nome. Pela sessão da Stripe (`s`) responde o mesmo, se a sessão
-for de uma encomenda conhecida (índice `session:`).
+`cliente.nome` é só o primeiro nome. No pagamento no site vem também `pagamento`, sem os `requestId`
+(é com eles que se pergunta à ifthenpay e se reembolsa):
+
+```json
+"pagamento": { "metodo": "MB", "prazo": "2026-11-15T12:59:59.000Z", "pode_pedir": true,
+               "multibanco": { "entidade": "12345", "referencia": "123456789", "expira": "2026-11-14" },
+               "mbway": { "pedido_em": "…", "estado": null }, "ultimo_falhou": "MBWAY", "metodo_pago": "MB" }
+```
+
+(`multibanco` só enquanto a referência vale; `mbway.estado` é `recusado` ou `expirado` quando a app o
+disse; `ultimo_falhou` quando a ifthenpay não criou o último pedido; `metodo_pago` depois de pago.) Com a
+encomenda «pendente», esta rota pergunta à ifthenpay (no máximo de 1,5 em 1,5 s no MB WAY e de 15 em
+15 s nos outros, por encomenda; o travão vive em memória) — é assim que a página vê o pagamento entrar.
+O `?s=` da Stripe saiu (400).
 
 ## 4. Onde ficam as encomendas: o objecto de cada uma, e a cópia no KV (`ORDERS`, só o Worker escreve)
 
@@ -110,21 +133,18 @@ para lá.
 
 - `order:<id>` → a CÓPIA da última versão (JSON abaixo, com `versao`), 400 dias, escrita pelo objecto
   na mesma passagem e pela ordem das versões, com os metadados da lista do painel.
-- `session:<id da Checkout Session>` → `<id>`, `pi:<PaymentIntent>` → `<id>` (modo «online»).
-- `evt:<id do evento Stripe>` → `1`, 30 dias (um webhook repetido não repete emails).
 - `idem:<pedido>` → a resposta do `/checkout` dessa tentativa, 1 dia (a tentativa repetida).
+- Os metadados de `order:` levam `prazo` enquanto se espera um pagamento no site: é por aí que a
+  varredura escolhe as encomendas a perguntar, sem abrir cada uma. (As chaves `session:`, `pi:` e `evt:`
+  da Stripe deixaram de se escrever.)
 
-**Os eventos da Stripe só mexem na encomenda se forem dela** (`eventoNaoBate`): a sessão é a que este
-Worker abriu (`stripe.session_id`) e, nos de pagamento, `amount_total` e `currency` são os da
-encomenda; o PaymentIntent leva `metadata.encomenda` dela (e é o guardado, quando o há); a cobrança
-é desse PaymentIntent. Os outros (um Payment Link da loja com `client_reference_id=LF-…`, por
-exemplo) ficam no histórico como «Evento da Stripe ignorado» e não mudam nada. Em modo «online»,
-sem `STRIPE_WEBHOOK_SECRET`, o `/checkout` responde 503 (a Stripe cobrava e ninguém sabia). Um
-pagamento que chega com a encomenda já anulada, ou marcada paga à mão, não a muda: fica no
-histórico e o dono recebe «Pagamento recebido numa encomenda …» (aviso `paga-fora`), para conferir
-e, se for o caso, reembolsar. Quando o dono tira uma encomenda de «pendente» no painel, a página de
-pagamento fecha-se (`/checkout/sessions/<id>/expire`; se já tem referência Multibanco, cancela-se o
-PaymentIntent), e fica dito no histórico.
+**Um pagamento só conta se a ifthenpay o confirmar** (§9): pelo id do pagamento desta encomenda e com
+um valor que chegue ao total. O callback, sem assinatura, nunca marca nada por si. Um pagamento que
+chega com a encomenda já anulada, ou marcada paga à mão, não a muda: fica no histórico e o dono recebe
+«Pagamento recebido numa encomenda …» (aviso `paga-fora`), para devolver se não segue. Dois pagamentos
+para a mesma encomenda: «paga» uma vez, e o dono recebe «Pagamento a mais» (aviso `pago-a-mais`). Quando
+o dono tira uma encomenda de «pendente» no painel, a ifthenpay não deixa anular uma referência: se
+houver uma a valer, fica dito no histórico até quando, e a varredura continua a olhar por ela.
 
 Os ids: `LF-AAAAMMDD-XXXXXX` (6 caracteres de `23456789ABCDEFGHJKLMNPQRSTUVWXYZ`, sem 0/O/1/I):
 ordenam por data no `list({ prefix: 'order:' })` e dizem-se ao telefone. A chave: 20 caracteres
@@ -144,7 +164,9 @@ do mesmo alfabeto, gerada com `crypto.getRandomValues`.
   "cliente": { "nome": "…", "email": "…", "telefone": "…", "nif": "…",
                "morada": "…", "codigoPostal": "…", "localidade": "…", "notas": "…" },
   "termos": { "aceites_em": "2026-11-08T21:02:11.000Z", "pagina": "https://…/termos-e-condicoes/" },
-  "stripe": { "session_id": "cs_…", "payment_intent": "pi_…", "metodo": "card", "pago_em": "…" },
+  "pagamento": { "id": "LF261108K2Q9M7", "metodo": "MB", "prazo": "…", "pedidos": [{ "metodo": "MB", "em": "…", "requestId": "…" }],
+                 "multibanco": { "entidade": "…", "referencia": "…", "expira": "AAAA-MM-DD", "requestId": "…", "pedido_em": "…" },
+                 "pago_em": "…", "pago_cents": 11980, "metodo_pago": "MB", "requestId_pago": "…", "recebido_cents": 11980 },
   "historico": [{ "em": "2026-11-08T21:02:11.000Z", "estado": "registada", "por": "site" }],
   "notas_painel": [{ "em": "…", "por": "email do dono", "texto": "…" }],
   "criada_em": "2026-11-08T21:02:11.000Z",
@@ -157,16 +179,17 @@ Estados (`estado`), e quem os põe:
 | estado | quem | quando |
 |---|---|---|
 | `registada` | Worker | modo «encomenda»: a encomenda ficou gravada; o dono confirma o pagamento |
-| `pendente` | Worker | modo «online»: a sessão da Stripe foi aberta, ou o Multibanco espera pagamento |
-| `paga` | Worker (webhook) ou painel | o pagamento entrou (Stripe), ou o dono recebeu-o (MB WAY, loja) |
+| `pendente` | Worker | modo «online»: o pagamento foi pedido à ifthenpay (MB WAY, referência, cartão) e espera-se |
+| `paga` | Worker (ifthenpay) ou painel | a ifthenpay confirmou o pagamento, ou o dono recebeu-o (na loja, à parte) |
 | `pronta` | painel | está na loja para levantar (entrega `levantamento`) |
 | `enviada` | painel | seguiu pelos correios (entrega `continente`); a nota pode levar o rastreio |
 | `levantada` | painel | a pessoa levantou-a |
 | `anulada` | painel | o dono anulou (sem pagamento, ou com reembolso feito à parte) |
-| `reembolsada` | Worker (webhook) | a Stripe devolveu o dinheiro |
-| `falhou` / `expirou` | Worker (webhook) | o pagamento falhou, ou a sessão expirou sem pagar |
+| `reembolsada` | Worker (rota do reembolso, §5) | o dinheiro foi todo devolvido (pela ifthenpay, ou à mão) |
+| `expirou` | Worker (varredura) | o prazo para pagar acabou sem pagamento (§9) |
+| `falhou` | — | da Stripe; a ifthenpay não o usa (fica para as encomendas de antes) |
 
-Cada mudança acrescenta uma linha ao `historico` (`por`: `site`, `stripe` ou o email de quem
+Cada mudança acrescenta uma linha ao `historico` (`por`: `site`, `ifthenpay` ou o email de quem
 marcou no painel; `nota` opcional).
 
 As transições que o painel pode pedir (o Worker recusa as outras com 409): `registada` →
@@ -177,7 +200,9 @@ As transições que o painel pode pedir (o Worker recusa as outras com 409): `re
 painel avisa só o cliente.
 
 Campos que o Worker acrescenta à encomenda, além dos de cima: `avisos` (o resultado de cada email
-enviado), `stripe.multibanco` (entidade, referência, validade) e `stripe.reembolsado_cents`.
+enviado), `pagamento.mbway` (`requestId`, `pedido_em`, `estado`), `pagamento.cartao`,
+`pagamento.reembolsado_cents`, `pagamento.reembolsos` e `pagamento.reembolso` (um a meio, ou por
+confirmar).
 
 ## 5. O que o painel usa (`Authorization: Bearer <PAINEL_SEGREDO>`; sem ele, 401; sem CORS)
 
@@ -190,14 +215,24 @@ enviado), `stripe.multibanco` (entidade, referência, validade) e `stripe.reembo
   → a encomenda inteira depois de mudar. Só as transições do painel (tabela acima); outra, 409.
   Manda o email ao cliente que a transição pede (§6) — `"avisar": false` não manda.
 - `POST /painel/encomendas/<id>/nota` `{ "texto": "…", "por": "…" }` → acrescenta a `notas_painel`.
-- `GET /painel/saude` → `{ ok, modo, stripe, webhook, email, dono, catalogo }` (booleanos; `email` diz se
-  há por onde mandar, o binding `EMAIL` ou o `RESEND_API_KEY`; `catalogo` é `"ok"` ou o erro de ler o
-  catálogo publicado).
+- `POST /painel/encomendas/<id>/reembolso` `{ "cents": 2000, "por": "…", "nota": "…", "manual": false, "repetir": false, "avisar": true }`
+  → a encomenda. Só das pagas no site; `cents` por omissão é o que falta devolver. MB WAY e cartão: pela
+  API da ifthenpay, com uma tranca antes de pedir (dois cliques não devolvem duas vezes); recusado, 409
+  com a razão (sem saldo: tentar mais tarde); sem resposta, 502 e fica «por confirmar» — não se repete às
+  cegas: o dono confere na área de cliente da ifthenpay e regista-o com `manual: true`, ou pede outra vez
+  com `repetir: true`. Multibanco: 409 (a API não o faz) — transferência para o IBAN do cliente e depois
+  `manual: true`. Devolvido tudo, «reembolsada» e o email ao cliente; uma parte fica no histórico.
+- `GET /painel/saude` → `{ ok, modo, pagamentos: { metodos, contas, backoffice, callback, erro?, sonda? }, email, dono, catalogo }`
+  (`pagamentos.metodos`: os que se oferecem — só com a chave de backoffice; `contas`: os que têm chave;
+  `erro`: uma `IFTHENPAY_ACCOUNTS` mal escrita; com `?sondar=1`, `sonda` é `"ok"` ou a falha de uma leitura
+  de pagamentos — prova que a chave de backoffice serve; nunca os valores. `email` diz se há por onde
+  mandar, o binding `EMAIL` ou o `RESEND_API_KEY`; `catalogo` é `"ok"` ou o erro de ler o catálogo).
+  Os campos `stripe` e `webhook` saíram a 11 nov 2026.
 
 A lista faz-se dos metadados das chaves do KV (sem ler cada encomenda, por causa do limite de
 subpedidos): uma mudança de estado pode levar até 60 s a aparecer na lista; a ficha lê o objecto, é
-imediata. Mudar o estado grava PRIMEIRO o estado novo e só depois fecha a página da Stripe e manda o
-email (o resultado junta-se com outra escrita condicional); se a encomenda mudou entre a leitura e a
+imediata. Mudar o estado grava PRIMEIRO o estado novo e só depois manda o email (o resultado junta-se
+com outra escrita condicional); se a encomenda mudou entre a leitura e a
 escrita (outro aparelho, um pagamento que chegou), responde 409 com «A encomenda mudou entretanto: está
 «…»» — quem pediu decidiu sobre outro estado.
 A lista traz também `pagina`, `paginas`, `total` e, em cada resumo, `linhas_a_mais`.
@@ -218,13 +253,17 @@ endereço (qualquer pessoa pode encomendar com o email de outra); o do dono sai 
 | momento | ao cliente | ao dono (`STORE_EMAIL`) |
 |---|---|---|
 | encomenda registada (modo «encomenda») | «Recebemos a sua encomenda» + o que falta (o dono confirma o pagamento e a entrega) | «Nova encomenda LF-…» com tudo, e o telefone do cliente |
-| paga (Stripe) | «Pagamento recebido» | «Encomenda paga LF-…» |
-| Multibanco pendente | «Falta pagar: referência …» (a Stripe mostra-a; o email repete-a) | — |
+| paga (ifthenpay) | «Pagamento recebido» | «Encomenda paga LF-…» (com o método e o id do pagamento) |
+| referência Multibanco pedida | «Falta pagar: referência …» (até quando vale; a página /pagar/ mostra-a; é também o aviso de recepção) | — |
 | pronta | «A sua encomenda está pronta para levantar» + morada e horário | — |
 | enviada | «A sua encomenda seguiu» + nota (rastreio) | — |
 | anulada | «A sua encomenda foi anulada» + nota | — |
-| reembolsada / falhou / expirou | «Reembolso feito» / «O pagamento não se concluiu» | — (não lhe pedem nada: a encomenda não se fez e o painel mostra-a; até 11 nov 2026 ia «LF-… falhou/expirou») |
-| pagamento numa encomenda anulada ou já paga à mão (Stripe) | — | «Pagamento recebido numa encomenda …» (conferir na Stripe e, se não segue, reembolsar) |
+| reembolsada / expirou | «Reembolso feito» (para onde foi o dinheiro: o MB WAY, o cartão, ou a transferência) / «O pagamento não se concluiu» | — (não lhe pedem nada: a encomenda não se fez e o painel mostra-a) |
+| pagamento numa encomenda anulada ou já paga à mão | — | «Pagamento recebido numa encomenda …» (se não segue, devolver) |
+| dois pagamentos para a mesma encomenda | — | «Pagamento a mais na encomenda …» (devolver o que está a mais) |
+
+O MB WAY e o cartão não têm email ao pedir: paga-se ali mesmo, e o email é o do pagamento (ou, passado o
+prazo, o de não se ter concluído).
 
 Ao dono só vai o que lhe pede alguma coisa: a encomenda nova, a paga e um pagamento numa anulada (o
 Renato, 11 nov 2026, como na Franja Kids).
@@ -237,10 +276,12 @@ o que falta ligar). Os testes: `cd worker/encomendas && npm test`.
 
 `SITE_URL` (`https://lfmobile.pt`),
 `ALLOWED_ORIGINS`, `MAIL_FROM`, `STORE_EMAIL`, `STORE_NAME = "LF Mobile"`, `STORE_PHONE`,
-`STRIPE_API_VERSION = "2026-07-29.dahlia"`, `CATALOGO_URL` (por omissão `${SITE_URL}/assets/catalogo.json`),
+`CATALOGO_URL` (por omissão `${SITE_URL}/assets/catalogo.json`),
 `LOGO_URL` (o PNG do logótipo para os emails: o Outlook não mostra WebP) e, opcional, `MODO = "encomenda"`
-como travão. Segredos: `STRIPE_SECRET_KEY`,
-`STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `PAINEL_SEGREDO`. Bindings: KV `ORDERS`, rate limit
+como travão. Segredos: `IFTHENPAY_ACCOUNTS` (`MBWAY|…;MB|…;CCARD|…`: segredo e não var, porque o
+repositório é público e uma var posta no painel da Cloudflare apaga-se no deploy seguinte),
+`IFTHENPAY_BACKOFFICE_KEY`, `IFTHENPAY_ANTIPHISHING_KEY` (escolhida por nós), `RESEND_API_KEY`,
+`PAINEL_SEGREDO`. Cron: `*/10 * * * *` (a varredura, §9). Bindings: KV `ORDERS`, rate limit
 `TRAVAO_CHECKOUT`, `send_email` `EMAIL` (só de `encomendas@lfmobile.pt`), objectos duráveis `CUPOES`
 (classe `Cupoes`, migração `v1`), `ENCOMENDA` (classe `Encomenda`, migração `v2`) e `CONTADOR` (classe
 `Contador`, migração `v3`: o travão dos emails), SQLite, na jurisdição da UE (
@@ -272,7 +313,7 @@ cupão de portes grátis. A encomenda guarda `peso_kg`.
 **O modelo do telemóvel** (as películas, `pedeModelo: true`): cada linha do `/checkout` pode levar
 `"modelo": "Samsung Galaxy A55"` (até 80 caracteres, limpo). Num artigo que o pede, sem modelo: 400. Na
 encomenda fica em `linhas[].modelo` e nas escolhas («Modelo: Samsung Galaxy A55»), por isso aparece nos
-emails, no painel e na página da Stripe.
+emails e no painel.
 
 **Os cupões** (worker/encomendas/cupoes.js) vivem num **objecto durável** deste Worker (`Cupoes`, um só
 para a loja, na UE — desde 11 nov 2026; até aí no KV), nunca no repositório. Ler, conferir e contar um
@@ -290,14 +331,14 @@ primeira vez, o objecto traz do KV os cupões de antes (`cupao:`, `cupao-usos:`,
   guarda o código e a regra e faz a conta (a mesma de `descontoDoCupao`).
 - `/checkout` com `"cupao": "BEMVINDO"`: o Worker lê a regra e os usos, confere outra vez, faz as contas
   com o desconto e, antes de gravar a encomenda, RESERVA o uso no objecto (`reservar`: as datas, o
-  mínimo, o limite e o «um por cliente», pelo email, conferidos e contados num passo; se a Stripe não
-  abrir a página ou a encomenda não se gravar, o uso volta). As contas: `desconto_cents` (a percentagem arredonda ao
+  mínimo, o limite e o «um por cliente», pelo email, conferidos e contados num passo; se a encomenda
+  não se gravar, o uso volta; no pagamento no site, volta também quando ela expira sem pagamento). As contas: `desconto_cents` (a percentagem arredonda ao
   cêntimo; o valor fixo nunca passa dos artigos a que se aplica), e `total_cents = artigos − desconto +
   portes`. Um cupão que deixou de valer: 400 com `campo: "cupao"` (o carrinho tira-o e redesenha). A
   encomenda guarda `cupao`, `desconto_cents` e, nos de portes, `cupao_portes: true`; a vista pública
   (`GET /encomenda`) mostra `cupao` e `desconto_cents`.
-- Em modo «online», a Stripe recebe um cupão de uso único com o valor calculado (`POST /coupons`
-  `amount_off`, `max_redemptions: 1`, `name: "Cupão <CÓDIGO>"`) e a sessão leva `discounts: [{ coupon }]`.
+- Em modo «online», a ifthenpay recebe só o total já com o desconto; a linha do cupão vê-se no resumo
+  do site e nos emails.
 - **Os descontos não se juntam** (como diz a página da campanha): o cupão desconta só os artigos que
   não estão em promoção nem numa campanha. O de portes grátis, com categorias, só vale quando a
   encomenda é toda delas. Um cupão que não dá nada nesta encomenda (só artigos em promoção; portes
@@ -313,3 +354,35 @@ primeira vez, o objecto traz do KV os cupões de antes (`cupao:`, `cupao-usos:`,
 - O painel: `GET /painel/cupoes` → `{ cupoes: [regra + usos + descricao] }`; `PUT /painel/cupoes/<CÓDIGO>`
   com a regra (400 `{ erro, campo }` quando não presta; as categorias conferem-se com o catálogo);
   `DELETE /painel/cupoes/<CÓDIGO>`.
+
+## 9. O pagamento no site pela ifthenpay (11 nov 2026; antes, a Stripe)
+
+O desenho é o da ithos·cathelier (ithos-cathelier-api, desde set 2026), no código em
+`worker/encomendas/ifthenpay.js` (a API, sem SDK) e `pagamento.js` (o pagamento na encomenda).
+
+- **O cliente fica no site.** O MB WAY e a referência Multibanco pedem-se pelas APIs de cada método e
+  mostram-se na página `/pagar/?e=…&c=…` (a espera do MB WAY com o relógio dos 4 minutos; a referência
+  em grupos de três, com os números para copiar). O cartão é o único que sai: para o formulário alojado
+  da ifthenpay (o número do cartão nunca passa pelo site nem pelo Worker), que volta a `/pagar/`.
+- **O id do pagamento** na ifthenpay é o número da encomenda sem os traços nem o século
+  (`LF-20261111-ABCDEF` → `LF261111ABCDEF`, 14 caracteres; o tecto é 15): volta-se dele ao número sem ler
+  nada, e um pagamento criado mas por gravar encontra-se na mesma.
+- **Quem decide que está paga é a ifthenpay**, perguntada por `POST /v2/payments/read` (com a chave de
+  backoffice) pelo id do pagamento, com o valor conferido (a menos não conta); no Multibanco há uma
+  segunda fonte, `/multibanco/reference/list`. Três coisas fazem a pergunta: o **callback**
+  (`GET /ifthenpay/callback?key=[ANTI_PHISHING_KEY]&orderId=[ORDER_ID]&amount=[AMOUNT]&requestId=[REQUEST_ID]`,
+  sem assinatura — uma campainha; um registado com os marcadores errados chega com `[ORDER_ID]` literal e
+  corre a varredura), a **página de pagamento** (enquanto o cliente olha) e a **varredura** (cron de 10 em
+  10 minutos, até 25 encomendas por passagem, as mais recentes primeiro: as «pendente» e as anuladas com
+  uma referência a valer).
+- **Os prazos** (`worker/encomendas/prazos.js`, que os termos também dizem): 60 minutos para pagar
+  quando não há referência (o MB WAY dá 4 minutos por pedido; pode pedir-se outro), a referência
+  Multibanco vale 3 dias (até ao fim do último dia, e mais 12 horas para o aviso chegar). Passado o prazo,
+  a varredura pergunta uma última vez e dá-a por «expirou» (o uso do cupão volta; o cliente recebe «O
+  pagamento não se concluiu»). Paga depois disso (um aviso atrasado), fica «paga» e o cupão conta outra vez.
+- **Pedir outra vez** (`POST /pagar` `{ e, c, metodo }`, da página): na MESMA encomenda, só «pendente» e
+  dentro do prazo, até 6 pedidos (cada MB WAY chega ao telemóvel de alguém). Antes, pergunta-se se já está
+  paga (um MB WAY aceite à última hora); uma referência que ainda vale é a mesma (uma nova podia ser paga
+  também); um MB WAY ainda à espera na app não deixa sair outro (409).
+- **Reembolsos**: §5. A ifthenpay só devolve MB WAY e cartão; o Multibanco é por transferência (o IBAN
+  do cliente: a política de privacidade di-lo).
