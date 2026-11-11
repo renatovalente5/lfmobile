@@ -1,47 +1,43 @@
 /* AS CORRIDAS (11 nov 2026, as encomendas num objecto durável): o que o KV perdia quando dois caminhos
-   escreviam a mesma encomenda — o webhook da Stripe e o painel —, e o que a leitura atrasada do KV
-   (eventualmente consistente: até 60 s noutro sítio) gravava por cima. O objecto falso (ajuda.mjs) tem o
-   blockConcurrencyWhile em fila, como na Cloudflare. */
+   escreviam a mesma encomenda — a confirmação do pagamento (o callback da ifthenpay, a página, a varredura)
+   e o painel —, e o que a leitura atrasada do KV (eventualmente consistente: até 60 s noutro sítio) gravava
+   por cima. O objecto falso (ajuda.mjs) tem o blockConcurrencyWhile em fila, como na Cloudflare. */
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../index.js';
-import { assinar } from '../stripe.js';
 import { gravarCupao, usosDe } from '../cupoes.js';
 import { MAX_EMAILS_POR_PAGAR } from '../email.js';
-import { catalogoBase, envFalso, redeFalsa, pedir, pedidoValido, bearer } from './ajuda.mjs';
+import { varrer } from '../pagamento.js';
+import { catalogoBase, envFalso, envIfthenpay, redeFalsa, ifthenpayFalsa, pedir, pedidoValido, bearer, CHAVES } from './ajuda.mjs';
 
 let rede;
 afterEach(() => { if (rede) rede.repor(); rede = null; });
 
-const SEGREDO_WEBHOOK = 'whsec_corridas_123456';
-async function webhook(env, evento) {
-  const corpo = JSON.stringify({ created: Math.floor(Date.now() / 1000), ...evento });
-  const t = Math.floor(Date.now() / 1000);
-  const r = await worker.fetch(new Request('https://lfmobile-encomendas.test/stripe/webhook', {
-    method: 'POST', body: corpo, headers: { 'content-type': 'application/json', 'stripe-signature': `t=${t},v1=${await assinar(corpo, t, SEGREDO_WEBHOOK)}` },
-  }), env);
+const pidDe = (id) => `LF${id.slice(5, 11)}${id.slice(12)}`;
+const callback = async (env, id) => {
+  const r = await worker.fetch(new Request(`https://lfmobile-encomendas.test/ifthenpay/callback?key=${CHAVES.ANTI}&orderId=${pidDe(id)}`), env, { waitUntil() {} });
   return { status: r.status, texto: await r.text() };
-}
-const sessao = (encomenda, sobre = {}) => ({ id: 'cs_test_a1b2c3d4e5f6', object: 'checkout.session', payment_status: 'paid', payment_intent: 'pi_1', amount_total: 11980, currency: 'eur', payment_method_types: ['card'], client_reference_id: encomenda, metadata: { encomenda }, ...sobre });
+};
 const lerKV = async (env, id) => JSON.parse(await env.ORDERS.get(`order:${id}`));
 const mudar = (env, id, estado) => pedir(worker, env, 'POST', `/painel/encomendas/${id}/estado`, { corpo: { estado, avisar: false }, cabecalhos: bearer() });
 const anotar = (env, id, texto) => pedir(worker, env, 'POST', `/painel/encomendas/${id}/nota`, { corpo: { texto }, cabecalhos: bearer() });
 
-/* Uma encomenda online, pendente (a rede de faz-de-conta abre a sessão cs_test_a1b2c3d4e5f6). */
-async function pendente({ cupao = null, total_cents = 11980 } = {}) {
+/* Uma encomenda paga no site, pendente (Multibanco, na ifthenpay de faz-de-conta). */
+async function pendente({ cupao = null, total_cents = 11980, ifp } = {}) {
   const cat = catalogoBase(); cat.modo = 'online';
-  rede = redeFalsa({ catalogo: cat });
-  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: SEGREDO_WEBHOOK, RESEND_API_KEY: 're_x', STORE_EMAIL: 'dono@exemplo.pt' });
+  rede = redeFalsa({ catalogo: cat, ifthenpay: ifp });
+  const env = envIfthenpay({ RESEND_API_KEY: 're_x', STORE_EMAIL: 'dono@exemplo.pt' });
   if (cupao) await gravarCupao(env, cupao);
-  const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ ...(cupao ? { cupao: cupao.codigo } : {}), total_cents }) });
+  const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ metodo: 'MB', ...(cupao ? { cupao: cupao.codigo } : {}), total_cents }) });
   assert.equal(r.status, 200, r.texto);
   return { env, id: r.json.encomenda, ler: () => lerKV(env, r.json.encomenda) };
 }
 
 test('o pagamento e uma nota do painel ao mesmo tempo: fica paga E com a nota', async () => {
   const { env, id, ler } = await pendente();
+  rede.ifp.pagar(pidDe(id), { metodo: 'MB', cents: 11980 });
   const [pago, nota] = await Promise.all([
-    webhook(env, { id: 'evt_pago', type: 'checkout.session.completed', data: { object: sessao(id) } }),
+    callback(env, id),
     anotar(env, id, 'O cliente ligou a perguntar o prazo.'),
   ]);
   assert.equal(pago.status, 200, pago.texto);
@@ -55,43 +51,52 @@ test('o pagamento e uma nota do painel ao mesmo tempo: fica paga E com a nota', 
 test('uma nota escrita sobre uma leitura ATRASADA (o KV ainda dizia «pendente») não apaga o pagamento', async () => {
   const { env, id, ler } = await pendente();
   const antes = JSON.stringify(await ler());   // a cópia de quando estava pendente
-  assert.equal((await webhook(env, { id: 'evt_pago', type: 'checkout.session.completed', data: { object: sessao(id) } })).status, 200);
+  rede.ifp.pagar(pidDe(id), { metodo: 'MB', cents: 11980 });
+  assert.equal((await callback(env, id)).status, 200);
   assert.equal((await ler()).estado, 'paga');
   // o KV de outra localização ainda mostra a versão de antes (eventualmente consistente)
   await env.ORDERS.put(`order:${id}`, antes);
   assert.equal((await anotar(env, id, 'Nota escrita longe.')).status, 200);
   const enc = await ler();
   assert.equal(enc.estado, 'paga', 'a nota juntou-se à encomenda de AGORA (a do objecto), não à cópia atrasada');
-  assert.equal(enc.stripe.payment_intent, 'pi_1');
+  assert.equal(enc.pagamento.metodo_pago, 'MB');
   assert.equal(enc.notas_painel.at(-1).texto, 'Nota escrita longe.');
 });
 
-test('anular uma pendente com o «expired» da Stripe a chegar enquanto a página fecha: fica anulada, sem os emails de «não se concluiu», e o uso do cupão volta uma vez', async () => {
-  // a Stripe manda o checkout.session.expired logo que a página fecha — aqui, de dentro da própria chamada
-  let env = null; let id = null; let expirado = null;
-  const cat = catalogoBase(); cat.modo = 'online';
-  rede = redeFalsa({
-    catalogo: cat,
-    stripe: async (url, init) => {
-      if (url.endsWith('/checkout/sessions') && init.method === 'POST') return Response.json({ id: 'cs_test_a1b2c3d4e5f6', url: 'https://checkout.stripe.com/c/pay/cs_test_a1b2c3d4e5f6', payment_status: 'unpaid' });
-      if (url.endsWith('/expire')) { expirado = await webhook(env, { id: 'evt_exp', type: 'checkout.session.expired', data: { object: sessao(id, { payment_status: 'unpaid', amount_total: 10980 }) } }); return Response.json({ id: 'cs_test_a1b2c3d4e5f6', status: 'expired' }); }
-      return Response.json({});
-    },
-  });
-  env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: SEGREDO_WEBHOOK, RESEND_API_KEY: 're_x', STORE_EMAIL: 'dono@exemplo.pt' });
-  await gravarCupao(env, { codigo: 'UMSO', tipo: 'valor', valor: 10, ativo: true, limite: 1 });
-  const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ cupao: 'UMSO', total_cents: 10980 }) });
-  assert.equal(r.status, 200, r.texto);
-  id = r.json.encomenda;
+test('anular uma pendente enquanto a ifthenpay confirma o pagamento: fica anulada (sem «Pagamento recebido» ao cliente), o dono é avisado para devolver, e o uso do cupão volta uma vez', async () => {
+  // a anulação chega DEPOIS de a confirmação ter lido a encomenda e ANTES de gravar: de dentro da
+  // própria leitura dos pagamentos, como no tempo real
+  let env = null; let id = null; let anulada = null;
+  const ifp = ifthenpayFalsa();
+  const responder = ifp.responder.bind(ifp);
+  ifp.responder = async (url, init) => {
+    if (url.endsWith('/v2/payments/read') && id && !anulada) anulada = await mudar(env, id, 'anulada');
+    return responder(url, init);
+  };
+  ({ env, id } = await pendente({ ifp, cupao: { codigo: 'UMSO', tipo: 'valor', valor: 10, ativo: true, limite: 1 }, total_cents: 10980 }));
   assert.equal(await usosDe(env, 'UMSO'), 1);
-  const anulada = await mudar(env, id, 'anulada');
-  assert.equal(anulada.status, 200, anulada.texto);
-  assert.equal(expirado && expirado.status, 200, 'o «expired» chegou enquanto a página fechava');
+  ifp.pagar(pidDe(id), { metodo: 'MB', cents: 10980 });
+  rede.chamadas.length = 0;
+  const pago = await callback(env, id);
+  assert.equal(pago.status, 200, pago.texto);
+  assert.equal(anulada && anulada.status, 200, 'a anulação passou a meio da confirmação');
   const enc = await lerKV(env, id);
-  assert.equal(enc.estado, 'anulada', 'o «expirou» não grava por cima da anulação');
-  assert.equal(enc.avisos?.expirou, undefined, 'e não manda «o pagamento não se concluiu»');
-  assert.equal(rede.resend().filter((e) => /não se concluiu/.test(e.subject)).length, 0);
+  assert.equal(enc.estado, 'anulada', 'o pagamento não grava «paga» por cima da anulação');
+  assert.match(enc.historico.at(-1).nota, /A ifthenpay recebeu 109,80 € \(Multibanco\) com a encomenda «anulada»/);
+  assert.deepEqual(rede.resend().map((e) => e.to[0]), ['dono@exemplo.pt'], 'só o dono, para devolver');
   assert.equal(await usosDe(env, 'UMSO'), 0, 'o uso voltou, e só uma vez');
+});
+
+test('a varredura dá por expirada enquanto o dono anula: fica anulada, sem «não se concluiu»', async () => {
+  const { env, id, ler } = await pendente();
+  const [a] = await Promise.all([mudar(env, id, 'anulada'), varrer(env, Date.now() + 5 * 86400000)]);
+  assert.equal(a.status, 200, a.texto);
+  const enc = await ler();
+  assert.ok(['anulada', 'expirou'].includes(enc.estado), enc.estado);
+  if (enc.estado === 'anulada') assert.equal(rede.resend().filter((e) => /não se concluiu/.test(e.subject)).length, 0);
+  // uma só mudança de estado (pendente → anulada, ou → expirou): a outra viu a de agora e não fez nada
+  const mudancas = enc.historico.filter((h, i, a) => i > 0 && h.estado !== a[i - 1].estado);
+  assert.equal(mudancas.length, 1, JSON.stringify(enc.historico));
 });
 
 test('duas mudanças de estado ao mesmo tempo (dois aparelhos): uma passa, a outra recebe 409 com o estado de agora', async () => {
@@ -149,24 +154,22 @@ test(`o travão dos emails: a mesma pessoa recebe no máximo ${MAX_EMAILS_POR_PA
   assert.ok(![...env.CONTADOR.instancias.keys()].some((k) => k.includes('@')), 'o contador guarda o resumo, nunca o email');
 });
 
-test(`o travão também nos emails da Stripe sem pagamento («não se concluiu»): no máximo ${MAX_EMAILS_POR_PAGAR} por dia`, async () => {
+test(`o travão também nos emails sem pagamento («não se concluiu»): no máximo ${MAX_EMAILS_POR_PAGAR} por dia`, async () => {
   const cat = catalogoBase(); cat.modo = 'online';
   rede = redeFalsa({ catalogo: cat });
-  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: SEGREDO_WEBHOOK, RESEND_API_KEY: 're_x', STORE_EMAIL: 'dono@exemplo.pt' });
+  const env = envIfthenpay({ RESEND_API_KEY: 're_x', STORE_EMAIL: 'dono@exemplo.pt' });
   const ids = [];
   for (let i = 0; i <= MAX_EMAILS_POR_PAGAR; i++) {
-    const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido() });
+    const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ metodo: 'MBWAY' }) });
     assert.equal(r.status, 200, r.texto);
     ids.push(r.json.encomenda);
   }
   rede.chamadas.length = 0;
-  for (const [i, id] of ids.entries()) {
-    const r = await webhook(env, { id: `evt_exp_${i}`, type: 'checkout.session.expired', data: { object: sessao(id, { payment_status: 'unpaid' }) } });
-    assert.equal(r.status, 200, r.texto);
-  }
-  const aoCliente = rede.resend().filter((m) => [].concat(m.to).includes('Maria@Exemplo.pt') || [].concat(m.to).includes('maria@exemplo.pt'));
+  const v = await varrer(env, Date.now() + 2 * 3600000);
+  assert.equal(v.expiradas, ids.length);
+  const aoCliente = rede.resend().filter((m) => [].concat(m.to).some((x) => x.toLowerCase() === 'maria@exemplo.pt'));
   assert.equal(aoCliente.length, MAX_EMAILS_POR_PAGAR);
-  const ultima = await lerKV(env, ids.at(-1));
-  assert.equal(ultima.estado, 'expirou');
-  assert.match(ultima.avisos.expirou.cliente, /^travado/);
+  const travadas = await Promise.all(ids.map((id) => lerKV(env, id)));
+  assert.ok(travadas.every((e) => e.estado === 'expirou'));
+  assert.equal(travadas.filter((e) => /^travado/.test(e.avisos.expirou.cliente)).length, 1);
 });

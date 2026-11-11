@@ -33,28 +33,10 @@ test('GET /encomenda: com a chave certa dá só o que a pessoa já sabe; sem ela
   assert.equal((await pedir(worker, env, 'GET', '/encomenda')).status, 400);
 });
 
-test('GET /encomenda?s=: pela sessão da Stripe, e a sessão paga adianta-se ao webhook', async () => {
-  const cat = clone(catalogoBase());
-  cat.modo = 'online';
-  let paga = false;
-  rede = redeFalsa({
-    catalogo: cat,
-    stripe: (url, init) => (init.method === 'GET'
-      ? Response.json({ id: 'cs_test_a1b2c3d4e5f6', payment_status: paga ? 'paid' : 'unpaid' })
-      : Response.json({ id: 'cs_test_a1b2c3d4e5f6', url: 'https://checkout.stripe.com/c/pay/cs_test_a1b2c3d4e5f6' })),
-  });
-  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: 'whsec_x' });
-  const { encomenda } = await registar(worker, env);
-  const antes = await pedir(worker, env, 'GET', '/encomenda?s=cs_test_a1b2c3d4e5f6');
-  assert.equal(antes.status, 200);
-  assert.equal(antes.json.encomenda, encomenda);
-  assert.equal(antes.json.estado, 'pendente');
-  paga = true;
-  const depois = await pedir(worker, env, 'GET', '/encomenda?s=cs_test_a1b2c3d4e5f6');
-  assert.equal(depois.json.estado, 'paga', 'mostra «paga» pela sessão…');
-  assert.equal(JSON.parse(await env.ORDERS.get(`order:${encomenda}`)).estado, 'pendente', '…mas quem grava é o webhook');
-  assert.equal((await pedir(worker, env, 'GET', '/encomenda?s=cs_test_outra_sessao')).status, 404);
-  assert.equal((await pedir(worker, env, 'GET', '/encomenda?s=lixo')).status, 404);
+test('GET /encomenda: o ?s= da Stripe já não existe (400: falta o número)', async () => {
+  rede = redeFalsa({ catalogo: catalogoBase() });
+  const r = await pedir(worker, envFalso(), 'GET', '/encomenda?s=cs_test_a1b2c3d4e5f6');
+  assert.equal(r.status, 400);
 });
 
 test('o painel: sem o bearer 401, com o bearer errado 401, sem segredo no Worker 503', async () => {
@@ -72,7 +54,7 @@ test('o painel: sem o bearer 401, com o bearer errado 401, sem segredo no Worker
 test('GET /painel/saude diz o modo e o que está ligado', async () => {
   rede = redeFalsa({ catalogo: catalogoBase() });
   const r = await pedir(worker, envFalso({ RESEND_API_KEY: 're_x' }), 'GET', '/painel/saude', { cabecalhos: bearer() });
-  assert.deepEqual(r.json, { ok: true, modo: 'encomenda', stripe: false, webhook: false, email: true, dono: false, catalogo: 'ok' });
+  assert.deepEqual(r.json, { ok: true, modo: 'encomenda', pagamentos: { metodos: [], contas: [], backoffice: false, callback: false }, email: true, dono: false, catalogo: 'ok' });
   // os emails pela Cloudflare (o binding EMAIL), sem a chave do Resend: também estão ligados
   const pelaCloudflare = await pedir(worker, envFalso({ EMAIL: { send: async () => ({}) } }), 'GET', '/painel/saude', { cabecalhos: bearer() });
   assert.equal(pelaCloudflare.json.email, true);
@@ -200,7 +182,7 @@ test('as transições proibidas dão 409 com a razão; «avisar: false» não ma
   r = await muda(lev.encomenda, 'registada');
   assert.equal(r.status, 409);
   r = await muda(lev.encomenda, 'reembolsada');
-  assert.equal(r.status, 409, 'o reembolso é da Stripe, não do painel');
+  assert.equal(r.status, 409, 'o reembolso tem a rota dele (/reembolso), não é uma mudança de estado');
   r = await muda(lev.encomenda, 'inventado');
   assert.equal(r.status, 409);
   assert.match(r.json.erro, /não existe/);

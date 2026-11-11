@@ -11,6 +11,13 @@ compatibility_date = "2026-09-01"
 [observability]
 enabled = true
 
+# A varredura dos pagamentos no site por confirmar (pagamento.js, varrer): de 10 em 10 minutos pergunta à
+# ifthenpay pelas encomendas «pendente» (e pelas anuladas com uma referência Multibanco ainda a valer), e
+# dá por expiradas as que passaram do prazo. Sem pagamento no site ligado (sem IFTHENPAY_BACKOFFICE_KEY)
+# não faz nada. A loja não depende assim dos callbacks estarem activos no backoffice da ifthenpay.
+[triggers]
+crons = ["*/10 * * * *"]
+
 # As encomendas (encomenda.js diz as chaves). O título na Cloudflare é «lfmobile-encomendas-ORDERS»
 # (o título «ORDERS», sem prefixo, é o do Armazém dos Pneus). Criado com:
 #   wrangler kv namespace create lfmobile-encomendas-ORDERS --config …/wrangler.toml
@@ -88,16 +95,21 @@ STORE_PHONE = "916 537 957"
 STORE_EMAIL = "geral.lfmobile@gmail.com"
 # O remetente (o binding EMAIL só deixa este endereço).
 MAIL_FROM = "LF Mobile <encomendas@lfmobile.pt>"
-# A versão da API da Stripe, fixada (a mesma do Armazém dos Pneus). Não subir sem ler o changelog.
-STRIPE_API_VERSION = "2026-07-29.dahlia"
 # MODO = "encomenda" força o modo «encomenda» mesmo com o catálogo em «online» (travão de
 # emergência). Por omissão não está definido: vale o catálogo.
 
 # ---------------------------------------------------------------------------------------------
 # SEGREDOS — nunca aqui (o repositório é público). Instalar com, por exemplo:
 #   < ~/Websites/lfmobile/_cliente/segredos/PAINEL_SEGREDO npx --no-install wrangler secret put PAINEL_SEGREDO --config …
-#   PAINEL_SEGREDO        o mesmo do Worker do painel (openssl rand -hex 32)
-#   STRIPE_SECRET_KEY     sk_live_… ou rk_live_… da conta do cliente (quando a houver)
-#   STRIPE_WEBHOOK_SECRET whsec_… do endpoint /stripe/webhook
-#   RESEND_API_KEY        só sem o binding EMAIL: re_… de uma conta do Resend com o domínio verificado
+#   PAINEL_SEGREDO             o mesmo do Worker do painel (openssl rand -hex 32)
+#   IFTHENPAY_ACCOUNTS         as chaves por método, «MBWAY|ABC-123456;MB|UND-654321;CCARD|XYZ-111222»
+#                              (só os métodos que a conta da LF Mobile tiver; o site mostra só esses).
+#                              Segredo e não var: o repositório é público (com a chave do MB WAY qualquer
+#                              pessoa mandava pedidos de pagamento em nome da loja), e uma var posta no
+#                              painel da Cloudflare apaga-se no deploy seguinte (wrangler-deploy-apaga-vars)
+#   IFTHENPAY_BACKOFFICE_KEY   a chave de backoffice (0000-0000-0000-0000): confirma os pagamentos
+#                              (/v2/payments/read) e faz os reembolsos. Sem ela, nenhum método se oferece
+#   IFTHENPAY_ANTIPHISHING_KEY escolhida por nós (openssl rand -hex 24, até 50 caracteres): a chave do
+#                              callback, registada na ifthenpay com o endereço de cada método (README)
+#   RESEND_API_KEY             só sem o binding EMAIL: re_… de uma conta do Resend com o domínio verificado
 # ---------------------------------------------------------------------------------------------

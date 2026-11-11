@@ -2,8 +2,8 @@
  * compra, vai ser para integrar com o Stripe»). Nunca no repositório do site (que é público: um código
  * lá escrito via-se). O dono cria-os no painel (/painel/cupoes); o carrinho confere um código (POST
  * /cupao) para mostrar o desconto; o /checkout confere tudo outra vez, RESERVA um uso e grava o
- * desconto na encomenda; em modo «online» a Stripe recebe um cupão de uso único com o valor já
- * calculado (stripe.js), e mostra «Cupão X −5,00 €» na página dela.
+ * desconto na encomenda; em modo «online» a ifthenpay recebe só o total já com o desconto (a página de
+ * pagamento é a do site, que mostra a linha do cupão).
  *
  * GUARDADOS NUM OBJECTO DURÁVEL (Cupoes, um só para a loja, na UE — 11 nov 2026; até aí no KV): ler,
  * conferir e contar um uso é um passo só, e dois clientes no mesmo instante nunca passam o limite nem o

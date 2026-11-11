@@ -1,10 +1,9 @@
-/* A ENCOMENDA NO KV: a forma (docs/ENCOMENDAS.md, §4), os ids, a chave, os estados e as vistas.
+/* A ENCOMENDA: a forma (docs/ENCOMENDAS.md, §4), os ids, a chave, os estados e as vistas. A verdade de
+ * cada uma está no objecto dela (objecto.js); o KV fica com a cópia para a lista.
  *
  * Chaves do namespace ORDERS (só este Worker escreve):
- *   order:<id>       a encomenda inteira, 400 dias (cada escrita renova o prazo)
- *   session:<cs_…>   → <id>   (modo «online»: a página da Stripe que a abriu)
- *   pi:<pi_…>        → <id>   (modo «online»: o pagamento; é por ele que um reembolso chega cá)
- *   evt:<evt_…>      → 1, 30 dias (um webhook repetido não repete emails)
+ *   order:<id>       a cópia da encomenda inteira, 400 dias (cada escrita renova o prazo)
+ *   idem:<pedido>    a resposta do /checkout a uma tentativa, 1 dia (a tentativa repetida)
  *
  * Cada escrita conta para a quota do KV, que é da conta inteira (1 000 por dia no plano
  * gratuito): grava-se o menos possível, e nunca por pedidos que não dão em nada.
@@ -46,8 +45,9 @@ export const agoraISO = () => new Date().toISOString();
 
 export const ESTADOS = Object.freeze(['registada', 'pendente', 'paga', 'pronta', 'enviada', 'levantada', 'anulada', 'reembolsada', 'falhou', 'expirou']);
 
-/* As transições que o painel pode pedir (§4, a coluna «quem»). As da Stripe são do webhook
-   (stripe.js, aplicarEvento). Os finais (levantada, anulada, reembolsada) não mudam mais. */
+/* As transições que o painel pode pedir (§4, a coluna «quem»). As do pagamento no site são do Worker
+   (pagamento.js: paga, expirou; e reembolsada, pela rota do reembolso). Os finais (levantada, anulada,
+   reembolsada) não mudam mais. */
 export const TRANSICOES_PAINEL = Object.freeze({
   registada: ['paga', 'pronta', 'anulada'],
   pendente: ['paga', 'anulada'],
@@ -81,7 +81,7 @@ export function razaoParaNao(enc, novo) {
   return null;
 }
 
-/* Muda o estado e acrescenta a linha ao histórico (`por`: site, stripe, ou o email de quem
+/* Muda o estado e acrescenta a linha ao histórico (`por`: site, ifthenpay, ou o email de quem
    marcou no painel; `nota` opcional). */
 export function mudarEstado(enc, estado, { por, nota = '', em = agoraISO() } = {}) {
   enc.estado = estado;
@@ -148,6 +148,10 @@ export function metadadosDe(enc) {
     telefone: corte(c.telefone, 20),
     email: corte(c.email, 80),
   };
+  // Enquanto se espera um pagamento no site: a varredura (pagamento.js, varrer) escolhe por aqui as que
+  // tem de perguntar à ifthenpay, sem abrir cada encomenda.
+  const pg = enc.pagamento;
+  if (pg && !pg.pago_em && pg.prazo) base.prazo = pg.prazo;
   // o limite do KV é em BYTES: um nome com acentos, noutra escrita ou com emojis ocupa mais do que os
   // caracteres que tem (a 1 018 bytes, uma encomenda ficava por gravar)
   const bytes = (x) => new TextEncoder().encode(JSON.stringify(x)).length;

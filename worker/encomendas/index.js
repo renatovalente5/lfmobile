@@ -1,35 +1,37 @@
 /* LF MOBILE — O WORKER DAS ENCOMENDAS (lfmobile-encomendas). O contrato está em
  * docs/ENCOMENDAS.md; o site (src/scripts/carrinho.js) e o painel foram escritos contra ele.
  *
- *   POST /checkout            a encomenda do site: refaz as contas com o catálogo publicado,
- *                             grava no KV e, em modo «encomenda», manda os emails e devolve o
- *                             número e a chave; em modo «online», abre a página segura da Stripe.
- *   GET  /encomenda?e=&c=     o que a página «obrigado» mostra (sem dados pessoais); ou ?s=<sessão>.
+ *   POST /checkout            a encomenda do site: refaz as contas com o catálogo publicado e grava-a;
+ *                             em modo «encomenda», manda os emails e devolve o número e a chave; em
+ *                             modo «online», pede o pagamento à ifthenpay pelo método escolhido (MB
+ *                             WAY, Multibanco ou cartão) e devolve para onde o browser segue (`proxima`).
+ *   GET  /encomenda?e=&c=     o que as páginas «pagar» e «obrigado» mostram (sem dados pessoais); com
+ *                             um pagamento por confirmar, pergunta à ifthenpay (pagamento.js, verNaPagina).
+ *   POST /pagar               a página de pagamento pede outra vez, ou por outro método: { e, c, metodo }.
+ *   GET  /metodos             os métodos ligados (o finalizar mostra só esses).
  *   POST /cupao               o carrinho confere um código: { codigo, linhas, entrega } → a regra
  *                             pública e o desconto, ou 400 com a frase (cupoes.js).
- *   POST /stripe/webhook      os eventos da Stripe (a fonte da verdade do pagamento).
+ *   GET  /ifthenpay/callback  a campainha da ifthenpay (sem assinatura: confirma-se sempre com ela).
  *   /painel/…                 as rotas do painel, com o PAINEL_SEGREDO (painel.js).
+ *   cron (10 em 10 min)       a varredura dos pagamentos por confirmar (pagamento.js, varrer).
  *
- * A base é o Worker da Stripe do Armazém dos Pneus (worker/src/index.js): a estrutura dos
- * webhooks, a idempotência por evento, o Checkout hosted em português, o reprice do lado do
- * servidor. Sem dependências npm: fetch puro.
+ * Os pagamentos pela ifthenpay desde 11 nov 2026 (antes, a Stripe); a base é o Worker da ithos·cathelier.
+ * Sem dependências npm: fetch puro.
  *
- * SEGREDOS (wrangler secret put; nunca no repositório): PAINEL_SEGREDO, STRIPE_SECRET_KEY,
- * STRIPE_WEBHOOK_SECRET, RESEND_API_KEY. As vars estão no wrangler.toml (§7 do contrato).
+ * SEGREDOS (wrangler secret put; nunca no repositório): PAINEL_SEGREDO, IFTHENPAY_ACCOUNTS,
+ * IFTHENPAY_BACKOFFICE_KEY, IFTHENPAY_ANTIPHISHING_KEY, RESEND_API_KEY. As vars estão no wrangler.toml
+ * (§7 do contrato).
  */
 
 import { json, lerCorpoJson } from './http.js';
 import { lerCatalogo, modoDe, siteUrl } from './catalogo.js';
 import { validarPedido, contas as fazerContas, ErroDoPedido, hojeLisboa } from './contas.js';
 import { lerCupaoComUsos, porQueNaoVale, publico, libertarUso, reservarUso, normalizarCodigo, acertarCupao, fazerAcerto } from './cupoes.js';
-import { criarEncomenda, idLivre, novaChave, lerEncomenda, gravarEncomenda, alterarEncomenda, vistaPublica, iguais, RE_ID, RE_CHAVE, TTL_ENCOMENDA, TTL_EVENTO, agoraISO } from './encomenda.js';
-import { criarSessao, stripeFetch, verificarAssinatura, aplicarEvento, idDoEvento, eventoNaoBate } from './stripe.js';
+import { criarEncomenda, idLivre, novaChave, lerEncomenda, gravarEncomenda, alterarEncomenda, vistaPublica, iguais, RE_ID, RE_CHAVE, agoraISO } from './encomenda.js';
+import { metodosLigados, telemovelMbway, estadoMbway, MBWAY_SEGUNDOS } from './ifthenpay.js';
+import { novoPagamento, pedirERegistar, mandarAvisos, confirmar, verNaPagina, vistaDoPagamento, urlDePagar, referenciaViva, podePedirMais, callback, varrer } from './pagamento.js';
 import { avisar, falhou, podeAvisarCliente, TRAVADO } from './email.js';
 import { rotaPainel } from './painel.js';
-
-const JANELA_DE_REENTREGA_SEGUNDOS = 3600;   // até quando vale pedir à Stripe que reentregue
-// Os avisos ao cliente sem pagamento, com o travão por endereço (email.js, podeAvisarCliente).
-const TRAVADOS = Object.freeze(['expirou', 'falhou', 'multibanco']);
 
 /* ---------------------------------------------------------------- CORS
    Só as origens de ALLOWED_ORIGINS. Um pedido SEM Origin (o curl, um servidor) não é um pedido
@@ -97,9 +99,10 @@ async function checkout(request, env, cors) {
     return json({ erro: 'Não conseguimos confirmar os preços agora. Tente daqui a um minuto.' }, 503, cors);
   }
   const modo = modoDe(cat, env);
-  // Sem a chave, não há pagamento; sem o segredo do webhook, a Stripe cobrava e a encomenda nunca
-  // sabia (ficava «pendente», sem aviso a ninguém).
-  if (modo === 'online' && (!env.STRIPE_SECRET_KEY || !env.STRIPE_WEBHOOK_SECRET)) return json({ erro: 'O pagamento no site não está ligado. Encomende pelo WhatsApp.' }, 503, cors);
+  // Sem um método com chave (e a chave de backoffice, que confirma os pagamentos: ifthenpay.js,
+  // metodosLigados), não há pagamento no site.
+  const ligados = modo === 'online' ? metodosLigados(env) : [];
+  if (modo === 'online' && !ligados.length) return json({ erro: 'O pagamento no site não está ligado. Encomende pelo WhatsApp.' }, 503, cors);
 
   const hoje = hojeLisboa();
   // O cupão: tem de existir e valer hoje, para estes artigos e para este email (o «um por cliente»).
@@ -137,12 +140,20 @@ async function checkout(request, env, cors) {
   // O que o site mostrou tem de ser o que se cobra: se um preço mudou entretanto, o carrinho vai
   // buscar o catálogo outra vez e redesenha (campo «precos»).
   if (pedido.contas.total_cents !== corpo.total_cents) return json({ erro: 'Os preços mudaram entretanto. Actualizámos o carrinho: veja o total e envie outra vez.', campo: 'precos' }, 409, cors);
+  // O método (só no pagamento no site): um dos ligados; o MB WAY pede um telemóvel português, conferido
+  // ANTES de gravar (um número mal escrito é o erro mais frequente de um formulário).
+  let metodo = null, telemovel = null;
+  if (modo === 'online') {
+    const r = escolherMetodo(corpo.metodo, corpo.telemovel || (corpo.cliente || {}).telefone, ligados);
+    if (r.erro) return json(r.erro, 400, cors);
+    ({ metodo, telemovel } = r);
+  }
 
   const em = agoraISO();
   const id = await idLivre(env, hoje);
   // O uso do cupão reserva-se já, num passo só no objecto dos cupões (as datas, o mínimo, o limite e o
   // «um por cliente» conferem-se lá): dois clientes no mesmo instante não passam o limite. Volta se a
-  // encomenda não se gravar (ou a Stripe não abrir a página).
+  // encomenda não se gravar.
   if (cupao) {
     let r;
     try { r = await reservarUso(env, { codigo: cupao.codigo, email: pedido.cliente.email, encomenda: id, hoje, artigos_cents: pedido.contas.artigos_cents }); } catch (e) { console.error('cupão por reservar', id, e.message); return json({ erro: 'Não conseguimos confirmar o cupão agora. Tente daqui a um minuto.' }, 503, cors); }
@@ -155,27 +166,23 @@ async function checkout(request, env, cors) {
   if (enc.cupao) enc.cupao_contado = true;
 
   if (modo === 'online') {
-    // A sessão da Stripe primeiro, a encomenda depois: um pedido que a Stripe recuse não gasta
-    // escritas do KV. E a pessoa só recebe o endereço da página de pagamento com a encomenda
-    // já gravada: não paga uma encomenda que não existe.
-    let sessao;
-    try {
-      sessao = await criarSessao(env, enc, pedido.zona);
-    } catch (e) {
-      console.error('a Stripe não abriu a sessão', id, e.status, e.codigo, e.message);
-      await devolverUso();
-      return json({ erro: 'Não foi possível abrir o pagamento. Tente outra vez ou fale connosco pelo WhatsApp.' }, 502, cors);
-    }
-    enc.stripe = { session_id: sessao.id };
+    // A encomenda primeiro, o pagamento depois: um MB WAY chega logo ao telemóvel, e uma referência
+    // conta logo na ifthenpay — têm de ter uma encomenda à espera (o callback e a varredura encontram-na
+    // pelo id do pagamento, que vem do número). Se a ifthenpay não criar o pagamento, a encomenda fica à
+    // espera, e a página de pagamento diz porquê e deixa tentar outra vez (o uso do cupão fica com ela).
+    enc.pagamento = novoPagamento(id, metodo, em);
     try {
       await gravarEncomenda(env, enc, { em });
-      await env.ORDERS.put(`session:${sessao.id}`, id, { expirationTtl: TTL_ENCOMENDA });
     } catch (e) {
-      console.error('ENCOMENDA NÃO GRAVADA (KV)', id, sessao.id, e.message);
+      console.error('ENCOMENDA NÃO GRAVADA', id, e.message);
       await devolverUso();
       return json({ erro: 'Não foi possível registar a encomenda agora. Tente daqui a pouco ou fale connosco pelo WhatsApp.' }, 503, cors);
     }
-    const resp = { encomenda: id, chave: enc.chave, url: sessao.url, total_cents: enc.total_cents };
+    const { enc: comPedido, pedido: p } = await pedirERegistar(env, enc, { metodo, telemovel });
+    // A referência Multibanco também vai por email (é a cópia que o cliente leva; e o aviso de recepção
+    // da encomenda), antes de responder: num waitUntil um erro não se vê. Com o travão por endereço.
+    if (p.multibanco) await mandarAvisos(env, id, ['multibanco'], comPedido);
+    const resp = { encomenda: id, chave: enc.chave, estado: 'pendente', total_cents: enc.total_cents, metodo, proxima: p.url || urlDePagar(env, enc), sai: Boolean(p.url) };
     if (idem) { try { await env.ORDERS.put(idem, JSON.stringify(resp), { expirationTtl: 86400 }); } catch (e) { console.error('tentativa por gravar', id, e.message); } }
     return json(resp, 200, cors);
   }
@@ -234,120 +241,78 @@ async function conferirCupao(request, env, cors) {
 /* ---------------------------------------------------------------- GET /encomenda */
 
 async function encomenda(url, env, cors) {
-  const e = url.searchParams.get('e'), c = url.searchParams.get('c') || '', s = url.searchParams.get('s');
-  const naoHa = () => json({ erro: 'Encomenda não encontrada.' }, 404, cors);
-  if (e) {
-    if (!RE_ID.test(e) || !RE_CHAVE.test(c)) return naoHa();
-    const enc = await lerEncomenda(env, e);
-    if (!enc || !iguais(enc.chave, c)) return naoHa();
-    return json(vistaPublica(enc), 200, cors);
-  }
-  if (s) {
-    // Só por sessões que este Worker abriu (o índice session:): não serve de procurador à Stripe.
-    if (!/^cs_[A-Za-z0-9_]{10,}$/.test(s)) return naoHa();
-    const id = await env.ORDERS.get(`session:${s}`);
-    const enc = id ? await lerEncomenda(env, id) : null;
-    if (!enc) return naoHa();
-    const vista = vistaPublica(enc);
-    // A pessoa aterra na página «obrigado» segundos depois de pagar, antes de o webhook chegar: a
-    // sessão é a fonte mais fresca. Só promove o que se mostra (o KV é do webhook), e só para a
-    // frente: uma encomenda já reembolsada não volta a «paga».
-    if (vista.estado === 'pendente' && env.STRIPE_SECRET_KEY) {
-      try {
-        const sessao = await stripeFetch(env, `/checkout/sessions/${encodeURIComponent(s)}`, { method: 'GET' });
-        if (sessao.payment_status && sessao.payment_status !== 'unpaid') vista.estado = 'paga';
-      } catch (err) {
-        console.error('sessão por ler', s, err.message);
-      }
-    }
-    return json(vista, 200, cors);
-  }
-  return json({ erro: 'Falta o número da encomenda.' }, 400, cors);
+  const e = url.searchParams.get('e'), c = url.searchParams.get('c') || '';
+  if (!e) return json({ erro: 'Falta o número da encomenda.' }, 400, cors);
+  if (!RE_ID.test(e) || !RE_CHAVE.test(c)) return json({ erro: 'Encomenda não encontrada.' }, 404, cors);
+  let enc = await lerEncomenda(env, e);
+  if (!enc || !iguais(enc.chave, c)) return json({ erro: 'Encomenda não encontrada.' }, 404, cors);
+  // Com o pagamento por confirmar, a página pergunta à ifthenpay por aqui (com travão por encomenda).
+  enc = await verNaPagina(env, enc);
+  return json(vistaComPagamento(enc), 200, cors);
+}
+const vistaComPagamento = (enc) => ({ ...vistaPublica(enc), ...(enc.pagamento ? { pagamento: vistaDoPagamento(enc) } : {}) });
+
+/* ---------------------------------------------------------------- o método de pagamento
+   → { metodo, telemovel } ou { erro: o corpo do 400 }. */
+function escolherMetodo(bruto, telefone, ligados) {
+  const metodo = typeof bruto === 'string' ? bruto.trim().toUpperCase() : '';
+  if (!ligados.includes(metodo)) return { erro: { erro: 'Escolha como quer pagar.', campo: 'metodo', metodos: ligados } };
+  if (metodo !== 'MBWAY') return { metodo, telemovel: null };
+  const telemovel = telemovelMbway(telefone);
+  if (!telemovel) return { erro: { erro: 'Para pagar por MB WAY, escreva o seu número de telemóvel português (9 algarismos, a começar por 9).', campo: 'telefone' } };
+  return { metodo, telemovel };
 }
 
-/* ---------------------------------------------------------------- POST /stripe/webhook
-   Sem CORS, sem Origin, sem travão: a Stripe não é um browser, e um 403/429 provocava
-   reentregas sem fim. O estado grava-se ANTES do 200 (num waitUntil, uma falha perdia o
-   pagamento), as marcas gravam-se DEPOIS de aplicar e de enviar (antes, uma reentrega
-   encontrava a marca e engolia o evento). */
-async function webhook(request, env) {
-  if (request.method !== 'POST') return new Response('método', { status: 405 });
-  if (!env.STRIPE_WEBHOOK_SECRET) return new Response('webhook por ligar', { status: 503 });
-  const bruto = await request.text();   // UMA vez: a assinatura é sobre os bytes crus
-  let evento;
+/* ---------------------------------------------------------------- POST /pagar
+   A página de pagamento pede outra vez (o MB WAY recusado ou expirado, o cartão que não se concluiu) ou
+   por outro método, na MESMA encomenda: { e, c, metodo, telemovel? } → { proxima, sai } (ou { estado:
+   'paga' }). Só com a encomenda «pendente», dentro do prazo, e até MAX_PEDIDOS pedidos (cada MB WAY chega
+   ao telemóvel de alguém). Antes, pergunta-se à ifthenpay se já está paga: um MB WAY aceite à última hora
+   não se cobra duas vezes. */
+const ERRO_DO_PEDIDO = {
+  MBWAY: 'Não conseguimos enviar o pedido MB WAY. Confirme que o número tem MB WAY, ou escolha outra forma de pagar.',
+  MB: 'Não conseguimos gerar a referência Multibanco agora. Tente outra vez daqui a um minuto, ou escolha outra forma de pagar.',
+  CCARD: 'Não conseguimos abrir o pagamento com cartão agora. Tente outra vez daqui a um minuto, ou escolha outra forma de pagar.',
+};
+async function pagar(request, env, cors) {
+  const ip = request.headers.get('CF-Connecting-IP') || 'desconhecido';
+  if (await travado(env, ip)) return json({ erro: 'Demasiadas tentativas. Aguarde um minuto e tente outra vez.' }, 429, cors);
+  const { corpo, resposta } = await lerCorpoJson(request, cors);
+  if (resposta) return resposta;
+  const e = String(corpo.e || ''), c = String(corpo.c || '');
+  const naoHa = () => json({ erro: 'Encomenda não encontrada.' }, 404, cors);
+  if (!RE_ID.test(e) || !RE_CHAVE.test(c)) return naoHa();
+  const enc = await lerEncomenda(env, e);
+  if (!enc || !iguais(enc.chave, c)) return naoHa();
+  if (enc.modo !== 'online' || !enc.pagamento) return json({ erro: 'Esta encomenda não se paga no site.' }, 409, cors);
+  const r = escolherMetodo(corpo.metodo, corpo.telemovel || (enc.cliente || {}).telefone, metodosLigados(env));
+  if (r.erro) return json(r.erro, 400, cors);
+  if (enc.estado !== 'pendente') return json({ erro: enc.estado === 'paga' ? 'Esta encomenda já está paga.' : 'Esta encomenda já não espera pagamento.', estado: enc.estado }, 409, cors);
+  const pg = enc.pagamento;
+  if (Date.now() >= Date.parse(pg.prazo)) return json({ erro: 'O prazo para pagar esta encomenda acabou. Faça a encomenda outra vez.', estado: enc.estado }, 409, cors);
+  if (!podePedirMais(pg)) return json({ erro: 'Já pediu o pagamento desta encomenda muitas vezes. Fale connosco pelo WhatsApp.' }, 429, cors);
   try {
-    evento = await verificarAssinatura(bruto, request.headers.get('stripe-signature'), env.STRIPE_WEBHOOK_SECRET, Math.floor(Date.now() / 1000));
-  } catch (e) {
-    console.error('webhook rejeitado:', e.message);
-    return new Response('assinatura inválida', { status: 400 });
+    const conf = await confirmar(env, e);
+    if (conf.pago) return json({ estado: (conf.enc || enc).estado, proxima: urlDePagar(env, enc) }, 200, cors);
+  } catch (err) {
+    console.warn('/pagar: a confirmação falhou em', e, '—', err && err.message);
+    return json({ erro: 'Não conseguimos confirmar o pagamento agora. Tente daqui a um minuto.' }, 503, cors);
   }
-  const marca = `evt:${evento.id}`;
-  if (await env.ORDERS.get(marca)) return new Response('repetido');
-
-  const obj = (evento.data && evento.data.object) || {};
-  const id = await idDoEvento(env, obj);
-  const primeira = id ? await lerEncomenda(env, id) : null;
-  if (!primeira) {
-    if (id && RE_ID.test(id)) {
-      // Sabemos a encomenda mas ainda não a encontramos (uma de antes do objecto, no KV, que é
-      // eventualmente consistente): pede-se reentrega em vez de deitar fora um pagamento.
-      const idade = Math.floor(Date.now() / 1000) - (evento.created || 0);
-      if (idade < JANELA_DE_REENTREGA_SEGUNDOS) return new Response('encomenda ainda não visível', { status: 409 });
-      console.error('ENCOMENDA NÃO ENCONTRADA', id, evento.type, 'ao fim de', idade, 's');
-    } else {
-      console.log('evento sem encomenda nossa', evento.type, obj.id);
-    }
-    return new Response('sem encomenda');
+  // A referência que ainda vale é a mesma (uma referência nova não anula a outra: o cliente podia pagar
+  // as duas).
+  if (r.metodo === 'MB' && referenciaViva(pg)) return json({ proxima: urlDePagar(env, enc), sai: false }, 200, cors);
+  // Um pedido MB WAY ainda à espera na app: dois ao mesmo tempo podiam ser pagos os dois.
+  if (r.metodo === 'MBWAY' && pg.mbway && !pg.mbway.estado && Date.now() - Date.parse(pg.mbway.pedido_em) < MBWAY_SEGUNDOS * 1000) {
+    let estado = 'pendente';
+    try { estado = (await estadoMbway(env, { requestId: pg.mbway.requestId })).estado; } catch (err) { console.warn('/pagar: o estado do MB WAY falhou em', e, err && err.message); }
+    if (estado === 'pendente') return json({ erro: 'O pedido anterior ainda está na app MB WAY: aceite-o ou recuse-o primeiro.' }, 409, cors);
+    // aceite na app, mas a lista de pagamentos ainda não o tem: outro pedido seria um segundo pagamento
+    if (estado === 'pago') return json({ erro: 'O pagamento MB WAY foi aceite: estamos a confirmá-lo. Aguarde uns segundos.' }, 409, cors);
   }
-
-  const em = agoraISO();
-  // Só os eventos da sessão e do pagamento DESTA encomenda (com o valor dela) mexem nela; os outros
-  // ficam no histórico, para o dono ver, e não se repetem.
-  const naoBate = eventoNaoBate(primeira, evento);
-  if (naoBate) {
-    console.error('EVENTO DA STRIPE QUE NÃO BATE COM A ENCOMENDA', id, evento.type, naoBate);
-    await alterarEncomenda(env, id, (x) => { x.historico = [...(x.historico || []), { em, estado: x.estado, por: 'stripe', nota: `Evento da Stripe ignorado (${evento.type}): ${naoBate}. Confirme na Stripe.` }]; return {}; }, { em });
-    await env.ORDERS.put(marca, '1', { expirationTtl: TTL_EVENTO });
-    return new Response('não é desta encomenda');
-  }
-  /* O evento aplica-se à encomenda como está AGORA (a do objecto dela), e grava-se sem perder outra
-     escrita (alterarEncomenda: se outra passou entretanto — o painel, outro evento —, relê-se e
-     aplica-se outra vez; o aplicarEvento só depende do estado e do evento). O uso do cupão acerta-se
-     na mesma versão (acertarCupao) e chama-se o objecto dos cupões só depois de gravar. */
-  const r = await alterarEncomenda(env, id, (x) => {
-    const antes = JSON.stringify(x);
-    const { avisos } = aplicarEvento(x, evento, em);
-    const acerto = acertarCupao(x);
-    const mudou = JSON.stringify(x) !== antes;
-    return mudou ? { avisos, mudou, acerto } : { avisos, mudou, parar: true };
-  }, { em });
-  if (!r.enc) return new Response('sem encomenda');
-  if (r.acerto) await fazerAcerto(env, r.acerto, r.enc);
-  // O índice pi: quando se fica a saber o pagamento (é por ele que um reembolso chega cá).
-  const pi = r.enc.stripe && r.enc.stripe.payment_intent;
-  if (pi && (await env.ORDERS.get(`pi:${pi}`)) !== id) await env.ORDERS.put(`pi:${pi}`, id, { expirationTtl: TTL_ENCOMENDA });
-
-  // Cada aviso vai uma vez (a marca enc.avisos, lida da encomenda de agora). O resultado junta-se às
-  // marcas com outra escrita condicional: nada se perde, e um evento repetido não repete o email. Os
-  // emails ao cliente sem pagamento (o «expirou», o «falta pagar» do Multibanco e o «falhou») têm o
-  // travão por endereço.
-  let enviou = false;
-  for (const aviso of r.avisos) {
-    const actual = (await lerEncomenda(env, id)) || r.enc;
-    if (actual.avisos && actual.avisos[aviso]) continue;
-    const extras = { origem: 'stripe' };
-    if (TRAVADOS.includes(aviso) && !(await podeAvisarCliente(env, actual.cliente && actual.cliente.email))) extras.semCliente = TRAVADO;
-    const resultado = await avisar(env, aviso, actual, extras);
-    if (falhou(resultado)) {
-      console.error('EMAIL NÃO ENVIADO', aviso, id, JSON.stringify(resultado), '— 500 para a Stripe reentregar');
-      return new Response('emails por enviar', { status: 500 });
-    }
-    await alterarEncomenda(env, id, (x) => { x.avisos = { ...(x.avisos || {}), [aviso]: resultado }; return {}; });
-    enviou = true;
-  }
-  // A marca do evento só quando houve efeitos que não se querem repetir: cada escrita conta.
-  if (r.mudou || enviou) await env.ORDERS.put(marca, '1', { expirationTtl: TTL_EVENTO });
-  return new Response('ok');
+  const { enc: depois, pedido } = await pedirERegistar(env, enc, r);
+  if (pedido.erro) return json({ erro: ERRO_DO_PEDIDO[r.metodo] }, 502, cors);
+  if (pedido.multibanco) await mandarAvisos(env, e, ['multibanco'], depois);
+  return json({ proxima: pedido.url || urlDePagar(env, enc), sai: Boolean(pedido.url) }, 200, cors);
 }
 
 /* ---------------------------------------------------------------- o encaminhador */
@@ -358,19 +323,23 @@ export { Encomenda, Contador } from './objecto.js';
 export { Cupoes } from './cupoes.js';
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const caminho = url.pathname.replace(/\/+$/, '') || '/';
     try {
-      if (caminho === '/stripe/webhook') return await webhook(request, env);
+      // a ifthenpay não é um browser: sem CORS, sem Origin, sem travão (um 403/429 provocava as 13
+      // repetições deles sem proveito)
+      if (caminho === '/ifthenpay/callback') return request.method === 'GET' ? await callback(url, env, ctx) : new Response('método', { status: 405 });
       if (caminho === '/painel' || caminho.startsWith('/painel/')) return await rotaPainel(request, env, url, caminho);
 
       const cors = corsDe(request, env);
       if (!cors) return json({ erro: 'Origem não autorizada.' }, 403);
-      const publica = caminho === '/checkout' || caminho === '/encomenda' || caminho === '/cupao';
+      const publica = ['/checkout', '/encomenda', '/cupao', '/pagar', '/metodos'].includes(caminho);
       if (request.method === 'OPTIONS') return publica ? new Response(null, { status: 204, headers: cors }) : json({ erro: 'Rota desconhecida.' }, 404, cors);
       if (caminho === '/checkout') return request.method === 'POST' ? await checkout(request, env, cors) : json({ erro: 'Método não permitido.' }, 405, cors);
       if (caminho === '/encomenda') return request.method === 'GET' ? await encomenda(url, env, cors) : json({ erro: 'Método não permitido.' }, 405, cors);
+      if (caminho === '/pagar') return request.method === 'POST' ? await pagar(request, env, cors) : json({ erro: 'Método não permitido.' }, 405, cors);
+      if (caminho === '/metodos') return request.method === 'GET' ? json({ metodos: metodosLigados(env) }, 200, cors) : json({ erro: 'Método não permitido.' }, 405, cors);
       if (caminho === '/cupao') return request.method === 'POST' ? await conferirCupao(request, env, cors) : json({ erro: 'Método não permitido.' }, 405, cors);
       if (caminho === '/') return json({ ok: true, servico: 'lfmobile-encomendas' }, 200, cors);
       return json({ erro: 'Rota desconhecida.' }, 404, cors);
@@ -378,6 +347,12 @@ export default {
       console.error('erro não previsto', caminho, e && e.stack ? e.stack : e);
       return json({ erro: 'Não conseguimos tratar o pedido agora. Tente outra vez daqui a pouco.' }, 500);
     }
+  },
+
+  // A varredura dos pagamentos por confirmar (wrangler.toml, crons): para as encomendas que ninguém
+  // está a ver. Um erro aqui não se vê em lado nenhum a não ser no registo: diz-se alto.
+  async scheduled(evento, env, ctx) {
+    ctx.waitUntil(varrer(env).then((r) => console.log('varredura:', JSON.stringify(r))).catch((e) => console.error('A VARREDURA REBENTOU:', e && e.stack ? e.stack : e)));
   },
 };
 

@@ -8,9 +8,10 @@
  * STORE_EMAIL, o email ao dono não se manda. O `text` nunca se omite: a versão de texto de um email
  * que é documento é deliberada, não um subproduto do HTML.
  *
- * Cada momento (§6 do contrato) é uma entrada de AVISOS: quem a chama é o /checkout (registada),
- * o webhook da Stripe (paga, multibanco, reembolsada, falhou, expirou) e o painel (paga, pronta,
- * enviada, anulada). `avisar()` manda e devolve o que aconteceu a cada destinatário.
+ * Cada momento (§6 do contrato) é uma entrada de AVISOS: quem a chama é o /checkout (registada; e, no
+ * pagamento no site, a referência Multibanco), a confirmação da ifthenpay (pagamento.js: paga, paga-fora,
+ * pago-a-mais, expirou), o painel (paga, pronta, enviada, anulada, reembolsada). `avisar()` manda e
+ * devolve o que aconteceu a cada destinatário.
  *
  * Ao dono só vai o que lhe pede alguma coisa: a encomenda nova (confirmar com o cliente), a paga
  * (faturar, preparar) e um pagamento que chega a uma encomenda anulada (reembolsar). O «expirou» e o
@@ -36,6 +37,18 @@ const logoDe = (env) => env.LOGO_URL || `${siteUrl(env)}/assets/img/logo-b72d7bb
 const marcaDe = (env) => env.STORE_NAME || 'LF Mobile';
 
 /* ---------------------------------------------------------------- as peças comuns */
+
+/* A referência em grupos de três (como no talão do multibanco) e o dia em que expira (AAAA-MM-DD, da
+   ifthenpay) por extenso: lido à mão, para o fuso não o mudar de dia. */
+export const referenciaLegivel = (r) => String(r || '').replace(/\D/g, '').replace(/(\d{3})(?=\d)/g, '$1 ');
+export function diaPT(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  if (!m) return String(iso || '');
+  try { return new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], 12)).toLocaleDateString('pt-PT', { timeZone: 'UTC', day: 'numeric', month: 'long', year: 'numeric' }); } catch { return iso; }
+}
+const pg = (enc) => enc.pagamento || {};
+const NOMES_METODO = { MBWAY: 'MB WAY', MB: 'Multibanco', CCARD: 'cartão' };
+const metodoDito = (m) => NOMES_METODO[m] || m || '—';
 
 const linhaTexto = (l) => `  ${l.qtd} × ${l.nome}${l.escolhas && l.escolhas.length ? ` (${l.escolhas.join(', ')})` : ''} — ${eur(l.total_cents)}`;
 
@@ -96,7 +109,7 @@ function emailCliente(env, enc, { assunto, titulo, frase, entrega = null, multib
     '',
     ...(semArtigos ? [] : [...artigosTexto(enc), '']),
     ...(entrega ? ['ENTREGA', `  ${entrega}`, ''] : []),
-    ...(multibanco ? ['PAGAR POR MULTIBANCO', `  Entidade: ${multibanco.entidade}`, `  Referência: ${multibanco.referencia}`, `  Valor: ${eur(enc.total_cents)}`, ...(multibanco.validade ? [`  Válida até: ${new Date(multibanco.validade * 1000).toLocaleDateString('pt-PT', { timeZone: 'Europe/Lisbon' })}`] : []), ''] : []),
+    ...(multibanco ? ['PAGAR POR MULTIBANCO', `  Entidade: ${multibanco.entidade}`, `  Referência: ${referenciaLegivel(multibanco.referencia)}`, `  Valor: ${eur(enc.total_cents)}`, ...(multibanco.expira ? [`  Válida até: ${diaPT(multibanco.expira)}`] : []), ''] : []),
     ...(ver ? [`Ver a encomenda: ${ver}`, ''] : []),
     ...(semDesistencia ? [] : [desistenciaTexto(env), '']),
     contactosTexto(env),
@@ -161,28 +174,37 @@ const AVISOS = {
         ? 'Recebemos o seu pagamento. Avisamos quando a encomenda estiver pronta para levantar na loja.'
         : 'Recebemos o seu pagamento. Avisamos quando a encomenda seguir.',
     }),
-    // Pela Stripe, o dono tem de saber (facturar, preparar); pelo painel foi ele que marcou.
-    dono: origem === 'stripe' ? emailDono(env, enc, {
+    // Pago no site, o dono tem de saber (facturar, preparar); pelo painel foi ele que marcou.
+    dono: origem !== 'painel' ? emailDono(env, enc, {
       assunto: `Encomenda paga ${enc.encomenda} — ${eur(enc.total_cents)}`,
       cabecalho: `ENCOMENDA PAGA ${enc.encomenda} — ${eur(enc.total_cents)}`,
-      rodape: [`Método: ${(enc.stripe || {}).metodo || '—'} · Stripe: ${(enc.stripe || {}).payment_intent || '—'}`, 'Emita a factura e prepare a encomenda.'],
+      rodape: [`Pago por ${metodoDito(pg(enc).metodo_pago || pg(enc).metodo)} (ifthenpay, pagamento ${pg(enc).id || '—'}).`, 'Emita a factura e prepare a encomenda.'],
     }) : null,
   }),
   // Um pagamento que chegou com a encomenda já anulada, ou já marcada como paga à mão: só ao dono.
   'paga-fora': (env, enc) => ({
     cliente: null,
     dono: emailDono(env, enc, {
-      assunto: `Pagamento recebido numa encomenda «${enc.estado}»: ${enc.encomenda} — ${eur(enc.total_cents)}`,
-      cabecalho: `A STRIPE RECEBEU O PAGAMENTO DA ENCOMENDA ${enc.encomenda} (${eur(enc.total_cents)}), mas a encomenda está «${enc.estado}» no painel.`,
-      rodape: [`Stripe: ${(enc.stripe || {}).payment_intent || (enc.stripe || {}).session_id || '—'}`, 'Confirme na Stripe e, se a encomenda não segue, reembolse o cliente.'],
+      assunto: `Pagamento recebido numa encomenda «${enc.estado}»: ${enc.encomenda} — ${eur(pg(enc).pago_cents || enc.total_cents)}`,
+      cabecalho: `A IFTHENPAY RECEBEU O PAGAMENTO DA ENCOMENDA ${enc.encomenda} (${eur(pg(enc).pago_cents || enc.total_cents)}, ${metodoDito(pg(enc).metodo_pago)}), mas a encomenda está «${enc.estado}» no painel.`,
+      rodape: [`Pagamento ${pg(enc).id || '—'} na ifthenpay.`, 'Se a encomenda não segue, devolva o dinheiro ao cliente (no painel, na ficha da encomenda: «Devolver o pagamento»).'],
+    }),
+  }),
+  // Dois pagamentos para a mesma encomenda (o MB WAY e depois a referência, por exemplo): só ao dono.
+  'pago-a-mais': (env, enc) => ({
+    cliente: null,
+    dono: emailDono(env, enc, {
+      assunto: `Pagamento a mais na encomenda ${enc.encomenda}: ${eur(Math.max(0, (pg(enc).recebido_cents || 0) - enc.total_cents))}`,
+      cabecalho: `A ENCOMENDA ${enc.encomenda} (${eur(enc.total_cents)}) RECEBEU ${pg(enc).pagamentos || 2} PAGAMENTOS NA IFTHENPAY, ${eur(pg(enc).recebido_cents || 0)} ao todo.`,
+      rodape: [`Pagamento ${pg(enc).id || '—'} na ifthenpay.`, `Devolva ${eur(Math.max(0, (pg(enc).recebido_cents || 0) - enc.total_cents))} ao cliente: na área de cliente da ifthenpay (MB WAY e cartão) ou por transferência (Multibanco).`],
     }),
   }),
   multibanco: (env, enc) => ({
     cliente: emailCliente(env, enc, {
       assunto: `Falta pagar: referência Multibanco da encomenda ${enc.encomenda}`,
       titulo: 'Falta pagar',
-      frase: 'Para concluir a encomenda, pague a referência Multibanco abaixo. A encomenda segue depois de o pagamento entrar.',
-      multibanco: (enc.stripe || {}).multibanco,
+      frase: `Para concluir a encomenda, pague a referência Multibanco abaixo${(pg(enc).multibanco || {}).expira ? ` até ${diaPT(pg(enc).multibanco.expira)}` : ''}, num multibanco ou no homebanking. A encomenda segue depois de o pagamento entrar.`,
+      multibanco: pg(enc).multibanco,
     }),
     dono: null,
   }),
@@ -216,13 +238,15 @@ const AVISOS = {
     cliente: emailCliente(env, enc, {
       assunto: `Reembolso feito — encomenda ${enc.encomenda}`,
       titulo: 'Reembolso feito',
-      frase: `Devolvemos ${eur((enc.stripe || {}).reembolsado_cents || enc.total_cents)} ao meio de pagamento que usou. O banco pode demorar alguns dias a mostrá-lo.`,
+      frase: pg(enc).metodo_pago === 'MB'
+        ? `Devolvemos ${eur(pg(enc).reembolsado_cents || enc.total_cents)} por transferência bancária, para o IBAN que nos indicou. O banco pode demorar alguns dias a mostrá-la.`
+        : `Devolvemos ${eur(pg(enc).reembolsado_cents || enc.total_cents)} ${pg(enc).metodo_pago === 'MBWAY' ? 'à conta do MB WAY com que pagou' : 'ao cartão com que pagou'}. O banco pode demorar alguns dias a mostrá-lo.`,
       semDesistencia: true,
     }),
     dono: null,
   }),
   falhou: (env, enc) => naoConcluido(env, enc, 'O pagamento não se concluiu.'),
-  expirou: (env, enc) => naoConcluido(env, enc, 'A página de pagamento expirou sem o pagamento.'),
+  expirou: (env, enc) => naoConcluido(env, enc, 'O prazo para pagar acabou sem o pagamento.'),
 };
 
 /* O pagamento que não se fez: só ao cliente (ao dono não pede nada; o painel mostra a encomenda). */
@@ -284,13 +308,15 @@ export async function enviar(env, { para, assunto, texto, html, responderA }) {
 /* Manda os emails de um momento e diz o que aconteceu a cada um:
    'enviado' | 'falhou' | 'sem chave' | 'sem email' (o cliente) | 'sem destinatário' (o dono) |
    'não se aplica' (o momento não tem esse email) | 'travado: …' (extras.semCliente: o travão por
-   endereço não deixou o do cliente). */
+   endereço não deixou o do cliente). Com extras.apenas ('cliente' | 'dono') só esse sai (reenviar o que
+   falhou sem repetir o que chegou). */
 export async function avisar(env, aviso, enc, extras = {}) {
   const m = mensagens(env, aviso, enc, extras);
   const email = (enc.cliente || {}).email;
+  const vai = (quem) => !extras.apenas || extras.apenas === quem;
   const [cliente, dono] = await Promise.all([
-    !m.cliente ? 'não se aplica' : !email ? 'sem email' : extras.semCliente ? String(extras.semCliente) : enviar(env, { para: email, ...m.cliente, responderA: env.STORE_EMAIL || undefined }),
-    !m.dono ? 'não se aplica' : !env.STORE_EMAIL ? 'sem destinatário' : enviar(env, { para: env.STORE_EMAIL, ...m.dono, responderA: email || undefined }),
+    !m.cliente || !vai('cliente') ? 'não se aplica' : !email ? 'sem email' : extras.semCliente ? String(extras.semCliente) : enviar(env, { para: email, ...m.cliente, responderA: env.STORE_EMAIL || undefined }),
+    !m.dono || !vai('dono') ? 'não se aplica' : !env.STORE_EMAIL ? 'sem destinatário' : enviar(env, { para: env.STORE_EMAIL, ...m.dono, responderA: email || undefined }),
   ]);
   return { em: new Date().toISOString(), cliente, dono };
 }

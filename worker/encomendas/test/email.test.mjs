@@ -14,16 +14,17 @@ const enc = {
   artigos_cents: 18570, portes_cents: 500, portes_por_confirmar: false, total_cents: 19070,
   cliente: { nome: 'Maria Fernanda Silva', email: 'maria@exemplo.pt', telefone: '912 345 678', nif: '123456789', morada: 'Rua das Flores, 10', codigoPostal: '3720-100', localidade: 'Oliveira de Azeméis', notas: 'Tocar à campainha.' },
   termos: { aceites_em: '2026-11-08T21:02:11.000Z', pagina: 'https://renatovalente5.github.io/lfmobile/termos-e-condicoes/' },
-  stripe: { session_id: 'cs_1', payment_intent: 'pi_1', metodo: 'card', pago_em: '2026-11-08T21:05:00.000Z', multibanco: { entidade: '12345', referencia: '123 456 789', validade: 1800600000, url: null }, reembolsado_cents: 19070 },
+  pagamento: { id: 'LF2611087K2Q9M', metodo: 'MB', prazo: '2026-11-12T12:00:00.000Z', pedidos: [], multibanco: { entidade: '12345', referencia: '123456789', expira: '2026-11-11', requestId: 'R1', pedido_em: '2026-11-08T21:02:11.000Z' }, pago_em: '2026-11-08T21:05:00.000Z', pago_cents: 19070, metodo_pago: 'CCARD', reembolsado_cents: 19070, recebido_cents: 38140, pagamentos: 2 },
   historico: [{ em: '2026-11-08T21:02:11.000Z', estado: 'registada', por: 'site' }],
   criada_em: '2026-11-08T21:02:11.000Z', actualizada_em: '2026-11-08T21:02:11.000Z',
 };
 const MOMENTOS = ['registada', 'paga', 'multibanco', 'pronta', 'enviada', 'anulada', 'reembolsada', 'falhou', 'expirou'];
+const SO_AO_DONO = ['paga-fora', 'pago-a-mais'];
 const semAcentos = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 test('cada momento tem o email ao cliente em texto e HTML, com o número, o logótipo e os contactos', () => {
   for (const momento of MOMENTOS) {
-    const m = mensagens(env, momento, { ...enc, entrega: momento === 'pronta' ? 'levantamento' : enc.entrega }, { cat, nota: 'CTT RR1', origem: 'stripe' });
+    const m = mensagens(env, momento, { ...enc, entrega: momento === 'pronta' ? 'levantamento' : enc.entrega }, { cat, nota: 'CTT RR1', origem: 'ifthenpay' });
     assert.ok(m.cliente, momento);
     assert.ok(m.cliente.assunto.includes('LF-20261108-7K2Q9M'), `${momento}: o assunto leva o número`);
     assert.ok(m.cliente.texto.length > 100 && m.cliente.texto.length < 2500, `${momento}: curto (${m.cliente.texto.length})`);
@@ -46,7 +47,7 @@ test('cada momento tem o email ao cliente em texto e HTML, com o número, o log�
 const PROIBIDA = new RegExp(['obrigacao', 'de', 'pagar'].join(' '));
 test('nunca a frase proibida do botão, em nenhum email, nem sem acentos', () => {
   for (const momento of MOMENTOS) {
-    const m = mensagens(env, momento, enc, { cat, nota: 'nota', origem: 'stripe' });
+    const m = mensagens(env, momento, enc, { cat, nota: 'nota', origem: 'ifthenpay' });
     const tudo = semAcentos([m.cliente && m.cliente.assunto, m.cliente && m.cliente.texto, m.cliente && m.cliente.html, m.dono && m.dono.assunto, m.dono && m.dono.texto].filter(Boolean).join('\n'));
     assert.doesNotMatch(tudo, PROIBIDA, momento);
   }
@@ -80,7 +81,7 @@ test('os emails ao dono: só nos momentos certos, com tudo o que precisa (NIF, t
   // ao dono só o que lhe pede alguma coisa (o «expirou» e o «falhou» saíram a 11 nov 2026, a pedido do Renato)
   const comDono = { registada: true, paga: true, multibanco: false, pronta: false, enviada: false, anulada: false, reembolsada: false, falhou: false, expirou: false };
   for (const momento of MOMENTOS) {
-    const m = mensagens(env, momento, enc, { cat, origem: 'stripe' });
+    const m = mensagens(env, momento, enc, { cat, origem: 'ifthenpay' });
     assert.equal(Boolean(m.dono), comDono[momento], momento);
   }
   assert.equal(mensagens(env, 'paga', enc, { origem: 'painel' }).dono, null, 'marcada pelo dono no painel, o dono não se avisa a si próprio');
@@ -100,9 +101,12 @@ test('os emails ao dono: só nos momentos certos, com tudo o que precisa (NIF, t
 
 test('o Multibanco leva a entidade, a referência, o valor e a validade; a caixa é texto, não imagem', () => {
   const m = mensagens(env, 'multibanco', enc, {}).cliente;
-  assert.match(m.texto, /Entidade: 12345\n  Referência: 123 456 789\n  Valor: 190,70 €\n  Válida até: \d{2}\/\d{2}\/\d{4}/);
+  assert.match(m.texto, /Entidade: 12345\n  Referência: 123 456 789\n  Valor: 190,70 €\n  Válida até: 11 de novembro de 2026/);
+  assert.match(m.texto, /pague a referência Multibanco abaixo até 11 de novembro de 2026, num multibanco ou no homebanking/);
   assert.match(m.html, /Courier New/);
   assert.match(m.html, />12345</);
+  assert.match(m.html, />123 456 789</, 'em grupos de três, como no talão');
+  assert.match(m.html, />11\/11\/2026</, 'a validade lida à mão, sem o fuso a mudar o dia');
   assert.doesNotMatch(m.html, /<img[^>]*voucher/);
 });
 
@@ -150,4 +154,30 @@ test('com o binding EMAIL da Cloudflare: sai por ele, com o remetente e o reply-
   } finally {
     rede.repor();
   }
+});
+
+test('ao dono, do pagamento no site: a paga diz o método e o id na ifthenpay; a de fora de tempo e a de pagamento a mais pedem para devolver', () => {
+  const paga = mensagens(env, 'paga', enc, { origem: 'ifthenpay' }).dono;
+  assert.match(paga.texto, /Pago por cartão \(ifthenpay, pagamento LF2611087K2Q9M\)\./);
+  for (const aviso of SO_AO_DONO) {
+    const m = mensagens(env, aviso, { ...enc, estado: 'anulada' }, {});
+    assert.equal(m.cliente, null, aviso);
+    assert.doesNotMatch(m.dono.texto, /undefined|null|NaN|Stripe/, aviso);
+    assert.match(m.dono.texto, /[Dd]evolva/, aviso);
+  }
+  assert.match(mensagens(env, 'paga-fora', { ...enc, estado: 'anulada' }, {}).dono.assunto, /Pagamento recebido numa encomenda «anulada»: LF-20261108-7K2Q9M — 190,70 €/);
+  assert.match(mensagens(env, 'pago-a-mais', enc, {}).dono.assunto, /Pagamento a mais na encomenda LF-20261108-7K2Q9M: 190,70 €/);
+  // o reembolso diz para onde foi o dinheiro
+  assert.match(mensagens(env, 'reembolsada', enc, {}).cliente.texto, /Devolvemos 190,70 € ao cartão com que pagou/);
+  assert.match(mensagens(env, 'reembolsada', { ...enc, pagamento: { ...enc.pagamento, metodo_pago: 'MB' } }, {}).cliente.texto, /por transferência bancária, para o IBAN que nos indicou/);
+  assert.match(mensagens(env, 'expirou', enc, {}).cliente.texto, /O prazo para pagar acabou sem o pagamento\. Nada foi cobrado\./);
+});
+
+test('avisar() com «apenas»: reenvia só a quem falhou (o cliente não recebe o segundo «Pagamento recebido»)', async () => {
+  const rede = redeFalsa({});
+  try {
+    const r = await avisar(envFalso({ RESEND_API_KEY: 're_x', STORE_EMAIL: 'dono@exemplo.pt' }), 'paga', enc, { origem: 'ifthenpay', apenas: 'dono' });
+    assert.deepEqual({ ...r, em: 'x' }, { em: 'x', cliente: 'não se aplica', dono: 'enviado' });
+    assert.deepEqual(rede.resend().map((e) => e.to[0]), ['dono@exemplo.pt']);
+  } finally { rede.repor(); }
 });

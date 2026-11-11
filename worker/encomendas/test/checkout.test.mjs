@@ -1,10 +1,10 @@
 /* O POST /checkout conduzido de ponta a ponta: a forma no KV, as respostas, os emails, o CORS,
-   o travão, os dois modos. Sem rede: o catálogo, a Stripe e o Resend são de faz-de-conta. */
+   o travão, os dois modos. Sem rede: o catálogo, a ifthenpay e o Resend são de faz-de-conta. */
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../index.js';
 import { RE_ID, RE_CHAVE } from '../encomenda.js';
-import { catalogoBase, envFalso, redeFalsa, pedir, pedidoValido, moradaValida } from './ajuda.mjs';
+import { catalogoBase, envFalso, envIfthenpay, redeFalsa, pedir, pedidoValido, moradaValida } from './ajuda.mjs';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 let rede;
@@ -42,7 +42,8 @@ test('modo «encomenda»: regista, devolve o número e a chave, grava a encomend
   assert.equal(enc.historico[0].por, 'site');
   assert.equal(enc.criada_em, enc.historico[0].em);
   assert.equal(enc.actualizada_em, enc.criada_em);
-  assert.equal('stripe' in enc, false, 'sem Stripe em modo encomenda');
+  assert.equal('pagamento' in enc, false, 'sem pagamento no site em modo encomenda');
+  assert.equal('prazo' in env.ORDERS.dados.get(`order:${r.json.encomenda}`).metadata, false, 'a varredura não lhe pega');
   assert.equal('avisos' in enc, false, 'sem falhas de email não há nada a registar');
   // Os metadados da chave, de que a lista do painel vive.
   const m = env.ORDERS.dados.get(`order:${r.json.encomenda}`).metadata;
@@ -142,70 +143,51 @@ test('o catálogo em baixo dá 503, sem gastar o KV', async () => {
   assert.equal(env.ORDERS.escritas, 0);
 });
 
-test('modo «online» sem chave da Stripe: 503 com a frase do contrato', async () => {
+test('modo «online» sem a ifthenpay ligada: 503 com a frase do contrato', async () => {
   const cat = clone(catalogoBase());
   cat.modo = 'online';
   rede = redeFalsa({ catalogo: cat });
-  const r = await pedir(worker, envFalso(), 'POST', '/checkout', { corpo: pedidoValido() });
+  const r = await pedir(worker, envFalso(), 'POST', '/checkout', { corpo: pedidoValido({ metodo: 'MB' }) });
   assert.equal(r.status, 503);
   assert.deepEqual(r.json, { erro: 'O pagamento no site não está ligado. Encomende pelo WhatsApp.' });
+  assert.equal(rede.ifthenpay().length, 0);
 });
 
-test('modo «online»: abre a sessão da Stripe em português, grava «pendente» e o índice da sessão', async () => {
+test('modo «online»: o envio com portes vai no total que se pede à ifthenpay; a morada, o NIF e o nome ficam cá', async () => {
   const cat = clone(catalogoBase());
   cat.modo = 'online';
   cat.portes = { continente: 4.5, gratisAPartirDe: null };
   rede = redeFalsa({ catalogo: cat });
-  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: 'whsec_x' });
-  const corpo = pedidoValido({ entrega: 'continente', total_cents: 12430, cliente: { ...pedidoValido().cliente, ...moradaValida() } });
+  const env = envIfthenpay();
+  const corpo = pedidoValido({ metodo: 'MB', entrega: 'continente', total_cents: 12430, cliente: { ...pedidoValido().cliente, nif: '123456789', ...moradaValida() } });
   const r = await pedir(worker, env, 'POST', '/checkout', { corpo });
   assert.equal(r.status, 200, r.texto);
-  assert.equal(r.json.url, 'https://checkout.stripe.com/c/pay/cs_test_a1b2c3d4e5f6');
   assert.match(r.json.encomenda, RE_ID);
   assert.equal(r.json.total_cents, 12430);
-  const [chamada] = rede.stripe();
-  assert.equal(chamada.url, 'https://api.stripe.com/v1/checkout/sessions');
-  assert.equal(chamada.init.headers.Authorization, 'Bearer sk_test_x');
-  assert.equal(chamada.init.headers['Stripe-Version'], '2026-07-29.dahlia');
-  assert.equal(chamada.init.headers['Idempotency-Key'], `chk_${r.json.encomenda}`);
-  const params = new URLSearchParams(chamada.corpo);
-  assert.equal(params.get('ui_mode'), 'hosted_page');
-  assert.equal(params.get('locale'), 'pt');
-  assert.equal(params.get('mode'), 'payment');
-  assert.equal(params.get('client_reference_id'), r.json.encomenda);
-  assert.equal(params.get('customer_email'), 'maria@exemplo.pt');
-  assert.equal(params.get('success_url'), 'https://renatovalente5.github.io/lfmobile/obrigado/?s={CHECKOUT_SESSION_ID}');
-  assert.equal(params.get('cancel_url'), 'https://renatovalente5.github.io/lfmobile/checkout/?cancelado=1');
-  assert.equal(params.get('line_items[0][quantity]'), '2');
-  assert.equal(params.get('line_items[0][price_data][unit_amount]'), '5990');
-  assert.equal(params.get('line_items[0][price_data][currency]'), 'eur');
-  assert.equal(params.get('line_items[0][price_data][product_data][name]'), 'Auscultadores P9 (Cor: Prateado)');
-  assert.equal(params.get('line_items[1][price_data][unit_amount]'), '450', 'os portes são uma linha');
-  assert.equal(params.get('metadata[encomenda]'), r.json.encomenda);
-  assert.equal(params.get('payment_intent_data[metadata][encomenda]'), r.json.encomenda);
-  assert.equal(params.has('line_items[0][price_data][product_data][metadata][nif]'), false, 'o NIF nunca vai para a Stripe');
-  assert.ok(!chamada.corpo.includes('Rua+das+Flores') && !chamada.corpo.includes('Rua%20das%20Flores'), 'a morada fica cá');
+  assert.equal(r.json.estado, 'pendente');
+  assert.equal(r.json.proxima, `https://renatovalente5.github.io/lfmobile/pagar/?e=${r.json.encomenda}&c=${r.json.chave}`);
+  const [chamada] = rede.ifthenpay();
+  assert.equal(chamada.caminho, '/multibanco/reference/init');
+  assert.equal(chamada.json.amount, '124.30', 'os artigos e os portes');
+  assert.ok(!/Rua|Flores|123456789|Maria|exemplo/.test(chamada.corpo), 'a morada, o NIF, o nome e o email ficam cá');
   const enc = JSON.parse(await env.ORDERS.get(`order:${r.json.encomenda}`));
   assert.equal(enc.modo, 'online');
   assert.equal(enc.estado, 'pendente');
   assert.equal(enc.historico[0].estado, 'pendente');
-  assert.equal(enc.stripe.session_id, 'cs_test_a1b2c3d4e5f6');
-  assert.equal(await env.ORDERS.get('session:cs_test_a1b2c3d4e5f6'), r.json.encomenda);
-  assert.equal(env.ORDERS.escritas, 2);
-  assert.equal(rede.resend().length, 0, 'em modo online os emails vêm com o pagamento');
+  assert.equal(enc.pagamento.metodo, 'MB');
+  const m = (await env.ORDERS.list({ prefix: 'order:' })).keys[0].metadata;
+  assert.equal(m.prazo, enc.pagamento.prazo, 'o prazo na lista: a varredura escolhe por ele');
 });
 
-test('modo «online»: a Stripe a recusar dá 502 e não gasta o KV; portes null com envio dá 400', async () => {
+test('modo «online»: portes null com envio dá 400 (não se cobra sem saber os portes)', async () => {
   const cat = clone(catalogoBase());
   cat.modo = 'online';
-  rede = redeFalsa({ catalogo: cat, stripe: () => new Response('{"error":{"message":"Invalid API Key"}}', { status: 401 }) });
-  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: 'whsec_x' });
-  const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido() });
-  assert.equal(r.status, 502);
-  assert.equal(env.ORDERS.escritas, 0);
-  const semPortes = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ entrega: 'continente', cliente: { ...pedidoValido().cliente, ...moradaValida() } }) });
+  rede = redeFalsa({ catalogo: cat });
+  const env = envIfthenpay();
+  const semPortes = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ metodo: 'MB', entrega: 'continente', cliente: { ...pedidoValido().cliente, ...moradaValida() } }) });
   assert.equal(semPortes.status, 400);
   assert.match(semPortes.json.erro, /portes para esta entrega ainda não estão definidos/);
+  assert.equal(rede.ifthenpay().length, 0);
 });
 
 test('MODO=encomenda força o modo «encomenda» mesmo com o catálogo em «online»', async () => {
@@ -217,7 +199,7 @@ test('MODO=encomenda força o modo «encomenda» mesmo com o catálogo em «onli
   assert.equal(r.json.estado, 'registada');
 });
 
-test('CORS: a pré-visualização passa, uma origem estranha leva 403, o OPTIONS responde às duas rotas', async () => {
+test('CORS: a pré-visualização passa, uma origem estranha leva 403, o OPTIONS responde às rotas públicas', async () => {
   rede = redeFalsa({ catalogo: catalogoBase() });
   const env = envFalso();
   const boa = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido(), cabecalhos: { Origin: 'https://renatovalente5.github.io' } });
@@ -228,8 +210,9 @@ test('CORS: a pré-visualização passa, uma origem estranha leva 403, o OPTIONS
   assert.equal(local.status, 204);
   assert.equal(local.headers.get('Access-Control-Allow-Origin'), 'http://localhost:4870');
   assert.match(local.headers.get('Access-Control-Allow-Methods'), /POST/);
-  const enc = await pedir(worker, env, 'OPTIONS', '/encomenda', { cabecalhos: { Origin: 'https://renatovalente5.github.io' } });
-  assert.equal(enc.status, 204);
+  for (const rota of ['/encomenda', '/pagar', '/metodos', '/cupao']) {
+    assert.equal((await pedir(worker, env, 'OPTIONS', rota, { cabecalhos: { Origin: 'https://renatovalente5.github.io' } })).status, 204, rota);
+  }
   const ma = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido(), cabecalhos: { Origin: 'https://malandro.example' } });
   assert.equal(ma.status, 403);
   assert.equal(ma.headers.get('Access-Control-Allow-Origin'), null);

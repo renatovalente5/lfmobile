@@ -66,12 +66,14 @@ export function caixaMultibanco(mb, totalCents) {
   const campo = (rotulo, valor, grande) => `
           <p style="margin:0 0 4px 0;font-family:${FONTE};font-size:12px;line-height:16px;color:#cfcfcf;text-transform:uppercase;letter-spacing:1px;">${esc(rotulo)}</p>
           <p style="margin:0 0 ${grande ? '16' : '12'}px 0;font-family:'Courier New',Courier,monospace;font-size:${grande ? '28' : '20'}px;line-height:${grande ? '34' : '26'}px;font-weight:bold;color:#ffffff;letter-spacing:${grande ? '3' : '1'}px;white-space:nowrap;">${esc(valor)}</p>`;
-  const validade = mb.validade ? new Date(mb.validade * 1000).toLocaleDateString('pt-PT', { timeZone: 'Europe/Lisbon' }) : null;
+  // a ifthenpay dá o dia em que a referência expira (AAAA-MM-DD): lido à mão, sem o fuso o mudar de dia
+  const d = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(mb.expira || ''));
+  const validade = d ? `${d[3]}/${d[2]}/${d[1]}` : null;
   return `<tr><td class="p" style="padding:14px 40px 6px 40px;">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="${TINTA}" style="background-color:${TINTA};border-radius:8px;">
         <tr><td align="center" style="padding:22px 24px 10px 24px;">
           ${campo('Entidade', mb.entidade, true)}
-          ${campo('Referência', mb.referencia, true)}
+          ${campo('Referência', String(mb.referencia || '').replace(/\D/g, '').replace(/(\d{3})(?=\d)/g, '$1 '), true)}
           ${campo('Valor', `${(totalCents / 100).toFixed(2).replace('.', ',')} EUR`)}
           ${validade ? campo('Válida até', validade) : ''}
         </td></tr>

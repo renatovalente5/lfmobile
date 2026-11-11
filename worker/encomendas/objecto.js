@@ -6,7 +6,7 @@
  *   · Encomenda (aqui): cada encomenda tem um objecto (o nome é o id): a verdade dela, lida sempre a de
  *     agora. Cada escrita leva a versão que leu; se outra passou entretanto, o objecto recusa (conflito)
  *     e quem escreve volta a ler e a fazer (encomenda.js, alterarEncomenda). Com o KV, uma nota do painel
- *     logo a seguir a um pagamento voltava a pôr «pendente» por cima do «paga», o «expirou» da Stripe
+ *     logo a seguir a um pagamento voltava a pôr «pendente» por cima do «paga», o «expirou» do pagamento
  *     gravava por cima de uma anulação, e duas mudanças ao mesmo tempo davam 200 as duas (uma perdia-se).
  *     O KV fica com uma CÓPIA de cada versão, escrita aqui dentro e pela ordem das versões: é dela que se
  *     faz a lista do painel (os metadados). As encomendas de antes do objecto lêem-se do KV até à

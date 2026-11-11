@@ -1,13 +1,12 @@
 /* O que o site novo (9 nov 2026) acrescentou às encomendas: os portes da Nacex pelo PESO (escalões),
    o MODELO do telemóvel nas películas, e os CUPÕES (a regra, o /cupao do carrinho, o /checkout com o
-   cupão, a Stripe com o desconto, os usos, o painel). Sem rede: tudo de faz-de-conta. */
+   cupão, o pagamento no site com o desconto, os usos, o painel). Sem rede: tudo de faz-de-conta. */
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../index.js';
 import { contas, validarPedido, ErroDoPedido, escaloesDe, escalaoDoPeso, descontoDoCupao } from '../contas.js';
 import { validarRegra, descricaoDe, normalizarCodigo, porQueNaoVale, contarUso, usosDe, gravarCupao, lerCupao, reservarUso, libertarUso } from '../cupoes.js';
-import { aplicarEvento } from '../stripe.js';
-import { catalogoBase, envFalso, redeFalsa, pedir, pedidoValido, moradaValida, bearer, SEGREDO } from './ajuda.mjs';
+import { catalogoBase, envFalso, envIfthenpay, redeFalsa, pedir, pedidoValido, moradaValida, bearer, SEGREDO, CHAVES } from './ajuda.mjs';
 
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const HOJE = '2026-11-09';
@@ -205,35 +204,23 @@ test('cupão de portes grátis: tira os portes da Nacex, sem desconto nos artigo
   assert.equal(enc.cupao_portes, true);
 });
 
-test('modo «online» com cupão: a Stripe recebe um cupão de uso único com o desconto, e o uso conta logo na encomenda (reserva)', async () => {
+test('modo «online» com cupão: a ifthenpay recebe o total já com o desconto, o uso conta logo (reserva) e não conta outra vez ao pagar', async () => {
   const cat = comNacex(); cat.modo = 'online';
-  const pedidosStripe = [];
-  rede = redeFalsa({
-    catalogo: cat,
-    stripe: (url, init) => {
-      pedidosStripe.push({ url, corpo: String(init.body || '') });
-      if (url.endsWith('/coupons')) return Response.json({ id: 'cup_teste_123' });
-      if (url.endsWith('/checkout/sessions')) return Response.json({ id: 'cs_test_a1b2c3d4e5f6', url: 'https://checkout.stripe.com/c/pay/cs_test_a1b2c3d4e5f6', payment_status: 'unpaid' });
-      return Response.json({});
-    },
-  });
-  const env = envFalso({ STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: 'whsec_x' });
+  rede = redeFalsa({ catalogo: cat });
+  const env = envIfthenpay();
   await gravarCupao(env, { codigo: 'BEMVINDO', tipo: 'percentagem', valor: 10, ativo: true });
-  const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ cupao: 'BEMVINDO', total_cents: 10782 }), cabecalhos: ORIGEM });
+  const r = await pedir(worker, env, 'POST', '/checkout', { corpo: pedidoValido({ metodo: 'MB', cupao: 'BEMVINDO', total_cents: 10782 }), cabecalhos: ORIGEM });
   assert.equal(r.status, 200, r.texto);
-  const cup = new URLSearchParams(pedidosStripe.find((p) => p.url.endsWith('/coupons')).corpo);
-  assert.equal(cup.get('amount_off'), '1198');
-  assert.equal(cup.get('currency'), 'eur');
-  assert.equal(cup.get('max_redemptions'), '1');
-  assert.equal(cup.get('name'), 'Cupão BEMVINDO');
-  const sessao = new URLSearchParams(pedidosStripe.find((p) => p.url.endsWith('/checkout/sessions')).corpo);
-  assert.equal(sessao.get('discounts[0][coupon]'), 'cup_teste_123');
-  assert.equal(sessao.get('line_items[0][price_data][unit_amount]'), '5990', 'os artigos vão ao preço normal; o desconto é o cupão');
+  const pedido = rede.ifthenpay().find((c) => c.caminho === '/multibanco/reference/init');
+  assert.equal(pedido.json.amount, '107.82', '119,80 € − 10 %');
   assert.equal(await usosDe(env, 'BEMVINDO'), 1, 'em modo online conta já: é uma reserva (antes, várias encomendas abertas gastavam um cupão de um uso)');
-  // a Stripe diz que foi paga: a regra do evento (o webhook não conta outra vez: cupao_contado)
-  const enc = JSON.parse(await env.ORDERS.get(`order:${r.json.encomenda}`));
-  aplicarEvento(enc, { type: 'checkout.session.completed', data: { object: { id: 'cs_test_a1b2c3d4e5f6', payment_status: 'paid', payment_method_types: ['card'] } } });
-  assert.equal(enc.estado, 'paga');
+  // paga: o uso não conta outra vez (cupao_contado)
+  const numero = r.json.encomenda;
+  rede.ifp.pagar(`LF${numero.slice(5, 11)}${numero.slice(12)}`, { metodo: 'MB', cents: 10782 });
+  const cb = await worker.fetch(new Request(`https://x.test/ifthenpay/callback?key=${CHAVES.ANTI}&orderId=LF${numero.slice(5, 11)}${numero.slice(12)}`), env, { waitUntil() {} });
+  assert.equal(cb.status, 200);
+  assert.equal(JSON.parse(await env.ORDERS.get(`order:${numero}`)).estado, 'paga');
+  assert.equal(await usosDe(env, 'BEMVINDO'), 1);
 });
 
 // ---------------------------------------------------------------- o painel
