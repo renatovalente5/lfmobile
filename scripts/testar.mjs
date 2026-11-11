@@ -259,7 +259,12 @@ teste('a película que pede o modelo tem a escolha da marca e do modelo, com as 
   const html = fs.readFileSync(path.join(pasta, '_site/produtos/pelicula-vidro/index.html'), 'utf8');
   assert.match(html, /data-escolha-modelo/);
   assert.match(html, /<option>Apple<\/option><option>Samsung<\/option><option>Xiaomi<\/option>/);
-  assert.match(html, /id="dados-modelos">\{"Apple":\["iPhone 15 Pro","iPhone 13"\]/);
+  // os modelos agrupados pela família, como na escolha da capa; uma marca só com sugestões leva o nome dela
+  assert.match(html, /id="dados-modelos">\{"Apple":\[\["iPhone",\["iPhone 15 Pro","iPhone 13"\]\]\],"Samsung":\[\["Galaxy S",\["Galaxy S24"\]\]\],"Xiaomi":\[\["Xiaomi",\["Redmi Note 13"\]\]\]\}<\/script>/);
+  // duas listas (a do modelo enche-se no browser); sem JavaScript fica só o campo escrito, e nada de <datalist>
+  assert.match(html, /<div class="campo" data-modelo-lista-campo hidden><label for="m-lista-pelicula-vidro">Modelo<\/label><select id="m-lista-pelicula-vidro" data-modelo-lista disabled>/);
+  assert.match(html, /<div class="campo" data-modelo-nome-campo><label for="m-modelo-pelicula-vidro" data-modelo-nome-rotulo>Modelo<\/label><input id="m-modelo-pelicula-vidro" name="modelo" type="text"/);
+  assert.doesNotMatch(html, /<datalist|list="/);
   assert.doesNotMatch(fs.readFileSync(path.join(pasta, '_site/produtos/fones-p9/index.html'), 'utf8'), /data-escolha-modelo/);
 });
 teste('as reparações: a página geral, a da família e a do modelo, com os preços «por confirmar» na pré-visualização', () => {
@@ -309,7 +314,7 @@ teste('as reparações de outras marcas: «Outras» abre as marcas, a família e
   assert.match(ler2('index.html'), /<li><a href="\/reparacoes\/redmi\/">Redmi<\/a><\/li>/);
   // a escolha do modelo nas películas: a sugestão e o modelo da lista com o mesmo nome aparecem uma vez
   const dados = JSON.parse(ler2('produtos/pelicula-vidro/index.html').match(/id="dados-modelos">(.*?)<\/script>/)[1]);
-  assert.deepEqual(dados.Xiaomi, ['Redmi Note 13']);
+  assert.deepEqual(dados.Xiaomi, [['Redmi', ['Redmi Note 13']]]);
 });
 teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços juntos no topo, a página inicial curta, a retoma com vender e retoma, o menu em grelha', () => {
   const pasta = copia('arrumacao', (p) => {

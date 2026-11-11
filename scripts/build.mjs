@@ -218,14 +218,23 @@ fs.writeFileSync(path.join(SAIDA, 'assets', ficheiros.js), js);
 const numero = numeroWhatsApp(site.contactos.whatsapp);
 const escaloes = R.escaloesDe(site.entrega?.portes?.continente);
 /* A escolha do modelo nas películas: as marcas da lista dos modelos (Apple e Samsung primeiro), com
-   os telemóveis de cada uma e as sugestões de content/aparelhos.json (outrasMarcas: os modelos mais
-   recentes e as marcas sem modelos na lista), sem repetir nomes. */
+   os telemóveis de cada uma agrupados pela família, como na escolha da capa ([família, [modelos]]),
+   e as sugestões de content/aparelhos.json (outrasMarcas: os modelos mais recentes e as marcas sem
+   modelos na lista) que ainda lá não estão, num grupo «Outros modelos». Nenhum nome se repete. */
 const modelosPorMarca = {};
-for (const m of aparelhos.marcas) modelosPorMarca[m.nome] = aparelhos.modelos.filter((x) => x.marca === m.id && x.tipo === 'telemovel').map((x) => x.nome);
+for (const m of aparelhos.marcas) {
+  const grupos = aparelhos.familias.filter((f) => f.marca === m.id && f.tipo === 'telemovel')
+    .map((f) => [f.nome, aparelhos.modelos.filter((x) => x.familia === f.id).map((x) => x.nome)])
+    .filter(([, lista]) => lista.length);
+  if (grupos.length) modelosPorMarca[m.nome] = grupos;
+}
 for (const o of aparelhos.outrasMarcas) {
   const k = Object.keys(modelosPorMarca).find((n) => n.toLowerCase() === o.nome.toLowerCase()) || o.nome;
-  const vistos = new Set();
-  modelosPorMarca[k] = [...o.modelos, ...(modelosPorMarca[k] || [])].filter((n) => { const c = n.toLowerCase(); if (vistos.has(c)) return false; vistos.add(c); return true; });
+  const grupos = modelosPorMarca[k] || [];
+  const vistos = new Set(grupos.flatMap(([, lista]) => lista.map((n) => n.toLowerCase())));
+  const mais = o.modelos.filter((n) => { const c = n.toLowerCase(); if (vistos.has(c)) return false; vistos.add(c); return true; });
+  if (mais.length) grupos.push([grupos.length ? 'Outros modelos' : k, mais]);
+  if (grupos.length) modelosPorMarca[k] = grupos;
 }
 const ctx = {
   site, inicio, categorias, produtos, fotos, manifesto, hoje, producao, ficheiros, api: API, base,

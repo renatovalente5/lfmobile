@@ -541,6 +541,14 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .campo input, .campo select, .campo textarea { width: 100%; min-height: 48px; padding: 10px 14px; border: 1px solid var(--linha-campo); border-radius: var(--raio-m); background: var(--papel); }
 .campo textarea { min-height: 96px; resize: vertical; }
 .campo input[aria-invalid="true"], .campo textarea[aria-invalid="true"], .campo select[aria-invalid="true"] { border-color: var(--vermelho); box-shadow: 0 0 0 1px var(--vermelho); }
+/* AS LISTAS (select): a mesma seta fina em todo o site, como a da escolha da capa (a do browser muda
+   de um para outro; a de uma caixa com sugestões, no Chrome, era um triângulo preto). Desligada (o
+   modelo antes da marca), fica cinzenta. */
+.campo select, .gaveta__zonas select, .loja-barra__ordem select { -webkit-appearance: none; appearance: none; padding-right: 42px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111113' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; background-size: 16px; cursor: pointer; text-overflow: ellipsis; }
+.loja-barra__ordem select { padding-right: 34px; background-position: right 12px center; background-size: 14px; }
+/* num ecrã de toque, a letra dos campos nunca abaixo dos 16 px: senão o Safari do iPhone aproxima a página ao tocar */
+@media (pointer: coarse) { .loja-barra__ordem select { font-size: 1rem; } }
+.campo select:disabled { color: var(--tinta-3); background-color: var(--cinza); border-color: var(--linha); cursor: not-allowed; opacity: 1; }
 .campos-lado { display: grid; gap: 14px; }
 @media (min-width: 560px) { .campos-lado { grid-template-columns: 1fr 1fr; } }
 .caixa { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: .95rem; }
@@ -599,9 +607,15 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .escolha__opcao input:checked + span { background: var(--tinta); color: var(--branco); border-color: var(--tinta); }
 .escolha__opcao input:focus-visible + span { outline: 2px solid var(--tinta); outline-offset: 2px; }
 .escolha__mais { font-weight: 500; opacity: .8; }
-.escolha-modelo { display: grid; gap: 10px; padding: 14px; border-radius: var(--raio-m); background: var(--ouro-fundo); }
-.escolha-modelo legend { float: left; width: 100%; margin-bottom: 4px; }
+/* um fieldset em bloco (não em grelha): o título flutua dentro da caixa dourada nos dois motores — num
+   fieldset em grelha o WebKit (o Safari do iPhone) ignora o float e põe-no a cavalo da borda */
+.escolha-modelo { display: block; padding: 14px; border-radius: var(--raio-m); background: var(--ouro-fundo); }
+.escolha-modelo legend { float: left; width: 100%; padding: 0; margin-bottom: 10px; }
+.escolha-modelo > .campos-lado { clear: both; }
+.escolha-modelo > .campo__ajuda { margin-top: 10px; }
 .escolha-modelo .campo label { font-size: .86rem; }
+/* «Outro modelo»: o campo para o escrever vai por baixo das duas listas, a toda a largura */
+.escolha-modelo [data-modelo-lista-campo]:not([hidden]) ~ [data-modelo-nome-campo] { grid-column: 1 / -1; }
 .confianca { margin-top: 18px; display: grid; gap: 10px; }
 .confianca li { display: flex; gap: 10px; align-items: flex-start; font-size: .92rem; color: var(--tinta-2); }
 .confianca .icone { color: var(--tinta); margin-top: 2px; }
@@ -718,7 +732,9 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 
 /* ---------------------------------------------------------------- retoma */
 .ret-capa { background: radial-gradient(70% 100% at 0% 100%, #3A2E14 0%, rgba(58, 46, 20, 0) 60%), var(--escuro); color: var(--branco); padding: clamp(28px, 5vw, 56px) 0 clamp(80px, 9vw, 110px); }
-.ret-capa__dentro { display: grid; gap: 12px; justify-items: start; }
+/* a coluna em minmax(0, 1fr): medida pelo conteúdo, a lista das formas (duas colunas de 230 px) alargava
+   a página a 485 px num telemóvel de 390 (memória grelha-1fr-nao-encolhe) */
+.ret-capa__dentro { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; justify-items: start; }
 .ret-capa__titulo { font-size: clamp(2.1rem, 1.4rem + 3vw, 3.6rem); font-weight: 800; letter-spacing: -.04em; line-height: 1.02; }
 .ret-capa__sub { color: rgba(255, 255, 255, .78); font-size: 1.08rem; }
 .ret-capa__formas { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px; width: 100%; max-width: 620px; margin-top: 6px; }

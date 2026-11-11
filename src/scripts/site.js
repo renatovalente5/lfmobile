@@ -361,21 +361,68 @@
   window.LFSite.errar = errar;
 
   // ---------------------------------------------------------------- o modelo do telemóvel (películas)
-  /* A marca escolhe as sugestões do modelo (o <datalist>, que o telemóvel mostra por cima do
-     teclado); o modelo escreve-se sempre à mão quando não está na lista. Uma página que chega com
-     ?modelo=Marca|Modelo (das reparações) já o traz escolhido. */
+  /* A marca enche a lista dos modelos (agrupados pela família, como na capa), com «Outro modelo» no
+     fim, que mostra o campo para o escrever; com «Outra marca» (ou uma marca sem modelos), só o
+     campo. O modelo escolhido na lista fica também no campo escrito (escondido): é esse que vai para
+     o carrinho. Uma página que chega com ?modelo=Marca|Modelo (das reparações) já o traz escolhido,
+     e muda-se como outro qualquer. Sem JavaScript, fica só o campo escrito. */
   const modelosPorMarca = (() => { try { return JSON.parse(($('#dados-modelos') || {}).textContent || '{}'); } catch (_) { return {}; } })();
+  const OUTRO_MODELO = '-outro-';
   $$('[data-escolha-modelo]').forEach((f) => {
     const marca = $('[data-modelo-marca]', f);
-    const nome = $('[data-modelo-nome]', f);
     const lista = $('[data-modelo-lista]', f);
-    const encher = () => { lista.innerHTML = (modelosPorMarca[marca.value] || []).map((m) => `<option value="${esc(m)}"></option>`).join(''); };
-    marca.addEventListener('change', () => { encher(); if (nome.value && !(modelosPorMarca[marca.value] || []).includes(nome.value)) nome.value = ''; });
+    const listaCampo = $('[data-modelo-lista-campo]', f);
+    const nome = $('[data-modelo-nome]', f);
+    const nomeCampo = $('[data-modelo-nome-campo]', f);
+    const rotulo = $('[data-modelo-nome-rotulo]', f);
+    if (!lista || !listaCampo || !nomeCampo) return;
+    const grupos = () => (Array.isArray(modelosPorMarca[marca.value]) ? modelosPorMarca[marca.value] : []);
+    const naLista = (n) => grupos().some(([, l]) => l.includes(n));
+    /* O que se vê é o que se pede. Sem marca: a lista, desligada, a pedir a marca primeiro. Numa
+       marca com modelos: a lista, e o campo escrito só com «Outro modelo». Com «Outra marca» (ou uma
+       marca sem modelos): só o campo escrito. */
+    const mostrar = () => {
+      const semMarca = !marca.value;
+      const comLista = !semMarca && marca.value !== 'Outra' && grupos().length > 0;
+      const aMao = !semMarca && (!comLista || lista.value === OUTRO_MODELO);
+      listaCampo.hidden = !(semMarca || comLista);
+      lista.disabled = !comLista;
+      lista.required = comLista;
+      nomeCampo.hidden = !aMao;
+      nome.required = aMao;
+      rotulo.textContent = comLista ? 'Escreva o modelo' : 'Modelo';
+    };
+    const encher = () => {
+      const g = grupos();
+      lista.innerHTML = g.length
+        ? `<option value="">Escolha o modelo…</option>${g.map(([fam, l]) => `<optgroup label="${esc(fam)}">${l.map((m) => `<option value="${esc(m)}">${esc(m)}</option>`).join('')}</optgroup>`).join('')}<option value="${OUTRO_MODELO}">Outro modelo (escrever)</option>`
+        : '<option value="">Escolha primeiro a marca</option>';
+    };
+    marca.addEventListener('change', () => {
+      encher();
+      // o modelo que estava escolhido fica se for desta marca (fica escolhido na lista); senão apaga-se
+      if (nome.value && naLista(nome.value)) lista.value = nome.value;
+      else nome.value = '';
+      mostrar();
+    });
+    lista.addEventListener('change', () => {
+      if (lista.value === OUTRO_MODELO) { nome.value = ''; mostrar(); nome.focus(); return; }
+      nome.value = lista.value;
+      mostrar();
+    });
     const pedido = new URLSearchParams(location.search).get('modelo');
     if (pedido && pedido.includes('|')) {
       const [m, n] = pedido.split('|');
-      if (Array.from(marca.options).some((o) => o.value === m)) { marca.value = m; encher(); nome.value = n.slice(0, 60); }
+      const escrito = String(n || '').trim().slice(0, 60);
+      if (Array.from(marca.options).some((o) => o.value === m)) {
+        marca.value = m;
+        encher();
+        if (naLista(escrito)) { lista.value = escrito; nome.value = escrito; }
+        else if (escrito && grupos().length) { lista.value = OUTRO_MODELO; nome.value = escrito; }
+        else nome.value = escrito;
+      }
     }
+    mostrar();
   });
   /* O modelo como vai para o carrinho: «Samsung Galaxy A55» (a marca só quando o nome não a tem). */
   function modeloEscrito(form) {
@@ -415,7 +462,9 @@
       }
       const fm = $('[data-escolha-modelo]', form);
       if (fm) {
+        const lista = $('[data-modelo-lista]', fm);
         if (!$('[data-modelo-marca]', fm).value) { errar(erro, $('[data-modelo-marca]', fm), 'Escolha a marca do seu telemóvel.'); return; }
+        if (lista && !lista.disabled && !lista.value) { errar(erro, lista, 'Escolha o modelo do seu telemóvel.'); return; }
         if (!$('[data-modelo-nome]', fm).value.trim()) { errar(erro, $('[data-modelo-nome]', fm), 'Escreva o modelo do seu telemóvel.'); return; }
       }
       if (!window.LFCarrinho) { errar(erro, null, 'O carrinho não carregou. Recarregue a página e tente outra vez.'); return; }

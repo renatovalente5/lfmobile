@@ -420,14 +420,19 @@ export function produto(ctx, p) {
 
   // --- o formulário: as escolhas (cor, capacidade), o modelo, a quantidade e o botão ---------------
   const grupos = opcoesDe(p);
-  /* O MODELO DO TELEMÓVEL (as películas): a marca numa lista e o modelo escrito, com as sugestões
-     da marca escolhida (content/aparelhos.json); sem modelo não se junta ao carrinho. Uma página que
-     chega com ?modelo=Marca|Modelo (das reparações) já o traz escolhido (site.js). */
+  /* O MODELO DO TELEMÓVEL (as películas): a marca e o modelo em duas listas, como na escolha da capa
+     (o modelo agrupado pela família da marca escolhida, content/aparelhos.json), e «Outro modelo» no
+     fim de cada lista, que abre o campo para o escrever; com «Outra marca», só o campo. Sem
+     JavaScript fica só o campo escrito (a lista dos modelos enche-se no browser, site.js). Sem
+     modelo não se junta ao carrinho. Uma página que chega com ?modelo=Marca|Modelo (das reparações)
+     já o traz escolhido, e muda-se como outro qualquer. */
+  const idm = esc(p.slug);
   const blocoModelo = p.pedeModelo === true ? `<fieldset class="campo escolha-modelo" data-escolha-modelo>
     <legend>O seu telemóvel</legend>
     <div class="campos-lado">
-      <div class="campo"><label for="m-marca-${esc(p.slug)}">Marca</label><select id="m-marca-${esc(p.slug)}" name="marcaModelo" required data-modelo-marca><option value="">Escolha…</option>${ctx.marcasParaModelo.map((mm) => `<option>${esc(mm)}</option>`).join('')}<option value="Outra">Outra marca</option></select></div>
-      <div class="campo"><label for="m-modelo-${esc(p.slug)}">Modelo</label><input id="m-modelo-${esc(p.slug)}" name="modelo" type="text" list="m-lista-${esc(p.slug)}" maxlength="60" required autocomplete="off" placeholder="Ex.: iPhone 13, Galaxy A55" data-modelo-nome><datalist id="m-lista-${esc(p.slug)}" data-modelo-lista></datalist></div>
+      <div class="campo"><label for="m-marca-${idm}">Marca</label><select id="m-marca-${idm}" name="marcaModelo" required data-modelo-marca><option value="">Escolha…</option>${ctx.marcasParaModelo.map((mm) => `<option>${esc(mm)}</option>`).join('')}<option value="Outra">Outra marca</option></select></div>
+      <div class="campo" data-modelo-lista-campo hidden><label for="m-lista-${idm}">Modelo</label><select id="m-lista-${idm}" data-modelo-lista disabled><option value="">Escolha primeiro a marca</option></select></div>
+      <div class="campo" data-modelo-nome-campo><label for="m-modelo-${idm}" data-modelo-nome-rotulo>Modelo</label><input id="m-modelo-${idm}" name="modelo" type="text" maxlength="60" required autocomplete="off" placeholder="Ex.: iPhone 13, Galaxy A55" data-modelo-nome></div>
     </div>
     <p class="campo__ajuda">Cortamos a película para este modelo. Se não souber o nome, veja em Definições › Geral › Informações (iPhone) ou Definições › Acerca do telemóvel (Android).</p>
   </fieldset>` : '';
