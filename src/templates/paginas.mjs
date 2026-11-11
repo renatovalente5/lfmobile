@@ -736,7 +736,8 @@ export function texto(ctx, pag) {
 /* OS CONTACTOS (8 nov 2026, «melhora a página de contactos»): três cartões para falar connosco (o WhatsApp
    à cabeça, só a ligação; o telefone com a nota da chamada; o email), a loja com o mapa visível logo ao
    abrir (desenhado pelo próprio site, scripts/mapa.mjs: sem o Google, sem cookies, sem esperar), a
-   morada e o horário, e as redes numa linha. Tocar no mapa abre o Google Maps (a ligação «Como chegar»). */
+   morada, quem vende (o nome e o NIF: a ifthenpay pediu-os à vista, 11 nov 2026) e o horário, e as redes
+   numa linha. Tocar no mapa abre o Google Maps (a ligação «Como chegar»). */
 export function contactos(ctx) {
   const c = ctx.site.contactos;
   const e = ctx.site.empresa;
@@ -772,6 +773,7 @@ export function contactos(ctx) {
     <div class="contactos-loja__dados">
       <h2 class="contactos-loja__titulo" id="loja-titulo">A loja</h2>
       ${moradaHtml(ctx)}
+      ${e.nome ? `<p class="contactos-loja__vendedor">${esc(e.nome)}${e.tipo ? `, ${esc(e.tipo)}` : ''}${e.nif ? ` · NIF ${esc(e.nif)}` : ''}</p>` : ''}
       <h3 class="contactos-loja__rotulo">Horário</h3>
       ${horarioHtml(ctx)}
     </div>

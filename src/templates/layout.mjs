@@ -216,7 +216,7 @@ function rodape(ctx) {
     </nav>
   </div>
   <div class="rodape__fim">
-    <p class="rodape__direitos">© ${ctx.hoje.slice(0, 4)} ${esc(ctx.site.marca)}${e.nif ? ` · NIF ${esc(e.nif)}` : ''}</p>
+    <p class="rodape__direitos">© ${ctx.hoje.slice(0, 4)} ${esc(ctx.site.marca)}${e.nome ? ` · ${esc(e.nome)}` : ''}${e.nif ? ` · NIF ${esc(e.nif)}` : ''}${e.morada && e.codigoPostal && e.localidade ? ` · ${esc(e.morada)}, ${esc(e.codigoPostal)} ${esc(e.localidade)}` : ''}</p>
     <ul class="rodape__legal">
       ${ligacao('/termos-e-condicoes/', 'Termos e condições')}
       ${ligacao('/politica-de-privacidade/', 'Privacidade')}

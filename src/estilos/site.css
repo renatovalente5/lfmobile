@@ -936,6 +936,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .contactos-loja { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 40px; align-items: center; }
 @media (min-width: 900px) { .contactos-loja { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 64px); } }
 .contactos-loja__titulo { font-size: clamp(1.4rem, 1.2rem + .8vw, 1.8rem); font-weight: 800; letter-spacing: -.02em; margin-bottom: 12px; }
+.contactos-loja__vendedor { margin: 10px 0 0; font-size: .88rem; color: var(--tinta-2); }
 .contactos-loja__rotulo { margin: 24px 0 6px; font-size: .78rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-3); }
 .contactos-loja .horario { max-width: 380px; }
 .contactos-redes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 32px; }

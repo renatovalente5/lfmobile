@@ -2,9 +2,9 @@ titulo: Política de privacidade
 descricao: Que dados pessoais tratamos, para quê e por quanto tempo: as encomendas, os pedidos de orçamento e de retoma, e o que este site guarda no seu browser.
 atualizado: 2026-11-11
 ---
-## Quem trata os seus dados
+## Responsável pelo tratamento dos dados
 
-{{empresa.identificacao}} Contacto para assuntos de privacidade: {{email}}.
+O responsável pelo tratamento dos dados pessoais recolhidos e tratados através deste site é {{empresa.identificacao}} Contacto para assuntos de privacidade: {{email}}.
 
 ## O que este site guarda no seu browser
 
