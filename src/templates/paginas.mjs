@@ -95,15 +95,34 @@ export function inicio(ctx) {
       <span class="mosaico__seta">Ver os recondicionados${icones.seta}</span>
       ${fotoRecond ? `<span class="mosaico__produto">${imagem(ctx, fotoRecond.fotos[0], { tamanhos: '200px', alt: '', recorte: true })}</span>` : ''}
     </a>`;
+  /* O BANNER (o Leandro, 12 nov 2026: «Consegues meter algo assim de banner na página inicial?», com
+     a imagem dele): a frase da marca e a fotografia dos aparelhos, por cima de tudo. O texto é texto
+     (lê-se no telemóvel e o Google lê-o); a fotografia é o recorte da imagem dele, sem as letras. Sem
+     o «banner» no inicio.json, ou sem a fotografia na biblioteca, a página começa na capa. */
+  const b = h.banner && typeof h.banner === 'object' && h.banner.titulo ? h.banner : null;
+  const fotoBanner = b && b.foto && ctx.manifesto.fotos[b.foto] ? b.foto : null;
+  const banner = b ? `<section class="banner${fotoBanner ? '' : ' banner--sem-foto'}" aria-labelledby="banner-titulo">
+  <div class="banner__palavras">
+    ${b.rotulo ? `<p class="banner__rotulo">${esc(b.rotulo)}</p>` : ''}
+    <h1 class="banner__titulo" id="banner-titulo">${esc(b.titulo)}</h1>
+    ${b.texto ? `<p class="banner__texto">${esc(b.texto)}</p>` : ''}
+    <div class="banner__botoes">
+      <a class="botao botao--ouro" href="${ctx.url('/loja/')}">Ver a loja${icones.seta}</a>
+      <a class="botao botao--vidro" href="${ctx.url('/reparacoes/')}">Reparações</a>
+    </div>
+  </div>
+  ${fotoBanner ? `<figure class="banner__foto">${imagem(ctx, fotoBanner, { tamanhos: '(min-width: 1280px) 760px, (min-width: 800px) 58vw, 100vw', prioridade: true })}</figure>` : ''}
+</section>` : '';
+  const hCapa = banner ? 'h2' : 'h1';
   const mosaico = `<section class="mosaico" aria-labelledby="capa-titulo">
   <div class="mosaico__principal">
     <div class="mosaico__palavras">
       <p class="rotulo rotulo--claro">Reparação de telemóveis</p>
-      <h1 class="mosaico__h1" id="capa-titulo">${esc(h.capa.titulo)}</h1>
+      <${hCapa} class="mosaico__h1" id="capa-titulo">${esc(h.capa.titulo)}</${hCapa}>
       ${h.capa.texto ? `<p class="mosaico__sub">${esc(h.capa.texto)}</p>` : ''}
     </div>
     ${escolhaRapida(ctx, h)}
-    ${h.capa.foto && ctx.manifesto.fotos[h.capa.foto] ? `<figure class="mosaico__foto">${imagem(ctx, h.capa.foto, { tamanhos: '(min-width: 1100px) 360px, (min-width: 700px) 40vw, 100vw', prioridade: true })}</figure>` : ''}
+    ${h.capa.foto && ctx.manifesto.fotos[h.capa.foto] ? `<figure class="mosaico__foto">${imagem(ctx, h.capa.foto, { tamanhos: '(min-width: 1100px) 360px, (min-width: 700px) 40vw, 100vw', prioridade: !banner })}</figure>` : ''}
   </div>
   <a class="mosaico__cartao mosaico__cartao--retoma" href="${ctx.url('/retoma/')}">
     <span class="rotulo rotulo--ouro">Retoma</span>
@@ -192,6 +211,7 @@ export function inicio(ctx) {
     jsonld: [org, { '@context': 'https://schema.org', '@type': 'WebSite', '@id': ctx.absoluto('/#site'), name: ctx.site.marca, url: ctx.absoluto('/'), inLanguage: 'pt-PT', publisher: { '@id': ctx.absoluto('/#loja') } }],
     conteudo: `${spriteAparelhos()}
 <div class="contentor inicio">
+  ${banner}
   ${mosaico}
   ${filaCats}
   ${filaCampanha}

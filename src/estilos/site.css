@@ -270,6 +270,34 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
   @keyframes deCima { from { transform: translateY(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
 }
 
+/* ---------------------------------------------------------------- página inicial: o banner */
+/* A faixa escura do topo (o banner do Leandro, 12 nov 2026): a frase à esquerda e a fotografia dos
+   aparelhos à direita, a fundir-se no preto do cartão; no telemóvel, a fotografia por baixo do texto. */
+.banner { position: relative; display: grid; margin-bottom: 12px; border-radius: var(--raio-g); background: radial-gradient(90% 120% at 0% 0%, #26262A 0%, rgba(38, 38, 42, 0) 60%), #050505; color: var(--branco); overflow: hidden; isolation: isolate; }
+@media (min-width: 900px) { .banner { margin-bottom: 16px; } }
+.banner__palavras { position: relative; z-index: 1; display: grid; gap: 14px; align-content: center; padding: clamp(26px, 5vw, 60px) clamp(22px, 4vw, 56px) 8px; }
+.banner__rotulo { font-size: clamp(.72rem, .66rem + .3vw, .9rem); font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: rgba(255, 255, 255, .78); }
+.banner__titulo { font-size: clamp(2.7rem, 1.7rem + 4.6vw, 5.4rem); font-weight: 800; letter-spacing: -.02em; line-height: .94; text-transform: uppercase; color: var(--branco); }
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .banner__titulo { background: linear-gradient(180deg, #FFFFFF 38%, #9C9CA3 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+}
+@media (forced-colors: active) { .banner__titulo { background: none; color: CanvasText; } }
+.banner__texto { font-size: clamp(1.02rem, .95rem + .35vw, 1.25rem); color: rgba(255, 255, 255, .86); max-width: 30ch; }
+.banner__botoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
+.botao--vidro { background: rgba(255, 255, 255, .08); color: var(--branco); border-color: rgba(255, 255, 255, .3); }
+@media (hover: hover) { .botao--vidro:hover { background: rgba(255, 255, 255, .16); color: var(--branco); } }
+.banner__foto { position: relative; margin: 0; }
+.banner__foto img { display: block; width: 100%; height: auto; -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%); mask-image: linear-gradient(180deg, transparent 0%, #000 22%); }
+.banner--sem-foto .banner__palavras { padding-bottom: clamp(26px, 5vw, 60px); }
+@media (min-width: 800px) {
+  .banner { grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); align-items: center; min-height: 380px; }
+  .banner--sem-foto { grid-template-columns: 1fr; }
+  .banner__palavras { padding: clamp(28px, 4vw, 56px); padding-right: 0; }
+  .banner__foto { align-self: stretch; }
+  .banner__foto picture { display: block; height: 100%; }
+  .banner__foto img { height: 100%; object-fit: cover; object-position: 0% 50%; -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 14%); mask-image: linear-gradient(90deg, transparent 0%, #000 14%); }
+}
+
 /* ---------------------------------------------------------------- página inicial: o mosaico */
 .inicio { padding-top: 16px; }
 @media (min-width: 900px) { .inicio { padding-top: 24px; } }

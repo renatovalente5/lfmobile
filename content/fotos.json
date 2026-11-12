@@ -198,5 +198,9 @@
   "smartwatch-watch-s11-1": {
     "alt": "Smartwatch Watch S11",
     "foco": "50% 50%"
+  },
+  "banner-inicio": {
+    "alt": "Um Samsung Galaxy, um iPhone, auriculares e um relógio inteligente, em frente à caixa da LF Mobile",
+    "foco": "50% 50%"
   }
 }
