@@ -188,20 +188,32 @@ html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
 
 /* o cabeçalho da página inicial (topo--capa): transparente por cima da capa, com o logótipo e os ícones
    em branco; ao descer, um fundo escuro. No computador, as quatro ligações em letras espaçadas. */
-.topo--capa { margin-bottom: calc(-1 * var(--topo) - 1px); background: transparent; border-bottom-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; transition: background-color .25s, border-color .25s; }
+.topo--capa { --logo-topo: 1.1; margin-bottom: calc(-1 * var(--topo) - 1px); background: transparent; border-bottom-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; transition: background-color .2s, border-color .2s; }
+@media (min-width: 900px) { .topo--capa { --logo-topo: 1.35; } }
 html[data-rolado="sim"] .topo--capa { background: rgba(6, 6, 7, .84); border-bottom-color: rgba(255, 255, 255, .08); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); box-shadow: none; }
 .topo--capa .logo { filter: invert(1); }
 @media (min-width: 1100px) { .topo--capa .topo__marca .logo { height: 52px; } }
 /* o logótipo grande no topo da página (o Renato, 12 nov 2026: «quero ter o logo maior quando estou no
    topo da página, e quando começo a descer na página o logo diminui»; depois «ficou muito grande,
-   diminui»: de 1,8× passou a 1,35× no computador, e de 1,5× a 1,2× no telemóvel): cresce a partir do canto de
+   diminui»: de 1,8× passou a 1,35× no computador, e de 1,5× a 1,2× no telemóvel; depois, no telemóvel,
+   «devia diminuir mais quando está no topo da página também»: 1,1×): cresce a partir do canto de
    cima, para baixo, por cima da capa (não empurra nada: a barra fica com a mesma altura); ao descer
    (html[data-rolado], ao mesmo tempo que a barra escurece) volta ao tamanho da barra. */
 .topo--capa .topo__marca { position: relative; z-index: 1; }
-.topo--capa .topo__marca .logo { transform-origin: 0 0; transition: scale .4s cubic-bezier(.2, .7, .2, 1); }
-html:not([data-rolado="sim"]) .topo--capa .topo__marca .logo { scale: 1.2; }
-@media (min-width: 900px) { html:not([data-rolado="sim"]) .topo--capa .topo__marca .logo { scale: 1.35; } }
+.topo--capa .topo__marca .logo { transform-origin: 0 0; transition: scale .2s cubic-bezier(.2, .7, .2, 1); }
+html:not([data-rolado="sim"]) .topo--capa .topo__marca .logo { scale: var(--logo-topo); }
 @media (prefers-reduced-motion: reduce) { .topo--capa .topo__marca .logo { transition: none; } }
+/* Onde o browser anima com o próprio scroll, o fundo e o logótipo acompanham o dedo nos primeiros 32 px
+   (o Renato, 12 nov 2026: «no telemóvel demora um bocado a ganhar o fundo na navbar e a diminuir o
+   logo»): sem esperar por um limiar nem por uma transição. Nos outros, a classe (aos 12 px, em 0,2 s). */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    .topo--capa { animation: lf-topo-escurece linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
+    .topo--capa .topo__marca .logo { animation: lf-logo-desce linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
+    @keyframes lf-topo-escurece { from { background-color: rgba(6, 6, 7, 0); border-bottom-color: rgba(255, 255, 255, 0); } to { background-color: rgba(6, 6, 7, .84); border-bottom-color: rgba(255, 255, 255, .08); } }
+    @keyframes lf-logo-desce { from { scale: var(--logo-topo); } to { scale: 1; } }
+  }
+}
 .topo--capa .topo__botao { color: var(--branco); }
 .topo--capa :focus-visible { outline-color: var(--branco); }
 @media (hover: hover) { .topo--capa .topo__botao:hover { background: rgba(255, 255, 255, .12); } }
@@ -311,7 +323,7 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
    (topo--capa). No telemóvel: o texto, a fotografia de ponta a ponta e as três vantagens. */
 html.na-capa { background: #040404; }
 .capa { position: relative; background: radial-gradient(70% 55% at 8% 0%, rgba(255, 255, 255, .075) 0%, rgba(255, 255, 255, 0) 70%), radial-gradient(55% 65% at 76% 48%, rgba(255, 255, 255, .05) 0%, rgba(255, 255, 255, 0) 70%), #040404; color: var(--branco); overflow: hidden; isolation: isolate; }
-.capa__dentro { display: grid; gap: 22px; align-content: center; min-height: 100vh; min-height: 100svh; max-width: 1440px; margin: 0 auto; padding: calc(var(--topo) + 20px) var(--margem) 28px; }
+.capa__dentro { display: grid; gap: 22px; align-content: center; min-height: 100vh; min-height: 100svh; max-width: 1440px; margin: 0 auto; padding: calc(var(--topo) + 32px) var(--margem) 28px; }
 .capa__palavras { display: grid; gap: 14px; align-content: start; }
 .capa__rotulo { font-size: clamp(.72rem, .64rem + .35vw, .95rem); font-weight: 500; letter-spacing: .38em; text-transform: uppercase; color: rgba(255, 255, 255, .8); }
 .capa__titulo { font-size: clamp(3.1rem, 1.5rem + 5.4vw, 6.4rem); font-weight: 800; letter-spacing: -.015em; line-height: .92; text-transform: uppercase; color: var(--branco); }

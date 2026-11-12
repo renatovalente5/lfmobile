@@ -304,7 +304,7 @@ export function pagina(ctx, { titulo, descricao, caminho, conteudo, partilha, ti
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script>document.documentElement.dataset.rolado=scrollY>40?'sim':'nao'</script>
+<script>document.documentElement.dataset.rolado=scrollY>12?'sim':'nao'</script>
 <title>${esc(tituloCompleto)}</title>
 <meta name="description" content="${esc(descricao)}">
 <link rel="canonical" href="${ctx.absoluto(caminho)}">

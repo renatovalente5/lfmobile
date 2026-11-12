@@ -25,7 +25,8 @@
   addEventListener('keydown', (e) => { if (!e.metaKey && !e.ctrlKey) delete raiz.dataset.entrada; }, { capture: true });
 
   // ---------------------------------------------------------------- a barra e o WhatsApp ao descer
-  // Ao descer, a barra ganha a sombra (html[data-rolado]); o botão flutuante do WhatsApp aparece um
+  // Ao descer (a partir de 12 px: na página inicial o logótipo e o fundo da barra mudam logo; antes eram
+  // 40 px, e no telemóvel demorava), a barra ganha a sombra (html[data-rolado]); o botão flutuante do WhatsApp aparece um
   // pouco mais abaixo (html[data-whatsapp], 200 a descer e 120 a subir). Dois limiares contra a
   // tremura de uma página parada na linha.
   const flutuante = $('[data-whatsapp-flutuante]');
@@ -35,7 +36,7 @@
       pedido = false;
       const y = scrollY;
       const agora = raiz.dataset.rolado === 'sim';
-      raiz.dataset.rolado = (y >= 40 ? true : y <= 8 ? false : agora) ? 'sim' : 'nao';
+      raiz.dataset.rolado = (y >= 12 ? true : y <= 4 ? false : agora) ? 'sim' : 'nao';
       if (flutuante) {
         const visivel = raiz.dataset.whatsapp === 'sim';
         raiz.dataset.whatsapp = (y >= 200 ? true : y <= 120 ? false : visivel) ? 'sim' : 'nao';
