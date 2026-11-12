@@ -263,7 +263,7 @@ teste('a pré-visualização constrói com --base, fecha-se aos motores de busca
   for (const f of todosHtml(pasta)) {
     const html = fs.readFileSync(f, 'utf8');
     assert.doesNotMatch(html, /obriga[çc][ãa]o de pagar/i, f);
-    assert.match(html, /<html lang="pt-PT">/, f);
+    assert.match(html, /<html lang="pt-PT"( class="na-capa")?>/, f);
   }
 });
 teste('a ficha de um artigo comprável tem o formulário do carrinho; a de um «confirmar» pergunta pelo WhatsApp; a película não se envia', () => {
@@ -363,13 +363,28 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   const cat = JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets/catalogo.json'), 'utf8'));
   assert.deepEqual(cat.produtos['iphone-13-128gb-recondicionado'].categorias, ['recondicionados', 'apple']);
   assert.deepEqual(cat.produtos['fones-p9'].categorias, ['audio']);
-  // o cabeçalho: as Reparações e a Retoma juntas ao lado do carrinho; o «Vender o meu» saiu; a fila de baixo é só a loja
-  assert.match(inicio, /<nav class="topo__servicos" aria-label="Serviços">\s*<a class="topo__accao" href="\/reparacoes\/">[\s\S]*?<span>Reparações<\/span><\/a><a class="topo__accao" href="\/retoma\/">[\s\S]*?<span>Retoma<\/span><\/a>/);
+  // o cabeçalho (fora da página inicial): as Reparações e a Retoma juntas ao lado do carrinho; o «Vender o
+  // meu» saiu; a fila de baixo é só a loja
+  const lojaPag = ler2('loja/index.html');
+  assert.match(lojaPag, /<nav class="topo__servicos" aria-label="Serviços">\s*<a class="topo__accao" href="\/reparacoes\/">[\s\S]*?<span>Reparações<\/span><\/a><a class="topo__accao" href="\/retoma\/">[\s\S]*?<span>Retoma<\/span><\/a>/);
   assert.doesNotMatch(inicio, /Vender o meu</);
-  assert.doesNotMatch(inicio.match(/<nav class="topo__fila"[\s\S]*?<\/nav>/)[0], /reparacoes|retoma/);
-  // a página inicial sem a grelha dos problemas e sem a faixa da retoma (o cartão da capa fica)
-  assert.doesNotMatch(inicio, /data-problemas|faixa-retoma/);
-  assert.match(inicio, /mosaico__cartao--retoma/);
+  assert.doesNotMatch(lojaPag.match(/<nav class="topo__fila"[\s\S]*?<\/nav>/)[0], /reparacoes|retoma/);
+  assert.match(lojaPag, /<p class="faixa-topo__texto"><span class="faixa-topo__itens">/);
+  // a página inicial (o Leandro e o Renato, 12 nov 2026): a capa a ocupar o ecrã, com o cabeçalho por
+  // cima (transparente, quatro ligações e a lupa); sem a faixa de cima (sem campanha nem aviso), sem a
+  // fila das categorias no cabeçalho e sem os cartões da reparação, da retoma e dos recondicionados
+  assert.match(inicio, /<html lang="pt-PT" class="na-capa">/);
+  assert.match(inicio, /<header class="topo topo--capa" data-topo>/);
+  assert.deepEqual([...inicio.match(/<nav class="topo__ligacoes"[\s\S]*?<\/nav>/)[0].matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[1], m[2]]),
+    [['/loja/', 'Loja'], ['/reparacoes/', 'Reparações'], ['/retoma/', 'Retoma'], ['/contactos/', 'Contactos']]);
+  assert.doesNotMatch(inicio, /class="faixa-topo"|topo__fila|topo__procura|class="mosaico|class="rapido|data-rapido|faixa-retoma|data-problemas/);
+  assert.match(inicio, /<section class="capa" aria-labelledby="capa-titulo">/);
+  assert.match(inicio, /<p class="capa__rotulo">Mais que tecnologia<\/p>\s*<h1 class="capa__titulo" id="capa-titulo">Sempre contigo<\/h1>/);
+  assert.equal((inicio.match(/<h1[\s>]/g) || []).length, 1, 'um só h1');
+  assert.match(inicio, /<a class="botao botao--ouro" href="\/loja\/">Ver a loja<svg/);
+  assert.match(inicio, /<figure class="capa__foto"><picture[^>]*>[^]*?fetchpriority="high"[^]*?<\/figure>/);
+  assert.deepEqual([...inicio.match(/<ul class="capa__vantagens">[\s\S]*?<\/ul>/)[0].matchAll(/<strong>([^<]+)<\/strong>/g)].map((m) => m[1]), ['Envio rápido', 'Garantia', 'Apoio ao cliente']);
+  assert.match(inicio, /<\/section>\s*<div class="contentor inicio">\s*<nav class="cat-fila"/);
   assert.match(ler2('reparacoes/index.html'), /data-problemas/);
   // a retoma: vender (em dinheiro ou por transferência) e retoma (desconto numa compra)
   const ret = ler2('retoma/index.html');
@@ -384,8 +399,6 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   // 2026): a nota do Google em primeiro, com as estrelas da nota e a ligação para as opiniões; cada
   // cartão leva ao sítio onde isso se explica. Nem a faixa de cima da loja, nem a do rodapé.
   assert.doesNotMatch(inicio, /confianca-faixa|Retoma do seu usado|rodape__garantias/);
-  // a escolha do modelo da capa fica fora da coluna do texto (no computador ocupa a largura do cartão)
-  assert.match(inicio, /<p class="mosaico__sub">[^<]*<\/p>\s*<\/div>\s*<form class="rapido"/);
   assert.match(inicio, /<section class="loja-casa"[\s\S]*?<\/section>\s*<section class="garantias" aria-labelledby="garantias-titulo">\s*<h2 class="visualmente-escondido" id="garantias-titulo">Porquê a LF Mobile<\/h2>/);
   const lis = inicio.match(/<section class="garantias"[\s\S]*?<\/section>/)[0].match(/<li>[\s\S]*?<\/li>/g);
   assert.deepEqual(lis.map((li) => li.match(/<strong class="garantia__titulo">(.*?)<\/strong>/)[1]), ['5,0 no Google', 'Orçamento grátis', 'Envios Nacex em 24/48 h', 'Levantamento grátis']);

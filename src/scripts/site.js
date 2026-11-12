@@ -507,26 +507,6 @@
     abrir('carrinho', b);
   });
 
-  // ---------------------------------------------------------------- a escolha rápida do modelo (capa)
-  /* A marca filtra os grupos da lista dos modelos; «Ver preços» abre a página do modelo escolhido
-     (sem modelo, a página das reparações). */
-  $$('form[data-rapido]').forEach((form) => {
-    const marca = $('[data-rapido-marca]', form);
-    const modelo = $('[data-rapido-modelo]', form);
-    const filtrar = () => {
-      $$('optgroup', modelo).forEach((g) => { g.hidden = g.dataset.marca !== marca.value; g.disabled = g.dataset.marca !== marca.value; });
-      const sel = modelo.selectedOptions[0];
-      if (sel && sel.parentElement.tagName === 'OPTGROUP' && sel.parentElement.disabled) modelo.value = '';
-    };
-    marca.addEventListener('change', filtrar);
-    filtrar();
-    modelo.addEventListener('change', () => { if (modelo.value) form.requestSubmit(); });
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      location.href = modelo.value ? `${form.dataset.rapido}${modelo.value}/` : `${form.dataset.rapido}#escolher`;
-    });
-  });
-
   // ---------------------------------------------------------------- os problemas (separadores)
   /* A grelha dos problemas: tocar num mostra a explicação dele por baixo (os outros escondem-se).
      Um endereço com #problema-ecra (ou #ecra) abre esse. */

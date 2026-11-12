@@ -48,90 +48,54 @@ function imagemDaCategoria(ctx, slug) {
   return `<span class="cat-fila__icone">${icones[ICONE_CATEGORIA[slug]] || icones.caixa}</span>`;
 }
 
-/* A ESCOLHA RÁPIDA da capa: a marca e o modelo em duas listas, e «Ver preços» abre a página do
-   modelo. Sem JavaScript, o botão leva às reparações. */
-function escolhaRapida(ctx, h) {
-  const { marcas, familias, modelos } = ctx.aparelhos;
-  return `<form class="rapido" action="${ctx.url('/reparacoes/')}" data-rapido="${esc(ctx.url('/reparacoes/'))}">
-  <div class="rapido__campos">
-    <div class="rapido__campo"><label for="rapido-marca">Marca</label>
-      <select id="rapido-marca" data-rapido-marca>${marcas.map((m) => `<option value="${esc(m.id)}">${esc(m.nome)}</option>`).join('')}</select></div>
-    <div class="rapido__campo rapido__campo--largo"><label for="rapido-modelo">Modelo</label>
-      <select id="rapido-modelo" name="modelo" data-rapido-modelo>
-        <option value="">Escolha o modelo…</option>
-        ${familias.map((f) => {
-    const lista = modelos.filter((m) => m.familia === f.id);
-    return lista.length ? `<optgroup label="${esc(f.nome)}" data-marca="${esc(f.marca)}">${lista.map((m) => `<option value="${esc(m.id)}">${esc(m.nome)}</option>`).join('')}</optgroup>` : '';
-  }).join('')}
-      </select></div>
-  </div>
-  <button class="botao botao--ouro" type="submit">${esc(h.capa.botao)}${icones.seta}</button>
-</form>`;
-}
+/* AS MARCAS que a capa mostra em baixo, à direita (como na imagem do Leandro, pela ordem dele): só
+   as que estão nas reparações. */
+const MARCAS_DA_CAPA = ['apple', 'samsung', 'xiaomi', 'oppo', 'huawei', 'realme'];
 
 // ---------------------------------------------------------------- página inicial
 export function inicio(ctx) {
   const h = ctx.inicio;
   const camp = ctx.campanhas[0];
 
-  /* O MOSAICO DA CAPA: o cartão grande e escuro com a escolha rápida do modelo para reparar (o que
-     a loja mais faz), a fotografia de uma reparação; ao lado, a retoma e — com uma campanha a correr
-     — a campanha, senão os recondicionados. */
-  const recond = produtosDe(ctx, 'recondicionados').filter((p) => precoDe(p, ctx.hoje).atual !== null);
-  const desde = recond.length ? Math.min(...recond.map((p) => precoDe(p, ctx.hoje).atual)) : null;
-  const fotoRecond = recond.find((p) => temRecorte(ctx, p.fotos[0]));
-  const terceiro = camp
-    ? `<a class="mosaico__cartao mosaico__cartao--campanha" href="${ctx.url(`/campanhas/${camp.slug}/`)}">
-      <span class="rotulo rotulo--ouro">${esc(camp.nome)}</span>
-      <strong class="mosaico__titulo">${esc(camp.titulo)}</strong>
-      ${camp.desconto ? `<span class="mosaico__grande">−${camp.desconto}%</span>` : ''}
-      <span class="mosaico__texto">Até ${dataPorExtenso(camp.ate)}.</span>
-      <span class="mosaico__seta">Ver a campanha${icones.seta}</span>
-    </a>`
-    : `<a class="mosaico__cartao mosaico__cartao--loja" href="${ctx.url('/loja/recondicionados/')}">
-      <span class="rotulo">Recondicionados</span>
-      <strong class="mosaico__titulo">${esc(categoriaDe(ctx, 'recondicionados')?.titulo || 'Recondicionados')}</strong>
-      ${desde !== null ? `<span class="mosaico__texto">Desde <b>${euros(desde)}</b>, testados na loja.</span>` : ''}
-      <span class="mosaico__seta">Ver os recondicionados${icones.seta}</span>
-      ${fotoRecond ? `<span class="mosaico__produto">${imagem(ctx, fotoRecond.fotos[0], { tamanhos: '200px', alt: '', recorte: true })}</span>` : ''}
-    </a>`;
-  /* O BANNER (o Leandro, 12 nov 2026: «Consegues meter algo assim de banner na página inicial?», com
-     a imagem dele): a frase da marca e a fotografia dos aparelhos, por cima de tudo. O texto é texto
-     (lê-se no telemóvel e o Google lê-o); a fotografia é o recorte da imagem dele, sem as letras. Sem
-     o «banner» no inicio.json, ou sem a fotografia na biblioteca, a página começa na capa. */
-  const b = h.banner && typeof h.banner === 'object' && h.banner.titulo ? h.banner : null;
-  const fotoBanner = b && b.foto && ctx.manifesto.fotos[b.foto] ? b.foto : null;
-  const banner = b ? `<section class="banner${fotoBanner ? '' : ' banner--sem-foto'}" aria-labelledby="banner-titulo">
-  <div class="banner__palavras">
-    ${b.rotulo ? `<p class="banner__rotulo">${esc(b.rotulo)}</p>` : ''}
-    <h1 class="banner__titulo" id="banner-titulo">${esc(b.titulo)}</h1>
-    ${b.texto ? `<p class="banner__texto">${esc(b.texto)}</p>` : ''}
-    <div class="banner__botoes">
-      <a class="botao botao--ouro" href="${ctx.url('/loja/')}">Ver a loja${icones.seta}</a>
-      <a class="botao botao--vidro" href="${ctx.url('/reparacoes/')}">Reparações</a>
+  /* A CAPA, a ocupar o ecrã (o Leandro, 12 nov 2026, com uma imagem dele: «Consegues meter algo assim
+     de banner na página inicial?»; o Renato: «tira isso tudo e mete assim uma capa grande a ocupar a
+     página toda»). Saíram o cartão da reparação com a escolha do modelo, o da retoma e o dos
+     recondicionados: as reparações e a retoma estão no menu, e a loja logo por baixo da capa. O
+     cabeçalho fica por cima dela, transparente (layout.mjs, topo--capa). À esquerda a frase pequena, a
+     frase grande, o texto e os botões; à direita a fotografia (os aparelhos, num fundo escuro que se
+     funde no da capa); em baixo as três vantagens e, no computador largo, as marcas que se reparam.
+     Os textos e a fotografia mudam-se no painel (Página inicial › A capa). */
+  const cp = h.capa;
+  const fotoCapa = cp.foto && ctx.manifesto.fotos[cp.foto] ? cp.foto : null;
+  const transportadora = ctx.site.entrega.transportadora;
+  const wa = ctx.site.contactos?.whatsapp;
+  const vantagens = [
+    { href: ctx.url('/envios-e-devolucoes/'), icone: icones.camiao, titulo: 'Envio rápido', texto: transportadora ? `${transportadora} em 24/48 h` : 'Em 24/48 h' },
+    { href: ctx.url('/garantia/'), icone: icones.escudo, titulo: 'Garantia', texto: 'Até 3 anos' },
+    wa
+      ? { href: `https://wa.me/${numeroWhatsApp(wa)}`, icone: icones.whatsapp, titulo: 'Apoio ao cliente', texto: 'Na loja e no WhatsApp', fora: true }
+      : { href: ctx.url('/contactos/'), icone: icones.loja, titulo: 'Apoio ao cliente', texto: 'Na loja' },
+  ];
+  const marcasCapa = MARCAS_DA_CAPA.map((id) => ctx.aparelhos.marcas.find((m) => m.id === id)).filter(Boolean);
+  const capa = `<section class="capa${fotoCapa ? '' : ' capa--sem-foto'}" aria-labelledby="capa-titulo">
+  <div class="capa__dentro">
+    <div class="capa__palavras">
+      ${cp.rotulo ? `<p class="capa__rotulo">${esc(cp.rotulo)}</p>` : ''}
+      <h1 class="capa__titulo" id="capa-titulo">${esc(cp.titulo)}</h1>
+      ${cp.texto ? `<p class="capa__texto">${esc(cp.texto)}</p>` : ''}
+      <div class="capa__botoes">
+        <a class="botao botao--ouro" href="${ctx.url('/loja/')}">${esc(cp.botao)}${icones.seta}</a>
+        <a class="botao botao--vidro" href="${ctx.url('/reparacoes/')}">Reparações</a>
+      </div>
+    </div>
+    ${fotoCapa ? `<figure class="capa__foto">${imagem(ctx, fotoCapa, { tamanhos: '(min-width: 1440px) 820px, (min-width: 900px) 58vw, 100vw', prioridade: true })}</figure>` : ''}
+    <div class="capa__pe">
+      <ul class="capa__vantagens">
+        ${vantagens.map((v) => `<li><a href="${esc(v.href)}"${v.fora ? ' target="_blank" rel="noopener"' : ''}><span class="capa__vicone">${v.icone}</span><span class="capa__vtexto"><strong>${esc(v.titulo)}</strong><span>${esc(v.texto)}</span></span></a></li>`).join('')}
+      </ul>
+      ${marcasCapa.length ? `<p class="capa__marcas"><span class="visualmente-escondido">Reparamos todas as marcas, como: </span>${marcasCapa.map((m) => `<span>${esc(m.nome)}</span>`).join('')}</p>` : ''}
     </div>
   </div>
-  ${fotoBanner ? `<figure class="banner__foto">${imagem(ctx, fotoBanner, { tamanhos: '(min-width: 1280px) 760px, (min-width: 800px) 58vw, 100vw', prioridade: true })}</figure>` : ''}
-</section>` : '';
-  const hCapa = banner ? 'h2' : 'h1';
-  const mosaico = `<section class="mosaico" aria-labelledby="capa-titulo">
-  <div class="mosaico__principal">
-    <div class="mosaico__palavras">
-      <p class="rotulo rotulo--claro">Reparação de telemóveis</p>
-      <${hCapa} class="mosaico__h1" id="capa-titulo">${esc(h.capa.titulo)}</${hCapa}>
-      ${h.capa.texto ? `<p class="mosaico__sub">${esc(h.capa.texto)}</p>` : ''}
-    </div>
-    ${escolhaRapida(ctx, h)}
-    ${h.capa.foto && ctx.manifesto.fotos[h.capa.foto] ? `<figure class="mosaico__foto">${imagem(ctx, h.capa.foto, { tamanhos: '(min-width: 1100px) 360px, (min-width: 700px) 40vw, 100vw', prioridade: !banner })}</figure>` : ''}
-  </div>
-  <a class="mosaico__cartao mosaico__cartao--retoma" href="${ctx.url('/retoma/')}">
-    <span class="rotulo rotulo--ouro">Retoma</span>
-    <strong class="mosaico__titulo">${esc(h.retoma.titulo)}</strong>
-    ${h.retoma.texto ? `<span class="mosaico__texto">${esc(h.retoma.texto)}</span>` : ''}
-    <span class="mosaico__seta">${esc(h.retoma.botao)}${icones.seta}</span>
-    <span class="mosaico__desenhos" aria-hidden="true">${usarAparelho('galaxy', 'mosaico__d1')}${usarAparelho('iphone-ilha', 'mosaico__d2')}</span>
-  </a>
-  ${terceiro}
 </section>`;
 
   /* AS CATEGORIAS numa fila redonda (como as lojas de electrónica): a imagem de um artigo dela, sem
@@ -210,9 +174,8 @@ export function inicio(ctx) {
     classe: 'pagina-inicio',
     jsonld: [org, { '@context': 'https://schema.org', '@type': 'WebSite', '@id': ctx.absoluto('/#site'), name: ctx.site.marca, url: ctx.absoluto('/'), inLanguage: 'pt-PT', publisher: { '@id': ctx.absoluto('/#loja') } }],
     conteudo: `${spriteAparelhos()}
+${capa}
 <div class="contentor inicio">
-  ${banner}
-  ${mosaico}
   ${filaCats}
   ${filaCampanha}
   ${destaques}

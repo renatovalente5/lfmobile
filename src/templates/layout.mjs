@@ -24,7 +24,7 @@ function logotipo(ctx, { alto = 40, classe = 'logo' } = {}) {
 /* A FAIXA DO TOPO, por esta ordem: a campanha que está a correr (com a ligação para a página dela),
    o aviso do dono (Dados da loja › Aviso do topo), ou as duas frases de sempre. À direita (no
    computador), a loja aberta ou fechada agora, calculada no browser pelo horário (site.js). */
-function faixaTopo(ctx) {
+function faixaTopo(ctx, { naCapa = false } = {}) {
   const c = ctx.campanhas[0];
   const a = ctx.site.aviso || {};
   let corpo;
@@ -35,6 +35,10 @@ function faixaTopo(ctx) {
   } else if (a.texto && !(a.ate && ctx.hoje > a.ate)) {
     corpo = a.ligacao ? `<a href="${ctx.url(a.ligacao)}">${esc(a.texto)}</a>` : `<span>${esc(a.texto)}</span>`;
     ate = a.ate || '';
+  } else if (naCapa) {
+    /* Na página inicial, as frases de sempre já estão na capa (as vantagens, em baixo): a faixa só
+       aparece com uma campanha ou um aviso. */
+    return '';
   } else {
     const t = ctx.site.entrega.transportadora;
     corpo = `<span class="faixa-topo__itens"><span>${icones.ferramentas}Orçamento grátis</span><span>${icones.camiao}${t ? `Envios ${esc(t)} 24/48 h` : 'Envios em 24/48 h'}</span><span class="so-largo">${icones.loja}Levantamento grátis em ${esc(ctx.site.local.localidade)}</span></span>`;
@@ -47,13 +51,17 @@ function faixaTopo(ctx) {
 </div>`;
 }
 
-/* A procura: a mesma no cabeçalho (computador) e na folha (telemóvel). Sem JavaScript vai para a
-   loja com ?q=. Os resultados vêm de assets/busca-*.json (artigos, modelos para reparar, páginas). */
+/* A procura: a mesma no cabeçalho (computador) e na folha (telemóvel, e a página inicial). Sem
+   JavaScript vai para a loja com ?q=. Os resultados vêm de assets/busca-*.json (artigos, modelos para
+   reparar, páginas). O campo (a pílula) e os resultados são irmãos: na folha os resultados ficam por
+   baixo do campo (antes de 12 nov 2026 estavam dentro da pílula e saíam ao lado, fora do ecrã). */
 function procura(ctx, id) {
   return `<form class="busca" role="search" action="${ctx.url('/loja/')}" data-busca="${esc(ctx.asset(ctx.ficheiros.busca))}">
-  <label class="visualmente-escondido" for="${id}">Procurar no site</label>
-  <span class="busca__lupa">${icones.pesquisa}</span>
-  <input id="${id}" name="q" type="search" placeholder="Procurar iPhone, Galaxy, película, reparação…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+  <div class="busca__campo">
+    <label class="visualmente-escondido" for="${id}">Procurar no site</label>
+    <span class="busca__lupa">${icones.pesquisa}</span>
+    <input id="${id}" name="q" type="search" placeholder="Procurar iPhone, Galaxy, película, reparação…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+  </div>
   <div class="busca__resultados" data-busca-resultados hidden></div>
 </form>`;
 }
@@ -95,6 +103,34 @@ function cabecalho(ctx, atual) {
     </ul>
     ${c ? `<a class="topo__campanha" href="${ctx.url(`/campanhas/${c.slug}/`)}"${marca(`/campanhas/${c.slug}/`)}>${icones.presente}<span>${esc(c.nome)}</span></a>` : ''}
   </nav>
+</header>`;
+}
+
+/* O CABEÇALHO DA PÁGINA INICIAL, por cima da capa (o Renato, 12 nov 2026: o Leandro «quer refazer por
+   completo a parte inicial do site, navbar», com a imagem dele): transparente, o logótipo e os ícones
+   em branco, e no computador quatro ligações em letras espaçadas, separadas por traços finos (como na
+   imagem). Ao descer, ganha um fundo escuro (html[data-rolado], site.js). A procura abre na folha (a
+   lupa, também no computador); a fila das categorias não entra: a loja está logo por baixo da capa.
+   No telemóvel é o de sempre: o menu, o logótipo, a lupa e o carrinho. */
+function cabecalhoDaCapa(ctx) {
+  const ligacoes = [
+    { caminho: '/loja/', nome: 'Loja' },
+    { caminho: '/reparacoes/', nome: 'Reparações' },
+    { caminho: '/retoma/', nome: 'Retoma' },
+    { caminho: '/contactos/', nome: 'Contactos' },
+  ];
+  return `<header class="topo topo--capa" data-topo>
+  <div class="topo__barra">
+    <button class="topo__botao topo__menu" type="button" data-abrir="menu" aria-haspopup="dialog">${icones.menu}<span class="visualmente-escondido">Menu</span></button>
+    <a class="topo__marca" href="${ctx.url('/')}" aria-current="page">${logotipo(ctx, { alto: 40 })}<span class="visualmente-escondido"> — página inicial</span></a>
+    <nav class="topo__ligacoes" aria-label="Principal">
+      <ul>${ligacoes.map((x) => `<li><a href="${ctx.url(x.caminho)}">${esc(x.nome)}</a></li>`).join('')}</ul>
+    </nav>
+    <div class="topo__direita">
+      <button class="topo__botao topo__lupa" type="button" data-abrir="procurar" aria-haspopup="dialog">${icones.pesquisa}<span class="visualmente-escondido">Procurar</span></button>
+      <a class="topo__botao topo__carrinho" href="${ctx.url('/carrinho/')}" data-abrir="carrinho" aria-haspopup="dialog">${icones.carrinho}<span class="visualmente-escondido">Carrinho</span><span class="topo__conta" data-conta hidden></span></a>
+    </div>
+  </div>
 </header>`;
 }
 
@@ -256,12 +292,14 @@ function whatsappFlutuante(ctx, classe) {
 }
 
 export function pagina(ctx, { titulo, descricao, caminho, conteudo, partilha, tipo = 'website', jsonld = [], classe = '', indexar = true }) {
+  // a página inicial começa pela capa escura, com o cabeçalho por cima (cabecalhoDaCapa)
+  const naCapa = String(classe).split(/\s+/).includes('pagina-inicio');
   const tituloCompleto = titulo.includes(ctx.site.marca) ? titulo : `${titulo} | ${ctx.site.marca}`;
   const cartao = partilha || ctx.manifesto.partilha._site;
   const l = ctx.manifesto.logo;
   const imgAbs = ctx.absoluto(`/assets/img/${cartao}`);
   return `<!doctype html>
-<html lang="pt-PT">
+<html lang="pt-PT"${naCapa ? ' class="na-capa"' : ''}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -292,8 +330,8 @@ ${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j).repl
 </head>
 <body class="${esc(classe)}" data-catalogo="${ctx.asset(ctx.ficheiros.catalogo)}" data-base="${ctx.url('/')}" data-api="${esc(ctx.api)}">
 <a class="saltar" href="#conteudo">Saltar para o conteúdo</a>
-${faixaTopo(ctx)}
-${cabecalho(ctx, caminho)}
+${faixaTopo(ctx, { naCapa })}
+${naCapa ? cabecalhoDaCapa(ctx) : cabecalho(ctx, caminho)}
 <main id="conteudo" tabindex="-1">
 ${conteudo}
 </main>

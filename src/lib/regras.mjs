@@ -1297,10 +1297,12 @@ export function portesDoPeso(kg, escaloes) {
 /* content/inicio.json                                                 */
 /* ------------------------------------------------------------------ */
 
-/* As secções da página inicial, pela ordem da página: a capa (com a escolha do modelo para
-   reparar e o cartão da retoma), os destaques da loja, as películas e a loja (a fotografia da
-   fachada). Poucas e curtas. A grelha dos problemas saiu para a página das reparações (o Renato, 10
-   nov 2026: «para não ficar gigante»). */
+/* As secções da página inicial, pela ordem da página: a capa (a ecrã inteiro desde 12 nov 2026: a
+   frase pequena, a frase grande, o texto, o botão para a loja e a fotografia), os destaques da loja,
+   as películas e a loja (a fotografia da fachada). Poucas e curtas. A grelha dos problemas saiu para
+   a página das reparações (o Renato, 10 nov 2026: «para não ficar gigante»). A «retoma» já não
+   aparece na página inicial (saiu com a capa nova), mas continua no ficheiro: o painel publicado
+   antes de 12 nov 2026 pede-a. */
 export const SECCOES_INICIO = Object.freeze(['seo', 'capa', 'destaques', 'retoma', 'peliculas', 'loja']);
 
 /* As fotografias que a página inicial usa (para saber se uma se pode apagar). */
@@ -1328,7 +1330,7 @@ export function problemasDoInicio(valor, { fotos = null } = {}) {
   /* Os textos todos: obrigatórios onde o gerador os escreve sem perguntar. Poucos e curtos. */
   const textos = [
     ['seo.titulo', TAMANHOS.inicioTitulo, true], ['seo.descricao', TAMANHOS.inicioTexto, true],
-    ['capa.titulo', TAMANHOS.inicioTitulo, true], ['capa.texto', TAMANHOS.inicioTexto, false], ['capa.botao', TAMANHOS.inicioCurto, true],
+    ['capa.rotulo', TAMANHOS.inicioCurto, false], ['capa.titulo', TAMANHOS.inicioTitulo, true], ['capa.texto', TAMANHOS.inicioTexto, false], ['capa.botao', TAMANHOS.inicioCurto, true],
     ['destaques.titulo', TAMANHOS.inicioTitulo, true], ['destaques.texto', TAMANHOS.inicioTexto, false], ['destaques.botao', TAMANHOS.inicioCurto, true],
     ['retoma.titulo', TAMANHOS.inicioTitulo, true], ['retoma.texto', TAMANHOS.inicioTexto, false], ['retoma.botao', TAMANHOS.inicioCurto, true],
     ['peliculas.titulo', TAMANHOS.inicioTitulo, true], ['peliculas.texto', TAMANHOS.inicioTexto, false], ['peliculas.botao', TAMANHOS.inicioCurto, true],

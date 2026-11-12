@@ -186,9 +186,33 @@ html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
 }
 @media (hover: hover) and (min-width: 900px) { .topo__fila a:hover { color: var(--tinta); background: var(--cinza); } .topo__fila .topo__campanha:hover { background: var(--escuro-3); color: var(--ouro-claro); } }
 
+/* o cabeçalho da página inicial (topo--capa): transparente por cima da capa, com o logótipo e os ícones
+   em branco; ao descer, um fundo escuro. No computador, as quatro ligações em letras espaçadas. */
+.topo--capa { margin-bottom: calc(-1 * var(--topo) - 1px); background: transparent; border-bottom-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; transition: background-color .25s, border-color .25s; }
+html[data-rolado="sim"] .topo--capa { background: rgba(6, 6, 7, .84); border-bottom-color: rgba(255, 255, 255, .08); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); box-shadow: none; }
+.topo--capa .logo { filter: invert(1); }
+@media (min-width: 1100px) { .topo--capa .topo__marca .logo { height: 52px; } }
+.topo--capa .topo__botao { color: var(--branco); }
+.topo--capa :focus-visible { outline-color: var(--branco); }
+@media (hover: hover) { .topo--capa .topo__botao:hover { background: rgba(255, 255, 255, .12); } }
+.topo__ligacoes { display: none; }
+@media (min-width: 900px) {
+  .topo--capa .topo__lupa { display: inline-flex; }
+  .topo__ligacoes { display: block; margin-left: auto; }
+  .topo__ligacoes ul { display: flex; align-items: center; }
+  .topo__ligacoes li { display: flex; align-items: center; }
+  .topo__ligacoes li + li::before { content: ''; width: 1px; height: 14px; background: rgba(255, 255, 255, .3); }
+  .topo__ligacoes a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 clamp(12px, 1.6vw, 22px); color: rgba(255, 255, 255, .86); text-decoration: none; font-size: .78rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; transition: color .15s; }
+  .topo--capa .topo__direita { margin-left: 4px; }
+}
+@media (hover: hover) { .topo__ligacoes a:hover { color: var(--branco); } }
+/* a folha da procura no computador (na página inicial abre-se pela lupa): o campo ao meio, não de ponta a ponta */
+@media (min-width: 900px) { .folha-procura__topo, .folha-procura__atalhos { max-width: 760px; margin-left: auto; margin-right: auto; } }
+
 /* ---------------------------------------------------------------- a procura */
-.busca { position: relative; display: flex; align-items: center; height: 44px; border-radius: 999px; background: var(--cinza); border: 1px solid transparent; transition: border-color .15s, background-color .15s, box-shadow .15s; }
-.busca:focus-within { background: var(--papel); border-color: var(--tinta); box-shadow: 0 0 0 3px rgba(17, 17, 19, .06); }
+.busca { position: relative; }
+.busca__campo { display: flex; align-items: center; height: 44px; border-radius: 999px; background: var(--cinza); border: 1px solid transparent; transition: border-color .15s, background-color .15s, box-shadow .15s; }
+.busca__campo:focus-within { background: var(--papel); border-color: var(--tinta); box-shadow: 0 0 0 3px rgba(17, 17, 19, .06); }
 .busca__lupa { display: inline-flex; padding-left: 16px; color: var(--tinta-3); }
 .busca input { flex: 1; min-width: 0; height: 100%; padding: 0 16px 0 10px; border: 0; background: none; outline: none; font-size: .95rem; }
 .busca input::-webkit-search-cancel-button { -webkit-appearance: none; }
@@ -244,7 +268,7 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 @media (hover: hover) { .redes a:hover { background: var(--tinta); color: var(--branco); border-color: var(--tinta); } }
 .folha-procura { position: fixed; inset: 0 0 auto 0; width: 100%; }
 .folha-procura__corpo { background: var(--papel); padding: 12px var(--margem) 20px; border-radius: 0 0 var(--raio) var(--raio); box-shadow: var(--sombra); outline: none; max-height: 100dvh; overflow: auto; }
-.folha-procura__topo { display: flex; align-items: center; gap: 10px; }
+.folha-procura__topo { display: flex; align-items: flex-start; gap: 10px; }
 .folha-procura__topo .busca { flex: 1; }
 .folha-procura__topo .busca__resultados { position: static; margin-top: 10px; box-shadow: none; border: 0; padding: 0; max-height: none; }
 .folha-procura__topo { flex-wrap: wrap; }
@@ -270,79 +294,60 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
   @keyframes deCima { from { transform: translateY(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
 }
 
-/* ---------------------------------------------------------------- página inicial: o banner */
-/* A faixa escura do topo (o banner do Leandro, 12 nov 2026): a frase à esquerda e a fotografia dos
-   aparelhos à direita, a fundir-se no preto do cartão; no telemóvel, a fotografia por baixo do texto. */
-.banner { position: relative; display: grid; margin-bottom: 12px; border-radius: var(--raio-g); background: radial-gradient(90% 120% at 0% 0%, #26262A 0%, rgba(38, 38, 42, 0) 60%), #050505; color: var(--branco); overflow: hidden; isolation: isolate; }
-@media (min-width: 900px) { .banner { margin-bottom: 16px; } }
-.banner__palavras { position: relative; z-index: 1; display: grid; gap: 14px; align-content: center; padding: clamp(26px, 5vw, 60px) clamp(22px, 4vw, 56px) 8px; }
-.banner__rotulo { font-size: clamp(.72rem, .66rem + .3vw, .9rem); font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: rgba(255, 255, 255, .78); }
-.banner__titulo { font-size: clamp(2.7rem, 1.7rem + 4.6vw, 5.4rem); font-weight: 800; letter-spacing: -.02em; line-height: .94; text-transform: uppercase; color: var(--branco); }
+/* ---------------------------------------------------------------- página inicial: a capa */
+/* A capa a ocupar o ecrã (o Leandro e o Renato, 12 nov 2026, com a imagem dele): um fundo quase preto
+   com duas luzes suaves (como a sala da imagem), a frase à esquerda, a fotografia dos aparelhos à
+   direita a fundir-se no fundo, e em baixo as vantagens e as marcas. O cabeçalho fica por cima
+   (topo--capa). No telemóvel: o texto, a fotografia de ponta a ponta e as três vantagens. */
+html.na-capa { background: #040404; }
+.capa { position: relative; background: radial-gradient(70% 55% at 8% 0%, rgba(255, 255, 255, .075) 0%, rgba(255, 255, 255, 0) 70%), radial-gradient(55% 65% at 76% 48%, rgba(255, 255, 255, .05) 0%, rgba(255, 255, 255, 0) 70%), #040404; color: var(--branco); overflow: hidden; isolation: isolate; }
+.capa__dentro { display: grid; gap: 22px; align-content: center; min-height: 100vh; min-height: 100svh; max-width: 1440px; margin: 0 auto; padding: calc(var(--topo) + 20px) var(--margem) 28px; }
+.capa__palavras { display: grid; gap: 14px; align-content: start; }
+.capa__rotulo { font-size: clamp(.72rem, .64rem + .35vw, .95rem); font-weight: 500; letter-spacing: .38em; text-transform: uppercase; color: rgba(255, 255, 255, .8); }
+.capa__titulo { font-size: clamp(3.1rem, 1.5rem + 5.4vw, 6.4rem); font-weight: 800; letter-spacing: -.015em; line-height: .92; text-transform: uppercase; color: var(--branco); }
 @supports ((-webkit-background-clip: text) or (background-clip: text)) {
-  .banner__titulo { background: linear-gradient(180deg, #FFFFFF 38%, #9C9CA3 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .capa__titulo { background: linear-gradient(180deg, #FFFFFF 40%, #9A9AA1 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
 }
-@media (forced-colors: active) { .banner__titulo { background: none; color: CanvasText; } }
-.banner__texto { font-size: clamp(1.02rem, .95rem + .35vw, 1.25rem); color: rgba(255, 255, 255, .86); max-width: 30ch; }
-.banner__botoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 6px; }
-.botao--vidro { background: rgba(255, 255, 255, .08); color: var(--branco); border-color: rgba(255, 255, 255, .3); }
+@media (forced-colors: active) { .capa__titulo { background: none; color: CanvasText; } }
+.capa__texto { font-size: clamp(1.02rem, .94rem + .4vw, 1.32rem); line-height: 1.45; color: rgba(255, 255, 255, .88); max-width: 30ch; }
+.capa__botoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.botao--vidro { background: rgba(255, 255, 255, .08); color: var(--branco); border-color: rgba(255, 255, 255, .32); }
 @media (hover: hover) { .botao--vidro:hover { background: rgba(255, 255, 255, .16); color: var(--branco); } }
-.banner__foto { position: relative; margin: 0; }
-.banner__foto img { display: block; width: 100%; height: auto; -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 22%); mask-image: linear-gradient(180deg, transparent 0%, #000 22%); }
-.banner--sem-foto .banner__palavras { padding-bottom: clamp(26px, 5vw, 60px); }
-@media (min-width: 800px) {
-  .banner { grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); align-items: center; min-height: 380px; }
-  .banner--sem-foto { grid-template-columns: 1fr; }
-  .banner__palavras { padding: clamp(28px, 4vw, 56px); padding-right: 0; }
-  .banner__foto { align-self: stretch; }
-  .banner__foto picture { display: block; height: 100%; }
-  .banner__foto img { height: 100%; object-fit: cover; object-position: 0% 50%; -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 14%); mask-image: linear-gradient(90deg, transparent 0%, #000 14%); }
+.capa :focus-visible { outline-color: var(--branco); }
+.capa__foto { margin: 0 calc(-1 * var(--margem)); }
+.capa__foto img { display: block; width: 100%; height: auto; -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%); }
+.capa__vantagens { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.capa__vantagens a { display: grid; justify-items: center; align-content: start; gap: 8px; padding: 6px 2px; border-radius: var(--raio-m); color: inherit; text-align: center; text-decoration: none; transition: background-color .15s; }
+@media (hover: hover) { .capa__vantagens a:hover { background: rgba(255, 255, 255, .06); } }
+.capa__vicone { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .24); color: var(--ouro-claro); }
+.capa__vicone .icone { width: 20px; height: 20px; }
+.capa__vtexto { display: grid; gap: 2px; }
+.capa__vtexto strong { font-size: .72rem; font-weight: 800; letter-spacing: .07em; line-height: 1.25; text-transform: uppercase; }
+.capa__vtexto span { font-size: .72rem; line-height: 1.3; color: rgba(255, 255, 255, .66); }
+.capa__marcas { display: none; }
+.capa--sem-foto .capa__dentro { align-content: center; }
+@media (min-width: 900px) {
+  .capa__dentro { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); grid-template-rows: 1fr auto; grid-template-areas: "palavras foto" "pe pe"; column-gap: clamp(16px, 3vw, 48px); row-gap: 28px; align-content: stretch; padding: calc(var(--topo) + 28px) clamp(24px, 4vw, 64px) 36px; }
+  .capa--sem-foto .capa__dentro { grid-template-columns: 1fr; grid-template-areas: "palavras" "pe"; }
+  .capa__pe { grid-area: pe; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px 32px; }
+  .capa__palavras { grid-area: palavras; align-self: center; gap: 18px; }
+  .capa__foto { grid-area: foto; align-self: center; margin: 0 calc(-1 * clamp(24px, 4vw, 64px)) 0 0; }
+  .capa__foto img { -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 16%, #000 94%, transparent 100%), linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%); -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent 0%, #000 16%, #000 94%, transparent 100%), linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%); mask-composite: intersect; }
+  .capa__vantagens { display: flex; flex-wrap: wrap; gap: 8px clamp(12px, 2.5vw, 36px); }
+  .capa__vantagens a { grid-auto-flow: column; justify-items: start; align-items: center; gap: 12px; padding: 6px 10px 6px 6px; text-align: left; }
+  .capa__vtexto strong, .capa__vtexto span { font-size: .78rem; }
+}
+/* as marcas, em baixo à direita, só onde cabem ao lado das vantagens */
+@media (min-width: 1240px) {
+  .capa__marcas { display: flex; align-items: center; flex: none; padding-bottom: 12px; }
+  .capa__marcas > span:not(.visualmente-escondido) { padding: 0 16px; font-size: .95rem; font-weight: 700; letter-spacing: .02em; line-height: 1.1; color: rgba(255, 255, 255, .74); }
+  .capa__marcas > span:not(.visualmente-escondido) + span { border-left: 1px solid rgba(255, 255, 255, .24); }
+  .capa__marcas > span:last-child { padding-right: 0; }
 }
 
-/* ---------------------------------------------------------------- página inicial: o mosaico */
-.inicio { padding-top: 16px; }
-@media (min-width: 900px) { .inicio { padding-top: 24px; } }
-.mosaico { display: grid; gap: 12px; }
-@media (min-width: 900px) { .mosaico { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); grid-template-rows: auto auto; gap: 16px; } .mosaico__principal { grid-row: span 2; } }
-.mosaico__principal { position: relative; display: grid; gap: 20px; padding: clamp(22px, 4vw, 44px); border-radius: var(--raio-g); background: radial-gradient(120% 90% at 85% 0%, #2B2418 0%, rgba(43, 36, 24, 0) 55%), var(--escuro); color: var(--branco); overflow: hidden; }
-/* no computador, a fotografia fica ao lado do texto e a escolha do modelo por baixo dos dois, a toda a largura
-   (o Renato, 10 nov 2026: no meio da coluna, o «Escolha o modelo» ficava cortado) */
-@media (min-width: 1100px) { .mosaico__principal { grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); grid-template-areas: "palavras foto" "rapido rapido"; align-items: center; row-gap: 28px; } .mosaico__palavras { grid-area: palavras; } .mosaico__foto { grid-area: foto; } .mosaico__principal > .rapido { grid-area: rapido; } }
-.mosaico__palavras { display: grid; gap: 14px; align-content: start; }
-.mosaico__h1 { font-size: clamp(2rem, 1.3rem + 3vw, 3.4rem); font-weight: 800; letter-spacing: -.035em; line-height: 1.02; max-width: 13ch; }
-.mosaico__sub { color: rgba(255, 255, 255, .78); font-size: clamp(1rem, .95rem + .25vw, 1.12rem); max-width: 42ch; }
-.mosaico__foto { position: relative; display: none; }
-@media (min-width: 1100px) { .mosaico__foto { display: block; transform: rotate(2deg); } }
-.mosaico__foto img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--raio); box-shadow: 0 24px 60px rgba(0, 0, 0, .5); }
-.mosaico__cartao { position: relative; display: grid; align-content: start; gap: 8px; min-height: 200px; padding: 24px; border-radius: var(--raio-g); text-decoration: none; overflow: hidden; isolation: isolate; transition: transform .2s ease; }
-@media (hover: hover) { .mosaico__cartao:hover { transform: translateY(-2px); } .mosaico__cartao:hover .mosaico__seta .icone { transform: translateX(3px); } }
-.mosaico__titulo { font-size: clamp(1.25rem, 1.05rem + .8vw, 1.6rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.12; max-width: 15ch; }
-.mosaico__texto { font-size: .95rem; max-width: 26ch; }
-.mosaico__seta { display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 10px; font-weight: 800; font-size: .95rem; }
-.mosaico__seta .icone { transition: transform .15s; }
-.mosaico__grande { font-size: clamp(2.6rem, 2rem + 2vw, 3.6rem); font-weight: 800; letter-spacing: -.04em; line-height: 1; color: var(--ouro); }
-.mosaico__cartao--retoma { background: linear-gradient(140deg, #F7EED6 0%, #EFDDB0 100%); color: var(--tinta); }
-.mosaico__cartao--retoma .rotulo { color: var(--ouro-texto); }
-.mosaico__cartao--retoma .mosaico__texto { color: var(--tinta-2); max-width: 20ch; }
-.mosaico__desenhos { position: absolute; right: -6px; bottom: -34px; z-index: -1; display: flex; align-items: flex-end; }
-.mosaico__desenhos .aparelho { width: 74px; height: auto; filter: drop-shadow(0 10px 18px rgba(80, 60, 20, .25)); }
-.mosaico__d1 { transform: rotate(-12deg) translate(26px, 4px); }
-.mosaico__d2 { transform: rotate(8deg); }
-.mosaico__cartao--loja { background: var(--cinza); color: var(--tinta); }
-.mosaico__cartao--loja .mosaico__texto { color: var(--tinta-2); max-width: 18ch; }
-.mosaico__produto { position: absolute; right: 8px; bottom: 0; z-index: -1; width: 38%; max-width: 150px; }
-.mosaico__produto img { width: 100%; height: auto; filter: drop-shadow(0 12px 20px rgba(17, 17, 19, .18)); }
-.mosaico__cartao--campanha { background: radial-gradient(90% 90% at 100% 0%, #3A2E14 0%, rgba(58, 46, 20, 0) 60%), var(--escuro); color: var(--branco); }
-.mosaico__cartao--campanha .mosaico__texto { color: var(--claro-2); }
-
-/* a escolha rápida do modelo (na capa) */
-.rapido { display: grid; gap: 10px; margin-top: 4px; padding: 10px; border-radius: var(--raio); background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .1); }
-@media (min-width: 560px) { .rapido { grid-template-columns: minmax(0, 1fr) auto; align-items: end; } }
-.rapido__campos { display: grid; grid-template-columns: minmax(118px, .55fr) minmax(0, 1fr); gap: 8px; }
-.rapido__campo { display: grid; gap: 4px; }
-.rapido__campo label { font-size: .74rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--claro-2); padding-left: 4px; }
-.rapido__campo select { width: 100%; min-height: 48px; padding: 8px 34px 8px 14px; border-radius: var(--raio-m); border: 1px solid rgba(255, 255, 255, .16); background: var(--escuro-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23E3C681' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px; color: var(--branco); font-weight: 600; -webkit-appearance: none; appearance: none; }
-.rapido__campo select:focus-visible { outline: 2px solid var(--ouro); outline-offset: 2px; }
-.rapido .botao { min-height: 48px; }
+/* ---------------------------------------------------------------- página inicial: depois da capa */
+.inicio { padding-top: 28px; }
+@media (min-width: 900px) { .inicio { padding-top: 40px; } }
 
 /* ---------------------------------------------------------------- as categorias numa fila redonda */
 .cat-fila { margin: 26px 0 8px; }
@@ -1104,7 +1109,7 @@ html[data-whatsapp-fim="sim"] .whatsapp-flutuante { opacity: 0; visibility: hidd
    30 px em 0,7 s e acendem em 0,9 s, uns atrás dos outros (0,1 s). O site.js só põe .revelar no que
    está abaixo do ecrã quando a página abre: o que já se vê nunca pisca, e sem JavaScript está tudo à
    vista. Onde o browser anima com o próprio scroll (animation-timeline), as fotografias acompanham a
-   descida: os cartões da capa recuam ao sair, a fotografia da capa sobe mais devagar, a da loja e a
+   descida: o texto da capa recua ao sair, a fotografia da capa desce mais devagar, a da loja e a
    do «Sobre» aproximam-se ao entrar e as películas flutuam. Usa-se translate e scale (e não
    transform), para não pisar o :hover dos cartões. Com «reduzir movimento» no sistema, nada disto. */
 @media (prefers-reduced-motion: no-preference) {
@@ -1114,10 +1119,10 @@ html[data-whatsapp-fim="sim"] .whatsapp-flutuante { opacity: 0; visibility: hidd
   @keyframes lf-sobe { from { translate: 0 30px; } }
 
   @supports (animation-timeline: view()) {
-    .mosaico > * { animation: lf-recua linear both; animation-timeline: view(); animation-range: exit 0% exit 100%; }
-    @keyframes lf-recua { to { scale: .94; opacity: .8; } }
-    .mosaico__foto img { animation: lf-devagar linear both; animation-timeline: scroll(root); animation-range: 0 80vh; }
-    @keyframes lf-devagar { to { translate: 0 -40px; } }
+    .capa__palavras, .capa__vantagens { animation: lf-recua linear both; animation-timeline: view(); animation-range: exit 0% exit 100%; }
+    @keyframes lf-recua { to { scale: .94; opacity: .5; } }
+    .capa__foto img { animation: lf-devagar linear both; animation-timeline: scroll(root); animation-range: 0 100vh; }
+    @keyframes lf-devagar { to { translate: 0 70px; } }
     .loja-casa__foto img, .sobre__foto img { animation: lf-aproxima linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
     @keyframes lf-aproxima { from { scale: 1.14; } }
     .faixa-peliculas__img img { animation: lf-flutua linear both; animation-timeline: view(); animation-range: cover; }
