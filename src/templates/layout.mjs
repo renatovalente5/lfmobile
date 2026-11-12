@@ -81,9 +81,8 @@ const ICONE_CATEGORIA = { apple: 'telemovel', samsung: 'telemovel', recondiciona
    e Retoma e uma fila com as categorias, que repetia as pílulas da loja): escuro, o logótipo em branco, e
    no computador quatro ligações em letras espaçadas, separadas por traços finos (como na imagem da LF
    Mobile), com a página onde se está assinalada; a procura abre na folha (a lupa); o carrinho. No
-   telemóvel: o menu, o logótipo, a lupa e o carrinho. Na página inicial (naCapa) fica transparente por
-   cima da capa, e o logótipo, os ícones e as palavras crescem no topo (o CSS): por isso o logótipo vem
-   na versão maior (alto 96 → a de 192 px, nítida ao dobro). */
+   telemóvel: o menu, o logótipo, a lupa e o carrinho. Claro, com o logótipo a preto, como ele é; na
+   página inicial (naCapa), só no topo, transparente por cima da capa com o logótipo em branco (o CSS). */
 const LIGACOES_DO_TOPO = [
   { caminho: '/loja/', nome: 'Loja', tambem: ['/produtos/', '/campanhas/'] },
   { caminho: '/reparacoes/', nome: 'Reparações' },
@@ -95,7 +94,7 @@ function cabecalho(ctx, atual, { naCapa = false } = {}) {
   return `<header class="topo${naCapa ? ' topo--capa' : ''}" data-topo>
   <div class="topo__barra">
     <button class="topo__botao topo__menu" type="button" data-abrir="menu" aria-haspopup="dialog">${icones.menu}<span class="visualmente-escondido">Menu</span></button>
-    <a class="topo__marca" href="${ctx.url('/')}"${atual === '/' ? ' aria-current="page"' : ''}>${logotipo(ctx, { alto: naCapa ? 96 : 52 })}<span class="visualmente-escondido"> — página inicial</span></a>
+    <a class="topo__marca" href="${ctx.url('/')}"${atual === '/' ? ' aria-current="page"' : ''}>${logotipo(ctx, { alto: 46 })}<span class="visualmente-escondido"> — página inicial</span></a>
     <nav class="topo__ligacoes" aria-label="Principal">
       <ul>${LIGACOES_DO_TOPO.map((x) => `<li><a href="${ctx.url(x.caminho)}"${corrente(x) ? ' aria-current="page"' : ''}>${esc(x.nome)}</a></li>`).join('')}</ul>
     </nav>
@@ -179,52 +178,28 @@ function folhaProcura(ctx) {
 </dialog>`;
 }
 
-/* O RODAPÉ (memória rodape-com-logotipo): o logótipo, a frase e as redes; a Loja, as Reparações e a
-   Ajuda em colunas; em baixo as páginas legais numa linha, com o Livro de Reclamações discreto. Sem o
-   bloco dos contactos e do horário (o Renato, 8 nov 2026): estão na página dos contactos. Sem o nome
-   do dono, o NIF e a morada na linha do «©» (o Renato, 12 nov 2026: «não precisa de estar lá»): a
-   identificação de quem vende está nos Contactos, nos Termos e na Privacidade, que o rodapé liga em
-   todas as páginas (memória rodape-sem-dados-da-empresa). */
+/* O RODAPÉ, curto (o Renato, 12 nov 2026: «está cheio de informação… essa lista de reparações está aí a
+   mais, refaz o rodapé»): o logótipo e a frase, as quatro ligações de ajuda e as redes; em baixo o «©»
+   (só o ano e a marca: memória rodape-sem-dados-da-empresa) e as páginas legais numa linha, com o Livro
+   de Reclamações discreto. Sem as colunas da Loja e das Reparações: estão no cabeçalho, na loja e nas
+   reparações (memória sem-informacao-repetida). */
 function rodape(ctx) {
-  /* As garantias (a nota do Google, o orçamento, os envios e o levantamento) estão só no fim da
-     página inicial, em cartões (o Renato, 11 nov 2026): já não há faixa por cima do rodapé. */
   const ligacao = (caminho, texto) => `<li><a href="${ctx.url(caminho)}">${esc(texto)}</a></li>`;
-  const comModelos = ctx.aparelhos.familias.filter((f) => ctx.aparelhos.modelos.some((m) => m.familia === f.id));
-  // as reparações no rodapé: a primeira família de cada marca (iPhone, Galaxy S, Redmi…), até seis
-  const familias = ctx.aparelhos.marcas.map((m) => comModelos.find((f) => f.marca === m.id)).filter(Boolean);
   return `<footer class="rodape">
   <div class="rodape__corpo">
     <div class="rodape__marca">
       <a class="rodape__logo" href="${ctx.url('/')}">${logotipo(ctx, { alto: 52, classe: 'rodape__logo-img' })}<span class="visualmente-escondido"> — página inicial</span></a>
       <p class="rodape__frase">${esc(ctx.site.assinatura)}</p>
-      ${redes(ctx, 'redes redes--rodape')}
     </div>
-    <nav class="rodape__nav" aria-label="Rodapé">
-      <div class="rodape__coluna">
-        <h2>Loja</h2>
-        <ul>
-          ${categoriasComArtigos(ctx).map((k) => ligacao(`/loja/${k.slug}/`, k.nome)).join('')}
-          ${ligacao('/loja/', 'Toda a loja')}
-        </ul>
-      </div>
-      <div class="rodape__coluna">
-        <h2>Reparações</h2>
-        <ul>
-          ${[...familias.slice(0, 6), ...comModelos.filter((f) => f.tipo === 'consola' || f.tipo === 'computador')].map((f) => ligacao(`/reparacoes/${f.id}/`, `${f.nome}`)).join('')}
-          ${ligacao('/reparacoes/', 'Todas as reparações')}
-        </ul>
-      </div>
-      <div class="rodape__coluna">
-        <h2>Ajuda</h2>
-        <ul>
-          ${ligacao('/retoma/', 'Retoma do seu telemóvel')}
-          ${ligacao('/envios-e-devolucoes/', 'Envios e devoluções')}
-          ${ligacao('/perguntas-frequentes/', 'Perguntas frequentes')}
-          ${ligacao('/sobre-nos/', 'Sobre a LF Mobile')}
-          ${ligacao('/contactos/', 'Contactos')}
-        </ul>
-      </div>
+    <nav class="rodape__nav" aria-label="Ajuda">
+      <ul class="rodape__ligacoes">
+        ${ligacao('/envios-e-devolucoes/', 'Envios e devoluções')}
+        ${ligacao('/perguntas-frequentes/', 'Perguntas frequentes')}
+        ${ligacao('/sobre-nos/', 'Sobre a LF Mobile')}
+        ${ligacao('/contactos/', 'Contactos')}
+      </ul>
     </nav>
+    ${redes(ctx, 'redes redes--rodape')}
   </div>
   <div class="rodape__fim">
     <p class="rodape__direitos">© ${ctx.hoje.slice(0, 4)} ${esc(ctx.site.marca)}</p>
@@ -294,7 +269,7 @@ ${!ctx.producao ? '<meta name="robots" content="noindex, nofollow">\n' : indexar
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="${esc(ctx.site.marca)}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0C0C0D">
+<meta name="theme-color" content="${naCapa ? '#040404' : '#FFFFFF'}">
 <link rel="icon" type="image/png" sizes="32x32" href="${ctx.asset(`img/${l.icones[32]}`)}">
 <link rel="icon" type="image/png" sizes="48x48" href="${ctx.asset(`img/${l.icones[48]}`)}">
 <link rel="apple-touch-icon" href="${ctx.asset(`img/${l.icones.apple}`)}">

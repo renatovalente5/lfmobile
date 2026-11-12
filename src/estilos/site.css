@@ -158,81 +158,60 @@ mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; borde
 .estado-loja[data-aberta="sim"]::before { background: #2FA866; box-shadow: 0 0 0 3px rgba(47, 168, 102, .18); }
 
 /* ---------------------------------------------------------------- cabeçalho */
-/* UM SÓ CABEÇALHO em todas as páginas (o Renato, 12 nov 2026: «está aqui informação repetida para as
-   páginas… se for preciso refaz a Navbar também nas outras páginas»): o da capa — escuro, o logótipo em
-   branco, quatro ligações em letras espaçadas (Loja · Reparações · Retoma · Contactos), a lupa (a procura
-   abre na folha) e o carrinho. Saíram a procura larga, os botões «Reparações» e «Retoma» e a fila das
-   categorias (as categorias estão nas pílulas da loja, na fila redonda da página inicial, no menu e no
-   rodapé). Com uma barra só, os painéis que se prendem ao descer (top: --topo + 16px) já não ficam meio
-   tapados. Na página inicial fica transparente por cima da capa e cresce no topo (topo--capa, abaixo). */
-.topo { position: sticky; top: 0; z-index: 50; background: rgba(6, 6, 7, .96); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); border-bottom: 1px solid rgba(255, 255, 255, .08); color: var(--branco); transition: box-shadow .2s; }
-html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .14); }
+/* UM SÓ CABEÇALHO em todas as páginas (o Renato, 12 nov 2026: «está aqui informação repetida…»), CLARO,
+   com o logótipo como ele é, a preto («a navbar não pode ser preta, porque o logo original é preto»): o
+   logótipo, quatro ligações em letras espaçadas (Loja · Reparações · Retoma · Contactos), a lupa (a
+   procura abre na folha) e o carrinho. Na página inicial, só no topo, fica transparente por cima da capa
+   escura, com o logótipo em branco; mal se começa a descer passa a este (topo--capa, abaixo). Sempre do
+   mesmo tamanho («já não quero que [o logo] fique maior quando estamos no topo»; as letras e os ícones
+   «ficaram muito grandes, volta a meter pequeno»). As cores das letras e dos ícones vêm da cor do
+   cabeçalho (currentColor): assim a capa muda tudo de uma vez. */
+.topo { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, .97); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); border-bottom: 1px solid var(--linha); color: var(--tinta); transition: box-shadow .2s; }
+html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
 .topo__barra { max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); height: var(--topo); display: flex; align-items: center; gap: 8px; }
 @media (min-width: 900px) { .topo__barra { gap: 24px; } }
 .topo__marca { display: inline-flex; align-items: center; flex: none; }
-.topo__marca .logo { height: 40px; width: auto; filter: invert(1); }
-@media (min-width: 1100px) { .topo__marca .logo { height: 52px; } }
+.topo__marca .logo { height: 40px; width: auto; }
+@media (min-width: 1100px) { .topo__marca .logo { height: 46px; } }
 .topo__direita { display: flex; align-items: center; gap: 4px; margin-left: auto; }
-.topo__botao { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 999px; color: var(--branco); text-decoration: none; font-weight: 700; font-size: .92rem; transition: background-color .15s; }
-@media (hover: hover) { .topo__botao:hover { background: rgba(255, 255, 255, .12); } }
-.topo :focus-visible { outline-color: var(--branco); }
+.topo__botao { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 999px; color: inherit; text-decoration: none; font-weight: 700; font-size: .92rem; transition: background-color .15s; }
+@media (hover: hover) { .topo__botao:hover { background: color-mix(in srgb, currentColor 9%, transparent); } }
+.topo :focus-visible { outline-color: currentColor; }
 .topo__menu { margin-left: -8px; }
 @media (min-width: 900px) { .topo__menu { display: none; } }
 .topo__conta { position: absolute; top: 3px; right: 1px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--ouro); color: var(--escuro); font-size: .7rem; font-weight: 800; line-height: 19px; text-align: center; }
 /* as quatro ligações (computador): letras espaçadas e traços finos, como na imagem da LF Mobile; a
-   página onde se está fica branca, com um traço dourado por baixo */
+   página onde se está fica com a cor cheia e um traço dourado por baixo */
 .topo__ligacoes { display: none; }
 @media (min-width: 900px) {
   .topo__ligacoes { display: block; margin-left: auto; }
   .topo__ligacoes ul { display: flex; align-items: center; }
   .topo__ligacoes li { display: flex; align-items: center; }
-  .topo__ligacoes li + li::before { content: ''; width: 1px; height: 14px; background: rgba(255, 255, 255, .3); }
-  .topo__ligacoes a { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0 clamp(12px, 1.6vw, 22px); color: rgba(255, 255, 255, .78); text-decoration: none; font-size: .78rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; transition: color .15s; }
-  .topo__ligacoes a[aria-current="page"] { color: var(--branco); }
+  .topo__ligacoes li + li::before { content: ''; width: 1px; height: 14px; background: currentColor; opacity: .22; }
+  .topo__ligacoes a { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0 clamp(12px, 1.6vw, 22px); color: inherit; opacity: .72; text-decoration: none; font-size: .78rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; transition: opacity .15s; }
+  .topo__ligacoes a[aria-current="page"] { opacity: 1; }
   .topo__ligacoes a[aria-current="page"]::after { content: ''; position: absolute; left: clamp(12px, 1.6vw, 22px); right: calc(clamp(12px, 1.6vw, 22px) + .18em); bottom: 7px; height: 2px; border-radius: 2px; background: var(--ouro); }
   .topo__direita { margin-left: 4px; }
 }
-@media (hover: hover) { .topo__ligacoes a:hover { color: var(--branco); } }
+@media (hover: hover) { .topo__ligacoes a:hover { opacity: 1; } }
 /* a folha da procura no computador (abre-se pela lupa): o campo ao meio, não de ponta a ponta */
 @media (min-width: 900px) { .folha-procura__topo, .folha-procura__atalhos { max-width: 760px; margin-left: auto; margin-right: auto; } }
 
-/* o cabeçalho da página inicial (topo--capa): transparente por cima da capa; ao descer, o fundo escuro
-   de todas as outras páginas. */
-.topo--capa { --logo-topo: 1.1; margin-bottom: calc(-1 * var(--topo) - 1px); background: transparent; border-bottom-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; transition: background-color .2s, border-color .2s; }
-@media (min-width: 900px) { .topo--capa { --logo-topo: 1.35; } }
-html[data-rolado="sim"] .topo--capa { background: rgba(6, 6, 7, .96); border-bottom-color: rgba(255, 255, 255, .08); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); box-shadow: none; }
-/* o logótipo grande no topo da página (o Renato, 12 nov 2026: «quero ter o logo maior quando estou no
-   topo da página, e quando começo a descer na página o logo diminui»; depois «ficou muito grande,
-   diminui»: de 1,8× passou a 1,35× no computador, e de 1,5× a 1,2× no telemóvel; depois, no telemóvel,
-   «devia diminuir mais quando está no topo da página também»: 1,1×): cresce a partir do canto de
-   cima, para baixo, por cima da capa (não empurra nada: a barra fica com a mesma altura); ao descer
-   (html[data-rolado], ao mesmo tempo que a barra escurece) volta ao tamanho da barra. */
-.topo--capa .topo__marca { position: relative; z-index: 1; }
-.topo--capa .topo__marca .logo { transform-origin: 0 0; transition: scale .2s cubic-bezier(.2, .7, .2, 1); }
-html:not([data-rolado="sim"]) .topo--capa .topo__marca .logo { scale: var(--logo-topo); }
-/* os ícones e as palavras do menu crescem e encolhem com o logótipo, na mesma proporção (o Renato, 12
-   nov 2026: «os icons da navbar e texto também deviam acompanhar o aumento do logo»): a letra deles
-   (os ícones medem 1,25em; as palavras levam o espaçamento em em) */
-.topo--capa .topo__botao { transition: background-color .15s, font-size .2s cubic-bezier(.2, .7, .2, 1); }
-html:not([data-rolado="sim"]) .topo--capa .topo__botao { font-size: calc(.92rem * var(--logo-topo)); }
-@media (min-width: 900px) {
-  .topo--capa .topo__ligacoes a { transition: color .15s, font-size .2s cubic-bezier(.2, .7, .2, 1); }
-  html:not([data-rolado="sim"]) .topo--capa .topo__ligacoes a { font-size: calc(.78rem * var(--logo-topo)); }
-}
-@media (prefers-reduced-motion: reduce) { .topo--capa .topo__marca .logo, .topo--capa .topo__botao, .topo--capa .topo__ligacoes a { transition: none; } }
-/* Onde o browser anima com o próprio scroll, o fundo e o logótipo acompanham o dedo nos primeiros 32 px
-   (o Renato, 12 nov 2026: «no telemóvel demora um bocado a ganhar o fundo na navbar e a diminuir o
-   logo»): sem esperar por um limiar nem por uma transição. Nos outros, a classe (aos 12 px, em 0,2 s). */
+/* o cabeçalho da página inicial (topo--capa): no topo, transparente por cima da capa escura, com o
+   logótipo, as letras e os ícones em branco; a descer, o claro das outras páginas, com o logótipo preto.
+   Onde o browser anima com o próprio scroll, acompanha o dedo nos primeiros 32 px; nos outros, a classe
+   (html[data-rolado], aos 12 px, em 0,2 s). */
+.topo--capa { margin-bottom: calc(-1 * var(--topo) - 1px); background: transparent; border-bottom-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; color: var(--branco); transition: background-color .2s, border-color .2s, color .2s; }
+.topo--capa .topo__marca .logo { filter: invert(1); transition: filter .2s; }
+html[data-rolado="sim"] .topo--capa { background: rgba(255, 255, 255, .97); border-bottom-color: var(--linha); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); color: var(--tinta); }
+html[data-rolado="sim"] .topo--capa .topo__marca .logo { filter: none; }
+@media (prefers-reduced-motion: reduce) { .topo--capa, .topo--capa .topo__marca .logo { transition: none; } }
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: scroll()) {
-    .topo--capa { animation: lf-topo-escurece linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
-    .topo--capa .topo__marca .logo { animation: lf-logo-desce linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
-    .topo--capa .topo__botao { animation: lf-icone-desce linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
-    .topo--capa .topo__ligacoes a { animation: lf-ligacao-desce linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
-    @keyframes lf-topo-escurece { from { background-color: rgba(6, 6, 7, 0); border-bottom-color: rgba(255, 255, 255, 0); } to { background-color: rgba(6, 6, 7, .96); border-bottom-color: rgba(255, 255, 255, .08); } }
-    @keyframes lf-logo-desce { from { scale: var(--logo-topo); } to { scale: 1; } }
-    @keyframes lf-icone-desce { from { font-size: calc(.92rem * var(--logo-topo)); } to { font-size: .92rem; } }
-    @keyframes lf-ligacao-desce { from { font-size: calc(.78rem * var(--logo-topo)); } to { font-size: .78rem; } }
+    .topo--capa { animation: lf-topo-clareia linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
+    .topo--capa .topo__marca .logo { animation: lf-logo-escurece linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
+    @keyframes lf-topo-clareia { from { background-color: rgba(255, 255, 255, 0); border-bottom-color: rgba(227, 227, 232, 0); color: #FFFFFF; } to { background-color: rgba(255, 255, 255, .97); border-bottom-color: rgba(227, 227, 232, 1); color: #111113; } }
+    @keyframes lf-logo-escurece { from { filter: invert(1); } to { filter: invert(0); } }
   }
 }
 
@@ -1102,18 +1081,22 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 @media (min-width: 900px) { .sobre__foto img { aspect-ratio: 4 / 5; } }
 
 /* ---------------------------------------------------------------- rodapé */
+/* O RODAPÉ, curto (o Renato, 12 nov 2026: «está cheio de informação, acho que essa lista de reparações
+   está aí a mais, refaz o rodapé»): o logótipo e a frase; as quatro ligações de ajuda; as redes; e em
+   baixo o «©» e as páginas legais numa linha, com o Livro de Reclamações discreto. As categorias e as
+   reparações já estão no cabeçalho, na loja e nas reparações (memória sem-informacao-repetida). */
 .rodape { margin-top: 64px; background: var(--cinza); padding: 0 0 max(24px, env(safe-area-inset-bottom)); }
-.rodape__corpo { max-width: var(--largura); margin: 0 auto; padding: 40px var(--margem) 0; display: grid; gap: 32px; }
-.rodape__nav { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-@media (min-width: 760px) { .rodape__corpo { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); } .rodape__nav { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; } }
-.rodape__marca { display: grid; gap: 14px; justify-items: start; }
-.rodape__logo-img { height: 58px; width: auto; }
-.rodape__frase { color: var(--tinta-2); max-width: 30ch; }
-.rodape__coluna h2 { font-size: .76rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); margin-bottom: 12px; }
-.rodape__coluna ul { display: grid; gap: 8px; }
-.rodape__coluna a { text-decoration: none; color: var(--tinta); font-size: .95rem; }
-@media (hover: hover) { .rodape__coluna a:hover { text-decoration: underline; } }
-.rodape__fim { max-width: var(--largura); margin: 36px auto 0; padding: 18px var(--margem) 0; position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; font-size: .84rem; color: var(--tinta-2); }
+.rodape__corpo { max-width: var(--largura); margin: 0 auto; padding: 36px var(--margem) 0; display: grid; gap: 24px; }
+@media (min-width: 900px) { .rodape__corpo { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 40px; } }
+.rodape__marca { display: flex; align-items: center; gap: 16px; }
+.rodape__logo { display: inline-flex; flex: none; }
+.rodape__logo-img { height: 52px; width: auto; }
+.rodape__frase { color: var(--tinta-2); max-width: 22ch; font-size: .95rem; line-height: 1.4; }
+.rodape__ligacoes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
+@media (min-width: 900px) { .rodape__ligacoes { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 28px; } }
+.rodape__ligacoes a { color: var(--tinta); text-decoration: none; font-weight: 600; font-size: .95rem; }
+@media (hover: hover) { .rodape__ligacoes a:hover { text-decoration: underline; } }
+.rodape__fim { max-width: var(--largura); margin: 28px auto 0; padding: 18px var(--margem) 0; position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; font-size: .84rem; color: var(--tinta-2); }
 /* a linha fina dourada da marca, por cima da linha legal */
 .rodape__fim::before { content: ''; position: absolute; top: 0; left: var(--margem); right: var(--margem); height: 1px; background: linear-gradient(90deg, var(--ouro), rgba(201, 162, 76, .15)); }
 .rodape__legal { display: flex; flex-wrap: wrap; gap: 6px 16px; }

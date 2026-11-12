@@ -335,8 +335,10 @@ teste('as reparações de outras marcas: «Outras» abre as marcas, a família e
   const m = ler2('reparacoes/redmi-note-13/index.html');
   assert.match(m, /Xiaomi · Redmi/);
   assert.match(m, /79,90/);
-  // o rodapé leva a primeira família de cada marca
-  assert.match(ler2('index.html'), /<li><a href="\/reparacoes\/redmi\/">Redmi<\/a><\/li>/);
+  // o rodapé já não lista as reparações (o Renato, 12 nov 2026: «essa lista de reparações está aí a mais»);
+  // a família chega-se pelo seletor das reparações
+  assert.doesNotMatch(ler2('index.html').match(/<footer class="rodape">[\s\S]*?<\/footer>/)[0], /\/reparacoes\//);
+  assert.match(hub, /<a class="seletor__familia" href="\/reparacoes\/redmi\/"/);
   // a escolha do modelo nas películas: a sugestão e o modelo da lista com o mesmo nome aparecem uma vez
   const dados = JSON.parse(ler2('produtos/pelicula-vidro/index.html').match(/id="dados-modelos">(.*?)<\/script>/)[1]);
   assert.deepEqual(dados.Xiaomi, [['Redmi', ['Redmi Note 13']]]);
@@ -358,7 +360,7 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   assert.doesNotMatch(apple, /data-artigo="samsung-galaxy-s25-128gb"/);
   assert.match(ler2('loja/recondicionados/index.html'), /data-artigo="iphone-13-128gb-recondicionado"/);
   const inicio = ler2('index.html');
-  assert.match(inicio, /<li><a href="\/loja\/apple\/">Apple<\/a><\/li><li><a href="\/loja\/samsung\/">Samsung<\/a><\/li>/);
+  assert.match(ler2('loja/index.html'), /<a class="chip" href="\/loja\/apple\/">Apple<\/a><\/li><li><a class="chip" href="\/loja\/samsung\/">Samsung<\/a>/);
   // o catálogo leva as categorias de cada artigo (os cupões de uma categoria de marca apanham-nas)
   const cat = JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets/catalogo.json'), 'utf8'));
   assert.deepEqual(cat.produtos['iphone-13-128gb-recondicionado'].categorias, ['recondicionados', 'apple']);
@@ -379,6 +381,12 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
     assert.match(html, /class="topo__botao topo__lupa"[^>]*data-abrir="procurar"/);
   }
   assert.doesNotMatch(inicio, /Vender o meu</);
+  // o rodapé curto: o logótipo, a frase, as quatro ligações de ajuda e as redes; sem as colunas da loja e
+  // das reparações
+  const rodape = inicio.match(/<footer class="rodape">[\s\S]*?<\/footer>/)[0];
+  assert.deepEqual([...rodape.match(/<ul class="rodape__ligacoes">[\s\S]*?<\/ul>/)[0].matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => m[2]),
+    ['Envios e devoluções', 'Perguntas frequentes', 'Sobre a LF Mobile', 'Contactos']);
+  assert.doesNotMatch(rodape, /rodape__coluna|\/loja\/apple\/|\/reparacoes\//);
   // a loja aberta ou fechada fica junto do horário (na página inicial e nos contactos)
   assert.match(ler2('contactos/index.html'), /Horário<\/h3>\s*<p class="estado-loja" data-estado-loja hidden><\/p>/);
   assert.match(inicio, /Horário<\/p><p class="estado-loja" data-estado-loja hidden><\/p>/);
@@ -490,10 +498,10 @@ teste('as consolas: a PlayStation tem os problemas dela (não os dos telemóveis
   assert.doesNotMatch(ps5, /modelo-peliculas/, 'películas não, numa consola');
   assert.match(ps5, /<use href="#ap-consola"\/>/);
   assert.match(ler2('reparacoes/playstation/index.html'), /reparar%20a%20minha%20PlayStation/);
-  // a grelha dos problemas é a dos telemóveis; a PlayStation aparece no rodapé
+  // a grelha dos problemas é a dos telemóveis; a PlayStation aparece no seletor das famílias
   const rep = ler2('reparacoes/index.html');
   assert.doesNotMatch(rep.match(/<ul class="problemas__grelha"[\s\S]*?<\/ul>/)[0], /data-problema="hdmi"/);
-  assert.match(rep, /<li><a href="\/reparacoes\/playstation\/">PlayStation<\/a><\/li>/);
+  assert.match(rep, /<a class="seletor__familia" href="\/reparacoes\/playstation\/"[^>]*>PlayStation<\/a>/);
   // a procura: «ps5» e «consola»
   const busca = JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets', fs.readdirSync(path.join(pasta, '_site/assets')).find((x) => /^busca-[0-9a-f]+\.json$/.test(x))), 'utf8'));
   const m = busca.modelos.find((x) => x.n === 'PlayStation 5');
