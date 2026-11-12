@@ -177,7 +177,7 @@ html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
 @media (min-width: 900px) {
   .topo__fila { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); height: 46px; }
   .topo__categorias { display: flex; align-items: center; gap: 2px; min-width: 0; }
-  .topo__categorias { overflow-x: auto; scrollbar-width: none; }
+  .topo__categorias { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; }
   .topo__categorias::-webkit-scrollbar { display: none; }
   .topo__fila a { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: .92rem; color: var(--tinta-2); white-space: nowrap; transition: background-color .15s, color .15s; }
   .topo__fila a[aria-current="page"] { color: var(--tinta); background: var(--cinza); }
@@ -360,8 +360,13 @@ html.na-capa { background: #040404; }
 @media (min-width: 900px) { .inicio { padding-top: 40px; } }
 
 /* ---------------------------------------------------------------- as categorias numa fila redonda */
+/* Os carrosséis (esta fila, os destaques, as pílulas, a galeria, a fila do cabeçalho) deslizam SÓ de
+   lado: com overflow-x: auto, o overflow-y passa a auto também, e no iPhone a fila podia ser arrastada
+   para cima e para baixo dentro de si (o Renato, 12 nov 2026: «este carrossel só devia mexer para o
+   lado»). overflow-y: hidden tira-lhe esse eixo (o gesto vertical vai para a página); o overscroll
+   contido não deixa o fim da fila puxar o browser para trás. */
 .cat-fila { margin: 26px 0 8px; }
-.cat-fila ul { display: flex; gap: 14px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: none; scroll-snap-type: x proximity; }
+.cat-fila ul { display: flex; gap: 14px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; padding: 4px 2px 10px; scrollbar-width: none; scroll-snap-type: x proximity; }
 .cat-fila ul::-webkit-scrollbar { display: none; }
 @media (min-width: 1100px) { .cat-fila ul { justify-content: space-between; overflow: visible; } }
 .cat-fila li { flex: none; scroll-snap-align: start; }
@@ -383,7 +388,7 @@ html.na-capa { background: #040404; }
 .fila__seta .icone { width: 1.1em; height: 1.1em; }
 .fila__seta:disabled { opacity: .35; cursor: default; }
 @media (hover: hover) and (min-width: 900px) { .fila__seta { display: inline-flex; } .fila__seta:not(:disabled):hover { border-color: var(--tinta); } }
-.fila__pista { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(168px, 46%); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 var(--margem); padding: 2px 2px 14px; margin: 0 calc(var(--margem) * -1); padding-left: var(--margem); padding-right: var(--margem); scrollbar-width: none; }
+.fila__pista { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(168px, 46%); gap: 12px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding: 0 var(--margem); padding: 2px 2px 14px; margin: 0 calc(var(--margem) * -1); padding-left: var(--margem); padding-right: var(--margem); scrollbar-width: none; }
 .fila__pista::-webkit-scrollbar { display: none; }
 @media (min-width: 700px) { .fila__pista { grid-auto-columns: calc((100% - 3 * 16px) / 3.2); gap: 16px; } }
 @media (min-width: 1100px) { .fila__pista { grid-auto-columns: calc((100% - 4 * 18px) / 4.6); gap: 18px; } }
@@ -537,7 +542,7 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
 .migalhas a { text-decoration: none; }
 @media (hover: hover) { .migalhas a:hover { text-decoration: underline; } }
 .chips { margin: 4px 0 14px; }
-.chips ul { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.chips ul { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; padding-bottom: 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .chips ul::-webkit-scrollbar { display: none; }
 .chip { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; min-height: 40px; padding: 6px 16px; border-radius: 999px; border: 1px solid var(--linha); text-decoration: none; font-weight: 700; font-size: .92rem; color: var(--tinta); background: var(--papel); }
 .chip[aria-current="page"] { background: var(--tinta); color: var(--branco); border-color: var(--tinta); }
@@ -604,13 +609,13 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 @media (min-width: 1000px) { .produto__grelha { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(36px, 5vw, 64px); align-items: start; } }
 .galeria { min-width: 0; }
 @media (min-width: 1000px) { .galeria { position: sticky; top: calc(var(--topo) + 16px); } }
-.galeria__pista { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; border-radius: var(--raio-g); scrollbar-width: none; }
+.galeria__pista { display: flex; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; gap: 12px; border-radius: var(--raio-g); scrollbar-width: none; }
 .galeria__pista::-webkit-scrollbar { display: none; }
 .galeria__foto { flex: 0 0 100%; scroll-snap-align: start; aspect-ratio: var(--forma, 1); background: var(--cinza); border-radius: var(--raio-g); overflow: hidden; display: grid; place-items: center; }
 .galeria__foto picture { display: contents; }
 .galeria__foto img { width: 100%; height: 100%; object-fit: contain; }
 .galeria__foto--recorte img { padding: 9%; filter: drop-shadow(0 18px 26px rgba(17, 17, 19, .16)); }
-.galeria__miniaturas { display: flex; gap: 8px; margin: 8px -4px 0; padding: 4px; overflow-x: auto; scrollbar-width: none; }
+.galeria__miniaturas { display: flex; gap: 8px; margin: 8px -4px 0; padding: 4px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; }
 .galeria__miniaturas button { position: relative; width: 66px; height: 66px; flex: none; border-radius: 12px; overflow: hidden; border: 1px solid var(--linha); background: var(--cinza); }
 .galeria__miniaturas button[aria-current="true"] { border-color: var(--tinta); outline: 2px solid var(--tinta); outline-offset: 2px; }
 .galeria__miniaturas img { width: 100%; height: 100%; object-fit: cover; }
@@ -1028,7 +1033,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .texto li + li { margin-top: 6px; }
 .texto strong { color: var(--tinta); }
 .texto__foto img { width: 100%; border-radius: var(--raio); }
-.texto .quadro { overflow-x: auto; }
+.texto .quadro { overflow-x: auto; overflow-y: hidden; }
 .texto table, .destinatarios { width: 100%; border-collapse: collapse; font-size: .92rem; }
 .texto th, .texto td, .destinatarios th, .destinatarios td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linha); vertical-align: top; }
 @media (max-width: 699.98px) {
