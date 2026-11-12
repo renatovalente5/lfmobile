@@ -171,8 +171,26 @@ html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
 .topo__barra { max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); height: var(--topo); display: flex; align-items: center; gap: 8px; }
 @media (min-width: 900px) { .topo__barra { gap: 24px; } }
 .topo__marca { display: inline-flex; align-items: center; flex: none; }
-.topo__marca .logo { height: 40px; width: auto; }
-@media (min-width: 1100px) { .topo__marca .logo { height: 46px; } }
+.topo__marca .logo { height: 44px; width: auto; }
+@media (min-width: 1100px) { .topo__marca .logo { height: 52px; } }
+/* a barra da procura (computador), grande, ao lado do logótipo; no telemóvel a lupa abre a folha. A pílula
+   segue a cor do cabeçalho (currentColor): no topo da página inicial, translúcida e clara por cima da capa;
+   no resto, o cinzento de sempre */
+.topo__procura { display: none; flex: 1; min-width: 0; max-width: 560px; }
+@media (min-width: 900px) { .topo__procura { display: block; } .topo .topo__lupa { display: none; } }
+/* entre 900 e 1099 px, as quatro ligações mais juntas, para a barra ficar larga */
+@media (min-width: 900px) and (max-width: 1099.98px) {
+  .topo .topo__ligacoes a { padding: 0 10px; letter-spacing: .12em; }
+  .topo .topo__ligacoes a[aria-current="page"]::after { left: 10px; right: calc(10px + .12em); }
+}
+.topo .busca__campo { background: color-mix(in srgb, currentColor 7%, transparent); border-color: color-mix(in srgb, currentColor 9%, transparent); }
+.topo .busca__lupa { color: inherit; opacity: .6; }
+.topo .busca input { color: inherit; }
+.topo .busca input::placeholder { color: inherit; opacity: .62; }
+.topo .busca__campo:focus-within { background: var(--papel); border-color: var(--tinta); color: var(--tinta); }
+/* os resultados são um cartão branco: letra escura sempre (no topo da página inicial o cabeçalho é branco
+   e os nomes herdavam-no, ficando invisíveis) */
+.topo .busca__resultados { color: var(--tinta); }
 .topo__direita { display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .topo__botao { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 999px; color: inherit; text-decoration: none; font-weight: 700; font-size: .92rem; transition: background-color .15s; }
 @media (hover: hover) { .topo__botao:hover { background: color-mix(in srgb, currentColor 9%, transparent); } }

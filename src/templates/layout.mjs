@@ -80,8 +80,9 @@ const ICONE_CATEGORIA = { apple: 'telemovel', samsung: 'telemovel', recondiciona
    também nas outras páginas»; antes, fora da página inicial, havia a procura larga, os botões Reparações
    e Retoma e uma fila com as categorias, que repetia as pílulas da loja): escuro, o logótipo em branco, e
    no computador quatro ligações em letras espaçadas, separadas por traços finos (como na imagem da LF
-   Mobile), com a página onde se está assinalada; a procura abre na folha (a lupa); o carrinho. No
-   telemóvel: o menu, o logótipo, a lupa e o carrinho. Claro, com o logótipo a preto, como ele é; na
+   Mobile), com a página onde se está assinalada; a barra da procura grande ao lado do logótipo (o Renato,
+   12 nov 2026: «eu gostava da barra de pesquisas em grande… remove o icon da direita»); o carrinho. No
+   telemóvel, onde a barra não cabe: o menu, o logótipo, a lupa (a procura abre na folha) e o carrinho. Claro, com o logótipo a preto, como ele é; na
    página inicial (naCapa), só no topo, transparente por cima da capa com o logótipo em branco (o CSS). */
 const LIGACOES_DO_TOPO = [
   { caminho: '/loja/', nome: 'Loja', tambem: ['/produtos/', '/campanhas/'] },
@@ -95,6 +96,7 @@ function cabecalho(ctx, atual, { naCapa = false } = {}) {
   <div class="topo__barra">
     <button class="topo__botao topo__menu" type="button" data-abrir="menu" aria-haspopup="dialog">${icones.menu}<span class="visualmente-escondido">Menu</span></button>
     <a class="topo__marca" href="${ctx.url('/')}"${atual === '/' ? ' aria-current="page"' : ''}>${logotipo(ctx, { alto: 46 })}<span class="visualmente-escondido"> — página inicial</span></a>
+    <div class="topo__procura">${procura(ctx, 'busca-topo')}</div>
     <nav class="topo__ligacoes" aria-label="Principal">
       <ul>${LIGACOES_DO_TOPO.map((x) => `<li><a href="${ctx.url(x.caminho)}"${corrente(x) ? ' aria-current="page"' : ''}>${esc(x.nome)}</a></li>`).join('')}</ul>
     </nav>

@@ -377,7 +377,9 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   assert.deepEqual(ligacoes(ler2('reparacoes/iphone-13/index.html')).filter((x) => x[2]).map((x) => x[1]), ['Reparações']);
   assert.deepEqual(ligacoes(ler2('contactos/index.html')).filter((x) => x[2]).map((x) => x[1]), ['Contactos']);
   for (const html of [lojaPag, inicio, ler2('produtos/fones-p9/index.html')]) {
-    assert.doesNotMatch(html, /topo__fila|topo__procura|topo__servicos|topo__accao|id="busca-topo"|class="faixa-topo"/);
+    assert.doesNotMatch(html, /topo__fila|topo__servicos|topo__accao|class="faixa-topo"/);
+    // a barra da procura grande ao lado do logótipo (computador) e a lupa para o telemóvel
+    assert.match(html, /<\/a>\s*<div class="topo__procura"><form class="busca" role="search"[\s\S]*?id="busca-topo"/);
     assert.match(html, /class="topo__botao topo__lupa"[^>]*data-abrir="procurar"/);
   }
   assert.doesNotMatch(inicio, /Vender o meu</);
@@ -397,7 +399,7 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   assert.match(inicio, /<header class="topo topo--capa" data-topo>/);
   assert.deepEqual([...inicio.match(/<nav class="topo__ligacoes"[\s\S]*?<\/nav>/)[0].matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[1], m[2]]),
     [['/loja/', 'Loja'], ['/reparacoes/', 'Reparações'], ['/retoma/', 'Retoma'], ['/contactos/', 'Contactos']]);
-  assert.doesNotMatch(inicio, /class="faixa-topo"|topo__fila|topo__procura|class="mosaico|class="rapido|data-rapido|faixa-retoma|data-problemas/);
+  assert.doesNotMatch(inicio, /class="faixa-topo"|topo__fila|class="mosaico|class="rapido|data-rapido|faixa-retoma|data-problemas/);
   assert.match(inicio, /<section class="capa" aria-labelledby="capa-titulo">/);
   assert.match(inicio, /<p class="capa__rotulo">Mais que tecnologia<\/p>\s*<h1 class="capa__titulo" id="capa-titulo">Sempre contigo<\/h1>/);
   assert.equal((inicio.match(/<h1[\s>]/g) || []).length, 1, 'um só h1');
