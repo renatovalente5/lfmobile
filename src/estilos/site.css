@@ -166,7 +166,7 @@ mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; borde
    mesmo tamanho («já não quero que [o logo] fique maior quando estamos no topo»; as letras e os ícones
    «ficaram muito grandes, volta a meter pequeno»). As cores das letras e dos ícones vêm da cor do
    cabeçalho (currentColor): assim a capa muda tudo de uma vez. */
-.topo { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, .97); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); border-bottom: 1px solid var(--linha); color: var(--tinta); transition: box-shadow .2s; }
+.topo { position: sticky; top: 0; z-index: 50; background: var(--papel); border-bottom: 1px solid var(--linha); color: var(--tinta); transition: box-shadow .2s; }
 html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
 .topo__barra { max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); height: var(--topo); display: flex; align-items: center; gap: 8px; }
 @media (min-width: 900px) { .topo__barra { gap: 24px; } }
@@ -201,16 +201,16 @@ html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
    logótipo, as letras e os ícones em branco; a descer, o claro das outras páginas, com o logótipo preto.
    Onde o browser anima com o próprio scroll, acompanha o dedo nos primeiros 32 px; nos outros, a classe
    (html[data-rolado], aos 12 px, em 0,2 s). */
-.topo--capa { margin-bottom: calc(-1 * var(--topo) - 1px); background: transparent; border-bottom-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; color: var(--branco); transition: background-color .2s, border-color .2s, color .2s; }
+.topo--capa { margin-bottom: calc(-1 * var(--topo) - 1px); background: transparent; border-bottom-color: transparent; color: var(--branco); transition: background-color .2s, border-color .2s, color .2s; }
 .topo--capa .topo__marca .logo { filter: invert(1); transition: filter .2s; }
-html[data-rolado="sim"] .topo--capa { background: rgba(255, 255, 255, .97); border-bottom-color: var(--linha); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); color: var(--tinta); }
+html[data-rolado="sim"] .topo--capa { background: var(--papel); border-bottom-color: var(--linha); color: var(--tinta); }
 html[data-rolado="sim"] .topo--capa .topo__marca .logo { filter: none; }
 @media (prefers-reduced-motion: reduce) { .topo--capa, .topo--capa .topo__marca .logo { transition: none; } }
 @media (prefers-reduced-motion: no-preference) {
   @supports (animation-timeline: scroll()) {
     .topo--capa { animation: lf-topo-clareia linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
     .topo--capa .topo__marca .logo { animation: lf-logo-escurece linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
-    @keyframes lf-topo-clareia { from { background-color: rgba(255, 255, 255, 0); border-bottom-color: rgba(227, 227, 232, 0); color: #FFFFFF; } to { background-color: rgba(255, 255, 255, .97); border-bottom-color: rgba(227, 227, 232, 1); color: #111113; } }
+    @keyframes lf-topo-clareia { from { background-color: rgba(255, 255, 255, 0); border-bottom-color: rgba(227, 227, 232, 0); color: #FFFFFF; } to { background-color: rgba(255, 255, 255, 1); border-bottom-color: rgba(227, 227, 232, 1); color: #111113; } }
     @keyframes lf-logo-escurece { from { filter: invert(1); } to { filter: invert(0); } }
   }
 }
