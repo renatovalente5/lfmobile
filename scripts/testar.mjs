@@ -363,13 +363,25 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   const cat = JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets/catalogo.json'), 'utf8'));
   assert.deepEqual(cat.produtos['iphone-13-128gb-recondicionado'].categorias, ['recondicionados', 'apple']);
   assert.deepEqual(cat.produtos['fones-p9'].categorias, ['audio']);
-  // o cabeçalho (fora da página inicial): as Reparações e a Retoma juntas ao lado do carrinho; o «Vender o
-  // meu» saiu; a fila de baixo é só a loja
+  // o cabeçalho, o mesmo em todas as páginas (o Renato, 12 nov 2026: «está aqui informação repetida…»):
+  // as quatro ligações, com a página onde se está assinalada (a loja nas suas páginas e nas fichas), a
+  // lupa e o carrinho; sem a procura larga, sem os botões Reparações e Retoma e sem a fila das
+  // categorias (estão nas pílulas da loja); sem a faixa de cima quando não há campanha nem aviso
   const lojaPag = ler2('loja/index.html');
-  assert.match(lojaPag, /<nav class="topo__servicos" aria-label="Serviços">\s*<a class="topo__accao" href="\/reparacoes\/">[\s\S]*?<span>Reparações<\/span><\/a><a class="topo__accao" href="\/retoma\/">[\s\S]*?<span>Retoma<\/span><\/a>/);
+  const ligacoes = (html) => [...html.match(/<nav class="topo__ligacoes"[\s\S]*?<\/nav>/)[0].matchAll(/<a href="([^"]+)"( aria-current="page")?>([^<]+)<\/a>/g)].map((m) => [m[1], m[3], Boolean(m[2])]);
+  assert.match(lojaPag, /<header class="topo" data-topo>/);
+  assert.deepEqual(ligacoes(lojaPag), [['/loja/', 'Loja', true], ['/reparacoes/', 'Reparações', false], ['/retoma/', 'Retoma', false], ['/contactos/', 'Contactos', false]]);
+  assert.deepEqual(ligacoes(ler2('produtos/fones-p9/index.html')).filter((x) => x[2]).map((x) => x[1]), ['Loja']);
+  assert.deepEqual(ligacoes(ler2('reparacoes/iphone-13/index.html')).filter((x) => x[2]).map((x) => x[1]), ['Reparações']);
+  assert.deepEqual(ligacoes(ler2('contactos/index.html')).filter((x) => x[2]).map((x) => x[1]), ['Contactos']);
+  for (const html of [lojaPag, inicio, ler2('produtos/fones-p9/index.html')]) {
+    assert.doesNotMatch(html, /topo__fila|topo__procura|topo__servicos|topo__accao|id="busca-topo"|class="faixa-topo"/);
+    assert.match(html, /class="topo__botao topo__lupa"[^>]*data-abrir="procurar"/);
+  }
   assert.doesNotMatch(inicio, /Vender o meu</);
-  assert.doesNotMatch(lojaPag.match(/<nav class="topo__fila"[\s\S]*?<\/nav>/)[0], /reparacoes|retoma/);
-  assert.match(lojaPag, /<p class="faixa-topo__texto"><span class="faixa-topo__itens">/);
+  // a loja aberta ou fechada fica junto do horário (na página inicial e nos contactos)
+  assert.match(ler2('contactos/index.html'), /Horário<\/h3>\s*<p class="estado-loja" data-estado-loja hidden><\/p>/);
+  assert.match(inicio, /Horário<\/p><p class="estado-loja" data-estado-loja hidden><\/p>/);
   // a página inicial (o Leandro e o Renato, 12 nov 2026): a capa a ocupar o ecrã, com o cabeçalho por
   // cima (transparente, quatro ligações e a lupa); sem a faixa de cima (sem campanha nem aviso), sem a
   // fila das categorias no cabeçalho e sem os cartões da reparação, da retoma e dos recondicionados

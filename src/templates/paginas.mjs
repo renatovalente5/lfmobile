@@ -157,7 +157,7 @@ export function inicio(ctx) {
     ${h.loja.texto ? `<p class="seccao__texto">${esc(h.loja.texto)}</p>` : ''}
     <div class="loja-casa__dados">
       <div><p class="loja-casa__rotulo">${icones.local}Morada</p>${moradaHtml(ctx)}</div>
-      <div><p class="loja-casa__rotulo">${icones.relogio}Horário</p>${horarioHtml(ctx)}</div>
+      <div><p class="loja-casa__rotulo">${icones.relogio}Horário</p><p class="estado-loja" data-estado-loja hidden></p>${horarioHtml(ctx)}</div>
     </div>
     <div class="botoes">
       ${ctx.site.local.mapa ? `<a class="botao botao--cheio" href="${esc(ctx.site.local.mapa)}" target="_blank" rel="noopener">${icones.local}<span>Como chegar</span></a>` : ''}
@@ -758,6 +758,7 @@ export function contactos(ctx) {
       ${moradaHtml(ctx)}
       ${e.nome ? `<p class="contactos-loja__vendedor">${esc(e.nome)}${e.tipo ? `, ${esc(e.tipo)}` : ''}${e.nif ? ` · NIF ${esc(e.nif)}` : ''}</p>` : ''}
       <h3 class="contactos-loja__rotulo">Horário</h3>
+      <p class="estado-loja" data-estado-loja hidden></p>
       ${horarioHtml(ctx)}
     </div>
   </section>

@@ -150,49 +150,57 @@ mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; borde
 @media (min-width: 900px) { .faixa-topo__loja:not([hidden]) { display: inline-flex; } }
 .faixa-topo__loja::before { content: ''; width: 8px; height: 8px; border-radius: 999px; background: var(--claro-2); }
 .faixa-topo__loja[data-aberta="sim"]::before { background: #3CCB7F; box-shadow: 0 0 0 3px rgba(60, 203, 127, .2); }
+/* o mesmo junto do horário (página inicial e contactos), em fundo claro */
+.estado-loja { display: inline-flex; align-items: center; gap: 8px; margin: 2px 0 8px; font-size: .9rem; font-weight: 700; color: var(--tinta-2); }
+.estado-loja[hidden] { display: none; }
+.estado-loja::before { content: ''; width: 8px; height: 8px; border-radius: 999px; background: var(--tinta-3); }
+.estado-loja[data-aberta="sim"] { color: var(--verde); }
+.estado-loja[data-aberta="sim"]::before { background: #2FA866; box-shadow: 0 0 0 3px rgba(47, 168, 102, .18); }
 
 /* ---------------------------------------------------------------- cabeçalho */
-.topo { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, .92); -webkit-backdrop-filter: saturate(160%) blur(14px); backdrop-filter: saturate(160%) blur(14px); border-bottom: 1px solid var(--linha); transition: box-shadow .2s; }
-html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
+/* UM SÓ CABEÇALHO em todas as páginas (o Renato, 12 nov 2026: «está aqui informação repetida para as
+   páginas… se for preciso refaz a Navbar também nas outras páginas»): o da capa — escuro, o logótipo em
+   branco, quatro ligações em letras espaçadas (Loja · Reparações · Retoma · Contactos), a lupa (a procura
+   abre na folha) e o carrinho. Saíram a procura larga, os botões «Reparações» e «Retoma» e a fila das
+   categorias (as categorias estão nas pílulas da loja, na fila redonda da página inicial, no menu e no
+   rodapé). Com uma barra só, os painéis que se prendem ao descer (top: --topo + 16px) já não ficam meio
+   tapados. Na página inicial fica transparente por cima da capa e cresce no topo (topo--capa, abaixo). */
+.topo { position: sticky; top: 0; z-index: 50; background: rgba(6, 6, 7, .96); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); border-bottom: 1px solid rgba(255, 255, 255, .08); color: var(--branco); transition: box-shadow .2s; }
+html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .14); }
 .topo__barra { max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); height: var(--topo); display: flex; align-items: center; gap: 8px; }
 @media (min-width: 900px) { .topo__barra { gap: 24px; } }
 .topo__marca { display: inline-flex; align-items: center; flex: none; }
-.topo__marca .logo { height: 40px; width: auto; }
-@media (min-width: 1100px) { .topo__marca .logo { height: 46px; } }
-.topo__procura { display: none; flex: 1; max-width: 640px; }
-@media (min-width: 900px) { .topo__procura { display: block; } }
+.topo__marca .logo { height: 40px; width: auto; filter: invert(1); }
+@media (min-width: 1100px) { .topo__marca .logo { height: 52px; } }
 .topo__direita { display: flex; align-items: center; gap: 4px; margin-left: auto; }
-.topo__botao, .topo__accao { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 999px; color: var(--tinta); text-decoration: none; font-weight: 700; font-size: .92rem; transition: background-color .15s; }
-@media (hover: hover) { .topo__botao:hover, .topo__accao:hover { background: var(--cinza); } }
-.topo__accao .icone { color: var(--ouro-texto); }
-/* os serviços (Reparações e Retoma), juntos ao lado do carrinho; no telemóvel estão no menu */
-.topo__servicos { display: none; }
-@media (min-width: 900px) { .topo__servicos { display: flex; align-items: center; gap: 2px; } }
-.topo__accao[aria-current="page"] { background: var(--cinza); }
+.topo__botao { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 999px; color: var(--branco); text-decoration: none; font-weight: 700; font-size: .92rem; transition: background-color .15s; }
+@media (hover: hover) { .topo__botao:hover { background: rgba(255, 255, 255, .12); } }
+.topo :focus-visible { outline-color: var(--branco); }
 .topo__menu { margin-left: -8px; }
-@media (min-width: 900px) { .topo__menu, .topo__lupa { display: none; } }
+@media (min-width: 900px) { .topo__menu { display: none; } }
 .topo__conta { position: absolute; top: 3px; right: 1px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--ouro); color: var(--escuro); font-size: .7rem; font-weight: 800; line-height: 19px; text-align: center; }
-/* a fila das categorias (computador): as categorias da loja; à direita, a campanha que está a correr */
-.topo__fila { display: none; }
+/* as quatro ligações (computador): letras espaçadas e traços finos, como na imagem da LF Mobile; a
+   página onde se está fica branca, com um traço dourado por baixo */
+.topo__ligacoes { display: none; }
 @media (min-width: 900px) {
-  .topo__fila { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); height: 46px; }
-  .topo__categorias { display: flex; align-items: center; gap: 2px; min-width: 0; }
-  .topo__categorias { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; }
-  .topo__categorias::-webkit-scrollbar { display: none; }
-  .topo__fila a { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: .92rem; color: var(--tinta-2); white-space: nowrap; transition: background-color .15s, color .15s; }
-  .topo__fila a[aria-current="page"] { color: var(--tinta); background: var(--cinza); }
-  .topo__fila .topo__campanha { flex: none; background: var(--escuro); color: var(--ouro-claro); font-weight: 700; }
-  .topo__fila .topo__campanha .icone { width: 1.05em; height: 1.05em; }
+  .topo__ligacoes { display: block; margin-left: auto; }
+  .topo__ligacoes ul { display: flex; align-items: center; }
+  .topo__ligacoes li { display: flex; align-items: center; }
+  .topo__ligacoes li + li::before { content: ''; width: 1px; height: 14px; background: rgba(255, 255, 255, .3); }
+  .topo__ligacoes a { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0 clamp(12px, 1.6vw, 22px); color: rgba(255, 255, 255, .78); text-decoration: none; font-size: .78rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; transition: color .15s; }
+  .topo__ligacoes a[aria-current="page"] { color: var(--branco); }
+  .topo__ligacoes a[aria-current="page"]::after { content: ''; position: absolute; left: clamp(12px, 1.6vw, 22px); right: calc(clamp(12px, 1.6vw, 22px) + .18em); bottom: 7px; height: 2px; border-radius: 2px; background: var(--ouro); }
+  .topo__direita { margin-left: 4px; }
 }
-@media (hover: hover) and (min-width: 900px) { .topo__fila a:hover { color: var(--tinta); background: var(--cinza); } .topo__fila .topo__campanha:hover { background: var(--escuro-3); color: var(--ouro-claro); } }
+@media (hover: hover) { .topo__ligacoes a:hover { color: var(--branco); } }
+/* a folha da procura no computador (abre-se pela lupa): o campo ao meio, não de ponta a ponta */
+@media (min-width: 900px) { .folha-procura__topo, .folha-procura__atalhos { max-width: 760px; margin-left: auto; margin-right: auto; } }
 
-/* o cabeçalho da página inicial (topo--capa): transparente por cima da capa, com o logótipo e os ícones
-   em branco; ao descer, um fundo escuro. No computador, as quatro ligações em letras espaçadas. */
+/* o cabeçalho da página inicial (topo--capa): transparente por cima da capa; ao descer, o fundo escuro
+   de todas as outras páginas. */
 .topo--capa { --logo-topo: 1.1; margin-bottom: calc(-1 * var(--topo) - 1px); background: transparent; border-bottom-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; transition: background-color .2s, border-color .2s; }
 @media (min-width: 900px) { .topo--capa { --logo-topo: 1.35; } }
-html[data-rolado="sim"] .topo--capa { background: rgba(6, 6, 7, .84); border-bottom-color: rgba(255, 255, 255, .08); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); box-shadow: none; }
-.topo--capa .logo { filter: invert(1); }
-@media (min-width: 1100px) { .topo--capa .topo__marca .logo { height: 52px; } }
+html[data-rolado="sim"] .topo--capa { background: rgba(6, 6, 7, .96); border-bottom-color: rgba(255, 255, 255, .08); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); box-shadow: none; }
 /* o logótipo grande no topo da página (o Renato, 12 nov 2026: «quero ter o logo maior quando estou no
    topo da página, e quando começo a descer na página o logo diminui»; depois «ficou muito grande,
    diminui»: de 1,8× passou a 1,35× no computador, e de 1,5× a 1,2× no telemóvel; depois, no telemóvel,
@@ -221,28 +229,12 @@ html:not([data-rolado="sim"]) .topo--capa .topo__botao { font-size: calc(.92rem 
     .topo--capa .topo__marca .logo { animation: lf-logo-desce linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
     .topo--capa .topo__botao { animation: lf-icone-desce linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
     .topo--capa .topo__ligacoes a { animation: lf-ligacao-desce linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
-    @keyframes lf-topo-escurece { from { background-color: rgba(6, 6, 7, 0); border-bottom-color: rgba(255, 255, 255, 0); } to { background-color: rgba(6, 6, 7, .84); border-bottom-color: rgba(255, 255, 255, .08); } }
+    @keyframes lf-topo-escurece { from { background-color: rgba(6, 6, 7, 0); border-bottom-color: rgba(255, 255, 255, 0); } to { background-color: rgba(6, 6, 7, .96); border-bottom-color: rgba(255, 255, 255, .08); } }
     @keyframes lf-logo-desce { from { scale: var(--logo-topo); } to { scale: 1; } }
     @keyframes lf-icone-desce { from { font-size: calc(.92rem * var(--logo-topo)); } to { font-size: .92rem; } }
     @keyframes lf-ligacao-desce { from { font-size: calc(.78rem * var(--logo-topo)); } to { font-size: .78rem; } }
   }
 }
-.topo--capa .topo__botao { color: var(--branco); }
-.topo--capa :focus-visible { outline-color: var(--branco); }
-@media (hover: hover) { .topo--capa .topo__botao:hover { background: rgba(255, 255, 255, .12); } }
-.topo__ligacoes { display: none; }
-@media (min-width: 900px) {
-  .topo--capa .topo__lupa { display: inline-flex; }
-  .topo__ligacoes { display: block; margin-left: auto; }
-  .topo__ligacoes ul { display: flex; align-items: center; }
-  .topo__ligacoes li { display: flex; align-items: center; }
-  .topo__ligacoes li + li::before { content: ''; width: 1px; height: 14px; background: rgba(255, 255, 255, .3); }
-  .topo__ligacoes a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 clamp(12px, 1.6vw, 22px); color: rgba(255, 255, 255, .86); text-decoration: none; font-size: .78rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; transition: color .15s; }
-  .topo--capa .topo__direita { margin-left: 4px; }
-}
-@media (hover: hover) { .topo__ligacoes a:hover { color: var(--branco); } }
-/* a folha da procura no computador (na página inicial abre-se pela lupa): o campo ao meio, não de ponta a ponta */
-@media (min-width: 900px) { .folha-procura__topo, .folha-procura__atalhos { max-width: 760px; margin-left: auto; margin-right: auto; } }
 
 /* ---------------------------------------------------------------- a procura */
 .busca { position: relative; }

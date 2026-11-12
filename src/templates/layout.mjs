@@ -21,10 +21,12 @@ function logotipo(ctx, { alto = 40, classe = 'logo' } = {}) {
   return `<img class="${classe}" src="${ctx.asset(`img/${v.webp}`)}" width="${largo}" height="${alto}" alt="${esc(ctx.site.marca)}">`;
 }
 
-/* A FAIXA DO TOPO, por esta ordem: a campanha que está a correr (com a ligação para a página dela),
-   o aviso do dono (Dados da loja › Aviso do topo), ou as duas frases de sempre. À direita (no
-   computador), a loja aberta ou fechada agora, calculada no browser pelo horário (site.js). */
-function faixaTopo(ctx, { naCapa = false } = {}) {
+/* A FAIXA DO TOPO: a campanha que está a correr (com a ligação para a página dela) ou o aviso do dono
+   (Dados da loja › Aviso do topo). Sem nenhum dos dois não aparece (o Renato, 12 nov 2026: as frases de
+   sempre — orçamento grátis, envios, levantamento — repetiam-se em todas as páginas e já estão onde
+   contam: na capa, no artigo, nas reparações). À direita (no computador), a loja aberta ou fechada agora,
+   calculada no browser pelo horário (site.js). */
+function faixaTopo(ctx) {
   const c = ctx.campanhas[0];
   const a = ctx.site.aviso || {};
   let corpo;
@@ -35,13 +37,8 @@ function faixaTopo(ctx, { naCapa = false } = {}) {
   } else if (a.texto && !(a.ate && ctx.hoje > a.ate)) {
     corpo = a.ligacao ? `<a href="${ctx.url(a.ligacao)}">${esc(a.texto)}</a>` : `<span>${esc(a.texto)}</span>`;
     ate = a.ate || '';
-  } else if (naCapa) {
-    /* Na página inicial, as frases de sempre já estão na capa (as vantagens, em baixo): a faixa só
-       aparece com uma campanha ou um aviso. */
-    return '';
   } else {
-    const t = ctx.site.entrega.transportadora;
-    corpo = `<span class="faixa-topo__itens"><span>${icones.ferramentas}Orçamento grátis</span><span>${icones.camiao}${t ? `Envios ${esc(t)} 24/48 h` : 'Envios em 24/48 h'}</span><span class="so-largo">${icones.loja}Levantamento grátis em ${esc(ctx.site.local.localidade)}</span></span>`;
+    return '';
   }
   return `<div class="faixa-topo"${ate ? ` data-ate="${esc(ate)}"` : ''}>
   <div class="faixa-topo__dentro">
@@ -79,53 +76,28 @@ function ligacoesDaFila(ctx) {
 /* O desenho de cada categoria no menu do telemóvel. */
 const ICONE_CATEGORIA = { apple: 'telemovel', samsung: 'telemovel', recondicionados: 'verificado', tablets: 'tablet', smartwatches: 'relogioPulso', audio: 'auriculares', peliculas: 'pelicula', acessorios: 'caixa' };
 
-function cabecalho(ctx, atual) {
-  const { cats, servicos } = ligacoesDaFila(ctx);
-  const marca = (caminho) => (atual === caminho || (caminho !== '/' && atual.startsWith(caminho)) ? ' aria-current="page"' : '');
-  const c = ctx.campanhas[0];
-  return `<header class="topo" data-topo>
+/* O CABEÇALHO, o mesmo em todas as páginas (o Renato, 12 nov 2026: «se for preciso refaz a Navbar
+   também nas outras páginas»; antes, fora da página inicial, havia a procura larga, os botões Reparações
+   e Retoma e uma fila com as categorias, que repetia as pílulas da loja): escuro, o logótipo em branco, e
+   no computador quatro ligações em letras espaçadas, separadas por traços finos (como na imagem da LF
+   Mobile), com a página onde se está assinalada; a procura abre na folha (a lupa); o carrinho. No
+   telemóvel: o menu, o logótipo, a lupa e o carrinho. Na página inicial (naCapa) fica transparente por
+   cima da capa, e o logótipo, os ícones e as palavras crescem no topo (o CSS): por isso o logótipo vem
+   na versão maior (alto 96 → a de 192 px, nítida ao dobro). */
+const LIGACOES_DO_TOPO = [
+  { caminho: '/loja/', nome: 'Loja', tambem: ['/produtos/', '/campanhas/'] },
+  { caminho: '/reparacoes/', nome: 'Reparações' },
+  { caminho: '/retoma/', nome: 'Retoma' },
+  { caminho: '/contactos/', nome: 'Contactos' },
+];
+function cabecalho(ctx, atual, { naCapa = false } = {}) {
+  const corrente = (x) => [x.caminho, ...(x.tambem || [])].some((c) => atual.startsWith(c));
+  return `<header class="topo${naCapa ? ' topo--capa' : ''}" data-topo>
   <div class="topo__barra">
     <button class="topo__botao topo__menu" type="button" data-abrir="menu" aria-haspopup="dialog">${icones.menu}<span class="visualmente-escondido">Menu</span></button>
-    <a class="topo__marca" href="${ctx.url('/')}">${logotipo(ctx, { alto: 40 })}<span class="visualmente-escondido"> — página inicial</span></a>
-    <div class="topo__procura">${procura(ctx, 'busca-topo')}</div>
-    <div class="topo__direita">
-      <nav class="topo__servicos" aria-label="Serviços">
-        ${servicos.map((x) => `<a class="topo__accao" href="${ctx.url(x.caminho)}"${marca(x.caminho)}>${x.icone}<span>${esc(x.nome)}</span></a>`).join('')}
-      </nav>
-      <button class="topo__botao topo__lupa" type="button" data-abrir="procurar" aria-haspopup="dialog">${icones.pesquisa}<span class="visualmente-escondido">Procurar</span></button>
-      <a class="topo__botao topo__carrinho" href="${ctx.url('/carrinho/')}" data-abrir="carrinho" aria-haspopup="dialog">${icones.carrinho}<span class="visualmente-escondido">Carrinho</span><span class="topo__conta" data-conta hidden></span></a>
-    </div>
-  </div>
-  <nav class="topo__fila" aria-label="Loja">
-    <ul class="topo__categorias">
-      <li><a href="${ctx.url('/loja/')}"${atual === '/loja/' ? ' aria-current="page"' : ''}>Toda a loja</a></li>
-      ${cats.map((x) => `<li><a href="${ctx.url(x.caminho)}"${marca(x.caminho)}>${esc(x.nome)}</a></li>`).join('')}
-    </ul>
-    ${c ? `<a class="topo__campanha" href="${ctx.url(`/campanhas/${c.slug}/`)}"${marca(`/campanhas/${c.slug}/`)}>${icones.presente}<span>${esc(c.nome)}</span></a>` : ''}
-  </nav>
-</header>`;
-}
-
-/* O CABEÇALHO DA PÁGINA INICIAL, por cima da capa (o Renato, 12 nov 2026: o Leandro «quer refazer por
-   completo a parte inicial do site, navbar», com a imagem dele): transparente, o logótipo e os ícones
-   em branco, e no computador quatro ligações em letras espaçadas, separadas por traços finos (como na
-   imagem). Ao descer, ganha um fundo escuro (html[data-rolado], site.js). A procura abre na folha (a
-   lupa, também no computador); a fila das categorias não entra: a loja está logo por baixo da capa.
-   No telemóvel é o de sempre: o menu, o logótipo, a lupa e o carrinho. O logótipo é grande no topo e
-   encolhe ao descer (o CSS): por isso vem na versão maior (alto 96 → a de 192 px, nítida ao dobro). */
-function cabecalhoDaCapa(ctx) {
-  const ligacoes = [
-    { caminho: '/loja/', nome: 'Loja' },
-    { caminho: '/reparacoes/', nome: 'Reparações' },
-    { caminho: '/retoma/', nome: 'Retoma' },
-    { caminho: '/contactos/', nome: 'Contactos' },
-  ];
-  return `<header class="topo topo--capa" data-topo>
-  <div class="topo__barra">
-    <button class="topo__botao topo__menu" type="button" data-abrir="menu" aria-haspopup="dialog">${icones.menu}<span class="visualmente-escondido">Menu</span></button>
-    <a class="topo__marca" href="${ctx.url('/')}" aria-current="page">${logotipo(ctx, { alto: 96 })}<span class="visualmente-escondido"> — página inicial</span></a>
+    <a class="topo__marca" href="${ctx.url('/')}"${atual === '/' ? ' aria-current="page"' : ''}>${logotipo(ctx, { alto: naCapa ? 96 : 52 })}<span class="visualmente-escondido"> — página inicial</span></a>
     <nav class="topo__ligacoes" aria-label="Principal">
-      <ul>${ligacoes.map((x) => `<li><a href="${ctx.url(x.caminho)}">${esc(x.nome)}</a></li>`).join('')}</ul>
+      <ul>${LIGACOES_DO_TOPO.map((x) => `<li><a href="${ctx.url(x.caminho)}"${corrente(x) ? ' aria-current="page"' : ''}>${esc(x.nome)}</a></li>`).join('')}</ul>
     </nav>
     <div class="topo__direita">
       <button class="topo__botao topo__lupa" type="button" data-abrir="procurar" aria-haspopup="dialog">${icones.pesquisa}<span class="visualmente-escondido">Procurar</span></button>
@@ -295,7 +267,7 @@ function whatsappFlutuante(ctx, classe) {
 }
 
 export function pagina(ctx, { titulo, descricao, caminho, conteudo, partilha, tipo = 'website', jsonld = [], classe = '', indexar = true }) {
-  // a página inicial começa pela capa escura, com o cabeçalho por cima (cabecalhoDaCapa)
+  // a página inicial começa pela capa escura, com o cabeçalho transparente por cima (cabecalho, naCapa)
   const naCapa = String(classe).split(/\s+/).includes('pagina-inicio');
   const tituloCompleto = titulo.includes(ctx.site.marca) ? titulo : `${titulo} | ${ctx.site.marca}`;
   const cartao = partilha || ctx.manifesto.partilha._site;
@@ -333,8 +305,8 @@ ${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j).repl
 </head>
 <body class="${esc(classe)}" data-catalogo="${ctx.asset(ctx.ficheiros.catalogo)}" data-base="${ctx.url('/')}" data-api="${esc(ctx.api)}">
 <a class="saltar" href="#conteudo">Saltar para o conteúdo</a>
-${faixaTopo(ctx, { naCapa })}
-${naCapa ? cabecalhoDaCapa(ctx) : cabecalho(ctx, caminho)}
+${faixaTopo(ctx)}
+${cabecalho(ctx, caminho, { naCapa })}
 <main id="conteudo" tabindex="-1">
 ${conteudo}
 </main>

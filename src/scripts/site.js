@@ -115,10 +115,11 @@
   $$('.faixa-topo[data-ate]').forEach((a) => {
     if (hojeLisboa() > a.dataset.ate) { const t = $('.faixa-topo__texto', a); if (t) t.hidden = true; }
   });
-  /* A loja aberta agora (computador): o horário da página (#horario-loja) e a hora de Lisboa. */
-  const estadoLoja = $('[data-estado-loja]');
+  /* A loja aberta agora: junto do horário (na página inicial e nos contactos) e na faixa de cima quando
+     há campanha; pelo horário da página (#horario-loja) e a hora de Lisboa. */
+  const estadosLoja = $$('[data-estado-loja]');
   const horario = (() => { try { return JSON.parse(($('#horario-loja') || {}).textContent || '[]'); } catch (_) { return []; } })();
-  if (estadoLoja && horario.length) {
+  if (estadosLoja.length && horario.length) {
     const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
     const agoraLisboa = () => {
       const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Lisbon', weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).map((x) => [x.type, x.value]));
@@ -158,9 +159,11 @@
         }
       }
       if (!texto) return;
-      estadoLoja.textContent = texto;
-      estadoLoja.dataset.aberta = aberto ? 'sim' : 'nao';
-      estadoLoja.hidden = false;
+      for (const el of estadosLoja) {
+        el.textContent = texto;
+        el.dataset.aberta = aberto ? 'sim' : 'nao';
+        el.hidden = false;
+      }
     };
     pintar();
     setInterval(pintar, 60000);
