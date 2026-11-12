@@ -111,7 +111,8 @@ function cabecalho(ctx, atual) {
    em branco, e no computador quatro ligações em letras espaçadas, separadas por traços finos (como na
    imagem). Ao descer, ganha um fundo escuro (html[data-rolado], site.js). A procura abre na folha (a
    lupa, também no computador); a fila das categorias não entra: a loja está logo por baixo da capa.
-   No telemóvel é o de sempre: o menu, o logótipo, a lupa e o carrinho. */
+   No telemóvel é o de sempre: o menu, o logótipo, a lupa e o carrinho. O logótipo é grande no topo e
+   encolhe ao descer (o CSS): por isso vem na versão maior (alto 96 → a de 192 px, nítida ao dobro). */
 function cabecalhoDaCapa(ctx) {
   const ligacoes = [
     { caminho: '/loja/', nome: 'Loja' },
@@ -122,7 +123,7 @@ function cabecalhoDaCapa(ctx) {
   return `<header class="topo topo--capa" data-topo>
   <div class="topo__barra">
     <button class="topo__botao topo__menu" type="button" data-abrir="menu" aria-haspopup="dialog">${icones.menu}<span class="visualmente-escondido">Menu</span></button>
-    <a class="topo__marca" href="${ctx.url('/')}" aria-current="page">${logotipo(ctx, { alto: 40 })}<span class="visualmente-escondido"> — página inicial</span></a>
+    <a class="topo__marca" href="${ctx.url('/')}" aria-current="page">${logotipo(ctx, { alto: 96 })}<span class="visualmente-escondido"> — página inicial</span></a>
     <nav class="topo__ligacoes" aria-label="Principal">
       <ul>${ligacoes.map((x) => `<li><a href="${ctx.url(x.caminho)}">${esc(x.nome)}</a></li>`).join('')}</ul>
     </nav>

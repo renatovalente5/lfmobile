@@ -192,6 +192,15 @@ html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
 html[data-rolado="sim"] .topo--capa { background: rgba(6, 6, 7, .84); border-bottom-color: rgba(255, 255, 255, .08); -webkit-backdrop-filter: saturate(160%) blur(16px); backdrop-filter: saturate(160%) blur(16px); box-shadow: none; }
 .topo--capa .logo { filter: invert(1); }
 @media (min-width: 1100px) { .topo--capa .topo__marca .logo { height: 52px; } }
+/* o logótipo grande no topo da página (o Renato, 12 nov 2026: «quero ter o logo maior quando estou no
+   topo da página, e quando começo a descer na página o logo diminui»): cresce a partir do canto de
+   cima, para baixo, por cima da capa (não empurra nada: a barra fica com a mesma altura); ao descer
+   (html[data-rolado], ao mesmo tempo que a barra escurece) volta ao tamanho da barra. */
+.topo--capa .topo__marca { position: relative; z-index: 1; }
+.topo--capa .topo__marca .logo { transform-origin: 0 0; transition: scale .4s cubic-bezier(.2, .7, .2, 1); }
+html:not([data-rolado="sim"]) .topo--capa .topo__marca .logo { scale: 1.5; }
+@media (min-width: 900px) { html:not([data-rolado="sim"]) .topo--capa .topo__marca .logo { scale: 1.8; } }
+@media (prefers-reduced-motion: reduce) { .topo--capa .topo__marca .logo { transition: none; } }
 .topo--capa .topo__botao { color: var(--branco); }
 .topo--capa :focus-visible { outline-color: var(--branco); }
 @media (hover: hover) { .topo--capa .topo__botao:hover { background: rgba(255, 255, 255, .12); } }
