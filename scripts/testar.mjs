@@ -571,6 +571,12 @@ teste('a produção constrói com os dados legais preenchidos: aberta aos motore
   assert.match(index, /https:\/\/lfmobile\.pt\//);
   assert.ok(fs.existsSync(path.join(pasta, '_site/sitemap.xml')));
   for (const f of todosHtml(pasta)) assert.doesNotMatch(fs.readFileSync(f, 'utf8'), /por confirmar:/, f);
+  // o rodapé só com «© ano marca» (o Renato, 12 nov 2026: o nome, o NIF e a morada «não precisam de
+  // estar lá»); a identificação de quem vende fica nos Contactos e nos Termos
+  assert.match(index, /<p class="rodape__direitos">© \d{4} LF Mobile<\/p>/);
+  for (const f of todosHtml(pasta)) assert.doesNotMatch((fs.readFileSync(f, 'utf8').match(/<footer class="rodape">[\s\S]*?<\/footer>/) || [''])[0], /123456789|Nome de Teste/, f);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/contactos/index.html'), 'utf8'), /Nome de Teste[\s\S]{0,80}123456789/);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/termos-e-condicoes/index.html'), 'utf8'), /123456789/);
 });
 teste('em modo «online» o botão diz «Encomendar e pagar» (como os termos), e o catálogo leva o modo', () => {
   const pasta = copia('online', (p) => json(p, 'content/site.json', (s) => { s.pagamentos.modo = 'online'; }));

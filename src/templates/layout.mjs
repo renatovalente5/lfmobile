@@ -209,9 +209,11 @@ function folhaProcura(ctx) {
 
 /* O RODAPÉ (memória rodape-com-logotipo): o logótipo, a frase e as redes; a Loja, as Reparações e a
    Ajuda em colunas; em baixo as páginas legais numa linha, com o Livro de Reclamações discreto. Sem o
-   bloco dos contactos e do horário (o Renato, 8 nov 2026): estão na página dos contactos. */
+   bloco dos contactos e do horário (o Renato, 8 nov 2026): estão na página dos contactos. Sem o nome
+   do dono, o NIF e a morada na linha do «©» (o Renato, 12 nov 2026: «não precisa de estar lá»): a
+   identificação de quem vende está nos Contactos, nos Termos e na Privacidade, que o rodapé liga em
+   todas as páginas (memória rodape-sem-dados-da-empresa). */
 function rodape(ctx) {
-  const e = ctx.site.empresa || {};
   /* As garantias (a nota do Google, o orçamento, os envios e o levantamento) estão só no fim da
      página inicial, em cartões (o Renato, 11 nov 2026): já não há faixa por cima do rodapé. */
   const ligacao = (caminho, texto) => `<li><a href="${ctx.url(caminho)}">${esc(texto)}</a></li>`;
@@ -253,7 +255,7 @@ function rodape(ctx) {
     </nav>
   </div>
   <div class="rodape__fim">
-    <p class="rodape__direitos">© ${ctx.hoje.slice(0, 4)} ${esc(ctx.site.marca)}${e.nome ? ` · ${esc(e.nome)}` : ''}${e.nif ? ` · NIF ${esc(e.nif)}` : ''}${e.morada && e.codigoPostal && e.localidade ? ` · ${esc(e.morada)}, ${esc(e.codigoPostal)} ${esc(e.localidade)}` : ''}</p>
+    <p class="rodape__direitos">© ${ctx.hoje.slice(0, 4)} ${esc(ctx.site.marca)}</p>
     <ul class="rodape__legal">
       ${ligacao('/termos-e-condicoes/', 'Termos e condições')}
       ${ligacao('/politica-de-privacidade/', 'Privacidade')}
