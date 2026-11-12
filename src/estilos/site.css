@@ -202,7 +202,16 @@ html[data-rolado="sim"] .topo--capa { background: rgba(6, 6, 7, .84); border-bot
 .topo--capa .topo__marca { position: relative; z-index: 1; }
 .topo--capa .topo__marca .logo { transform-origin: 0 0; transition: scale .2s cubic-bezier(.2, .7, .2, 1); }
 html:not([data-rolado="sim"]) .topo--capa .topo__marca .logo { scale: var(--logo-topo); }
-@media (prefers-reduced-motion: reduce) { .topo--capa .topo__marca .logo { transition: none; } }
+/* os ícones e as palavras do menu crescem e encolhem com o logótipo, na mesma proporção (o Renato, 12
+   nov 2026: «os icons da navbar e texto também deviam acompanhar o aumento do logo»): a letra deles
+   (os ícones medem 1,25em; as palavras levam o espaçamento em em) */
+.topo--capa .topo__botao { transition: background-color .15s, font-size .2s cubic-bezier(.2, .7, .2, 1); }
+html:not([data-rolado="sim"]) .topo--capa .topo__botao { font-size: calc(.92rem * var(--logo-topo)); }
+@media (min-width: 900px) {
+  .topo--capa .topo__ligacoes a { transition: color .15s, font-size .2s cubic-bezier(.2, .7, .2, 1); }
+  html:not([data-rolado="sim"]) .topo--capa .topo__ligacoes a { font-size: calc(.78rem * var(--logo-topo)); }
+}
+@media (prefers-reduced-motion: reduce) { .topo--capa .topo__marca .logo, .topo--capa .topo__botao, .topo--capa .topo__ligacoes a { transition: none; } }
 /* Onde o browser anima com o próprio scroll, o fundo e o logótipo acompanham o dedo nos primeiros 32 px
    (o Renato, 12 nov 2026: «no telemóvel demora um bocado a ganhar o fundo na navbar e a diminuir o
    logo»): sem esperar por um limiar nem por uma transição. Nos outros, a classe (aos 12 px, em 0,2 s). */
@@ -210,8 +219,12 @@ html:not([data-rolado="sim"]) .topo--capa .topo__marca .logo { scale: var(--logo
   @supports (animation-timeline: scroll()) {
     .topo--capa { animation: lf-topo-escurece linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
     .topo--capa .topo__marca .logo { animation: lf-logo-desce linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
+    .topo--capa .topo__botao { animation: lf-icone-desce linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
+    .topo--capa .topo__ligacoes a { animation: lf-ligacao-desce linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
     @keyframes lf-topo-escurece { from { background-color: rgba(6, 6, 7, 0); border-bottom-color: rgba(255, 255, 255, 0); } to { background-color: rgba(6, 6, 7, .84); border-bottom-color: rgba(255, 255, 255, .08); } }
     @keyframes lf-logo-desce { from { scale: var(--logo-topo); } to { scale: 1; } }
+    @keyframes lf-icone-desce { from { font-size: calc(.92rem * var(--logo-topo)); } to { font-size: .92rem; } }
+    @keyframes lf-ligacao-desce { from { font-size: calc(.78rem * var(--logo-topo)); } to { font-size: .78rem; } }
   }
 }
 .topo--capa .topo__botao { color: var(--branco); }
