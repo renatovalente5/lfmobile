@@ -393,6 +393,9 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
     assert.match(html, /<div class="busca__linha">[\s\S]*?id="busca-folha"[\s\S]*?<button class="folha-procura__fechar" type="button" data-fechar>Fechar<\/button>\s*<\/div>/);
   }
   assert.doesNotMatch(inicio, /Vender o meu</);
+  // os cartões levam à ficha, onde se compra: sem o carrinho nem o «Escolher», com a seta em todos (13 nov 2026)
+  assert.doesNotMatch(lojaPag, /data-juntar|cartao__juntar|cartao__escolher/);
+  assert.equal((lojaPag.match(/<span class="cartao__seta" aria-hidden="true">/g) || []).length, (lojaPag.match(/<article class="cartao/g) || []).length);
   // o rodapé alto: a marca e as colunas da Loja e da Ajuda (a das reparações saiu: «está aí a mais»)
   const rodape = inicio.match(/<footer class="rodape">[\s\S]*?<\/footer>/)[0];
   assert.deepEqual([...rodape.matchAll(/<div class="rodape__coluna">\s*<h2>([^<]+)<\/h2>/g)].map((m) => m[1]), ['Loja', 'Ajuda']);

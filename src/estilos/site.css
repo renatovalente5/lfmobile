@@ -486,12 +486,12 @@ html.na-capa { background: #040404; }
 .cartao__pe { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 8px; }
 .cartao__precos { display: grid; gap: 2px; min-width: 0; }
 .cartao__disp { font-size: .76rem; color: var(--tinta-3); font-weight: 600; }
-.cartao__juntar { position: relative; z-index: 2; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 42px; height: 42px; border-radius: 999px; background: var(--tinta); color: var(--branco); transition: background-color .15s, transform .15s; }
-.cartao__juntar .icone { width: 19px; height: 19px; }
-.cartao__juntar-mais { position: absolute; top: 4px; right: 4px; width: 14px; height: 14px; border-radius: 999px; background: var(--ouro); color: var(--escuro); font-size: 11px; font-weight: 800; line-height: 14px; text-align: center; }
-@media (hover: hover) { .cartao__juntar:hover { background: #2E2E33; transform: scale(1.05); } }
-.cartao__juntar[data-feito] { background: var(--verde); }
-.cartao__escolher { position: relative; z-index: 0; flex: none; font-size: .82rem; font-weight: 800; color: var(--tinta-2); padding: 6px 0; }
+/* A seta do cartão: o cartão inteiro leva à ficha, onde se compra (13 nov 2026; antes, o carrinho com «+» ou o
+   «Escolher», conforme o artigo). Uma só forma em todos os cartões; no computador, escurece com o cartão. */
+.cartao__seta { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: 999px; background: var(--cinza); color: var(--tinta); transition: background-color .2s, color .2s; }
+.cartao__seta .icone { width: 18px; height: 18px; transition: transform .2s; }
+@media (hover: hover) and (pointer: fine) { .cartao:hover .cartao__seta { background: var(--tinta); color: var(--branco); } .cartao:hover .cartao__seta .icone { transform: translateX(2px); } }
+@media (max-width: 374.98px) { .cartao__seta { width: 32px; height: 32px; } .cartao__seta .icone { width: 16px; height: 16px; } }
 .preco { font-weight: 800; font-size: 1.06rem; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
 .preco--grande { font-size: clamp(1.7rem, 1.4rem + 1vw, 2.2rem); letter-spacing: -.03em; }
 .preco--promocao .preco__atual { color: var(--promo); }
@@ -581,7 +581,9 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
 .estrelas__cheias { position: absolute; inset: 0 auto 0 0; width: calc(var(--nota, 5) / 5 * 100%); overflow: hidden; color: var(--ouro); }
 .estrelas .icone { flex: none; width: 16px; height: 16px; }
 @media (min-width: 640px) {
-  .garantias__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; border-radius: 0; background: none; }
+  /* numa fila só, com tantas colunas como cartões e todas da mesma largura: com três ficava um lugar vazio à
+     direita (o Renato, 13 nov 2026: «centra esses 3 cards no meio») */
+  .garantias__lista { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 12px; border-radius: 0; background: none; }
   .garantia, .garantias__lista > li:first-child .garantia, .garantias__lista > li:last-child .garantia { grid-template-columns: minmax(0, 1fr); align-content: start; align-items: start; gap: 18px; padding: 24px; border-radius: var(--raio); background-color: var(--cinza); }
   .garantias__lista > li + li .garantia::before { content: none; }
   .garantia__icone { width: 48px; height: 48px; }
@@ -591,7 +593,7 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
   .garantia__seta { position: absolute; top: 24px; right: 24px; }
   .garantia:active { background-color: var(--cinza-2); }
 }
-@media (min-width: 1000px) { .garantias__lista { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; } }
+@media (min-width: 1000px) { .garantias__lista { gap: 16px; } }
 @media (hover: hover) {
   .garantia:hover { background-color: var(--cinza-2); }
   .garantia:hover .garantia__seta { transform: translateX(3px); color: var(--tinta); }

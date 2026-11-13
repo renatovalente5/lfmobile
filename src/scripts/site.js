@@ -527,16 +527,6 @@
       abrir('carrinho', $('button[type="submit"]', form));
     });
   });
-  /* O botão do cartão (os artigos sem escolhas): junta um ao carrinho e abre a gaveta. */
-  document.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-juntar]');
-    if (!b || !window.LFCarrinho) return;
-    e.preventDefault();
-    await window.LFCarrinho.juntar({ produto: b.dataset.juntar, opcoes: [], qtd: 1 });
-    b.dataset.feito = '';
-    setTimeout(() => { delete b.dataset.feito; }, 1200);
-    abrir('carrinho', b);
-  });
 
   // ---------------------------------------------------------------- os problemas (separadores)
   /* A grelha dos problemas: tocar num mostra a explicação dele por baixo (os outros escondem-se).
