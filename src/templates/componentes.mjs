@@ -49,11 +49,12 @@ export const temRecorte = (ctx, nome) => Boolean(ctx.manifesto.recortes?.[nome])
 
 /* O estado de um artigo, como se mostra: «Recondicionado · Grade A+» (a grade vem das
    características, se lá estiver). Um artigo novo não leva etiqueta. */
+/* O estado por cima do nome, na ficha: «Recondicionado». A grade não entra: já está nas pílulas por baixo do
+   nome (especificacoes), e aparecia duas vezes («Apple · Recondicionado · Grade A+» e «Grade A+»). */
 export function estadoRotulo(p) {
   const estado = estadoDe(p);
   if (estado === 'novo') return '';
-  const grade = linhasDe(p.caracteristicas).find((t) => /^grade\s/i.test(t));
-  return grade ? `${ESTADOS[estado]} · ${grade}` : ESTADOS[estado];
+  return ESTADOS[estado];
 }
 
 /* A linha das especificações do cartão: a capacidade, a bateria e a grade, quando as características

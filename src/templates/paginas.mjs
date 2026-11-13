@@ -127,10 +127,10 @@ export function inicio(ctx) {
   /* AS GARANTIAS, no fim da página inicial e só nela (o Renato, 11 nov 2026; antes estavam no rodapé
      de todas as páginas): a nota do Google primeiro, com as estrelas da própria nota e a ligação para
      as opiniões (para quem quiser conferir; as opiniões em si não se copiam, DL 57/2008, art. 8.º,
-     al. cc) — sem a nota ou sem a ligação, não aparece —, e depois o orçamento, os envios e o
-     levantamento. Cada cartão leva ao sítio onde isso se explica. */
+     al. cc) — sem a nota ou sem a ligação, não aparece —, e depois o orçamento e o levantamento. Os
+     envios já estão na capa, nas três vantagens, e saíram daqui a 13 nov 2026 (memória
+     sem-informacao-repetida). Cada cartão leva ao sítio onde isso se explica. */
   const g = ctx.site.google || {};
-  const transp = ctx.site.entrega.transportadora;
   const nota = Math.min(5, Math.max(0, Number(String(g.nota).replace(',', '.')) || 0));
   const estrelas = `<span class="estrelas" style="--nota: ${nota}" aria-hidden="true"><span class="estrelas__fundo">${icones.estrela.repeat(5)}</span><span class="estrelas__cheias">${icones.estrela.repeat(5)}</span></span>`;
   const garantia = (href, icone, titulo, texto, fora = false) => `<li><a class="garantia" href="${esc(href)}"${fora ? ' target="_blank" rel="noopener"' : ''}>
@@ -143,7 +143,6 @@ export function inicio(ctx) {
   <ul class="garantias__lista">
     ${g.nota && g.ligacao ? garantia(g.ligacao, icones.estrela, `${esc(String(g.nota).replace('.', ','))} no Google`, `${estrelas}${g.opinioes ? `${g.opinioes} opiniões.` : 'Ver as opiniões.'}`, true) : ''}
     ${garantia(ctx.url('/reparacoes/'), icones.ferramentas, 'Orçamento grátis', 'Dizemos o preço antes de reparar.')}
-    ${garantia(ctx.url('/envios-e-devolucoes/'), icones.camiao, `${transp ? `Envios ${esc(transp)}` : 'Envios'} em 24/48 h`, 'Para Portugal Continental.')}
     ${garantia(ctx.url('/contactos/'), icones.loja, 'Levantamento grátis', `Na loja, em ${esc(ctx.site.local.localidade)}.`)}
   </ul>
 </section>`;
@@ -414,7 +413,7 @@ export function produto(ctx, p) {
     <legend>O seu telemóvel</legend>
     <div class="campos-lado">
       <div class="campo"><label for="m-marca-${idm}">Marca</label><select id="m-marca-${idm}" name="marcaModelo" required data-modelo-marca><option value="">Escolha…</option>${ctx.marcasParaModelo.map((mm) => `<option>${esc(mm)}</option>`).join('')}<option value="Outra">Outra marca</option></select></div>
-      <div class="campo" data-modelo-lista-campo hidden><label for="m-lista-${idm}">Modelo</label><select id="m-lista-${idm}" data-modelo-lista disabled><option value="">Escolha primeiro a marca</option></select></div>
+      <div class="campo" data-modelo-lista-campo hidden><label for="m-lista-${idm}">Modelo</label><select id="m-lista-${idm}" data-modelo-lista disabled><option value="">Primeiro, a marca</option></select></div>
       <div class="campo" data-modelo-nome-campo><label for="m-modelo-${idm}" data-modelo-nome-rotulo>Modelo</label><input id="m-modelo-${idm}" name="modelo" type="text" maxlength="60" required autocomplete="off" placeholder="Ex.: iPhone 13, Galaxy A55" data-modelo-nome></div>
     </div>
     <p class="campo__ajuda">Preparamos a película para este modelo. Se não souber o nome, veja em Definições › Geral › Informações (iPhone) ou Definições › Acerca do telemóvel (Android).</p>
@@ -481,7 +480,7 @@ export function produto(ctx, p) {
   const relacionados = ctx.produtos.filter((x) => x.slug !== p.slug)
     .sort((a, b) => (b.categoria === p.categoria) - (a.categoria === p.categoria) || (a.ordem ?? 500) - (b.ordem ?? 500)).slice(0, 8);
 
-  // A marca (ou a categoria) e o estado: «Huawei · Novo», «Apple · Recondicionado · Grade A+». Os
+  // A marca (ou a categoria) e o estado: «Huawei · Novo», «Apple · Recondicionado». Os
   // acessórios sem marca ficam só com a categoria.
   const estadoTexto = estadoRotulo(p) || (EQUIPAMENTOS.has(p.categoria) ? 'Novo' : '');
   const specs = especificacoes(p);
@@ -619,6 +618,7 @@ export function checkout(ctx) {
       </fieldset>
       <label class="caixa caixa--termos"><input type="checkbox" name="termos" required><span>Li e aceito os <a href="${ctx.url('/termos-e-condicoes/')}" target="_blank" rel="noopener">termos e condições</a>. Posso desistir da compra em 14 dias.</span></label>
       <p class="comprar__erro" data-erro-checkout role="alert" hidden></p>
+      <p class="checkout__total" data-checkout-total hidden><span>Total</span><strong></strong></p>
       <button class="botao botao--cheio botao--largo" type="submit" data-botao-checkout>${online ? icones.cadeado : icones.certo}<span>${online ? esc(BOTAO_ENCOMENDA) : 'Enviar encomenda'}</span></button>
       <p class="formulario__nota">${online ? 'Segue para a página segura da Stripe (cartão, MB WAY ou Multibanco). Pode desistir até pagar.' : 'Registamos a encomenda e confirmamos consigo o pagamento e a entrega, por email ou WhatsApp. A encomenda fica feita quando a confirmarmos.'}</p>
     </form>

@@ -59,7 +59,7 @@ export function seletorDeModelo(ctx, { id = 'escolher', destino = 'reparacoes', 
   </ul>
   <div class="seletor__procura">
     <label class="visualmente-escondido" for="${id}-procura">Procurar o modelo</label>
-    ${icones.pesquisa}<input id="${id}-procura" type="search" placeholder="Procurar o modelo (ex.: 13 Pro, S24)" autocomplete="off" data-seletor-procura>
+    ${icones.pesquisa}<input id="${id}-procura" type="search" placeholder="Modelo (ex.: 13 Pro, S24)" autocomplete="off" data-seletor-procura>
   </div>
   <ul class="seletor__modelos" data-seletor-modelos>
     ${ctx.aparelhos.modelos.map((m) => `<li data-familia="${esc(m.familia)}" data-marca="${esc(m.marca)}" data-nome="${esc(m.nome.toLowerCase())}"><a href="${ctx.url(`/${destino}/${m.id}/`)}">${usarAparelho(m.desenho, 'aparelho--mini')}<span>${esc(m.nome)}</span></a></li>`).join('')}
@@ -160,7 +160,7 @@ export function familia(ctx, f) {
     <h1 class="titulo-pagina">${f.tipo === 'computador' ? 'Reparação de computadores' : `Reparação ${esc(f.nome)}`}</h1>
     <p class="cabeca__sub">${f.tipo === 'computador' ? 'Portáteis e computadores fixos, de qualquer marca. Escolha o seu para ver as reparações; o orçamento é grátis.' : 'Escolha o seu modelo para ver as reparações e os preços.'}</p>
   </header>
-  <ul class="modelos-grelha">
+  <ul class="modelos-grelha modelos-grelha--${esc(f.tipo)}">
     ${lista.map((x) => `<li><a class="modelo-cartao" href="${ctx.url(`/reparacoes/${x.id}/`)}">${usarAparelho(x.desenho)}<span class="modelo-cartao__nome">${esc(x.nome)}</span>${x.ano ? `<span class="modelo-cartao__ano">${x.ano}</span>` : ''}</a></li>`).join('')}
   </ul>
   ${f.tipo === 'computador'
@@ -213,7 +213,14 @@ export function modelo(ctx, x) {
   }).join('\n');
   // as películas são para telemóveis («para qualquer telemóvel»): nem os tablets, nem os relógios, nem as consolas
   const peliculas = x.tipo !== 'telemovel' ? [] : ctx.produtos.filter((p) => p.categoria === 'peliculas' && p.pedeModelo === true).slice(0, 4);
-  const irmaos = modelosDaFamilia(ctx, f.id).filter((y) => y.id !== x.id);
+  /* Os outros modelos da família: os 8 mais próximos na lista (a mesma geração e as vizinhas) e «Ver todos». Todos
+     de uma vez eram ~40 pílulas, uma parede no fim da página do telemóvel (13 nov 2026). */
+  const daFamilia = modelosDaFamilia(ctx, f.id);
+  const VIZINHOS = 8;
+  const pos = Math.max(0, daFamilia.findIndex((y) => y.id === x.id));
+  const ini = Math.max(0, Math.min(pos - VIZINHOS / 2, daFamilia.length - VIZINHOS - 1));
+  const irmaos = daFamilia.slice(ini, ini + VIZINHOS + 1).filter((y) => y.id !== x.id);
+  const irmaosTodos = daFamilia.length - 1 > irmaos.length;
   const msgBase = `Olá! Quero marcar uma reparação.\n\nEquipamento: ${x.nome}`;
   const conteudo = `<div class="contentor modelo-pagina" data-modelo="${esc(x.id)}" data-nome-modelo="${esc(x.nome)}"${porConfirmar ? ' data-por-confirmar="sim"' : ''}>
   ${m.html}
@@ -253,7 +260,7 @@ export function modelo(ctx, x) {
   </section>` : ''}
   ${irmaos.length ? `<section class="modelo-irmaos" aria-labelledby="irmaos-titulo">
     <h2 class="titulo-pequeno" id="irmaos-titulo">Outros ${f.tipo === 'computador' ? 'computadores' : esc(f.nome)}</h2>
-    <ul class="pilulas">${irmaos.map((y) => `<li><a class="pilula" href="${ctx.url(`/reparacoes/${y.id}/`)}">${esc(y.nome)}</a></li>`).join('')}</ul>
+    <ul class="pilulas">${irmaos.map((y) => `<li><a class="pilula" href="${ctx.url(`/reparacoes/${y.id}/`)}">${esc(y.nome)}</a></li>`).join('')}${irmaosTodos ? `<li><a class="pilula pilula--todos" href="${ctx.url(`/reparacoes/${f.id}/`)}">Ver todos${icones.seta}</a></li>` : ''}</ul>
   </section>` : ''}
 </div>
 ${spriteAparelhos()}`;

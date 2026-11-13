@@ -381,6 +381,11 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
     // a barra da procura grande ao lado do logótipo (computador) e a lupa para o telemóvel
     assert.match(html, /<\/a>\s*<div class="topo__procura"><form class="busca" role="search"[\s\S]*?id="busca-topo"/);
     assert.match(html, /class="topo__botao topo__lupa"[^>]*data-abrir="procurar"/);
+    // o texto do campo sem «iPhone», «telemóvel», «mobile», «nome» nem «email»: o Safari lia «phone» em «iPhone» e
+    // punha o número de telemóvel de quem procurava por cima do teclado (13 nov 2026)
+    for (const [, t] of html.matchAll(/<input[^>]*type="search"[^>]*placeholder="([^"]*)"/g)) assert.doesNotMatch(t, /phone|telem|mobile|nome|e-?mail|morada/i, t);
+    // na folha do telemóvel, o «Fechar» na linha do campo
+    assert.match(html, /<div class="busca__linha">[\s\S]*?id="busca-folha"[\s\S]*?<button class="folha-procura__fechar" type="button" data-fechar>Fechar<\/button>\s*<\/div>/);
   }
   assert.doesNotMatch(inicio, /Vender o meu</);
   // o rodapé alto: a marca e as colunas da Loja e da Ajuda (a das reparações saiu: «está aí a mais»)
@@ -422,11 +427,13 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   assert.doesNotMatch(inicio, /confianca-faixa|Retoma do seu usado|rodape__garantias/);
   assert.match(inicio, /<section class="loja-casa"[\s\S]*?<\/section>\s*<section class="garantias" aria-labelledby="garantias-titulo">\s*<h2 class="visualmente-escondido" id="garantias-titulo">Porquê a LF Mobile<\/h2>/);
   const lis = inicio.match(/<section class="garantias"[\s\S]*?<\/section>/)[0].match(/<li>[\s\S]*?<\/li>/g);
-  assert.deepEqual(lis.map((li) => li.match(/<strong class="garantia__titulo">(.*?)<\/strong>/)[1]), ['5,0 no Google', 'Orçamento grátis', 'Envios Nacex em 24/48 h', 'Levantamento grátis']);
+  // os envios só na capa (nas três vantagens), não outra vez aqui (13 nov 2026, sem informação repetida)
+  assert.deepEqual(lis.map((li) => li.match(/<strong class="garantia__titulo">(.*?)<\/strong>/)[1]), ['5,0 no Google', 'Orçamento grátis', 'Levantamento grátis']);
+  assert.equal((inicio.match(/24\/48 h/g) || []).length, 1);
   assert.match(lis[0], /<a class="garantia" href="https:\/\/www\.google\.com\/maps\/place\/LF\+Mobile\/[^"]*!9m1!1b1[^"]*" target="_blank" rel="noopener">/);
   assert.match(lis[0], /<span class="estrelas" style="--nota: 5" aria-hidden="true">/);
   assert.match(lis[0], /<\/span><\/span>20 opiniões\.<\/span>/);
-  assert.deepEqual(lis.slice(1).map((li) => li.match(/href="([^"]*)"/)[1]), ['/reparacoes/', '/envios-e-devolucoes/', '/contactos/']);
+  assert.deepEqual(lis.slice(1).map((li) => li.match(/href="([^"]*)"/)[1]), ['/reparacoes/', '/contactos/']);
   for (const c of ['reparacoes/index.html', 'contactos/index.html', 'loja/index.html', 'envios-e-devolucoes/index.html']) {
     assert.doesNotMatch(ler2(c), /class="garantias|rodape__garantias|no Google<\/strong>/, c);
   }
@@ -561,6 +568,8 @@ teste('o WhatsApp é um botão flutuante (fora da barra de cima), e não aparece
     assert.doesNotMatch(html.slice(html.indexOf('<header'), html.indexOf('</header>')), /wa\.me/, `${pagina}: o WhatsApp voltou à barra de cima`);
   }
   for (const pagina of ['carrinho/index.html', 'checkout/index.html', 'obrigado/index.html']) assert.doesNotMatch(ler(pagina), /data-whatsapp-flutuante/, pagina);
+  // o total por cima do botão de enviar (no telemóvel o resumo fica depois dele)
+  assert.match(ler('checkout/index.html'), /<p class="checkout__total" data-checkout-total hidden><span>Total<\/span><strong><\/strong><\/p>\s*<button class="botao botao--cheio botao--largo" type="submit" data-botao-checkout>/);
 });
 teste('os contactos têm o mapa desenhado dentro da página (sem o Google, sem cookies), com o crédito do OpenStreetMap', () => {
   const pasta = copia('mapa');

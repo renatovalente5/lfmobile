@@ -250,12 +250,16 @@
       </div>
     </li>`;
   }
+  // o total a pagar, em texto («79,70 €», ou «74,70 € + portes» quando os portes se combinam depois)
+  function totalTexto(c, zona) {
+    return zona !== 'levantamento' && c.portesPorConfirmar ? `${centimos(c.artigosCents - c.descontoCents)} + portes` : centimos(c.totalCents);
+  }
   function totaisHtml(cat, c, zona) {
     const levant = zona === 'levantamento';
     const t = cat.transportadora ? ` ${cat.transportadora}` : '';
     const rotuloPortes = levant ? 'Levantamento na loja' : `Portes${t}${c.escalao ? ` · até ${kg(c.escalao.ate)}` : ''}`;
     const portes = levant || (c.portesCents === 0 && !c.portesPorConfirmar) ? 'Grátis' : (c.portesPorConfirmar ? 'a combinar' : centimos(c.portesCents));
-    const total = !levant && c.portesPorConfirmar ? `${centimos(c.artigosCents - c.descontoCents)} + portes` : centimos(c.totalCents);
+    const total = totalTexto(c, zona);
     const cup = estado.cupao;
     return `<p><span>${c.unidades === 1 ? '1 artigo' : `${c.unidades} artigos`}</span><span>${centimos(c.artigosCents)}</span></p>
       ${cup && c.descontoCents ? `<p class="totais__desconto"><span>Cupão ${esc(cup.codigo)}</span><span>−${centimos(c.descontoCents)}</span></p>` : ''}
@@ -451,6 +455,9 @@
       <div class="totais" aria-live="polite">${totaisHtml(cat, c, zona)}</div>
       <p><a class="botao botao--texto" href="${esc(cat.carrinho)}">Alterar o carrinho</a></p>`;
     pintarCupoes(c);
+    // o total também por cima do botão (no telemóvel o resumo fica depois dele; no computador o CSS esconde-o)
+    const totalLinha = $('[data-checkout-total]', form);
+    if (totalLinha) { $('strong', totalLinha).textContent = totalTexto(c, zona); totalLinha.hidden = false; }
     $$('input[name="entrega"]', form).forEach((r) => { r.checked = r.value === zona; });
     pintarPrecosDasZonas(form, cat, c);
     const comMorada = Boolean((cat.zonas.find((z) => z.id === zona) || {}).morada);

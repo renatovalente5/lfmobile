@@ -67,6 +67,10 @@ img, svg, video { display: block; max-width: 100%; }
 img { height: auto; }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .16em; }
 p, ul, ol, dl, h1, h2, h3, h4, figure { margin: 0; }
+/* Os títulos em linhas equilibradas e os parágrafos sem uma palavra sozinha na última linha («São / Roque.» no rodapé,
+   «Em São Roque, Oliveira de / Azeméis»). Onde o browser não sabe, fica como estava. */
+h1, h2, h3, h4 { text-wrap: balance; }
+p, li, dd, dt, label, figcaption { text-wrap: pretty; }
 ul, ol { padding: 0; list-style: none; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 input, select, textarea { font: inherit; color: inherit; }
@@ -129,6 +133,8 @@ mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; borde
 .pilulas { display: flex; flex-wrap: wrap; gap: 8px; }
 .pilula { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 6px 15px; border-radius: 999px; border: 1px solid var(--linha); background: var(--papel); color: var(--tinta); text-decoration: none; font-size: .92rem; font-weight: 600; }
 .pilula[aria-current="page"] { background: var(--tinta); color: var(--branco); border-color: var(--tinta); }
+.pilula--todos { font-weight: 700; }
+.pilula--todos .icone { width: 1em; height: 1em; }
 @media (hover: hover) { .pilula:hover { border-color: var(--tinta); } }
 .selo { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: .75rem; font-weight: 800; letter-spacing: .02em; background: var(--papel); color: var(--tinta); text-decoration: none; white-space: nowrap; }
 .selo--desconto { background: var(--promo); color: var(--branco); }
@@ -283,12 +289,16 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .menu__servico--campanha .menu__servico-icone { background: var(--papel); color: var(--ouro-texto); }
 .menu__rotulo { font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); margin: 0 0 6px; }
 /* a loja numa grelha de duas colunas: cabe num ecrã de telemóvel sem rolar */
-.menu__grelha { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.menu__grelha { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 20px; }
 .menu__grelha a { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 12px; border-radius: var(--raio-m); background: var(--cinza); text-decoration: none; font-weight: 700; font-size: .95rem; line-height: 1.2; }
 .menu__grelha .icone { flex: none; width: 1.25em; height: 1.25em; color: var(--ouro-texto); }
 .menu__grelha a[aria-current="page"] { background: var(--tinta); color: var(--branco); }
 .menu__grelha a[aria-current="page"] .icone { color: var(--ouro-claro); }
 @media (hover: hover) { .menu__grelha a:hover { background: var(--cinza-2); } .menu__grelha a[aria-current="page"]:hover { background: var(--tinta); } }
+/* Abaixo dos 390 px «Recondicionados» e «Smartwatches» saíam do quadrado: a letra um pouco mais pequena; abaixo dos
+   360 px o ícone passa para cima da palavra. */
+@media (max-width: 389.98px) { .menu__grelha a { gap: 8px; font-size: .875rem; } }
+@media (max-width: 359.98px) { .menu__grelha a { flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; padding: 10px 12px; } }
 .menu__linhas { margin-bottom: 20px; border-top: 1px solid var(--linha); }
 .menu__linhas a { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 2px; border-bottom: 1px solid var(--linha); text-decoration: none; font-weight: 700; font-size: 1rem; }
 .menu__linhas .icone { color: var(--tinta-3); width: 1.1em; height: 1.1em; }
@@ -460,7 +470,9 @@ html.na-capa { background: #040404; }
 .cartao--esgotado .cartao__foto img { opacity: .5; }
 .cartao__corpo { display: flex; flex-direction: column; gap: 4px; flex: 1; padding: 12px 14px 14px; }
 .cartao__marca { font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-3); overflow-wrap: anywhere; }
-@media (max-width: 359.98px) { .cartao__marca { font-size: .7rem; letter-spacing: .03em; } }
+/* abaixo dos 360 px «RECONDICIONADO» só cabe com o cartão um pouco menos almofadado e sem espaço entre as letras
+   (a letra fica nos 12 px, o mínimo) */
+@media (max-width: 359.98px) { .cartao__corpo { padding-left: 12px; padding-right: 12px; } .cartao__marca { letter-spacing: 0; } }
 .cartao__nome { font-size: .98rem; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .cartao__ligacao { text-decoration: none; }
 .cartao__ligacao:focus-visible { outline: none; }
@@ -592,6 +604,10 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
 .migalhas li + li::before { content: '›'; margin-right: 8px; color: var(--tinta-3); }
 .migalhas a { text-decoration: none; }
 @media (hover: hover) { .migalhas a:hover { text-decoration: underline; } }
+/* No telemóvel, a última migalha (a página onde se está) sai da vista quando há três ou mais: o título logo por baixo
+   já a diz, e o caminho cabe numa linha (partia-se em duas, com o «›» a começar a segunda). Os leitores de ecrã
+   continuam a ouvi-la. */
+@media (max-width: 599.98px) { .migalhas li:last-child:nth-child(n+3) { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
 .chips { margin: 4px 0 14px; }
 .chips ul { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; padding-bottom: 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .chips ul::-webkit-scrollbar { display: none; }
@@ -761,6 +777,9 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .seletor__modelos { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; max-height: 360px; overflow: auto; padding: 2px; overscroll-behavior: contain; }
 .seletor__modelos a { display: grid; justify-items: center; gap: 8px; height: 100%; padding: 12px 6px 10px; border-radius: var(--raio-m); background: var(--cinza); text-decoration: none; text-align: center; font-weight: 700; font-size: .84rem; line-height: 1.2; transition: background-color .15s, transform .15s; }
 @media (hover: hover) { .seletor__modelos a:hover { background: var(--cinza-2); transform: translateY(-1px); } }
+/* como nos cartões dos modelos: os desenhos assentes na mesma linha (os dobráveis e os tablets são mais baixos) */
+.seletor__modelos a { grid-template-rows: 50px auto; align-content: start; }
+.seletor__modelos .aparelho { align-self: end; }
 .seletor__vazio { color: var(--tinta-2); font-size: .92rem; }
 .aparelho { height: auto; }
 .aparelho--mini { width: 30px; }
@@ -776,8 +795,16 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 /* a página de uma família: os modelos em cartões */
 .familia-pagina { padding-bottom: 32px; }
 .modelos-grelha { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+/* abaixo dos 360 px o mínimo de 140 px deixava uma coluna só, com quadrados enormes e a página com o dobro do comprimento */
+@media (max-width: 359.98px) { .modelos-grelha { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } }
 .modelo-cartao { display: grid; justify-items: center; gap: 10px; height: 100%; padding: 22px 10px 16px; border-radius: var(--raio); background: var(--cinza); text-decoration: none; text-align: center; transition: background-color .15s, transform .15s; }
 .modelo-cartao .aparelho { width: 46px; filter: drop-shadow(0 10px 14px rgba(17, 17, 19, .18)); }
+/* Os desenhos assentes na mesma linha e o nome e o ano logo por baixo. O iPhone Duo e os Galaxy Z dobráveis são mais
+   baixos: o nome ficava mais acima que o dos vizinhos e o ano solto lá em baixo. Nos telemóveis, a fila do desenho
+   tem a altura de um telemóvel. */
+.modelo-cartao { align-content: start; }
+.modelo-cartao .aparelho { align-self: end; }
+.modelos-grelha--telemovel .modelo-cartao { grid-template-rows: 77px auto auto; }
 .modelo-cartao__nome { font-weight: 800; font-size: .95rem; line-height: 1.2; }
 .modelo-cartao__ano { font-size: .8rem; color: var(--tinta-3); font-weight: 600; }
 @media (hover: hover) { .modelo-cartao:hover { background: var(--cinza-2); transform: translateY(-2px); } }
@@ -864,6 +891,8 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .simulador { display: grid; gap: 16px; margin-top: -64px; position: relative; }
 @media (min-width: 1000px) { .simulador { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; gap: 24px; } }
 .simulador__palco { min-height: 420px; padding: clamp(20px, 3vw, 36px); border-radius: var(--raio-g); background: var(--papel); box-shadow: var(--sombra); }
+/* no telemóvel, sem altura mínima: no primeiro passo (as duas marcas) ficava um branco grande por baixo */
+@media (max-width: 699.98px) { .simulador__palco { min-height: 0; } }
 .simulador__lado { display: none; }
 @media (min-width: 1000px) { .simulador__lado { display: grid; gap: 16px; position: sticky; top: calc(var(--topo) + 16px); padding: 22px; border-radius: var(--raio-g); background: var(--papel); box-shadow: var(--sombra); } }
 .simulador__aparelho { display: flex; align-items: center; gap: 14px; }
@@ -979,6 +1008,10 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 @media (hover: hover) { .linha__tirar:hover { background: var(--cinza); color: var(--tinta); } }
 .carrinho-pagina__resumo, .checkout__resumo { padding: 22px; border-radius: var(--raio-g); background: var(--cinza); display: grid; gap: 16px; }
 @media (min-width: 900px) { .carrinho-pagina__resumo, .checkout__resumo { position: sticky; top: calc(var(--topo) + 16px); } }
+/* o total por cima de «Enviar encomenda», só no telemóvel e no tablet: aí o resumo fica depois do botão */
+.checkout__total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 4px; font-weight: 700; }
+.checkout__total strong { font-size: 1.25rem; font-weight: 800; }
+@media (min-width: 900px) { .checkout__total { display: none !important; } }
 .resumo__titulo { font-size: 1.15rem; font-weight: 800; }
 .resumo__nota { font-size: .86rem; color: var(--tinta-2); }
 .entrega-escolha { display: grid; gap: 8px; }

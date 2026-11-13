@@ -94,7 +94,7 @@ export function retoma(ctx) {
     <ul class="ret-antes__lista">
       <li>${icones.cadeado}<h3>Desligue o «Encontrar»</h3><p>No iPhone, o «Encontrar o iPhone»; no Samsung, a conta Samsung e a conta Google. Sem isto não o podemos aceitar.</p></li>
       <li>${icones.software}<h3>Faça uma cópia e apague tudo</h3><p>Guarde as fotografias e os contactos e reponha as definições de fábrica. Se precisar, ajudamos na loja.</p></li>
-      <li>${icones.documento}<h3>Traga um documento</h3><p>Pedimos o documento de identificação de quem vende e, se a tiver, a fatura da compra.</p></li>
+      <li>${icones.documento}<h3>Traga um documento</h3><p>Pedimos o documento de identificação de quem vende e, se a tiver, a factura da compra.</p></li>
     </ul>
   </section>
   ${c.whatsapp ? `<aside class="convite" aria-label="Fale connosco"><p class="convite__titulo">Tem outro aparelho para vender? Pergunte-nos.</p><div class="convite__botoes"><a class="botao botao--whatsapp" href="${ctx.whatsapp('Olá! Quero vender um aparelho (retoma): ')}" target="_blank" rel="noopener">${icones.whatsapp}<span>Falar no WhatsApp</span></a></div></aside>` : ''}

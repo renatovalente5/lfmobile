@@ -449,7 +449,7 @@
       const g = grupos();
       lista.innerHTML = g.length
         ? `<option value="">Escolha o modelo…</option>${g.map(([fam, l]) => `<optgroup label="${esc(fam)}">${l.map((m) => `<option value="${esc(m)}">${esc(m)}</option>`).join('')}</optgroup>`).join('')}<option value="${OUTRO_MODELO}">Outro modelo (escrever)</option>`
-        : '<option value="">Escolha primeiro a marca</option>';
+        : '<option value="">Primeiro, a marca</option>';
     };
     marca.addEventListener('change', () => {
       encher();
