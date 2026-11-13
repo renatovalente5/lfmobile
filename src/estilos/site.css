@@ -96,6 +96,9 @@ input, select, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--tinta); outline-offset: 3px; }
 html[data-entrada="ponteiro"] :focus:not(:focus-visible) { outline: none; }
 html[data-entrada="ponteiro"] :is(a, button, summary, input, select, textarea):focus { outline: none; }
+/* um título que recebe o foco por programa (o carrinho, a conta: para o leitor de ecrã saber onde está) não é um
+   controlo: sem o anel, também depois de escrever (no iPhone, o código da conta deixava o título com o anel) */
+:is(h1, h2)[tabindex="-1"]:focus { outline: none; }
 mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; border-radius: 4px; font-style: italic; }
 .nota-confirmar { display: inline-flex; align-items: flex-start; gap: 8px; margin-top: 14px; font-size: .88rem; }
 .nota-confirmar .icone { color: #8A6D00; margin-top: 2px; }

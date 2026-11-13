@@ -63,9 +63,21 @@
   }
 
   const blocos = { carregar: $('[data-conta-carregar]'), entrar: $('[data-conta-entrar]'), lista: $('[data-conta-lista]'), ficha: $('[data-conta-ficha]') };
+  let vista = 'carregar';
   function mostrar(qual) {
+    const mudou = qual !== vista;
+    vista = qual;
     Object.entries(blocos).forEach(([nome, el]) => { el.hidden = nome !== qual; });
     raiz.removeAttribute('aria-busy');
+    /* Ao mudar de vista (entrar → as encomendas), o teclado do telemóvel fecha-se e a página volta ao topo: no
+       iPhone, depois de escrever o código, a lista abria a meio, sem o título nem o «Sair» (o Renato, 13 nov 2026).
+       O foco vai para o título, para quem usa um leitor de ecrã. */
+    if (mudou && qual !== 'carregar') {
+      if (document.activeElement && document.activeElement !== document.body && typeof document.activeElement.blur === 'function') document.activeElement.blur();
+      window.scrollTo(0, 0);
+      const h = blocos[qual].querySelector('h1');
+      if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
+    }
   }
   const falha = $('[data-conta-falha]');
   function dizerFalha(t, { voltar = false } = {}) {
