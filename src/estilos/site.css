@@ -1099,22 +1099,20 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 @media (min-width: 900px) { .sobre__foto img { aspect-ratio: 4 / 5; } }
 
 /* ---------------------------------------------------------------- rodapé */
-/* O RODAPÉ, curto (o Renato, 12 nov 2026: «está cheio de informação, acho que essa lista de reparações
-   está aí a mais, refaz o rodapé»): o logótipo e a frase; as quatro ligações de ajuda; as redes; e em
-   baixo o «©» e as páginas legais numa linha, com o Livro de Reclamações discreto. As categorias e as
-   reparações já estão no cabeçalho, na loja e nas reparações (memória sem-informacao-repetida). */
+/* O rodapé alto (memória rodape-com-logotipo): a marca à esquerda (o logótipo, a frase e as redes) e as
+   colunas com títulos (a Loja e a Ajuda); a linha legal em baixo. */
 .rodape { margin-top: 64px; background: var(--cinza); padding: 0 0 max(24px, env(safe-area-inset-bottom)); }
-.rodape__corpo { max-width: var(--largura); margin: 0 auto; padding: 36px var(--margem) 0; display: grid; gap: 24px; }
-@media (min-width: 900px) { .rodape__corpo { grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 40px; } }
-.rodape__marca { display: flex; align-items: center; gap: 16px; }
-.rodape__logo { display: inline-flex; flex: none; }
-.rodape__logo-img { height: 52px; width: auto; }
-.rodape__frase { color: var(--tinta-2); max-width: 22ch; font-size: .95rem; line-height: 1.4; }
-.rodape__ligacoes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; }
-@media (min-width: 900px) { .rodape__ligacoes { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 28px; } }
-.rodape__ligacoes a { color: var(--tinta); text-decoration: none; font-weight: 600; font-size: .95rem; }
-@media (hover: hover) { .rodape__ligacoes a:hover { text-decoration: underline; } }
-.rodape__fim { max-width: var(--largura); margin: 28px auto 0; padding: 18px var(--margem) 0; position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; font-size: .84rem; color: var(--tinta-2); }
+.rodape__corpo { max-width: var(--largura); margin: 0 auto; padding: 40px var(--margem) 0; display: grid; gap: 32px; }
+.rodape__nav { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (min-width: 760px) { .rodape__corpo { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); } .rodape__nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; } }
+.rodape__marca { display: grid; gap: 14px; justify-items: start; }
+.rodape__logo-img { height: 58px; width: auto; }
+.rodape__frase { color: var(--tinta-2); max-width: 30ch; }
+.rodape__coluna h2 { font-size: .76rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); margin-bottom: 12px; }
+.rodape__coluna ul { display: grid; gap: 8px; }
+.rodape__coluna a { text-decoration: none; color: var(--tinta); font-size: .95rem; }
+@media (hover: hover) { .rodape__coluna a:hover { text-decoration: underline; } }
+.rodape__fim { max-width: var(--largura); margin: 36px auto 0; padding: 18px var(--margem) 0; position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px; font-size: .84rem; color: var(--tinta-2); }
 /* a linha fina dourada da marca, por cima da linha legal */
 .rodape__fim::before { content: ''; position: absolute; top: 0; left: var(--margem); right: var(--margem); height: 1px; background: linear-gradient(90deg, var(--ouro), rgba(201, 162, 76, .15)); }
 .rodape__legal { display: flex; flex-wrap: wrap; gap: 6px 16px; }

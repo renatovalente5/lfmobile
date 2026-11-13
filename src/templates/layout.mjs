@@ -180,11 +180,11 @@ function folhaProcura(ctx) {
 </dialog>`;
 }
 
-/* O RODAPÉ, curto (o Renato, 12 nov 2026: «está cheio de informação… essa lista de reparações está aí a
-   mais, refaz o rodapé»): o logótipo e a frase, as quatro ligações de ajuda e as redes; em baixo o «©»
-   (só o ano e a marca: memória rodape-sem-dados-da-empresa) e as páginas legais numa linha, com o Livro
-   de Reclamações discreto. Sem as colunas da Loja e das Reparações: estão no cabeçalho, na loja e nas
-   reparações (memória sem-informacao-repetida). */
+/* O RODAPÉ (memória rodape-com-logotipo), alto: o logótipo, a frase e as redes; a Loja e a Ajuda em
+   colunas; em baixo o «©» (só o ano e a marca: memória rodape-sem-dados-da-empresa) e as páginas legais
+   numa linha, com o Livro de Reclamações discreto. O Renato, 12 nov 2026: a coluna das reparações estava
+   «a mais» e saiu; o rodapé curto que a seguir fiz (numa linha só) não gostou: «mete o que estava antes,
+   alto». Sem o bloco dos contactos e do horário (8 nov 2026): estão na página dos contactos. */
 function rodape(ctx) {
   const ligacao = (caminho, texto) => `<li><a href="${ctx.url(caminho)}">${esc(texto)}</a></li>`;
   return `<footer class="rodape">
@@ -192,16 +192,27 @@ function rodape(ctx) {
     <div class="rodape__marca">
       <a class="rodape__logo" href="${ctx.url('/')}">${logotipo(ctx, { alto: 52, classe: 'rodape__logo-img' })}<span class="visualmente-escondido"> — página inicial</span></a>
       <p class="rodape__frase">${esc(ctx.site.assinatura)}</p>
+      ${redes(ctx, 'redes redes--rodape')}
     </div>
-    <nav class="rodape__nav" aria-label="Ajuda">
-      <ul class="rodape__ligacoes">
-        ${ligacao('/envios-e-devolucoes/', 'Envios e devoluções')}
-        ${ligacao('/perguntas-frequentes/', 'Perguntas frequentes')}
-        ${ligacao('/sobre-nos/', 'Sobre a LF Mobile')}
-        ${ligacao('/contactos/', 'Contactos')}
-      </ul>
+    <nav class="rodape__nav" aria-label="Rodapé">
+      <div class="rodape__coluna">
+        <h2>Loja</h2>
+        <ul>
+          ${categoriasComArtigos(ctx).map((k) => ligacao(`/loja/${k.slug}/`, k.nome)).join('')}
+          ${ligacao('/loja/', 'Toda a loja')}
+        </ul>
+      </div>
+      <div class="rodape__coluna">
+        <h2>Ajuda</h2>
+        <ul>
+          ${ligacao('/retoma/', 'Retoma do seu telemóvel')}
+          ${ligacao('/envios-e-devolucoes/', 'Envios e devoluções')}
+          ${ligacao('/perguntas-frequentes/', 'Perguntas frequentes')}
+          ${ligacao('/sobre-nos/', 'Sobre a LF Mobile')}
+          ${ligacao('/contactos/', 'Contactos')}
+        </ul>
+      </div>
     </nav>
-    ${redes(ctx, 'redes redes--rodape')}
   </div>
   <div class="rodape__fim">
     <p class="rodape__direitos">© ${ctx.hoje.slice(0, 4)} ${esc(ctx.site.marca)}</p>

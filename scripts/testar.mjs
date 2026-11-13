@@ -383,12 +383,11 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
     assert.match(html, /class="topo__botao topo__lupa"[^>]*data-abrir="procurar"/);
   }
   assert.doesNotMatch(inicio, /Vender o meu</);
-  // o rodapé curto: o logótipo, a frase, as quatro ligações de ajuda e as redes; sem as colunas da loja e
-  // das reparações
+  // o rodapé alto: a marca e as colunas da Loja e da Ajuda (a das reparações saiu: «está aí a mais»)
   const rodape = inicio.match(/<footer class="rodape">[\s\S]*?<\/footer>/)[0];
-  assert.deepEqual([...rodape.match(/<ul class="rodape__ligacoes">[\s\S]*?<\/ul>/)[0].matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => m[2]),
-    ['Envios e devoluções', 'Perguntas frequentes', 'Sobre a LF Mobile', 'Contactos']);
-  assert.doesNotMatch(rodape, /rodape__coluna|\/loja\/apple\/|\/reparacoes\//);
+  assert.deepEqual([...rodape.matchAll(/<div class="rodape__coluna">\s*<h2>([^<]+)<\/h2>/g)].map((m) => m[1]), ['Loja', 'Ajuda']);
+  assert.match(rodape, /<a href="\/loja\/apple\/">Apple<\/a>/);
+  assert.doesNotMatch(rodape, /\/reparacoes\//);
   // a loja aberta ou fechada fica junto do horário (na página inicial e nos contactos)
   assert.match(ler2('contactos/index.html'), /Horário<\/h3>\s*<p class="estado-loja" data-estado-loja hidden><\/p>/);
   assert.match(inicio, /Horário<\/p><p class="estado-loja" data-estado-loja hidden><\/p>/);
