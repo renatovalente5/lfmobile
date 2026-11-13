@@ -219,11 +219,13 @@ export function fila(ctx, produtos, { id, titulo, ligacao = '', textoLigacao = '
 
 /* As categorias com artigos no site. */
 export const categoriasComArtigos = (ctx) => ctx.categorias.filter((c) => ctx.produtos.some((p) => categoriasDoArtigo(p, ctx.categorias).includes(c.slug)));
-/* AS CATEGORIAS EM DOIS NÍVEIS (o esquema do Leandro, 13 nov 2026), só as que têm artigos: as de cima (sem mãe:
-   Telemóveis, Tablets, Computadores, Gadgets, Casa, Kids, Acessórios, Encomendas perdidas), as filhas de uma (Apple,
-   Samsung…), e as que não têm filhas com artigos (a fila redonda da página inicial). */
-export const categoriasDeCima = (ctx) => categoriasComArtigos(ctx).filter((c) => !c.grupo);
-export const filhasDe = (ctx, slug) => categoriasComArtigos(ctx).filter((c) => c.grupo === slug);
+/* AS CATEGORIAS EM DOIS NÍVEIS (o esquema do Leandro, 13 nov 2026): as de cima (sem mãe: Telemóveis, Tablets,
+   Computadores, Gadgets, Casa, Kids, Acessórios, Encomendas perdidas) e as filhas de uma (Apple, Samsung…). TODAS,
+   mesmo as que ainda não têm artigos (o Leandro: «precisava que tivesse aquelas categorias e subcategorias todas»):
+   a página de uma vazia diz que ainda não há e oferece a encomenda, e fica fora do Google até ter artigos. A fila
+   redonda da página inicial é que só mostra as que têm artigos e não têm filhas com artigos (leva fotografias). */
+export const categoriasDeCima = (ctx) => ctx.categorias.filter((c) => !c.grupo);
+export const filhasDe = (ctx, slug) => ctx.categorias.filter((c) => c.grupo === slug);
 export const categoriasSemFilhas = (ctx) => { const cs = categoriasComArtigos(ctx); return cs.filter((c) => !cs.some((x) => x.grupo === c.slug)); };
 
 /* A ligação do WhatsApp sem texto: o número da loja, em dígitos. */

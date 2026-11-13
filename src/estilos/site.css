@@ -244,7 +244,8 @@ html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
   .topo__ligacoes .topo__mega li::before { content: none; }
   .topo__ligacoes .topo__mega a { display: inline-block; min-height: 0; padding: 5px 0; opacity: 1; color: var(--tinta-2); text-transform: none; letter-spacing: 0; font-size: .95rem; font-weight: 600; }
   .topo__ligacoes .topo__mega a::after { content: none; }
-  .topo__ligacoes .topo__mega-cima a { padding: 4px 0; color: var(--tinta); font-size: 1.35rem; font-weight: 800; letter-spacing: -.015em; }
+  /* com as nove de cima, a letra a 1,15 rem: o painel cabe num ecrã de portátil sem tapar a página toda */
+  .topo__ligacoes .topo__mega-cima a { padding: 3px 0; color: var(--tinta); font-size: 1.15rem; font-weight: 800; letter-spacing: -.01em; }
   .topo__ligacoes .topo__mega a:hover, .topo__ligacoes .topo__mega a:focus-visible { color: var(--tinta); text-decoration: underline; text-underline-offset: .2em; }
   .topo__mega-titulo { margin: 4px 0 8px; font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); }
   /* na página inicial, no topo (o cabeçalho transparente por cima da capa), com o painel aberto o cabeçalho fica claro */

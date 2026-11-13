@@ -349,7 +349,7 @@ function lerJson(valor) {
 export function categoriasDe(valor) {
   const l = lerJson(valor);
   if (!Array.isArray(l.obj)) return null;
-  return l.obj.filter((c) => eObjecto(c) && temTexto(c.slug)).map((c) => ({ slug: c.slug, nome: temTexto(c.nome) ? c.nome.trim() : c.slug }));
+  return l.obj.filter((c) => eObjecto(c) && temTexto(c.slug)).map((c) => ({ slug: c.slug, nome: temTexto(c.nome) ? c.nome.trim() : c.slug, ...(temTexto(c.grupo) ? { grupo: c.grupo } : {}) }));
 }
 
 /* As fotografias que existem para o site: as que têm ficheiro em media/fotos/ E

@@ -283,6 +283,8 @@ export function loja(ctx, cat = null) {
     titulo: c ? tituloDaCategoria(c) : 'Loja — iPhone, Samsung, películas e acessórios',
     descricao: c ? descricaoDaCategoria(ctx, c) : `iPhone e Samsung novos e recondicionados, películas para qualquer telemóvel, áudio e acessórios na ${ctx.site.marca}, em ${ctx.site.local.localidade}. Envios para Portugal Continental.`,
     classe: 'pagina-loja',
+    // uma categoria ainda sem artigos fica fora do Google (e do mapa do site) até ter
+    indexar: !(c && !lista.length),
     jsonld: [m.ld, {
       '@context': 'https://schema.org', '@type': 'ItemList',
       itemListElement: lista.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: ctx.absoluto(`/produtos/${p.slug}/`), name: p.nome })),

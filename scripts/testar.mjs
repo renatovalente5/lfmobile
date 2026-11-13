@@ -361,7 +361,7 @@ teste('as reparações de outras marcas: «Outras» abre as marcas, a família e
   const dados = JSON.parse(ler2('produtos/pelicula-vidro/index.html').match(/id="dados-modelos">(.*?)<\/script>/)[1]);
   assert.deepEqual(dados.Xiaomi, [['Redmi', ['Redmi Note 13']]]);
 });
-teste('as categorias em dois níveis: a mãe junta as filhas, a loja tem a fila das filhas, e o menu, o do telemóvel e o rodapé só com as de cima', () => {
+teste('as categorias em dois níveis: a mãe junta as filhas, a loja tem a fila das filhas, e o menu, o do telemóvel e o rodapé com as de cima, todas (as vazias fora do Google)', () => {
   const pasta = copia('dois-niveis', (p) => json(p, 'content/categorias.json', (cs) => {
     const i = cs.findIndex((c) => c.slug === 'iphone');
     cs[i] = { slug: 'apple', nome: 'Apple', titulo: 'iPhone', resumo: 'iPhone novos e recondicionados.', marca: 'Apple', grupo: 'telemoveis' };
@@ -390,16 +390,19 @@ teste('as categorias em dois níveis: a mãe junta as filhas, a loja tem a fila 
   const apple = ler('loja/apple/index.html');
   const fila = (html, classe) => [...(html.match(new RegExp(`<ul${classe ? ` class="${classe}"` : ''}[^>]*>([\\s\\S]*?)</ul>`)) || ['', ''])[1].matchAll(/<a class="chip[^"]*" href="([^"]+)"( aria-current="(page|true)")?>([^<]+)<\/a>/g)].map((m) => `${m[4]}${m[3] ? `:${m[3]}` : ''}`);
   const chipsApple = apple.match(/<nav class="chips"[\s\S]*?<\/nav>/)[0];
-  assert.deepEqual(fila(chipsApple, ''), ['Tudo', 'Telemóveis:true', 'Películas', 'Gadgets']);
+  // todas, mesmo as que ainda não têm artigos (o Leandro, 13 nov 2026: «aquelas categorias e subcategorias todas»)
+  assert.deepEqual(fila(chipsApple, ''), ['Tudo', 'Telemóveis:true', 'Tablets', 'Películas', 'Acessórios', 'Gadgets']);
   assert.deepEqual(fila(chipsApple, 'chips__filhas'), ['Todos', 'Apple:page', 'Samsung', 'Recondicionados']);
   assert.match(apple, /"name":"Telemóveis","item":"[^"]*\/loja\/telemoveis\/"/);
   // o menu da loja no cabeçalho: as de cima e as filhas das mães
   const mega = apple.match(/<div class="topo__mega"[\s\S]*?<\/nav>/)[0];
-  assert.deepEqual([...mega.match(/<ul class="topo__mega-cima">([\s\S]*?)<\/ul>/)[1].matchAll(/>([^<]+)<\/a>/g)].map((m) => m[1]), ['Toda a loja', 'Telemóveis', 'Películas', 'Gadgets']);
+  assert.deepEqual([...mega.match(/<ul class="topo__mega-cima">([\s\S]*?)<\/ul>/)[1].matchAll(/>([^<]+)<\/a>/g)].map((m) => m[1]), ['Toda a loja', 'Telemóveis', 'Tablets', 'Películas', 'Acessórios', 'Gadgets']);
   assert.deepEqual([...mega.matchAll(/<p class="topo__mega-titulo">([^<]+)<\/p>/g)].map((m) => m[1]), ['Telemóveis', 'Gadgets']);
   // o menu do telemóvel e o rodapé: só as de cima
   const grelha = apple.match(/<ul class="menu__grelha"[\s\S]*?<\/ul>/)[0];
-  assert.deepEqual([...grelha.matchAll(/<span>([^<]+)<\/span><\/a>/g)].map((m) => m[1]), ['Telemóveis', 'Películas', 'Gadgets', 'Toda a loja']);
+  assert.deepEqual([...grelha.matchAll(/<span>([^<]+)<\/span><\/a>/g)].map((m) => m[1]), ['Telemóveis', 'Tablets', 'Películas', 'Acessórios', 'Gadgets', 'Toda a loja']);
+  // uma categoria ainda sem artigos: a página existe e diz que ainda não há (fora do Google: no teste da produção)
+  assert.match(ler('loja/tablets/index.html'), /Ainda não há artigos nesta categoria/);
   const rodape = apple.match(/<footer class="rodape">[\s\S]*?<\/footer>/)[0];
   assert.match(rodape, /<a href="\/loja\/telemoveis\/">Telemóveis<\/a>/);
   assert.doesNotMatch(rodape, /\/loja\/apple\//);
@@ -711,6 +714,10 @@ teste('a produção constrói com os dados legais preenchidos: aberta aos motore
     assert.doesNotMatch(fs.readFileSync(path.join(pasta, `_site/${c}index.html`), 'utf8'), /name="robots"/, c);
     assert.ok(mapa.includes(`<loc>https://lfmobile.pt/${c}</loc>`), `${c || '/'} devia estar no sitemap`);
   }
+  // uma categoria ainda sem artigos (Tablets, nos dados de ensaio) fica com noindex e fora do mapa; uma com artigos, não
+  assert.match(fs.readFileSync(path.join(pasta, '_site/loja/tablets/index.html'), 'utf8'), /<meta name="robots" content="noindex">/);
+  assert.ok(!mapa.includes('/loja/tablets/<'));
+  assert.doesNotMatch(fs.readFileSync(path.join(pasta, '_site/loja/audio/index.html'), 'utf8'), /name="robots"/);
   // uma categoria cujo título é só o nome leva o resumo no <title>; a descrição diz onde é a loja e como se recebe
   const smart = fs.readFileSync(path.join(pasta, '_site/loja/smartwatches/index.html'), 'utf8');
   assert.match(smart, /<title>Smartwatches — Relógios inteligentes para o dia a dia e o desporto \| LF Mobile<\/title>/);
