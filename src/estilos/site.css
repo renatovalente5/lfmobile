@@ -593,7 +593,9 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
   .garantia__seta { position: absolute; top: 24px; right: 24px; }
   .garantia:active { background-color: var(--cinza-2); }
 }
-@media (min-width: 1000px) { .garantias__lista { gap: 16px; } }
+/* no computador, cartões mais pequenos e o grupo ao meio (o Renato, 13 nov 2026: «os cards podem ficar mais pequenos e
+   não ocupar a largura toda da página») */
+@media (min-width: 1000px) { .garantias__lista { gap: 16px; grid-auto-columns: minmax(0, 260px); justify-content: center; } }
 @media (hover: hover) {
   .garantia:hover { background-color: var(--cinza-2); }
   .garantia:hover .garantia__seta { transform: translateX(3px); color: var(--tinta); }

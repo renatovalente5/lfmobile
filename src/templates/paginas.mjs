@@ -208,6 +208,12 @@ function filtros(ctx, lista) {
 </aside>`;
 }
 
+/* O LUGAR DA LOJA ao mudar de separador (loja.js guarda-o no toque): em linha, logo a seguir à loja, para correr
+   antes da primeira pintura. A página nova abre com a fila dos separadores onde ela estava no ecrã, e a fila
+   deslizada como estava. Se a página ainda não for comprida que chegue (uma categoria com poucos artigos, sem o
+   rodapé lido), tenta outra vez quando o resto chegar. */
+const LUGAR_DA_LOJA = "(function(){try{var k='lfmobile:lugar-da-loja',v=JSON.parse(sessionStorage.getItem(k)||'null');sessionStorage.removeItem(k);if(!v||v.para!==location.pathname||!(v.topo>=0))return;var n=document.querySelector('.chips');if(!n)return;var r=document.documentElement,y=function(){return Math.max(0,n.getBoundingClientRect().top+window.scrollY-v.topo)},ir=function(){var b=r.style.scrollBehavior;r.style.scrollBehavior='auto';window.scrollTo(0,y());r.style.scrollBehavior=b};ir();if(Math.abs(window.scrollY-y())>1)document.addEventListener('DOMContentLoaded',ir);var u=n.querySelector('ul');if(u)u.scrollLeft=v.esq||0;r.dataset.lugarDaLoja=String(v.esq||0)}catch(e){}})();";
+
 export function loja(ctx, cat = null) {
   const c = cat && categoriaDe(ctx, cat);
   const lista = c ? produtosDe(ctx, cat) : ctx.produtos;
@@ -240,7 +246,8 @@ export function loja(ctx, cat = null) {
     <p class="loja__vazia" data-loja-vazia hidden>Nenhum artigo com estes filtros. <button class="botao botao--texto" type="button" data-limpar-filtros>Limpar os filtros</button></p>
   </div>
   ${convite(ctx, { titulo: 'Não encontra o que procura? Encomendamos para si.', texto: 'Olá! Gostava de encomendar um equipamento: ', contactos: false })}
-</div>`;
+</div>
+<script>${LUGAR_DA_LOJA}</script>`;
   return {
     caminho,
     titulo: c ? c.titulo : 'Loja — iPhone, Samsung, películas e acessórios',

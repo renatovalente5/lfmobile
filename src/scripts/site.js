@@ -346,7 +346,11 @@
   const filaChips = $('.chips ul');
   const aberta = filaChips && $('[aria-current]', filaChips);
   if (aberta) {
+    /* Vinda de outro separador (o lugar reposto pelo script em linha da loja), a fila fica deslizada como estava:
+       o separador tocado não foge de debaixo do dedo. */
+    const deslizada = raiz.dataset.lugarDaLoja;
     const centrar = () => {
+      if (deslizada !== undefined) { filaChips.scrollLeft = Number(deslizada) || 0; return; }
       if (filaChips.scrollWidth <= filaChips.clientWidth) return;
       const li = aberta.parentElement;
       filaChips.scrollLeft = li.offsetLeft - (filaChips.clientWidth - li.offsetWidth) / 2;

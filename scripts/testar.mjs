@@ -395,6 +395,8 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   assert.doesNotMatch(inicio, /Vender o meu</);
   // os cartões levam à ficha, onde se compra: sem o carrinho nem o «Escolher», com a seta em todos (13 nov 2026)
   assert.doesNotMatch(lojaPag, /data-juntar|cartao__juntar|cartao__escolher/);
+  // mudar de separador não volta ao topo: o script em linha logo a seguir à loja repõe o lugar da fila (13 nov 2026)
+  assert.match(lojaPag, /<\/div>\s*<script>\(function\(\)\{try\{var k='lfmobile:lugar-da-loja'/);
   // envios e devoluções: os portes numa tabela (um escalão por linha) e as ligações do fim dos cartões como botões
   const envios = ler2('envios-e-devolucoes/index.html');
   assert.match(envios, /<p class="portes__titulo">Portes<\/p><dl class="portes"><div><dt>Até \d/);

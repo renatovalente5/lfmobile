@@ -10,6 +10,17 @@
   const $ = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
   const sem = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  /* Cada separador (as categorias) é outra página. Ao tocar num, guarda-se onde estava a fila dos separadores no ecrã
+     (e quanto ela deslizou de lado, no telemóvel), e a página nova põe-na no mesmo sítio: o script em linha do fim
+     da loja (LUGAR_DA_LOJA), antes da primeira pintura. O Renato, 13 nov 2026: «quando mudo de separador não quero
+     que a página venha para o topo». */
+  const separadores = $('.chips', loja);
+  if (separadores) separadores.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href]');
+    if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.pathname === location.pathname) return;
+    const fila = $('ul', separadores);
+    try { sessionStorage.setItem('lfmobile:lugar-da-loja', JSON.stringify({ para: a.pathname, topo: separadores.getBoundingClientRect().top, esq: fila ? fila.scrollLeft : 0 })); } catch (_) { /* sem armazenamento: abre no topo, como antes */ }
+  });
   const grelha = $('[data-grelha-loja]', loja);
   if (!grelha) return;
   const cartoes = $$('.cartao', grelha);
