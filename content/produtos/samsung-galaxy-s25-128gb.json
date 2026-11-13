@@ -30,6 +30,6 @@
   "categoria": "samsung",
   "destaque": true,
   "novidade": false,
-  "publicado": true,
+  "publicado": false,
   "ordem": 20
 }
