@@ -9,7 +9,7 @@
 // o menu abrem em folhas.
 import { esc, numeroWhatsApp } from './util.mjs';
 import { icones } from './icones.mjs';
-import { livroBotao, categoriasComArtigos } from './componentes.mjs';
+import { livroBotao, categoriasDeCima, filhasDe } from './componentes.mjs';
 
 function logotipo(ctx, { alto = 40, classe = 'logo' } = {}) {
   const l = ctx.manifesto.logo;
@@ -72,9 +72,10 @@ function procura(ctx, id, { fechar = false } = {}) {
 }
 
 /* As ligações do cabeçalho e do menu: os serviços (as Reparações e a Retoma, que é vender ou
-   trocar) e as categorias da loja com artigos (Apple e Samsung juntam os da marca). */
+   trocar) e as categorias de cima da loja com artigos (Telemóveis, Gadgets, Acessórios…: as filhas estão
+   na página de cada uma). */
 function ligacoesDaFila(ctx) {
-  const cats = categoriasComArtigos(ctx).map((k) => ({ caminho: `/loja/${k.slug}/`, nome: k.nome, slug: k.slug }));
+  const cats = categoriasDeCima(ctx).map((k) => ({ caminho: `/loja/${k.slug}/`, nome: k.nome, slug: k.slug }));
   const servicos = [
     { caminho: '/reparacoes/', nome: 'Reparações', icone: icones.ferramentas, sub: 'Preço pelo modelo' },
     { caminho: '/retoma/', nome: 'Retoma', icone: icones.retoma, sub: 'Compramos o seu' },
@@ -82,7 +83,7 @@ function ligacoesDaFila(ctx) {
   return { cats, servicos };
 }
 /* O desenho de cada categoria no menu do telemóvel. */
-const ICONE_CATEGORIA = { apple: 'telemovel', samsung: 'telemovel', recondicionados: 'verificado', tablets: 'tablet', smartwatches: 'relogioPulso', audio: 'auriculares', peliculas: 'pelicula', acessorios: 'caixa' };
+const ICONE_CATEGORIA = { telemoveis: 'telemovel', apple: 'telemovel', samsung: 'telemovel', recondicionados: 'verificado', tablets: 'tablet', computadores: 'portatil', gadgets: 'auriculares', smartwatches: 'relogioPulso', audio: 'auriculares', casa: 'casa', kids: 'comando', acessorios: 'conector', peliculas: 'pelicula', 'encomendas-perdidas': 'caixa' };
 
 /* O CABEÇALHO, o mesmo em todas as páginas (o Renato, 12 nov 2026: «se for preciso refaz a Navbar
    também nas outras páginas»; antes, fora da página inicial, havia a procura larga, os botões Reparações
@@ -98,6 +99,27 @@ const LIGACOES_DO_TOPO = [
   { caminho: '/retoma/', nome: 'Retoma' },
   { caminho: '/contactos/', nome: 'Contactos' },
 ];
+/* O MENU DA LOJA no computador (o esquema do Leandro, 13 nov 2026: as categorias «no cabeçalho»): ao passar o rato
+   por «Loja», ou ao chegar lá com o Tab, abre um painel por baixo do cabeçalho, como o da Apple: à esquerda as
+   categorias de cima em letra grande, e uma coluna com as filhas de cada uma que as tem. No telemóvel e no tablet
+   (sem rato), «Loja» leva à loja, que tem as categorias em cima. */
+function menuDaLoja(ctx) {
+  const cima = categoriasDeCima(ctx);
+  if (!cima.length) return '';
+  const colunas = cima.map((k) => ({ k, filhas: filhasDe(ctx, k.slug) })).filter((x) => x.filhas.length);
+  return `<div class="topo__mega" data-menu-loja>
+        <div class="topo__mega-dentro">
+          <ul class="topo__mega-cima">
+            <li><a href="${ctx.url('/loja/')}">Toda a loja</a></li>
+            ${cima.map((k) => `<li><a href="${ctx.url(`/loja/${k.slug}/`)}">${esc(k.nome)}</a></li>`).join('')}
+          </ul>
+          ${colunas.map(({ k, filhas }) => `<div class="topo__mega-coluna">
+            <p class="topo__mega-titulo">${esc(k.nome)}</p>
+            <ul>${filhas.map((f) => `<li><a href="${ctx.url(`/loja/${f.slug}/`)}">${esc(f.nome)}</a></li>`).join('')}</ul>
+          </div>`).join('')}
+        </div>
+      </div>`;
+}
 function cabecalho(ctx, atual, { naCapa = false } = {}) {
   const corrente = (x) => [x.caminho, ...(x.tambem || [])].some((c) => atual.startsWith(c));
   return `<header class="topo${naCapa ? ' topo--capa' : ''}" data-topo>
@@ -106,7 +128,9 @@ function cabecalho(ctx, atual, { naCapa = false } = {}) {
     <a class="topo__marca" href="${ctx.url('/')}"${atual === '/' ? ' aria-current="page"' : ''}>${logotipo(ctx, { alto: 46 })}<span class="visualmente-escondido"> — página inicial</span></a>
     <div class="topo__procura">${procura(ctx, 'busca-topo')}</div>
     <nav class="topo__ligacoes" aria-label="Principal">
-      <ul>${LIGACOES_DO_TOPO.map((x) => `<li><a href="${ctx.url(x.caminho)}"${corrente(x) ? ' aria-current="page"' : ''}>${esc(x.nome)}</a></li>`).join('')}</ul>
+      <ul>${LIGACOES_DO_TOPO.map((x) => (x.caminho === '/loja/'
+    ? `<li class="topo__loja"><a href="${ctx.url(x.caminho)}"${corrente(x) ? ' aria-current="page"' : ''}>${esc(x.nome)}</a>${menuDaLoja(ctx)}</li>`
+    : `<li><a href="${ctx.url(x.caminho)}"${corrente(x) ? ' aria-current="page"' : ''}>${esc(x.nome)}</a></li>`)).join('')}</ul>
     </nav>
     <div class="topo__direita">
       <button class="topo__botao topo__lupa" type="button" data-abrir="procurar" aria-haspopup="dialog">${icones.pesquisa}<span class="visualmente-escondido">Procurar</span></button>
@@ -203,7 +227,7 @@ function rodape(ctx) {
       <div class="rodape__coluna">
         <h2>Loja</h2>
         <ul>
-          ${categoriasComArtigos(ctx).map((k) => ligacao(`/loja/${k.slug}/`, k.nome)).join('')}
+          ${categoriasDeCima(ctx).map((k) => ligacao(`/loja/${k.slug}/`, k.nome)).join('')}
           ${ligacao('/loja/', 'Toda a loja')}
         </ul>
       </div>

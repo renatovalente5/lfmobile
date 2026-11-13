@@ -230,6 +230,27 @@ html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
   .topo__direita { margin-left: 4px; }
 }
 @media (hover: hover) { .topo__ligacoes a:hover { opacity: 1; } }
+/* O MENU DA LOJA (computador com rato): um painel branco por baixo do cabeçalho, ao passar o rato por «Loja» ou ao
+   lá chegar com o Tab. A ponte invisível por baixo da ligação deixa o rato descer até ao painel sem o fechar. As
+   regras das ligações de cima (maiúsculas, traços, o sublinhado dourado) não entram no painel. */
+.topo__mega { display: none; }
+@media (min-width: 900px) and (hover: hover) {
+  .topo__loja > a::before { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 24px; }
+  .topo__mega { display: block; position: absolute; left: 0; right: 0; top: 100%; z-index: 1; background: var(--papel); color: var(--tinta); border-top: 1px solid var(--linha); box-shadow: 0 28px 40px rgba(17, 17, 19, .10); visibility: hidden; opacity: 0; transform: translateY(-6px); transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s; }
+  .topo__loja:hover .topo__mega, .topo__loja:focus-within .topo__mega { visibility: visible; opacity: 1; transform: none; transition: opacity .18s ease .06s, transform .18s ease .06s, visibility 0s linear .06s; }
+  .topo__mega-dentro { max-width: var(--largura); margin: 0 auto; padding: 28px var(--margem) 36px; display: flex; flex-wrap: wrap; gap: 24px clamp(40px, 6vw, 96px); }
+  .topo__ligacoes .topo__mega ul { display: block; }
+  .topo__ligacoes .topo__mega li { display: block; }
+  .topo__ligacoes .topo__mega li::before { content: none; }
+  .topo__ligacoes .topo__mega a { display: inline-block; min-height: 0; padding: 5px 0; opacity: 1; color: var(--tinta-2); text-transform: none; letter-spacing: 0; font-size: .95rem; font-weight: 600; }
+  .topo__ligacoes .topo__mega a::after { content: none; }
+  .topo__ligacoes .topo__mega-cima a { padding: 4px 0; color: var(--tinta); font-size: 1.35rem; font-weight: 800; letter-spacing: -.015em; }
+  .topo__ligacoes .topo__mega a:hover, .topo__ligacoes .topo__mega a:focus-visible { color: var(--tinta); text-decoration: underline; text-underline-offset: .2em; }
+  .topo__mega-titulo { margin: 4px 0 8px; font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); }
+  /* na página inicial, no topo (o cabeçalho transparente por cima da capa), com o painel aberto o cabeçalho fica claro */
+  .topo--capa:has(.topo__loja:hover, .topo__loja:focus-within) { background-color: var(--papel) !important; border-bottom-color: var(--linha) !important; color: var(--tinta) !important; }
+  .topo--capa:has(.topo__loja:hover, .topo__loja:focus-within) .topo__marca .logo { filter: none !important; }
+}
 /* a folha da procura no computador (abre-se pela lupa): o campo ao meio, não de ponta a ponta */
 @media (min-width: 900px) { .folha-procura .busca, .folha-procura__atalhos { max-width: 760px; margin-left: auto; margin-right: auto; } }
 
@@ -623,6 +644,11 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
 .chip { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; min-height: 40px; padding: 6px 16px; border-radius: 999px; border: 1px solid var(--linha); text-decoration: none; font-weight: 700; font-size: .92rem; color: var(--tinta); background: var(--papel); }
 .chip[aria-current="page"] { background: var(--tinta); color: var(--branco); border-color: var(--tinta); }
 @media (hover: hover) { .chip:hover { border-color: var(--tinta); } }
+/* a mãe da categoria aberta, na fila de cima (numa filha): contorno escuro; e a fila das filhas, mais pequena */
+.chip[aria-current="true"] { border-color: var(--tinta); box-shadow: inset 0 0 0 1px var(--tinta); }
+.chips__filhas { margin-top: 4px; }
+.chip--filha { min-height: 34px; padding: 4px 13px; font-size: .86rem; font-weight: 600; background: var(--cinza); border-color: transparent; }
+.chip--filha[aria-current="page"] { background: var(--tinta); color: var(--branco); border-color: var(--tinta); }
 
 /* ---------------------------------------------------------------- loja: a barra, os filtros */
 .loja { padding-bottom: 32px; }

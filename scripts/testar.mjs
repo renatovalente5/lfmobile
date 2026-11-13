@@ -202,6 +202,19 @@ fs.cpSync(path.join(RAIZ, 'scripts/testes/fotos'), path.join(base, 'media/fotos'
   const r = spawnSync(process.env.PYTHON || 'python3', ['scripts/imagens.py'], { cwd: base, encoding: 'utf8' });
   if (r.status !== 0) { console.error(`\nAs imagens do conteúdo de ensaio falharam (precisa do Pillow):\n${r.stdout}\n${r.stderr}`); process.exit(1); }
 }
+/* O cabeçalho sem o menu da loja (o painel por baixo de «Loja», com divs dentro de divs): tira o bloco inteiro. */
+function semMenuDaLoja(html) {
+  const i = html.indexOf('<div class="topo__mega"');
+  if (i < 0) return html;
+  let n = 0;
+  const re = /<\/?div\b/g;
+  re.lastIndex = i;
+  for (let m = re.exec(html); m; m = re.exec(html)) {
+    n += m[0] === '<div' ? 1 : -1;
+    if (n === 0) return html.slice(0, i) + html.slice(html.indexOf('>', m.index) + 1);
+  }
+  return html;
+}
 function copia(nome, mexer = () => {}) {
   const destino = path.join(temporaria, nome);
   fs.cpSync(base, destino, { recursive: true });
@@ -348,6 +361,62 @@ teste('as reparações de outras marcas: «Outras» abre as marcas, a família e
   const dados = JSON.parse(ler2('produtos/pelicula-vidro/index.html').match(/id="dados-modelos">(.*?)<\/script>/)[1]);
   assert.deepEqual(dados.Xiaomi, [['Redmi', ['Redmi Note 13']]]);
 });
+teste('as categorias em dois níveis: a mãe junta as filhas, a loja tem a fila das filhas, e o menu, o do telemóvel e o rodapé só com as de cima', () => {
+  const pasta = copia('dois-niveis', (p) => json(p, 'content/categorias.json', (cs) => {
+    const i = cs.findIndex((c) => c.slug === 'iphone');
+    cs[i] = { slug: 'apple', nome: 'Apple', titulo: 'iPhone', resumo: 'iPhone novos e recondicionados.', marca: 'Apple', grupo: 'telemoveis' };
+    cs.find((c) => c.slug === 'samsung').grupo = 'telemoveis';
+    cs.find((c) => c.slug === 'recondicionados').grupo = 'telemoveis';
+    cs.find((c) => c.slug === 'smartwatches').marca = 'Huawei';
+    cs.find((c) => c.slug === 'audio').grupo = 'gadgets';
+    cs.find((c) => c.slug === 'smartwatches').grupo = 'gadgets';
+    cs.unshift({ slug: 'telemoveis', nome: 'Telemóveis', titulo: 'Telemóveis', resumo: 'Novos e recondicionados.' });
+    cs.push({ slug: 'gadgets', nome: 'Gadgets', titulo: 'Gadgets', resumo: 'Áudio e smartwatches.' });
+  }));
+  const r = construir(pasta);
+  assert.equal(r.codigo, 0, r.saida);
+  const ler = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  const cartoes = (html) => [...html.matchAll(/<article class="cartao[^"]*" data-artigo="([^"]+)"/g)].map((m) => m[1]).sort();
+  // a mãe junta os artigos das filhas (e o iPhone recondicionado, que é da Apple, também na Apple)
+  assert.deepEqual(cartoes(ler('loja/telemoveis/index.html')), ['iphone-13-128gb-recondicionado', 'samsung-galaxy-s25-128gb']);
+  assert.deepEqual(cartoes(ler('loja/apple/index.html')), ['iphone-13-128gb-recondicionado']);
+  assert.deepEqual(cartoes(ler('loja/gadgets/index.html')), ['fones-p9', 'huawei-watch-d2']);
+  // o catálogo leva a mãe nas categorias de cada artigo (as campanhas e os cupões da mãe apanham as filhas)
+  const cat = JSON.parse(ler('assets/catalogo.json'));
+  assert.deepEqual(cat.produtos['iphone-13-128gb-recondicionado'].categorias, ['recondicionados', 'telemoveis', 'apple']);
+  // uma marca com mãe só junta a marca dentro dela: o Huawei Watch não entra numa «Huawei» de outra mãe
+  assert.deepEqual(cat.produtos['huawei-watch-d2'].categorias, ['smartwatches', 'gadgets']);
+  // a loja: a fila de cima só com as de cima (a mãe assinalada numa filha) e a fila das filhas com «Todos»
+  const apple = ler('loja/apple/index.html');
+  const fila = (html, classe) => [...(html.match(new RegExp(`<ul${classe ? ` class="${classe}"` : ''}[^>]*>([\\s\\S]*?)</ul>`)) || ['', ''])[1].matchAll(/<a class="chip[^"]*" href="([^"]+)"( aria-current="(page|true)")?>([^<]+)<\/a>/g)].map((m) => `${m[4]}${m[3] ? `:${m[3]}` : ''}`);
+  const chipsApple = apple.match(/<nav class="chips"[\s\S]*?<\/nav>/)[0];
+  assert.deepEqual(fila(chipsApple, ''), ['Tudo', 'Telemóveis:true', 'Películas', 'Gadgets']);
+  assert.deepEqual(fila(chipsApple, 'chips__filhas'), ['Todos', 'Apple:page', 'Samsung', 'Recondicionados']);
+  assert.match(apple, /"name":"Telemóveis","item":"[^"]*\/loja\/telemoveis\/"/);
+  // o menu da loja no cabeçalho: as de cima e as filhas das mães
+  const mega = apple.match(/<div class="topo__mega"[\s\S]*?<\/nav>/)[0];
+  assert.deepEqual([...mega.match(/<ul class="topo__mega-cima">([\s\S]*?)<\/ul>/)[1].matchAll(/>([^<]+)<\/a>/g)].map((m) => m[1]), ['Toda a loja', 'Telemóveis', 'Películas', 'Gadgets']);
+  assert.deepEqual([...mega.matchAll(/<p class="topo__mega-titulo">([^<]+)<\/p>/g)].map((m) => m[1]), ['Telemóveis', 'Gadgets']);
+  // o menu do telemóvel e o rodapé: só as de cima
+  const grelha = apple.match(/<ul class="menu__grelha"[\s\S]*?<\/ul>/)[0];
+  assert.deepEqual([...grelha.matchAll(/<span>([^<]+)<\/span><\/a>/g)].map((m) => m[1]), ['Telemóveis', 'Películas', 'Gadgets', 'Toda a loja']);
+  const rodape = apple.match(/<footer class="rodape">[\s\S]*?<\/footer>/)[0];
+  assert.match(rodape, /<a href="\/loja\/telemoveis\/">Telemóveis<\/a>/);
+  assert.doesNotMatch(rodape, /\/loja\/apple\//);
+  // a fila redonda da página inicial: as que não têm filhas (sem as mães)
+  const inicio = ler('index.html');
+  const redonda = [...inicio.match(/<nav class="cat-fila"[\s\S]*?<\/nav>/)[0].matchAll(/<span class="cat-fila__nome">([^<]+)<\/span>/g)].map((m) => m[1]);
+  assert.deepEqual(redonda, ['Apple', 'Samsung', 'Recondicionados', 'Smartwatches', 'Áudio', 'Películas', 'Reparações']);
+});
+teste('as regras das categorias-mãe: a mãe tem de existir e não pode ter mãe', () => {
+  const base = [{ slug: 'a', nome: 'A', titulo: 'A' }, { slug: 'b', nome: 'B', titulo: 'B', grupo: 'a' }];
+  assert.ok(!R.problemasDasCategorias(JSON.stringify(base)).some((x) => x.classe === 'bloqueia'));
+  for (const mal of [[{ slug: 'b', nome: 'B', titulo: 'B', grupo: 'x' }], [{ slug: 'a', nome: 'A', titulo: 'A', grupo: 'a' }], [...base, { slug: 'c', nome: 'C', titulo: 'C', grupo: 'b' }]]) {
+    assert.ok(R.problemasDasCategorias(JSON.stringify(mal)).some((x) => x.classe === 'bloqueia' && /grupo/.test(x.chave)), JSON.stringify(mal));
+  }
+  // o painel não muda a mãe de uma categoria
+  assert.deepEqual(R.mudancasBloqueadas(base, [base[0], { ...base[1], grupo: undefined }], 'categorias').map((x) => x.caminho), ['1.grupo']);
+});
 teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços juntos no topo, a página inicial curta, a retoma com vender e retoma, o menu em grelha', () => {
   const pasta = copia('arrumacao', (p) => {
     json(p, 'content/categorias.json', (cs) => {
@@ -375,7 +444,7 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   // lupa e o carrinho; sem a procura larga, sem os botões Reparações e Retoma e sem a fila das
   // categorias (estão nas pílulas da loja); sem a faixa de cima quando não há campanha nem aviso
   const lojaPag = ler2('loja/index.html');
-  const ligacoes = (html) => [...html.match(/<nav class="topo__ligacoes"[\s\S]*?<\/nav>/)[0].matchAll(/<a href="([^"]+)"( aria-current="page")?>([^<]+)<\/a>/g)].map((m) => [m[1], m[3], Boolean(m[2])]);
+  const ligacoes = (html) => [...semMenuDaLoja(html.match(/<nav class="topo__ligacoes"[\s\S]*?<\/nav>/)[0]).matchAll(/<a href="([^"]+)"( aria-current="page")?>([^<]+)<\/a>/g)].map((m) => [m[1], m[3], Boolean(m[2])]);
   assert.match(lojaPag, /<header class="topo" data-topo>/);
   assert.deepEqual(ligacoes(lojaPag), [['/loja/', 'Loja', true], ['/reparacoes/', 'Reparações', false], ['/retoma/', 'Retoma', false], ['/contactos/', 'Contactos', false]]);
   assert.deepEqual(ligacoes(ler2('produtos/fones-p9/index.html')).filter((x) => x[2]).map((x) => x[1]), ['Loja']);
@@ -418,7 +487,7 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   // fila das categorias no cabeçalho e sem os cartões da reparação, da retoma e dos recondicionados
   assert.match(inicio, /<html lang="pt-PT" class="na-capa">/);
   assert.match(inicio, /<header class="topo topo--capa" data-topo>/);
-  assert.deepEqual([...inicio.match(/<nav class="topo__ligacoes"[\s\S]*?<\/nav>/)[0].matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[1], m[2]]),
+  assert.deepEqual([...semMenuDaLoja(inicio.match(/<nav class="topo__ligacoes"[\s\S]*?<\/nav>/)[0]).matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[1], m[2]]),
     [['/loja/', 'Loja'], ['/reparacoes/', 'Reparações'], ['/retoma/', 'Retoma'], ['/contactos/', 'Contactos']]);
   assert.doesNotMatch(inicio, /class="faixa-topo"|topo__fila|class="mosaico|class="rapido|data-rapido|faixa-retoma|data-problemas/);
   assert.match(inicio, /<section class="capa" aria-labelledby="capa-titulo">/);

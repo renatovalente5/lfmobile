@@ -1,11 +1,19 @@
 [
   {
+    "slug": "telemoveis",
+    "nome": "Telemóveis",
+    "titulo": "Telemóveis novos e recondicionados",
+    "resumo": "iPhone, Samsung Galaxy e outras marcas, novos e recondicionados.",
+    "peso": 0.5
+  },
+  {
     "slug": "apple",
     "nome": "Apple",
     "titulo": "Apple",
-    "resumo": "iPhone, iPad e Apple Watch, novos e recondicionados.",
+    "resumo": "iPhone novos e recondicionados.",
     "peso": 0.5,
-    "marca": "Apple"
+    "marca": "Apple",
+    "grupo": "telemoveis"
   },
   {
     "slug": "samsung",
@@ -13,14 +21,24 @@
     "titulo": "Samsung Galaxy",
     "resumo": "Galaxy novos e recondicionados.",
     "peso": 0.5,
-    "marca": "Samsung"
+    "marca": "Samsung",
+    "grupo": "telemoveis"
+  },
+  {
+    "slug": "outras-marcas",
+    "nome": "Outras marcas",
+    "titulo": "Telemóveis de outras marcas",
+    "resumo": "Xiaomi, OPPO, realme e outras marcas.",
+    "peso": 0.5,
+    "grupo": "telemoveis"
   },
   {
     "slug": "recondicionados",
     "nome": "Recondicionados",
     "titulo": "iPhone e Samsung recondicionados",
     "resumo": "Testados na loja, com a bateria e o estado em cada ficha.",
-    "peso": 0.4
+    "peso": 0.4,
+    "grupo": "telemoveis"
   },
   {
     "slug": "tablets",
@@ -30,10 +48,17 @@
     "peso": 1
   },
   {
-    "slug": "smartwatches",
-    "nome": "Smartwatches",
-    "titulo": "Smartwatches",
-    "resumo": "Relógios inteligentes para o dia a dia e o desporto.",
+    "slug": "computadores",
+    "nome": "Computadores",
+    "titulo": "Computadores e portáteis",
+    "resumo": "Portáteis e computadores para estudar, trabalhar e jogar.",
+    "peso": 2.5
+  },
+  {
+    "slug": "gadgets",
+    "nome": "Gadgets",
+    "titulo": "Gadgets",
+    "resumo": "Áudio, smartwatches e outros gadgets.",
     "peso": 0.3
   },
   {
@@ -41,20 +66,107 @@
     "nome": "Áudio",
     "titulo": "Auriculares e auscultadores",
     "resumo": "Sem fios, para iPhone e Samsung.",
-    "peso": 0.3
+    "peso": 0.3,
+    "grupo": "gadgets"
+  },
+  {
+    "slug": "smartwatches",
+    "nome": "Smartwatches",
+    "titulo": "Smartwatches",
+    "resumo": "Relógios inteligentes para o dia a dia e o desporto.",
+    "peso": 0.3,
+    "grupo": "gadgets"
+  },
+  {
+    "slug": "outros-gadgets",
+    "nome": "Outros gadgets",
+    "titulo": "Outros gadgets",
+    "resumo": "Pequenos gadgets para o dia a dia.",
+    "peso": 0.3,
+    "grupo": "gadgets"
+  },
+  {
+    "slug": "casa",
+    "nome": "Casa",
+    "titulo": "Para a casa",
+    "resumo": "Mikados, essências, ambientadores para o carro, humidificadores e máquinas de café.",
+    "peso": 1
+  },
+  {
+    "slug": "kids",
+    "nome": "Kids",
+    "titulo": "Kids",
+    "resumo": "Câmaras digitais, consolas, smartwatches, drones e carros telecomandados para os mais novos.",
+    "peso": 0.5
+  },
+  {
+    "slug": "acessorios",
+    "nome": "Acessórios",
+    "titulo": "Acessórios para telemóvel",
+    "resumo": "Cabos, capas, películas, braceletes, powerbanks e localizadores.",
+    "peso": 0.2
+  },
+  {
+    "slug": "cabos",
+    "nome": "Cabos",
+    "titulo": "Cabos",
+    "resumo": "Cabos para carregar e passar dados.",
+    "peso": 0.1,
+    "grupo": "acessorios"
+  },
+  {
+    "slug": "capas",
+    "nome": "Capas",
+    "titulo": "Capas para telemóvel",
+    "resumo": "Capas para os telemóveis mais comuns, em vários modelos e cores.",
+    "peso": 0.1,
+    "grupo": "acessorios"
   },
   {
     "slug": "peliculas",
     "nome": "Películas",
     "titulo": "Películas para qualquer telemóvel",
     "resumo": "Escolha o tipo e diga-nos o modelo do seu telemóvel.",
-    "peso": 0.1
+    "peso": 0.1,
+    "grupo": "acessorios"
   },
   {
-    "slug": "acessorios",
-    "nome": "Acessórios",
-    "titulo": "Capas e acessórios",
-    "resumo": "Capas, localizadores e o que faz falta ao dia a dia.",
-    "peso": 0.2
+    "slug": "braceletes",
+    "nome": "Braceletes",
+    "titulo": "Braceletes para smartwatch",
+    "resumo": "Braceletes para relógios inteligentes.",
+    "peso": 0.1,
+    "grupo": "acessorios"
+  },
+  {
+    "slug": "powerbanks",
+    "nome": "Powerbanks",
+    "titulo": "Powerbanks",
+    "resumo": "Baterias externas para carregar o telemóvel fora de casa.",
+    "peso": 0.3,
+    "grupo": "acessorios"
+  },
+  {
+    "slug": "localizadores",
+    "nome": "Localizadores",
+    "titulo": "Localizadores",
+    "resumo": "Para encontrar as chaves, a carteira ou o passaporte.",
+    "peso": 0.1,
+    "grupo": "acessorios"
+  },
+  {
+    "slug": "outros-acessorios",
+    "nome": "Outros acessórios",
+    "titulo": "Outros acessórios",
+    "resumo": "O que faz falta ao dia a dia do telemóvel.",
+    "peso": 0.2,
+    "grupo": "acessorios"
+  },
+  {
+    "slug": "encomendas-perdidas",
+    "nome": "Encomendas perdidas",
+    "titulo": "Encomendas perdidas",
+    "resumo": "Encomendas perdidas ou devolvidas, vendidas ao quilo.",
+    "peso": 1
   }
 ]

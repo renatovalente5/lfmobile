@@ -5,7 +5,7 @@ import { esc, euros, precoDe, markdown, inline, textoSimples, numeroWhatsApp, nu
 import { icones } from './icones.mjs';
 import { usarAparelho, spriteAparelhos } from './aparelhos.mjs';
 import { numeroPortugues, opcoesDe, temSuplementos, estadoDe, disponibilidadeDe, compravel, enviavel, linhasDe, GARANTIAS_USADOS, ESTADOS, categoriasDoArtigo } from '../lib/regras.mjs';
-import { imagem, temRecorte, preco, cartaoProduto, migalhas, botaoSeta, desconto, promocaoAte, cabecaDePagina, convite, promocaoNota, horarioHtml, moradaHtml, estadoRotulo, especificacoes, categoriasComArtigos, campanhaDe, fila } from './componentes.mjs';
+import { imagem, temRecorte, preco, cartaoProduto, migalhas, botaoSeta, desconto, promocaoAte, cabecaDePagina, convite, promocaoNota, horarioHtml, moradaHtml, estadoRotulo, especificacoes, categoriasComArtigos, categoriasDeCima, filhasDe, categoriasSemFilhas, campanhaDe, fila } from './componentes.mjs';
 import { BOTAO_ENCOMENDA } from '../../legal-comum/index.mjs';
 
 /* Os artigos de uma categoria: os dela e, numa categoria de marca (Apple, Samsung), os dessa marca. */
@@ -99,8 +99,9 @@ export function inicio(ctx) {
 </section>`;
 
   /* AS CATEGORIAS numa fila redonda (como as lojas de electrónica): a imagem de um artigo dela, sem
-     fundo, ou o desenho do aparelho. */
-  const cats = categoriasComArtigos(ctx);
+     fundo, ou o desenho do aparelho. As que não têm filhas (Apple, Samsung, Áudio, Capas…): as mães (Telemóveis,
+     Acessórios) estão no menu, e na fila repetiam as filhas. */
+  const cats = categoriasSemFilhas(ctx);
   const filaCats = `<nav class="cat-fila" aria-label="Categorias da loja">
   <ul>${cats.map((k) => `<li><a href="${ctx.url(`/loja/${k.slug}/`)}"><span class="cat-fila__poco">${imagemDaCategoria(ctx, k.slug)}</span><span class="cat-fila__nome">${esc(k.nome)}</span></a></li>`).join('')}
   <li><a href="${ctx.url('/reparacoes/')}"><span class="cat-fila__poco cat-fila__poco--escuro"><span class="cat-fila__icone">${icones.ferramentas}</span></span><span class="cat-fila__nome">Reparações</span></a></li>
@@ -240,20 +241,27 @@ export function loja(ctx, cat = null) {
   const c = cat && categoriaDe(ctx, cat);
   const lista = c ? produtosDe(ctx, cat) : ctx.produtos;
   const caminho = c ? `/loja/${c.slug}/` : '/loja/';
-  const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: 'Loja', caminho: '/loja/' }, ...(c ? [{ nome: c.nome, caminho }] : [])]);
-  const chips = [{ slug: '', nome: 'Tudo' }, ...categoriasComArtigos(ctx)]
+  /* Em dois níveis (13 nov 2026): a fila de cima com as categorias de cima (a mãe da que está aberta assinalada), e,
+     numa mãe ou numa filha, uma segunda fila com «Todos» e as filhas. */
+  const mae = c && c.grupo ? categoriaDe(ctx, c.grupo) : null;
+  const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: 'Loja', caminho: '/loja/' }, ...(mae ? [{ nome: mae.nome, caminho: `/loja/${mae.slug}/` }] : []), ...(c ? [{ nome: c.nome, caminho }] : [])]);
+  const deCima = mae ? mae.slug : (c ? c.slug : '');
+  const chips = [{ slug: '', nome: 'Tudo' }, ...categoriasDeCima(ctx)]
     .map((k) => {
       const href = ctx.url(k.slug ? `/loja/${k.slug}/` : '/loja/');
-      const atual = (k.slug || null) === (cat || null);
-      return `<li><a class="chip" href="${href}"${atual ? ' aria-current="page"' : ''}>${esc(k.nome)}</a></li>`;
+      const atual = k.slug === deCima ? (k.slug === (cat || '') ? ' aria-current="page"' : ' aria-current="true"') : '';
+      return `<li><a class="chip" href="${href}"${atual}>${esc(k.nome)}</a></li>`;
     }).join('');
+  const grupoAberto = mae || (c && filhasDe(ctx, c.slug).length ? c : null);
+  const filhas = grupoAberto ? [{ slug: grupoAberto.slug, nome: 'Todos' }, ...filhasDe(ctx, grupoAberto.slug)]
+    .map((k) => `<li><a class="chip chip--filha" href="${ctx.url(`/loja/${k.slug}/`)}"${k.slug === cat ? ' aria-current="page"' : ''}>${esc(k.nome)}</a></li>`).join('') : '';
   const f = filtros(ctx, lista);
   const conteudo = `<div class="contentor loja" data-loja>
   <header class="loja-cabeca">
     <h1 class="titulo-pagina">${esc(c ? c.titulo : 'Loja')}</h1>
     ${c?.resumo ? `<p class="cabeca__sub">${esc(c.resumo)}</p>` : '<p class="cabeca__sub">iPhone e Samsung novos e recondicionados, películas para qualquer telemóvel, áudio e acessórios.</p>'}
   </header>
-  <nav class="chips" aria-label="Categorias"><ul>${chips}</ul></nav>
+  <nav class="chips" aria-label="Categorias"><ul>${chips}</ul>${filhas ? `<ul class="chips__filhas" aria-label="${esc(grupoAberto.nome)}">${filhas}</ul>` : ''}</nav>
   <div class="loja-barra">
     <p class="loja-barra__conta" data-conta-artigos aria-live="polite">${lista.length} ${lista.length === 1 ? 'artigo' : 'artigos'}</p>
     <p class="loja-barra__procura" data-loja-procura hidden></p>

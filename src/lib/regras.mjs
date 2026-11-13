@@ -804,6 +804,12 @@ export function problemasDasCategorias(valor, { fotos = null } = {}) {
     if (!vazio(c.foto) && (!nomeDeFotoValido(c.foto) || (fotos && !fotos.has(c.foto)))) bloqueia(`${c.slug}.foto`, `${i}.foto`, `A fotografia da categoria ${c.nome || c.slug} não existe na biblioteca: escolha outra, ou nenhuma.`);
     /* Uma categoria de marca (Apple, Samsung) junta os artigos dessa marca de todas as categorias. */
     if (!ausente(c.marca) && (typeof c.marca !== 'string' || !temTexto(c.marca) || c.marca.length > TAMANHOS.marca)) avisa(`${c.slug}.marca`, `${i}.marca`, `A marca da categoria ${c.nome || c.slug} é um nome curto (ex.: Apple), ou fica vazia.`);
+    /* A categoria-mãe (o esquema do Leandro, 13 nov 2026): «grupo» é o endereço de outra categoria, que junta os
+       artigos das filhas (Telemóveis: Apple, Samsung…; Acessórios: Capas, Películas…). Um nível só: a mãe não tem mãe. */
+    if (!ausente(c.grupo)) {
+      const mae = l.obj.find((x) => eObjecto(x) && x.slug === c.grupo);
+      if (typeof c.grupo !== 'string' || c.grupo === c.slug || !mae || !ausente(mae.grupo)) bloqueia(`${c.slug}.grupo`, `${i}.grupo`, `A categoria-mãe de ${c.nome || c.slug} não existe ou não pode ser essa. Só o Renato a pode corrigir.`);
+    }
   });
   return out;
 }
@@ -814,10 +820,20 @@ export function problemasDasCategorias(valor, { fotos = null } = {}) {
 export function categoriasDoArtigo(a, categorias) {
   if (!eObjecto(a)) return [];
   const out = temTexto(a.categoria) ? [a.categoria] : [];
+  const lista = Array.isArray(categorias) ? categorias.filter((c) => eObjecto(c) && slugValido(c.slug)) : [];
+  /* A mãe da categoria do artigo (Telemóveis, Gadgets, Acessórios): a página dela, as campanhas e os cupões dela
+     apanham os artigos das filhas. */
+  const propria = out.length ? lista.find((c) => c.slug === a.categoria) : null;
+  const grupo = propria && temTexto(propria.grupo) ? propria.grupo : '';
+  if (grupo && !out.includes(grupo)) out.push(grupo);
   const marca = temTexto(a.marca) ? a.marca.trim().toLowerCase() : '';
-  if (marca && Array.isArray(categorias)) {
-    for (const c of categorias) {
-      if (eObjecto(c) && slugValido(c.slug) && temTexto(c.marca) && c.marca.trim().toLowerCase() === marca && !out.includes(c.slug)) out.push(c.slug);
+  if (marca) {
+    for (const c of lista) {
+      if (!temTexto(c.marca) || c.marca.trim().toLowerCase() !== marca || out.includes(c.slug)) continue;
+      /* Uma categoria de marca com mãe só junta os artigos da marca dentro dessa mãe: a Apple de Telemóveis junta os
+         iPhones (também os recondicionados), não um Apple Watch dos Gadgets. */
+      if (temTexto(c.grupo) && c.grupo !== grupo && c.grupo !== a.categoria) continue;
+      out.push(c.slug);
     }
   }
   return out;
@@ -1498,7 +1514,7 @@ const valorEmCaminho = (o, caminho) => caminho.split('.').reduce((x, k) => (eObj
 /* mudancasBloqueadas(antes, depois, qual) → [{ caminho, motivo }] ([] = pode gravar)
  *   'artigo':     as chaves que não são CAMPOS_ARTIGO não mudam;
  *   'site':       BLOQUEADOS_SITE não mudam, e não aparecem secções novas;
- *   'categorias': as categorias são as mesmas, pela mesma ordem (o slug), com a mesma marca;
+ *   'categorias': as categorias são as mesmas, pela mesma ordem (o slug), com a mesma marca e a mesma mãe;
  *   'inicio':     não aparecem nem desaparecem secções;
  *   'aparelhos':  as marcas e as famílias são as mesmas; os modelos podem entrar (um id que já
  *                 existia não muda de família: os preços e os valores dependem dele);
@@ -1521,6 +1537,7 @@ export function mudancasBloqueadas(antes, depois, qual = 'site') {
     a.forEach((c, i) => {
       if (!mesmoValor(eObjecto(c) ? c.slug : null, eObjecto(d[i]) ? d[i].slug : null)) out.push({ caminho: `${i}.slug`, motivo: 'mudou' });
       else if (!mesmoValor(eObjecto(c) ? c.marca ?? null : null, eObjecto(d[i]) ? d[i].marca ?? null : null)) out.push({ caminho: `${i}.marca`, motivo: 'mudou' });
+      else if (!mesmoValor(eObjecto(c) ? c.grupo ?? null : null, eObjecto(d[i]) ? d[i].grupo ?? null : null)) out.push({ caminho: `${i}.grupo`, motivo: 'mudou' });
     });
     return out;
   }

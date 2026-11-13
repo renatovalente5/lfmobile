@@ -51,6 +51,8 @@ export const icones = {
   // os aparelhos
   telemovel: T('<rect x="7" y="3" width="10" height="18" rx="2.2"/><path d="M11 17.8h2"/>'),
   tablet: T('<rect x="4.5" y="3" width="15" height="18" rx="2.2"/><path d="M11 17.8h2"/>'),
+  portatil: T('<rect x="5" y="5" width="14" height="10" rx="1.6"/><path d="M2.5 18.5h19"/>'),
+  casa: T('<path d="M4 11 12 4.5l8 6.5"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5.5h4V20"/>'),
   relogioPulso: T('<rect x="6.5" y="6.5" width="11" height="11" rx="3"/><path d="M9 6.5 9.6 3h4.8l.6 3.5M9 17.5l.6 3.5h4.8l.6-3.5"/>'),
   auriculares: T('<path d="M8 4.5a3 3 0 0 0-3 3v2.5a3 3 0 0 0 3 3h.5V4.5H8ZM16 4.5a3 3 0 0 1 3 3v2.5a3 3 0 0 1-3 3h-.5V4.5H16Z"/><path d="M8.5 13v6.5M15.5 13v6.5"/>'),
   ferramentas: T('<path d="M14.5 6.5a3.5 3.5 0 0 0 4.4 4.4L9 20.8a1.8 1.8 0 0 1-2.6-2.6l9.9-9.9a3.5 3.5 0 0 0-1.8-1.8Z"/><path d="m4 5 2.5 2.5M4 5l1.5-1.5L8 6"/>'),

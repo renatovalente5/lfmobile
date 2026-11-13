@@ -219,6 +219,12 @@ export function fila(ctx, produtos, { id, titulo, ligacao = '', textoLigacao = '
 
 /* As categorias com artigos no site. */
 export const categoriasComArtigos = (ctx) => ctx.categorias.filter((c) => ctx.produtos.some((p) => categoriasDoArtigo(p, ctx.categorias).includes(c.slug)));
+/* AS CATEGORIAS EM DOIS NÍVEIS (o esquema do Leandro, 13 nov 2026), só as que têm artigos: as de cima (sem mãe:
+   Telemóveis, Tablets, Computadores, Gadgets, Casa, Kids, Acessórios, Encomendas perdidas), as filhas de uma (Apple,
+   Samsung…), e as que não têm filhas com artigos (a fila redonda da página inicial). */
+export const categoriasDeCima = (ctx) => categoriasComArtigos(ctx).filter((c) => !c.grupo);
+export const filhasDe = (ctx, slug) => categoriasComArtigos(ctx).filter((c) => c.grupo === slug);
+export const categoriasSemFilhas = (ctx) => { const cs = categoriasComArtigos(ctx); return cs.filter((c) => !cs.some((x) => x.grupo === c.slug)); };
 
 /* A ligação do WhatsApp sem texto: o número da loja, em dígitos. */
 export const whatsappNumero = (ctx) => numeroWhatsApp(ctx.site.contactos.whatsapp);

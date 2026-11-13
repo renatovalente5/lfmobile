@@ -342,6 +342,14 @@
     desenhar();
   });
 
+  // ---------------------------------------------------------------- o menu da loja (computador)
+  /* Abre ao passar o rato ou com o Tab (o CSS); o Escape fecha-o, tirando o foco de lá. */
+  const menuLoja = $('[data-menu-loja]');
+  if (menuLoja) document.addEventListener('keydown', (e) => {
+    const li = menuLoja.parentElement;
+    if (e.key === 'Escape' && li.contains(document.activeElement)) { const a = $('a', li); if (a) a.focus(); document.activeElement.blur(); }
+  });
+
   // ---------------------------------------------------------------- loja: a categoria aberta à vista
   const filaChips = $('.chips ul');
   const aberta = filaChips && $('[aria-current]', filaChips);
