@@ -488,8 +488,14 @@ function paginaMarkdown(ficheiro) {
   html = html.replace(/\u0000(\d+)\u0000/g, (_, i) => tokens[Number(i)]);
   const slug = ficheiro.replace(/\.md$/, '');
   if (meta.foto && !fotoExiste(meta.foto)) erros.push(`Páginas › ${ficheiro}: a fotografia «${meta.foto}» não existe`);
-  // «indexar: não» no cabeçalho tira a página do Google (noindex e fora do sitemap); continua no site
-  const indexar = !/^(n[ãa]o|false)$/i.test(meta.indexar || '');
+  /* Fora do Google (noindex e fora do sitemap; a página continua no site, com a ligação no rodapé):
+     - as páginas legais, que são as que levam «atualizado» no cabeçalho (termos, privacidade, cookies, garantia,
+       litígios, desistir), sem ser preciso dizê-lo em cada uma;
+     - e as que dizem «indexar: não» (envios e devoluções).
+     O Renato, 13 nov 2026: «não vale a pena aparecer esse tipo de páginas na pesquisa do Google». Apareciam à frente
+     da Retoma na pesquisa pelo nome da loja, e tiram o lugar às sub-páginas que interessam (a Loja, as Reparações,
+     a Retoma) no bloco que o Google mostra por baixo do resultado. «indexar: sim» volta a pô-la no Google. */
+  const indexar = meta.indexar ? !/^(n[ãa]o|false)$/i.test(meta.indexar) : !meta.atualizado;
   return { caminho: `/${slug}/`, titulo: meta.titulo, tituloSeo: meta.tituloSeo, subtitulo: meta.subtitulo, modelo: meta.modelo, descricao: meta.descricao, atualizado: meta.atualizado, foto: meta.foto, indexar, html };
 }
 

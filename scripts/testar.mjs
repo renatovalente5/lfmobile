@@ -624,6 +624,21 @@ teste('a produção constrói com os dados legais preenchidos: aberta aos motore
   for (const f of todosHtml(pasta)) assert.doesNotMatch((fs.readFileSync(f, 'utf8').match(/<footer class="rodape">[\s\S]*?<\/footer>/) || [''])[0], /123456789|Nome de Teste/, f);
   assert.match(fs.readFileSync(path.join(pasta, '_site/contactos/index.html'), 'utf8'), /Nome de Teste[\s\S]{0,80}123456789/);
   assert.match(fs.readFileSync(path.join(pasta, '_site/termos-e-condicoes/index.html'), 'utf8'), /123456789/);
+  // fora do Google (noindex e fora do sitemap): as páginas legais e a dos envios. A Loja, as Reparações, a Retoma, os
+  // Contactos, o Sobre e as Perguntas ficam (o Renato, 13 nov 2026: as legais «não vale a pena» aparecerem na pesquisa)
+  const mapa = fs.readFileSync(path.join(pasta, '_site/sitemap.xml'), 'utf8');
+  for (const c of ['termos-e-condicoes', 'politica-de-privacidade', 'politica-de-cookies', 'resolucao-de-litigios', 'garantia', 'desistir', 'envios-e-devolucoes']) {
+    assert.match(fs.readFileSync(path.join(pasta, `_site/${c}/index.html`), 'utf8'), /<meta name="robots" content="noindex">/, c);
+    assert.ok(!mapa.includes(`/${c}/<`), `${c} não devia estar no sitemap`);
+  }
+  for (const c of ['', 'loja/', 'reparacoes/', 'retoma/', 'contactos/', 'sobre-nos/', 'perguntas-frequentes/']) {
+    assert.doesNotMatch(fs.readFileSync(path.join(pasta, `_site/${c}index.html`), 'utf8'), /name="robots"/, c);
+    assert.ok(mapa.includes(`<loc>https://lfmobile.pt/${c}</loc>`), `${c || '/'} devia estar no sitemap`);
+  }
+  // uma categoria cujo título é só o nome leva o resumo no <title>; a descrição diz onde é a loja e como se recebe
+  const smart = fs.readFileSync(path.join(pasta, '_site/loja/smartwatches/index.html'), 'utf8');
+  assert.match(smart, /<title>Smartwatches — Relógios inteligentes para o dia a dia e o desporto \| LF Mobile<\/title>/);
+  assert.match(smart, /<meta name="description" content="Relógios inteligentes para o dia a dia e o desporto\. Na LF Mobile, em São Roque: envios para Portugal Continental e levantamento grátis na loja\.">/);
 });
 teste('em modo «online» o botão diz «Encomendar e pagar» (como os termos), e o catálogo leva o modo', () => {
   const pasta = copia('online', (p) => json(p, 'content/site.json', (s) => { s.pagamentos.modo = 'online'; }));

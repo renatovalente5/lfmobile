@@ -216,6 +216,23 @@ function filtros(ctx, lista) {
    conta (um toque que não chegou a abrir a página). */
 const LUGAR_DA_LOJA = "(function(){try{var k='lfmobile:lugar-da-loja',v=JSON.parse(sessionStorage.getItem(k)||'null');sessionStorage.removeItem(k);if(!v||v.para!==location.pathname||!(v.topo>=0)||!(Date.now()-v.t<15000))return;var n=document.querySelector('.chips');if(!n)return;var r=document.documentElement,parar=false,y=function(){return Math.max(0,n.getBoundingClientRect().top+window.scrollY-v.topo)},ir=function(){if(parar)return;var b=r.style.scrollBehavior;r.style.scrollBehavior='auto';window.scrollTo(0,y());r.style.scrollBehavior=b};ir();['wheel','touchstart','keydown','mousedown'].forEach(function(e){addEventListener(e,function(){parar=true},{once:true,passive:true,capture:true})});document.addEventListener('DOMContentLoaded',ir);addEventListener('load',ir);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(ir);var u=n.querySelector('ul');if(u)u.scrollLeft=v.esq||0;r.dataset.lugarDaLoja=String(v.esq||0)}catch(e){}})();";
 
+/* O título e a descrição de uma categoria para o Google (13 nov 2026). O título da página (o do painel) fica como
+   está; quando é só o nome («Apple», «Smartwatches»), junta-se-lhe o resumo, para o resultado não ser «Apple | LF
+   Mobile». À descrição curta do painel junta-se onde é a loja e como se recebe, enquanto couber nos ~158 caracteres
+   que o Google mostra. */
+function tituloDaCategoria(c) {
+  const resumo = textoSimples(c.resumo || '').replace(/[.\s]+$/, '');
+  return c.titulo === c.nome && resumo ? `${c.titulo} — ${resumo}` : c.titulo;
+}
+function descricaoDaCategoria(ctx, c) {
+  const base = textoSimples(c.resumo || c.titulo);
+  const zonas = ctx.site.entrega.zonas;
+  const envios = zonas.filter((z) => z.morada).map((z) => z.curto);
+  const como = [envios.length ? `envios para ${envios.join(' e ')}` : '', zonas.some((z) => !z.morada) ? 'levantamento grátis na loja' : ''].filter(Boolean).join(' e ');
+  const comLoja = `${/[.!?]$/.test(base) ? base : `${base}.`} Na ${ctx.site.marca}, em ${ctx.site.local.localidade}${como ? `: ${como}` : ''}.`;
+  return comLoja.length <= 158 ? comLoja : base.slice(0, 158);
+}
+
 export function loja(ctx, cat = null) {
   const c = cat && categoriaDe(ctx, cat);
   const lista = c ? produtosDe(ctx, cat) : ctx.produtos;
@@ -252,8 +269,8 @@ export function loja(ctx, cat = null) {
 <script>${LUGAR_DA_LOJA}</script>`;
   return {
     caminho,
-    titulo: c ? c.titulo : 'Loja — iPhone, Samsung, películas e acessórios',
-    descricao: c ? textoSimples(c.resumo || c.titulo).slice(0, 158) : `iPhone e Samsung novos e recondicionados, películas para qualquer telemóvel, áudio e acessórios na ${ctx.site.marca}, em ${ctx.site.local.localidade}. Envios para Portugal Continental.`,
+    titulo: c ? tituloDaCategoria(c) : 'Loja — iPhone, Samsung, películas e acessórios',
+    descricao: c ? descricaoDaCategoria(ctx, c) : `iPhone e Samsung novos e recondicionados, películas para qualquer telemóvel, áudio e acessórios na ${ctx.site.marca}, em ${ctx.site.local.localidade}. Envios para Portugal Continental.`,
     classe: 'pagina-loja',
     jsonld: [m.ld, {
       '@context': 'https://schema.org', '@type': 'ItemList',
