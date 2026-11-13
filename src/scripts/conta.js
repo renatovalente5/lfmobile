@@ -194,8 +194,32 @@
       <span class="conta-encomenda__pe"><span>${esc(dataCurta(x.criada_em))}</span><strong>${esc(centimos(x.total_cents))}</strong></span>
     </a></li>`;
   }
+  /* O CARTÃO DAS PELÍCULAS (o de papel da loja, «Películas Hidrogel»): 5 casas e, na 6.ª, a oferta. As do site
+     contam sozinhas; as da loja marca-as a loja. Com uma oferta por levantar, as 5 casas ficam cheias e a 6.ª
+     acende-se. */
+  const icone = (nome) => ($(`[data-icone-${nome}]`) || {}).innerHTML || '';
+  function pintarCartao(c) {
+    const caixa = $('[data-conta-cartao]');
+    if (!c || !Number.isInteger(c.atuais)) { caixa.hidden = true; return; }
+    const por = c.por_cartao || 5;
+    const cheias = c.disponiveis > 0 && c.atuais === 0 ? por : c.atuais;
+    const casas = Array.from({ length: por }, (_, i) => `<li class="cartao-peliculas__casa${i < cheias ? ' cartao-peliculas__casa--cheia' : ''}">${i < cheias ? icone('certo') : `<span>${i + 1}</span>`}</li>`).join('');
+    const faltam = por - c.atuais;
+    const frase = c.disponiveis > 0
+      ? `Tem ${c.disponiveis === 1 ? 'uma película' : `${c.disponiveis} películas`} de oferta. Peça-a${c.disponiveis === 1 ? '' : 's'} na loja.`
+      : `${faltam === 1 ? 'Falta 1 película' : `Faltam ${faltam} películas`} para a oferta.`;
+    caixa.innerHTML = `<div class="cartao-peliculas__cabeca">
+        <h2 class="cartao-peliculas__titulo" id="cartao-peliculas-titulo">Cartão das películas</h2>
+        <p class="cartao-peliculas__sub">Películas de hidrogel · a ${por + 1}.ª é oferta</p>
+      </div>
+      <ol class="cartao-peliculas__casas" aria-label="${cheias} de ${por} películas${c.disponiveis > 0 ? ', com oferta' : ''}">${casas}<li class="cartao-peliculas__casa cartao-peliculas__casa--oferta${c.disponiveis > 0 ? ' cartao-peliculas__casa--ganha' : ''}">${icone('presente')}</li></ol>
+      <p class="cartao-peliculas__frase">${esc(frase)}</p>`;
+    caixa.hidden = false;
+  }
+
   function pintarLista(dados) {
     $('[data-conta-quem]').textContent = dados.email || '';
+    pintarCartao(dados.cartao);
     const encs = Array.isArray(dados.encomendas) ? dados.encomendas : [];
     lista.innerHTML = encs.map(cartao).join('');
     lista.hidden = !encs.length;

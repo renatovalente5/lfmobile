@@ -720,6 +720,7 @@ export function conta(ctx) {
       <h1 class="titulo-pagina" id="conta-titulo-lista">As minhas encomendas</h1>
       <p class="conta__quem"><span data-conta-quem></span><button class="conta__ligacao" type="button" data-conta-sair>Sair</button></p>
     </div>
+    <section class="cartao-peliculas" data-conta-cartao hidden aria-labelledby="cartao-peliculas-titulo"></section>
     <ul class="conta__encomendas" data-conta-encomendas></ul>
     <div class="conta__vazia" data-conta-vazia hidden>
       <p>Ainda não há encomendas com este email.</p>
@@ -729,6 +730,8 @@ export function conta(ctx) {
   <section class="conta__ficha" data-conta-ficha hidden aria-labelledby="conta-titulo-ficha"></section>
   <p class="comprar__erro conta__falha" data-conta-falha role="alert" hidden></p>
   <template data-icone-whatsapp>${icones.whatsapp}</template>
+  <template data-icone-certo>${icones.certo}</template>
+  <template data-icone-presente>${icones.presente}</template>
   <noscript><p class="nota">A conta precisa de JavaScript. Pode sempre perguntar pela sua encomenda no <a href="${ctx.whatsapp('Olá! Queria saber da minha encomenda.')}">WhatsApp</a>.</p></noscript>
 </div>`;
   return { caminho: '/conta/', titulo: 'A minha conta', descricao: 'As suas encomendas na LF Mobile e em que ponto estão.', conteudo, classe: 'pagina-conta', indexar: false };

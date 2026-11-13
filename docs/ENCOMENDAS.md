@@ -360,3 +360,20 @@ e confere o email outra vez.
 **O caminho** (`historico`): cada mudança de estado com a data; as linhas que não mudam o estado (as da Stripe que só
 ficaram no histórico) saem. A `nota` só vai na `enviada` (o rastreio) e na `anulada` (a razão): são as que o cliente
 já recebe por email (§6). As outras notas do painel e as `notas_painel` nunca saem.
+
+**O cartão das películas (13 nov 2026; o Leandro: «Sim» à proposta).** O cartão de papel da loja, «Películas
+Hidrogel»: 5 casas e, na 6.ª, uma película de oferta, a contar na loja E no site. Vive no objecto da conta (o email):
+
+- **As do site contam sozinhas:** cada película de hidrogel (o nome do artigo tem «hidrogel», `ehHidrogel`) numa
+  encomenda `paga`, `pronta`, `enviada` ou `levantada` (`CONTAM`), lidas dos metadados do KV como a lista da conta.
+- **As da loja e as ofertas** marca-as o dono no painel (ecrã «Cartões»), pelo email do cliente:
+  `carimbos: [{ em, n, por, nota? }]` (n de −10 a 10; o negativo corrige, nunca abaixo de zero) e
+  `ofertas: [{ em, por, nota? }]` no objecto `Conta`. A oferta só se entrega se o cartão a tiver (conferido no objecto,
+  num passo só). Um cartão pode nascer no painel antes de o cliente entrar no site.
+- **As contas** (`cartaoDe`): `total = site + loja`; cada 5 dão uma oferta; `disponiveis = floor(total / 5) − entregues`;
+  `atuais = total mod 5` (as casas do cartão de agora). Com uma oferta por entregar e 0 casas, o cartão mostra as 5
+  cheias e a 6.ª acesa.
+- **Rotas do painel** (com o `PAINEL_SEGREDO`): `GET /painel/cartoes?email=` → `{ email, cartao, movimentos }`,
+  `POST /painel/cartoes/carimbo { email, n, por, nota? }`, `POST /painel/cartoes/oferta { email, por, nota? }` (409 sem
+  oferta). Na conta, `GET /conta/api/eu` leva `cartao: { por_cartao, total, atuais, disponiveis }` (sem quem marcou).
+- **Prazo:** o objecto guarda o cartão 3 anos depois do último movimento (`mexido`), mesmo sem sessões; depois apaga-o.

@@ -767,6 +767,8 @@ teste('a conta do cliente: a página /conta/, a ligação no cabeçalho, no menu
   assert.match(conta, /<meta name="robots" content="noindex/);
   assert.match(conta, /<title>A minha conta \| LF Mobile<\/title>/);
   assert.match(conta, /<div class="contentor conta" data-area-cliente /);
+  assert.match(conta, /<section class="cartao-peliculas" data-conta-cartao hidden/, 'o cartão das películas');
+  assert.match(conta, /<template data-icone-presente><svg/);
   assert.match(conta, /<input id="conta-codigo"[^>]*inputmode="numeric" autocomplete="one-time-code"/);
   assert.match(conta, /<input id="conta-email"[^>]*type="email" autocomplete="email"/);
   // [data-conta] é o número do carrinho no cabeçalho (carrinho.js, desenharConta, que lhe troca o texto): a página da

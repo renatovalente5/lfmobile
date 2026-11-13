@@ -29,6 +29,14 @@
  *
  * Os POST só se aceitam vindos do site (o Origin): um site alheio não pede códigos nem fecha sessões
  * em nome de quem o visita.
+ *
+ * O CARTÃO DAS PELÍCULAS (13 nov 2026; o cartão de papel da loja, «Películas Hidrogel»: 5 casas e na 6.ª uma
+ * película de oferta, a contar na loja E no site): as do site contam sozinhas (cada película de hidrogel numa
+ * encomenda paga); as da loja e as ofertas entregues marca-as o dono no painel, pelo email do cliente:
+ *
+ *   GET  /painel/cartoes?email=…                          → { email, cartao, movimentos }
+ *   POST /painel/cartoes/carimbo { email, n, por, nota? } → o mesmo (n de −10 a 10: as da loja; o negativo corrige)
+ *   POST /painel/cartoes/oferta  { email, por, nota? }    → o mesmo · 409 sem oferta por entregar
  */
 
 import { json, lerCorpoJson } from './http.js';
@@ -51,6 +59,9 @@ const SESSAO_MS = SESSAO_DIAS * DIA_MS;
 const CODIGO_MS = CODIGO_MINUTOS * 60 * 1000;
 const REPETIDO_MS = 20 * 1000;          // dois toques seguidos no botão não mandam dois emails
 const RE_TOKEN = /^([0-9a-f]{64})\.([A-Za-z0-9_-]{43})$/;
+export const POR_CARTAO = 5;                                               // 5 casas; a 6.ª é oferta
+export const CONTAM = Object.freeze(['paga', 'pronta', 'enviada', 'levantada']);  // as encomendas que carimbam
+const CARTAO_MS = 3 * 365 * DIA_MS;                                        // o cartão guarda-se 3 anos depois do último movimento
 const RE_PEDIDO = /^[A-Za-z0-9_-]{22}$/;
 
 /* ---------------------------------------------------------------- o email da conta e os segredos */
@@ -155,10 +166,46 @@ export class Conta {
         await this.prazo(agora);
         renovou = true;
       }
-      return { ok: true, email: (await s.get('email')) || '', mostrar: v.mostrar || '', renovou };
+      return { ok: true, email: (await s.get('email')) || '', mostrar: v.mostrar || '', renovou, ...(await this.cartao()) };
+    }
+
+    if (c.op === 'cartao') return this.cartao();
+
+    // o dono marca no painel as películas compradas na loja (n negativo corrige um engano)
+    if (c.op === 'carimbar') {
+      const n = Number(c.n);
+      if (!Number.isInteger(n) || n === 0 || Math.abs(n) > 10) return { erro: 'n' };
+      const { carimbos } = await this.cartao();
+      const loja = carimbos.reduce((t, x) => t + (Number(x.n) || 0), 0);
+      if (loja + n < 0) return { erro: 'negativo' };
+      await s.put('carimbos', [...carimbos, { em: new Date(agora).toISOString(), n, por: String(c.por || '').slice(0, 120), ...(c.nota ? { nota: String(c.nota).slice(0, 300) } : {}) }]);
+      return this.mexeu(agora, c.email);
+    }
+
+    // a oferta entregue: só se o cartão a tiver (as do site vêm contadas de fora, em `site`)
+    if (c.op === 'oferta') {
+      const g = await this.cartao();
+      if (cartaoDe(Number(c.site) || 0, g).disponiveis < 1) return { erro: 'sem-oferta', ...g };
+      await s.put('ofertas', [...g.ofertas, { em: new Date(agora).toISOString(), por: String(c.por || '').slice(0, 120), ...(c.nota ? { nota: String(c.nota).slice(0, 300) } : {}) }]);
+      return this.mexeu(agora, c.email);
     }
 
     return { erro: 'operação' };
+  }
+
+  async cartao() {
+    const s = this.ctx.storage;
+    return { carimbos: (await s.get('carimbos')) || [], ofertas: (await s.get('ofertas')) || [] };
+  }
+
+  /* Um movimento no cartão: a data (para o prazo de 3 anos) e o email (um cartão que nasce no painel,
+     de alguém que nunca entrou no site). */
+  async mexeu(agora, email) {
+    const s = this.ctx.storage;
+    await s.put('mexido', agora);
+    if (email && !(await s.get('email'))) await s.put('email', String(email));
+    await this.prazo(agora);
+    return { ok: true, ...(await this.cartao()) };
   }
 
   /* As sessões que passaram do prazo saem; acima de MAX_SESSOES, saem as mais antigas. */
@@ -172,9 +219,11 @@ export class Conta {
     for (const [k] of vivas.slice(MAX_SESSOES)) await s.delete(k);
   }
 
-  /* O objecto limpa-se sozinho: o alarme fica para depois da sessão mais longa possível. */
+  /* O objecto limpa-se sozinho: o alarme fica para depois da sessão mais longa possível e, com um cartão,
+     para depois dos 3 anos do último movimento. */
   async prazo(agora) {
-    await this.ctx.storage.setAlarm(agora + SESSAO_MS + DIA_MS);
+    const mexido = (await this.ctx.storage.get('mexido')) || 0;
+    await this.ctx.storage.setAlarm(Math.max(agora + SESSAO_MS + DIA_MS, mexido ? mexido + CARTAO_MS + DIA_MS : 0));
   }
 
   async alarm() {
@@ -184,9 +233,13 @@ export class Conta {
     for (const [k, v] of await s.list({ prefix: 'sessao:' })) {
       if (!v || agora > v.expira) await s.delete(k); else ultima = Math.max(ultima, v.expira);
     }
-    if (!ultima) { await s.deleteAll(); return; }
+    const mexido = (await s.get('mexido')) || 0;
+    const cartaoAte = mexido ? mexido + CARTAO_MS : 0;
+    if (mexido && cartaoAte <= agora) { await s.delete('carimbos'); await s.delete('ofertas'); await s.delete('mexido'); }
+    const proximo = Math.max(ultima, cartaoAte > agora ? cartaoAte : 0);
+    if (!proximo) { await s.deleteAll(); return; }
     await s.delete('codigo');
-    await s.setAlarm(ultima + DIA_MS);
+    await s.setAlarm(proximo + DIA_MS);
   }
 }
 
@@ -254,6 +307,85 @@ export function vistaDaConta(enc) {
     ...(enc.entrega !== 'levantamento' && morada ? { morada } : {}),
     historico: historicoDoCliente(enc),
   };
+}
+
+/* ---------------------------------------------------------------- o cartão das películas */
+
+/* Uma película de hidrogel: o nome do artigo di-lo (o Leandro chama-lhes «Película de Hidrogel …»). */
+export const ehHidrogel = (nome) => /hidrogel/i.test(String(nome || '').normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+
+/* As películas de hidrogel compradas no site: as das encomendas pagas (CONTAM). Os metadados levam as
+   linhas; os de uma encomenda com linhas a mais (cortadas) lêem-se na encomenda. */
+export async function peliculasDoSite(env, encomendas) {
+  let n = 0;
+  const de = [];
+  for (const e of encomendas) {
+    if (!CONTAM.includes(e.estado)) continue;
+    let linhas = Array.isArray(e.linhas) ? e.linhas : [];
+    if (e.linhas_a_mais) {
+      const enc = await lerEncomenda(env, e.encomenda).catch(() => null);
+      if (enc) linhas = (enc.linhas || []).map((l) => ({ nome: l.nome, qtd: l.qtd }));
+    }
+    const k = linhas.filter((l) => ehHidrogel(l.nome)).reduce((t, l) => t + (Number(l.qtd) || 0), 0);
+    if (k > 0) { n += k; de.push({ encomenda: e.encomenda, em: e.criada_em, n: k }); }
+  }
+  return { n, de };
+}
+
+/* O cartão: as do site + as da loja; cada 5 dão uma oferta; as ofertas entregues descontam-se. `atuais`
+   são as casas do cartão de agora (0 a 4). */
+export function cartaoDe(site, g = {}) {
+  const carimbos = Array.isArray(g.carimbos) ? g.carimbos : [];
+  const ofertas = Array.isArray(g.ofertas) ? g.ofertas : [];
+  const loja = Math.max(0, carimbos.reduce((t, c) => t + (Number(c.n) || 0), 0));
+  const total = (Number(site) || 0) + loja;
+  const ganhas = Math.floor(total / POR_CARTAO);
+  return { por_cartao: POR_CARTAO, site: Number(site) || 0, loja, total, atuais: total - ganhas * POR_CARTAO, disponiveis: Math.max(0, ganhas - ofertas.length), entregues: ofertas.length };
+}
+
+/* O cartão de um cliente, como o painel o mostra: as contas e os movimentos (as encomendas do site, os
+   carimbos da loja e as ofertas), os mais recentes primeiro. */
+export async function vistaDoCartao(env, email) {
+  const conta = emailDaConta(email);
+  const { n, de } = await peliculasDoSite(env, await encomendasDaConta(env, conta));
+  const g = await pedirAoObjecto(env, 'CONTA', await idDaConta(conta), { op: 'cartao' });
+  const movimentos = [
+    ...de.map((d) => ({ em: d.em, tipo: 'site', n: d.n, encomenda: d.encomenda })),
+    ...(g.carimbos || []).map((c) => ({ em: c.em, tipo: 'loja', n: c.n, por: c.por, ...(c.nota ? { nota: c.nota } : {}) })),
+    ...(g.ofertas || []).map((o) => ({ em: o.em, tipo: 'oferta', por: o.por, ...(o.nota ? { nota: o.nota } : {}) })),
+  ].sort((a, b) => String(b.em || '').localeCompare(String(a.em || '')));
+  return { email: limpar(email, 160).toLowerCase(), cartao: cartaoDe(n, g), movimentos };
+}
+
+/* As rotas do painel para os cartões (painel.js chama-as com o PAINEL_SEGREDO já conferido). */
+export async function rotaCartoes(request, env, url, resto) {
+  if (resto === '/cartoes') {
+    if (request.method !== 'GET') return json({ erro: 'Método não permitido.' }, 405);
+    const email = limpar(url.searchParams.get('email'), 160).toLowerCase();
+    if (!emailValido(email)) return json({ erro: 'Escreva o email do cliente.', campo: 'email' }, 400);
+    return json(await vistaDoCartao(env, email));
+  }
+  const r = /^\/cartoes\/(carimbo|oferta)$/.exec(resto);
+  if (!r) return json({ erro: 'Rota desconhecida.' }, 404);
+  if (request.method !== 'POST') return json({ erro: 'Método não permitido.' }, 405);
+  const { corpo, resposta } = await lerCorpoJson(request);
+  if (resposta) return resposta;
+  const email = limpar(corpo.email, 160).toLowerCase();
+  if (!emailValido(email)) return json({ erro: 'Escreva o email do cliente.', campo: 'email' }, 400);
+  const conta = emailDaConta(email);
+  const id = await idDaConta(conta);
+  const por = limpar(corpo.por, 120) || 'painel';
+  const nota = limpar(corpo.nota, 300);
+  if (r[1] === 'carimbo') {
+    const x = await pedirAoObjecto(env, 'CONTA', id, { op: 'carimbar', n: corpo.n, por, nota, email: conta });
+    if (x.erro === 'n') return json({ erro: 'Diga quantas películas: de 1 a 10.', campo: 'n' }, 400);
+    if (x.erro) return json({ erro: 'O cartão não tem tantas películas da loja para tirar.', campo: 'n' }, 400);
+  } else {
+    const { n } = await peliculasDoSite(env, await encomendasDaConta(env, conta));
+    const x = await pedirAoObjecto(env, 'CONTA', id, { op: 'oferta', site: n, por, nota, email: conta });
+    if (x.erro) return json({ erro: 'Este cliente ainda não tem uma película de oferta.' }, 409);
+  }
+  return json(await vistaDoCartao(env, email));
 }
 
 /* ---------------------------------------------------------------- o email do código */
@@ -376,7 +508,7 @@ async function sessaoDe(request, env) {
   if (!m) return null;
   const r = await pedirAoObjecto(env, 'CONTA', m[1], { op: 'sessao', resumo: await resumo(m[2]) });
   if (!r.ok || !r.email) return null;
-  return { token, email: r.email, mostrar: r.mostrar || r.email, renovou: Boolean(r.renovou) };
+  return { token, email: r.email, mostrar: r.mostrar || r.email, renovou: Boolean(r.renovou), guardado: { carimbos: r.carimbos || [], ofertas: r.ofertas || [] } };
 }
 const semSessao = () => json({ erro: 'Entre outra vez na sua conta.', sessao: false }, 401, { 'Set-Cookie': APAGAR_COOKIE });
 const renovar = (s) => (s.renovou ? { 'Set-Cookie': cookieDaSessao(s.token, SESSAO_DIAS * 86400) } : {});
@@ -387,7 +519,13 @@ async function eu(request, env) {
   if (!s) return semSessao();
   let encomendas;
   try { encomendas = await encomendasDaConta(env, s.email); } catch (e) { console.error('encomendas da conta por ler', e.message); return json({ erro: 'Não conseguimos ler as suas encomendas agora. Tente daqui a pouco.' }, 503); }
-  return json({ email: s.mostrar, encomendas }, 200, renovar(s));
+  // o cartão das películas: as do site (destas encomendas) + as da loja (o objecto da conta)
+  let cartao;
+  try {
+    const { total, atuais, disponiveis, por_cartao } = cartaoDe((await peliculasDoSite(env, encomendas)).n, s.guardado);
+    cartao = { por_cartao, total, atuais, disponiveis };
+  } catch (e) { console.error('cartão por contar', e.message); cartao = null; }
+  return json({ email: s.mostrar, encomendas, cartao }, 200, renovar(s));
 }
 
 async function fichaDaConta(request, env, url) {

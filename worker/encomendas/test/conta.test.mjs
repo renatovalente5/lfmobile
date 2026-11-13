@@ -281,3 +281,92 @@ test('as rotas da conta: métodos e caminhos desconhecidos', async () => {
   assert.equal((await pedir(worker, env, 'POST', '/conta/api/eu', { cabecalhos: ORIGEM })).status, 405);
   assert.equal((await pedir(worker, env, 'GET', '/conta/api/outra')).status, 404);
 });
+
+/* ---------------------------------------------------------------- o cartão das películas */
+import { ehHidrogel, cartaoDe, idDaConta as idDaContaDe } from '../conta.js';
+
+const cartao = (env, email) => pedir(worker, env, 'GET', `/painel/cartoes?email=${encodeURIComponent(email)}`, { cabecalhos: bearer() });
+const carimbar = (env, email, n, extra = {}) => pedir(worker, env, 'POST', '/painel/cartoes/carimbo', { corpo: { email, n, por: 'dono@exemplo.pt', ...extra }, cabecalhos: bearer() });
+const oferta = (env, email) => pedir(worker, env, 'POST', '/painel/cartoes/oferta', { corpo: { email, por: 'dono@exemplo.pt' }, cabecalhos: bearer() });
+const HIDROGEL = (qtd) => ({ linhas: [{ produto: 'pelicula-hidrogel', opcoes: [], qtd }], total_cents: 1250 * qtd });
+
+test('o cartão: as películas de hidrogel pelo nome; cada 5 dão uma oferta; as entregues descontam-se', () => {
+  assert.ok(ehHidrogel('Película de Hidrogel Privacidade Cerâmica Matte'));
+  assert.ok(ehHidrogel('película de hidrogel aplicada'));
+  assert.ok(!ehHidrogel('Película de vidro temperado'));
+  assert.deepEqual(cartaoDe(0), { por_cartao: 5, site: 0, loja: 0, total: 0, atuais: 0, disponiveis: 0, entregues: 0 });
+  assert.deepEqual(cartaoDe(3, { carimbos: [{ n: 2 }] }), { por_cartao: 5, site: 3, loja: 2, total: 5, atuais: 0, disponiveis: 1, entregues: 0 });
+  assert.deepEqual(cartaoDe(2, { carimbos: [{ n: 5 }], ofertas: [{}] }), { por_cartao: 5, site: 2, loja: 5, total: 7, atuais: 2, disponiveis: 0, entregues: 1 });
+  assert.equal(cartaoDe(0, { carimbos: [{ n: 2 }, { n: -5 }] }).loja, 0, 'nunca abaixo de zero');
+});
+
+test('o cartão no painel: só com o segredo; as da loja marcam-se e corrigem-se; a oferta só quando a há', async () => {
+  const { env } = ambiente();
+  assert.equal((await pedir(worker, env, 'GET', '/painel/cartoes?email=ana@exemplo.pt')).status, 401);
+  assert.equal((await cartao(env, 'ana@')).status, 400);
+  const vazio = await cartao(env, 'Ana@Exemplo.pt');
+  assert.equal(vazio.status, 200, vazio.texto);
+  assert.equal(vazio.json.email, 'ana@exemplo.pt');
+  assert.deepEqual(vazio.json.cartao, cartaoDe(0));
+  assert.deepEqual(vazio.json.movimentos, []);
+  assert.equal((await carimbar(env, 'ana@exemplo.pt', 0)).status, 400);
+  assert.equal((await carimbar(env, 'ana@exemplo.pt', 11)).status, 400);
+  assert.equal((await carimbar(env, 'ana@exemplo.pt', -1)).status, 400, 'não se tira o que não há');
+  const tres = await carimbar(env, 'ana@exemplo.pt', 3, { nota: 'cartão de papel com 3' });
+  assert.equal(tres.status, 200, tres.texto);
+  assert.equal(tres.json.cartao.loja, 3);
+  assert.equal((await oferta(env, 'ana@exemplo.pt')).status, 409, 'com 3, ainda não há oferta');
+  assert.equal((await carimbar(env, 'ana@exemplo.pt', -1)).json.cartao.loja, 2, 'corrigir um engano');
+  const cinco = await carimbar(env, 'ana@exemplo.pt', 3);
+  assert.deepEqual([cinco.json.cartao.total, cinco.json.cartao.disponiveis, cinco.json.cartao.atuais], [5, 1, 0]);
+  const dada = await oferta(env, 'ana@exemplo.pt');
+  assert.equal(dada.status, 200, dada.texto);
+  assert.deepEqual([dada.json.cartao.disponiveis, dada.json.cartao.entregues, dada.json.cartao.atuais], [0, 1, 0]);
+  assert.equal((await oferta(env, 'ana@exemplo.pt')).status, 409, 'a mesma oferta não se dá duas vezes');
+  assert.deepEqual(dada.json.movimentos.map((m) => `${m.tipo}${m.n ?? ''}`).sort(), ['loja-1', 'loja3', 'loja3', 'oferta']);
+  assert.equal(dada.json.movimentos.filter((m) => m.tipo === 'loja').length, 3);
+  assert.equal(dada.json.movimentos.find((m) => m.nota).nota, 'cartão de papel com 3');
+  assert.ok(dada.json.movimentos.every((m) => m.por === 'dono@exemplo.pt'));
+});
+
+test('as películas do site contam sozinhas quando a encomenda está paga; a conta do cliente mostra o cartão', async () => {
+  const rede = redeFalsa({ catalogo: catalogoBase() });
+  try {
+    const { env, enviados } = ambiente();
+    const cliente = { nome: 'Rita Lopes', email: 'rita@exemplo.pt', telefone: '912 345 678' };
+    const paga = await registar(worker, env, { ...HIDROGEL(2), cliente });
+    const porPagar = await registar(worker, env, { ...HIDROGEL(1), cliente });
+    await registar(worker, env, { cliente }); // auscultadores: não são películas
+    assert.equal((await pedir(worker, env, 'POST', `/painel/encomendas/${paga.encomenda}/estado`, { corpo: { estado: 'paga', por: 'dono@exemplo.pt' }, cabecalhos: bearer() })).status, 200);
+    const c = await cartao(env, 'rita@exemplo.pt');
+    assert.equal(c.json.cartao.site, 2, 'só a paga conta');
+    assert.deepEqual(c.json.movimentos.map((m) => [m.tipo, m.n, m.encomenda]), [['site', 2, paga.encomenda]]);
+    assert.ok(porPagar.encomenda);
+    await carimbar(env, 'rita@exemplo.pt', 4);
+    const cookie = await entrar(env, enviados, 'rita@exemplo.pt');
+    const eu = await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: cookie } });
+    assert.equal(eu.status, 200, eu.texto);
+    assert.deepEqual(eu.json.cartao, { por_cartao: 5, total: 6, atuais: 1, disponiveis: 1 });
+    assert.doesNotMatch(eu.texto, /dono@exemplo\.pt/, 'quem marcou não sai para o cliente');
+  } finally { rede.repor(); }
+});
+
+test('um cartão feito no painel (de quem nunca entrou no site) aparece quando o cliente entra; e fica quando as sessões acabam', async () => {
+  const { env, enviados } = ambiente();
+  await carimbar(env, 'Joana.Reis@gmail.com', 2);
+  const cookie = await entrar(env, enviados, 'joanareis@gmail.com');
+  const eu = await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: cookie } });
+  assert.equal(eu.json.cartao.atuais, 2);
+  // o alarme do objecto: com as sessões vencidas, o cartão fica; 3 anos depois do último movimento, sai
+  const id = await idDaContaDe(emailDaConta('joanareis@gmail.com'));
+  const objecto = env.CONTA.instancias.get(id);
+  let repor = comRelogio((SESSAO_DIAS + 5) * 86400_000);
+  try {
+    await objecto.alarm();
+    assert.equal((await cartao(env, 'joanareis@gmail.com')).json.cartao.loja, 2, 'o cartão ficou');
+    assert.equal((await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: cookie } })).status, 401, 'a sessão acabou');
+    repor(); repor = comRelogio(3 * 366 * 86400_000);
+    await objecto.alarm();
+    assert.equal((await cartao(env, 'joanareis@gmail.com')).json.cartao.loja, 0, 'passados 3 anos sem movimentos, sai');
+  } finally { repor(); }
+});

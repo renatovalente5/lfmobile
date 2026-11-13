@@ -27,6 +27,8 @@ Esses dados ficam no servidor das encomendas, na Cloudflare (nos EUA, com as gar
 
 Para ver as suas encomendas no site, entra com o email e um código de 6 algarismos que lhe enviamos por email. Tratamos o email que escreve, para lhe enviar o código e lhe mostrar as encomendas feitas com ele (fundamento: execução do contrato). Do código e da sessão guardamos só um resumo, que não se pode ler: o código vale 10 minutos e a sessão 30 dias depois da última utilização, ou até sair. Ficam no servidor das encomendas, na Cloudflare, na União Europeia. A conta não junta dados novos sobre si: mostra as encomendas que já fez.
 
+No **cartão das películas**, as películas de hidrogel compradas no site contam a partir das encomendas. As compradas na loja e as ofertas entregues guardamo-las ligadas ao seu email, com a data, durante 3 anos depois da última (fundamento: execução do contrato, a oferta).
+
 ## O que tratamos quando nos contacta
 
 Quando nos envia uma mensagem, pelo WhatsApp, por email ou nas redes sociais, tratamos os dados que nos dá (nome, contacto, o equipamento, a avaria e o histórico da conversa) para lhe responder e preparar o orçamento, a reparação ou a retoma (fundamento: diligências pré-contratuais a seu pedido e execução do contrato).
