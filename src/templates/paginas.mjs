@@ -210,9 +210,11 @@ function filtros(ctx, lista) {
 
 /* O LUGAR DA LOJA ao mudar de separador (loja.js guarda-o no toque): em linha, logo a seguir à loja, para correr
    antes da primeira pintura. A página nova abre com a fila dos separadores onde ela estava no ecrã, e a fila
-   deslizada como estava. Se a página ainda não for comprida que chegue (uma categoria com poucos artigos, sem o
-   rodapé lido), tenta outra vez quando o resto chegar. */
-const LUGAR_DA_LOJA = "(function(){try{var k='lfmobile:lugar-da-loja',v=JSON.parse(sessionStorage.getItem(k)||'null');sessionStorage.removeItem(k);if(!v||v.para!==location.pathname||!(v.topo>=0))return;var n=document.querySelector('.chips');if(!n)return;var r=document.documentElement,y=function(){return Math.max(0,n.getBoundingClientRect().top+window.scrollY-v.topo)},ir=function(){var b=r.style.scrollBehavior;r.style.scrollBehavior='auto';window.scrollTo(0,y());r.style.scrollBehavior=b};ir();if(Math.abs(window.scrollY-y())>1)document.addEventListener('DOMContentLoaded',ir);var u=n.querySelector('ul');if(u)u.scrollLeft=v.esq||0;r.dataset.lugarDaLoja=String(v.esq||0)}catch(e){}})();";
+   deslizada como estava. A altura por cima dos separadores ainda muda uns píxeis quando as letras chegam, e a
+   página pode não ser comprida que chegue antes de o rodapé ser lido: repete no DOMContentLoaded, no load e quando
+   as letras estão prontas, até a pessoa mexer (roda, toque, tecla, rato). Um lugar guardado há mais de 15 s não
+   conta (um toque que não chegou a abrir a página). */
+const LUGAR_DA_LOJA = "(function(){try{var k='lfmobile:lugar-da-loja',v=JSON.parse(sessionStorage.getItem(k)||'null');sessionStorage.removeItem(k);if(!v||v.para!==location.pathname||!(v.topo>=0)||!(Date.now()-v.t<15000))return;var n=document.querySelector('.chips');if(!n)return;var r=document.documentElement,parar=false,y=function(){return Math.max(0,n.getBoundingClientRect().top+window.scrollY-v.topo)},ir=function(){if(parar)return;var b=r.style.scrollBehavior;r.style.scrollBehavior='auto';window.scrollTo(0,y());r.style.scrollBehavior=b};ir();['wheel','touchstart','keydown','mousedown'].forEach(function(e){addEventListener(e,function(){parar=true},{once:true,passive:true,capture:true})});document.addEventListener('DOMContentLoaded',ir);addEventListener('load',ir);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(ir);var u=n.querySelector('ul');if(u)u.scrollLeft=v.esq||0;r.dataset.lugarDaLoja=String(v.esq||0)}catch(e){}})();";
 
 export function loja(ctx, cat = null) {
   const c = cat && categoriaDe(ctx, cat);

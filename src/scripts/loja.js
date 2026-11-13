@@ -19,7 +19,7 @@
     const a = e.target.closest('a[href]');
     if (!a || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.pathname === location.pathname) return;
     const fila = $('ul', separadores);
-    try { sessionStorage.setItem('lfmobile:lugar-da-loja', JSON.stringify({ para: a.pathname, topo: separadores.getBoundingClientRect().top, esq: fila ? fila.scrollLeft : 0 })); } catch (_) { /* sem armazenamento: abre no topo, como antes */ }
+    try { sessionStorage.setItem('lfmobile:lugar-da-loja', JSON.stringify({ para: a.pathname, topo: separadores.getBoundingClientRect().top, esq: fila ? fila.scrollLeft : 0, t: Date.now() })); } catch (_) { /* sem armazenamento: abre no topo, como antes */ }
   });
   const grelha = $('[data-grelha-loja]', loja);
   if (!grelha) return;
