@@ -163,10 +163,10 @@
     "grupo": "acessorios"
   },
   {
-    "slug": "encomendas-perdidas",
-    "nome": "Encomendas perdidas",
-    "titulo": "Encomendas perdidas",
-    "resumo": "Encomendas perdidas ou devolvidas, vendidas ao quilo.",
+    "slug": "encomendas-misterio",
+    "nome": "Encomendas mistério",
+    "titulo": "Encomendas mistério",
+    "resumo": "Encomendas perdidas ou devolvidas, vendidas ao quilo. Nem a loja nem o cliente sabem o que vem dentro nem o estado.",
     "peso": 1
   }
 ]

@@ -83,7 +83,7 @@ function ligacoesDaFila(ctx) {
   return { cats, servicos };
 }
 /* O desenho de cada categoria no menu do telemóvel. */
-const ICONE_CATEGORIA = { telemoveis: 'telemovel', apple: 'telemovel', samsung: 'telemovel', recondicionados: 'verificado', tablets: 'tablet', computadores: 'portatil', gadgets: 'auriculares', smartwatches: 'relogioPulso', audio: 'auriculares', casa: 'casa', kids: 'comando', acessorios: 'conector', peliculas: 'pelicula', 'encomendas-perdidas': 'caixa' };
+const ICONE_CATEGORIA = { telemoveis: 'telemovel', apple: 'telemovel', samsung: 'telemovel', recondicionados: 'verificado', tablets: 'tablet', computadores: 'portatil', gadgets: 'auriculares', smartwatches: 'relogioPulso', audio: 'auriculares', casa: 'casa', kids: 'comando', acessorios: 'conector', peliculas: 'pelicula', 'encomendas-misterio': 'caixa' };
 
 /* O CABEÇALHO, o mesmo em todas as páginas (o Renato, 12 nov 2026: «se for preciso refaz a Navbar
    também nas outras páginas»; antes, fora da página inicial, havia a procura larga, os botões Reparações

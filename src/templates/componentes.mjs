@@ -220,7 +220,7 @@ export function fila(ctx, produtos, { id, titulo, ligacao = '', textoLigacao = '
 /* As categorias com artigos no site. */
 export const categoriasComArtigos = (ctx) => ctx.categorias.filter((c) => ctx.produtos.some((p) => categoriasDoArtigo(p, ctx.categorias).includes(c.slug)));
 /* AS CATEGORIAS EM DOIS NÍVEIS (o esquema do Leandro, 13 nov 2026): as de cima (sem mãe: Telemóveis, Tablets,
-   Computadores, Gadgets, Casa, Kids, Acessórios, Encomendas perdidas) e as filhas de uma (Apple, Samsung…). TODAS,
+   Computadores, Gadgets, Casa, Kids, Acessórios, Encomendas mistério) e as filhas de uma (Apple, Samsung…). TODAS,
    mesmo as que ainda não têm artigos (o Leandro: «precisava que tivesse aquelas categorias e subcategorias todas»):
    a página de uma vazia diz que ainda não há e oferece a encomenda, e fica fora do Google até ter artigos. A fila
    redonda da página inicial é que só mostra as que têm artigos e não têm filhas com artigos (leva fotografias). */
