@@ -1,13 +1,13 @@
 {
-  "nome": "Película de vidro privacidade",
-  "nomeCurto": "Película de vidro privacidade",
+  "nome": "Película de Hidrogel Privacidade",
+  "nomeCurto": "Película de hidrogel privacidade",
   "marca": "",
   "fotos": [
     "pelicula-vidro-privacidade-1"
   ],
   "resumo": "Só quem está à frente do ecrã o consegue ver.",
-  "descricao": "Vidro temperado com filtro de privacidade: de lado, o ecrã fica escuro. Se a levantar na loja, aplicamo-la na hora.",
-  "preco": 14.9,
+  "descricao": "Película de proteção híbrida ultrafina e resistente, proporcionando uma proteção superior sem comprometer a estética do equipamento.\n\nProtege contra riscos e marcas de unhas, mantendo flexibilidade, elevada aderência e resistência à quebra. \n\nCom filtro de privacidade: de lado, o ecrã fica escuro. \nSe a levantar na loja, aplicamo-la na hora.",
+  "preco": 19.9,
   "precoAnterior": null,
   "promocaoDesde": "",
   "promocaoAte": "",
@@ -25,6 +25,7 @@
     "email": ""
   },
   "avisos": "",
+  "peso": 0.015,
   "categoria": "peliculas",
   "destaque": false,
   "novidade": false,
