@@ -7,7 +7,7 @@
   ],
   "resumo": "Vidro transparente, para proteger o ecrã de riscos e quedas.",
   "descricao": "Vidro temperado transparente, cortado para o seu modelo. Se a levantar na loja, aplicamo-la na hora.",
-  "preco": 9.9,
+  "preco": 4.9,
   "precoAnterior": null,
   "promocaoDesde": "",
   "promocaoAte": "",
@@ -25,6 +25,7 @@
     "email": ""
   },
   "avisos": "",
+  "peso": 0.03,
   "categoria": "peliculas",
   "destaque": false,
   "novidade": false,
