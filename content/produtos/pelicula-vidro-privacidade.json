@@ -13,7 +13,9 @@
   "promocaoAte": "",
   "estado": "novo",
   "disponibilidade": "disponivel",
-  "caracteristicas": [],
+  "caracteristicas": [
+    "Na 6.ª película, oferecemos uma"
+  ],
   "inclui": [],
   "opcoes": [],
   "pedeModelo": true,
