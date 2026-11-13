@@ -9,6 +9,9 @@
   "preco": 17.9,
   "estado": "novo",
   "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Na 6.ª película, oferecemos uma"
+  ],
   "pedeModelo": true,
   "peso": 0.015,
   "categoria": "peliculas",
