@@ -616,6 +616,8 @@ teste('a produção constrói com os dados legais preenchidos: aberta aos motore
   const index = fs.readFileSync(path.join(pasta, '_site/index.html'), 'utf8');
   assert.doesNotMatch(index, /noindex/);
   assert.match(index, /https:\/\/lfmobile\.pt\//);
+  // o nome do site para o Google: «LF Mobile», com a forma colada como alternativa (só na página inicial)
+  assert.match(index, /"@type":"WebSite","@id":"https:\/\/lfmobile\.pt\/#site","name":"LF Mobile","alternateName":\["LFMobile"\],"url":"https:\/\/lfmobile\.pt\/"/);
   assert.ok(fs.existsSync(path.join(pasta, '_site/sitemap.xml')));
   for (const f of todosHtml(pasta)) assert.doesNotMatch(fs.readFileSync(f, 'utf8'), /por confirmar:/, f);
   // o rodapé só com «© ano marca» (o Renato, 12 nov 2026: o nome, o NIF e a morada «não precisam de

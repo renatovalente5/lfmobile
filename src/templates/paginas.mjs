@@ -171,7 +171,10 @@ export function inicio(ctx) {
     titulo: h.seo.titulo,
     descricao: h.seo.descricao,
     classe: 'pagina-inicio',
-    jsonld: [org, { '@context': 'https://schema.org', '@type': 'WebSite', '@id': ctx.absoluto('/#site'), name: ctx.site.marca, url: ctx.absoluto('/'), inLanguage: 'pt-PT', publisher: { '@id': ctx.absoluto('/#loja') } }],
+    /* O nome do site para o Google (a linha por cima do endereço, nos resultados): «LF Mobile», e a forma colada
+       («LFMobile», como no domínio) como alternativa. Dois dias depois de abrir, o Google ainda mostrava «lfmobile.pt»
+       (o Renato, 13 nov 2026). O nome só se declara aqui, na página inicial. */
+    jsonld: [org, { '@context': 'https://schema.org', '@type': 'WebSite', '@id': ctx.absoluto('/#site'), name: ctx.site.marca, ...(/\s/.test(ctx.site.marca) ? { alternateName: [ctx.site.marca.replace(/\s+/g, '')] } : {}), url: ctx.absoluto('/'), inLanguage: 'pt-PT', publisher: { '@id': ctx.absoluto('/#loja') } }],
     conteudo: `${spriteAparelhos()}
 ${capa}
 <div class="contentor inicio">
