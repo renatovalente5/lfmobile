@@ -435,7 +435,7 @@ export function produto(ctx, p) {
      (o modelo agrupado pela família da marca escolhida, content/aparelhos.json), e «Outro modelo» no
      fim de cada lista, que abre o campo para o escrever; com «Outra marca», só o campo. Sem
      JavaScript fica só o campo escrito (a lista dos modelos enche-se no browser, site.js). Sem
-     modelo não se junta ao carrinho. Uma página que chega com ?modelo=Marca|Modelo (das reparações)
+     modelo não se junta ao carrinho. Uma página que chega com #modelo=Marca|Modelo (das reparações)
      já o traz escolhido, e muda-se como outro qualquer. */
   const idm = esc(p.slug);
   const blocoModelo = p.pedeModelo === true ? `<fieldset class="campo escolha-modelo" data-escolha-modelo>

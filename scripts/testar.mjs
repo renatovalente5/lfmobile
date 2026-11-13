@@ -616,6 +616,11 @@ teste('a produção constrói com os dados legais preenchidos: aberta aos motore
   const index = fs.readFileSync(path.join(pasta, '_site/index.html'), 'utf8');
   assert.doesNotMatch(index, /noindex/);
   assert.match(index, /https:\/\/lfmobile\.pt\//);
+  // as películas de um modelo levam-no no fragmento (#modelo=), não num parâmetro: para o Google não são outras
+  // páginas (com ?modelo= eram 2416 endereços repetidos); os antigos ficam fora do rastreio
+  for (const f of todosHtml(pasta)) assert.doesNotMatch(fs.readFileSync(f, 'utf8'), /href="[^"]*\?modelo=/, f);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/reparacoes/iphone-13/index.html'), 'utf8'), /href="\/produtos\/[a-z0-9-]+\/#modelo=Apple%7CiPhone%2013"/);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/robots.txt'), 'utf8'), /^Disallow: \/\*\?modelo=$/m);
   // o nome do site para o Google: «LF Mobile», com a forma colada como alternativa (só na página inicial)
   assert.match(index, /"@type":"WebSite","@id":"https:\/\/lfmobile\.pt\/#site","name":"LF Mobile","alternateName":\["LFMobile"\],"url":"https:\/\/lfmobile\.pt\/"/);
   assert.ok(fs.existsSync(path.join(pasta, '_site/sitemap.xml')));

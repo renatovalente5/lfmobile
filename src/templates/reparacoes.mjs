@@ -256,7 +256,7 @@ export function modelo(ctx, x) {
   </div>
   ${peliculas.length ? `<section class="modelo-peliculas" aria-labelledby="pel-titulo">
     <div class="seccao__cabeca"><div><h2 class="titulo-seccao" id="pel-titulo">Películas para o ${esc(x.nome)}</h2><p class="seccao__texto">Escolha o tipo: o modelo já vai escolhido.</p></div></div>
-    <div class="grelha grelha--4">${peliculas.map((p) => cartaoProduto(ctx, p).replace(`href="${ctx.url(`/produtos/${p.slug}/`)}"`, `href="${ctx.url(`/produtos/${p.slug}/`)}?modelo=${encodeURIComponent(`${marca}|${x.nome}`)}"`)).join('\n')}</div>
+    <div class="grelha grelha--4">${peliculas.map((p) => cartaoProduto(ctx, p).replace(`href="${ctx.url(`/produtos/${p.slug}/`)}"`, `href="${ctx.url(`/produtos/${p.slug}/`)}#modelo=${encodeURIComponent(`${marca}|${x.nome}`)}"`)).join('\n')}</div>
   </section>` : ''}
   ${irmaos.length ? `<section class="modelo-irmaos" aria-labelledby="irmaos-titulo">
     <h2 class="titulo-pequeno" id="irmaos-titulo">Outros ${f.tipo === 'computador' ? 'computadores' : esc(f.nome)}</h2>

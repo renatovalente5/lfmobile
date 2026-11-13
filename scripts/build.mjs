@@ -552,10 +552,12 @@ fs.writeFileSync(path.join(SAIDA, 'sitemap.xml'), `<?xml version="1.0" encoding=
 ${indexaveis.map((s) => `  <url><loc>${ctx.absoluto(s.caminho)}</loc><lastmod>${lastmod[s.caminho] || hoje}</lastmod></url>`).join('\n')}
 </urlset>
 `);
+// Em produção, os endereços antigos com ?modelo= (as películas com o modelo escolhido: 2416 repetidos das mesmas
+// fichas) ficam fora do rastreio; as ligações novas levam o modelo no fragmento (13 nov 2026).
 // Pré-visualização: fechada aos motores de busca, mas aberta aos robôs que fazem a pré-visualização
 // das ligações no WhatsApp e no Facebook (sem isto, partilhar o link mostra-se sem imagem).
 fs.writeFileSync(path.join(SAIDA, 'robots.txt'), producao
-  ? `User-agent: *\nAllow: /\nDisallow: /checkout/\nDisallow: /obrigado/\n\nSitemap: ${ctx.absoluto('/sitemap.xml')}\n`
+  ? `User-agent: *\nAllow: /\nDisallow: /checkout/\nDisallow: /obrigado/\nDisallow: /*?modelo=\n\nSitemap: ${ctx.absoluto('/sitemap.xml')}\n`
   : 'User-agent: facebookexternalhit\nAllow: /\n\nUser-agent: WhatsApp\nAllow: /\n\nUser-agent: *\nDisallow: /\n');
 // Em produção (Cloudflare): a cache dos ficheiros com o resumo no nome, e os cabeçalhos de segurança
 // em todas as respostas. O catalogo.json sem resumo fica fora (o Worker lê-o sempre fresco).

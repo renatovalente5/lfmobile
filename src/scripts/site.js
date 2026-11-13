@@ -421,7 +421,7 @@
   /* A marca enche a lista dos modelos (agrupados pela família, como na capa), com «Outro modelo» no
      fim, que mostra o campo para o escrever; com «Outra marca» (ou uma marca sem modelos), só o
      campo. O modelo escolhido na lista fica também no campo escrito (escondido): é esse que vai para
-     o carrinho. Uma página que chega com ?modelo=Marca|Modelo (das reparações) já o traz escolhido,
+     o carrinho. Uma página que chega com #modelo=Marca|Modelo (das reparações) já o traz escolhido,
      e muda-se como outro qualquer. Sem JavaScript, fica só o campo escrito. */
   const modelosPorMarca = (() => { try { return JSON.parse(($('#dados-modelos') || {}).textContent || '{}'); } catch (_) { return {}; } })();
   const OUTRO_MODELO = '-outro-';
@@ -467,7 +467,12 @@
       nome.value = lista.value;
       mostrar();
     });
-    const pedido = new URLSearchParams(location.search).get('modelo');
+    /* O modelo vem no fragmento (#modelo=Marca|Modelo): para o Google não é outro endereço. Com ?modelo= eram
+       2416 endereços repetidos das fichas das películas, o triplo das páginas verdadeiras (13 nov 2026). O ?modelo=
+       das ligações antigas continua a servir. */
+    let doFragmento = '';
+    try { if (/^#modelo=/.test(location.hash)) doFragmento = decodeURIComponent(location.hash.slice(8)); } catch (_) { /* fragmento mal formado: fica sem modelo */ }
+    const pedido = doFragmento || new URLSearchParams(location.search).get('modelo');
     if (pedido && pedido.includes('|')) {
       const [m, n] = pedido.split('|');
       const escrito = String(n || '').trim().slice(0, 60);
