@@ -240,6 +240,11 @@ teste('a pré-visualização constrói com --base, fecha-se aos motores de busca
   const index = fs.readFileSync(path.join(pasta, '_site/index.html'), 'utf8');
   assert.match(index, /<meta name="robots" content="noindex/);
   assert.match(index, /href="\/lfmobile\/assets\/site-[0-9a-f]+\.css"/);
+  // o espaço do cabeçalho (scroll-padding-top) só quando o foco não está no cabeçalho: com o foco no campo da procura,
+  // a página subia ~60 px a cada letra (13 nov 2026)
+  const css = fs.readFileSync(path.join(pasta, '_site/assets', index.match(/assets\/(site-[0-9a-f]+\.css)/)[1]), 'utf8');
+  assert.doesNotMatch(css, /(?:^|\})\s*html\s*\{[^}]*scroll-padding-top/);
+  assert.match(css, /html:not\(:has\(\.topo:focus-within\)\)\s*\{\s*scroll-padding-top/);
   assert.match(fs.readFileSync(path.join(pasta, '_site/termos-e-condicoes/index.html'), 'utf8'), /por confirmar: o NIF/);
   assert.ok(fs.existsSync(path.join(pasta, '_site/404.html')));
   assert.ok(fs.existsSync(path.join(pasta, '_site/assets/catalogo.json')));

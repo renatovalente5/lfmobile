@@ -59,7 +59,12 @@
 
 /* ---------------------------------------------------------------- base */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: calc(var(--topo) + 16px); scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior: smooth; }
+/* O espaço do cabeçalho fixo ao saltar para uma secção ou ao andar com o Tab: o que recebe o foco não fica tapado.
+   Mas não enquanto o foco está no próprio cabeçalho. O campo da procura vive nesse espaço, e a cada letra o browser
+   rolava a página ~60 px para o «mostrar»; o cabeçalho acompanha, e na letra seguinte rolava outra vez (o Renato,
+   13 nov 2026: «o fundo da página sobe a cada letra que adiciono»). */
+html:not(:has(.topo:focus-within)) { scroll-padding-top: calc(var(--topo) + 16px); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 html:has(dialog[open]), html:has(.filtros[data-aberto]) { overflow: hidden; }
 body { margin: 0; background: var(--papel); color: var(--tinta); font: 400 1rem/1.6 var(--sans); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-variant-numeric: lining-nums; }
