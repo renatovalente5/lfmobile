@@ -26,6 +26,8 @@
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
   },
+  // A conta do cliente (/conta/api/…) responde o Worker das encomendas, por esta ligação (worker/www.js).
+  "services": [{ "binding": "ENCOMENDAS", "service": "lfmobile-encomendas" }],
   // O domínio (DOMINIO em scripts/build.mjs e worker/www.js dizem o mesmo nome).
   "routes": [
     { "pattern": "lfmobile.pt", "custom_domain": true },

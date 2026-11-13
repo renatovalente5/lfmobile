@@ -61,6 +61,16 @@ class_name = "Contador"
 tag = "v3"
 new_sqlite_classes = ["Contador"]
 
+# As contas dos clientes (conta.js, a classe Conta; 13 nov 2026): um objecto por email (o nome é o
+# resumo do email, na UE) com o código para entrar, as sessões e o travão dos códigos.
+[[durable_objects.bindings]]
+name = "CONTA"
+class_name = "Conta"
+
+[[migrations]]
+tag = "v4"
+new_sqlite_classes = ["Conta"]
+
 # Os emails saem pela Cloudflare (Email Sending, desde 11 nov 2026): o domínio lfmobile.pt está no
 # Email Sending da conta, e o plano Workers Paid deixa mandar a qualquer pessoa. Só deste remetente.
 [[send_email]]

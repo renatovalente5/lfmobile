@@ -1,6 +1,9 @@
 // O www do domínio vai para o domínio sem www (301, o mesmo caminho e a mesma pesquisa).
 // O DOMÍNIO (lfmobile.pt, desde 11 nov 2026) é o mesmo nome do scripts/build.mjs (DOMINIO) e do
 // wrangler.jsonc.
+// A CONTA DO CLIENTE (/conta/api/…, 13 nov 2026) responde o Worker das encomendas, pela service binding
+// ENCOMENDAS do wrangler.jsonc: assim a sessão é um cookie deste domínio (que nenhum script lê) e não há
+// CORS. Um fetch a outro Worker da mesma zona falhava (memória worker-na-mesma-zona).
 // Tudo o resto são os ficheiros do site (_site/), servidos pelo binding ASSETS, com a
 // 404.html quando a morada não existe. É o único código do site: sem ele, o www
 // mostrava o site inteiro numa segunda morada.
@@ -22,6 +25,10 @@ export default {
       url.hostname = DOMINIO;
       url.protocol = 'https:';
       return Response.redirect(url.toString(), 301);
+    }
+    if (url.pathname.startsWith('/conta/api/')) {
+      if (!env.ENCOMENDAS) return new Response(JSON.stringify({ erro: 'A conta não está disponível agora. Tente daqui a pouco.' }), { status: 503, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
+      return env.ENCOMENDAS.fetch(request);
     }
     const res = await env.ASSETS.fetch(request);
     if (!url.pathname.startsWith('/assets/video/') || res.status !== 200) return res;

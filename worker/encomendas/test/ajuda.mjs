@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Cupoes } from '../cupoes.js';
 import { Encomenda, Contador } from '../objecto.js';
+import { Conta } from '../conta.js';
 
 const AQUI = path.dirname(fileURLToPath(import.meta.url));
 
@@ -92,6 +93,7 @@ export function envFalso(extra = {}) {
   if (!('CUPOES' in extra)) env.CUPOES = objectosFalsos(Cupoes, env);
   if (!('ENCOMENDA' in extra)) env.ENCOMENDA = objectosFalsos(Encomenda, env);
   if (!('CONTADOR' in extra)) env.CONTADOR = objectosFalsos(Contador, env);
+  if (!('CONTA' in extra)) env.CONTA = objectosFalsos(Conta, env);
   return env;
 }
 

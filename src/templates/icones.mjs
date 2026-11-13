@@ -10,6 +10,7 @@ const C = (corpo, extra = '') =>
 
 export const icones = {
   // a interface
+  pessoa: T('<circle cx="12" cy="8.2" r="3.7"/><path d="M4.8 19.6c.9-3.3 3.8-5.4 7.2-5.4s6.3 2.1 7.2 5.4"/>'),
   carrinho: T('<path d="M5.5 8h13l-1.1 11.2a1 1 0 0 1-1 .8H7.6a1 1 0 0 1-1-.8L5.5 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>'),
   menu: T('<path d="M4 7h16M4 12h16M4 17h16"/>'),
   fechar: T('<path d="M6 6l12 12M18 6 6 18"/>'),

@@ -22,11 +22,15 @@ Publicado em `https://lfmobile-encomendas.renato-lima-valente-dcb.workers.dev` (
 - `/painel/…` com `Authorization: Bearer <PAINEL_SEGREDO>` — a lista (feita dos metadados das
   chaves do KV, sem ler cada encomenda), a ficha, mudar o estado (só as transições do painel;
   as outras dão 409), as notas, a saúde.
+- `/conta/api/…` — a conta do cliente (13 nov 2026, `conta.js`): entrar com o email e um código de 6 algarismos
+  que vai por email, e ver as encomendas desse email e o caminho de cada uma. Chega pelo Worker do site
+  (`worker/www.js`, a service binding `ENCOMENDAS`), para a sessão ser um cookie de `lfmobile.pt`. Um objecto
+  durável por conta (`Conta`, migração `v4`, na UE). O contrato no §10 do `docs/ENCOMENDAS.md`.
 
 Ficheiros: `index.js` (rotas, CORS, travão, checkout, cupão, webhook), `contas.js` (preços, portes
 pelo peso, modelo do telemóvel, desconto e validações), `cupoes.js` (as regras, os usos, o painel),
 `encomenda.js` (KV, ids, estados, vistas), `catalogo.js`, `stripe.js`, `email.js` + `email-html.js`,
-`painel.js`, `http.js`. Sem dependências npm.
+`painel.js`, `conta.js`, `http.js`. Sem dependências npm.
 
 O modo vem do catálogo (`site.json` → `pagamentos.modo`); a var `MODO = "encomenda"` força o
 modo «encomenda» como travão de emergência.

@@ -134,6 +134,7 @@ function cabecalho(ctx, atual, { naCapa = false } = {}) {
     </nav>
     <div class="topo__direita">
       <button class="topo__botao topo__lupa" type="button" data-abrir="procurar" aria-haspopup="dialog">${icones.pesquisa}<span class="visualmente-escondido">Procurar</span></button>
+      <a class="topo__botao topo__pessoa" href="${ctx.url('/conta/')}"${atual === '/conta/' ? ' aria-current="page"' : ''}>${icones.pessoa}<span class="visualmente-escondido">A minha conta</span></a>
       <a class="topo__botao topo__carrinho" href="${ctx.url('/carrinho/')}" data-abrir="carrinho" aria-haspopup="dialog">${icones.carrinho}<span class="visualmente-escondido">Carrinho</span><span class="topo__conta" data-conta hidden></span></a>
     </div>
   </div>
@@ -176,6 +177,7 @@ function menu(ctx, atual) {
       </ul>
       <p class="menu__rotulo" id="menu-ajuda">Ajuda</p>
       <ul class="menu__linhas" aria-labelledby="menu-ajuda">
+        <li><a href="${ctx.url('/conta/')}"${marca('/conta/')}>As minhas encomendas${icones.seta}</a></li>
         <li><a href="${ctx.url('/contactos/')}"${marca('/contactos/')}>Contactos e horário${icones.seta}</a></li>
         <li><a href="${ctx.url('/envios-e-devolucoes/')}"${marca('/envios-e-devolucoes/')}>Envios e devoluções${icones.seta}</a></li>
         <li><a href="${ctx.url('/perguntas-frequentes/')}"${marca('/perguntas-frequentes/')}>Perguntas frequentes${icones.seta}</a></li>

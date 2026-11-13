@@ -718,6 +718,10 @@ teste('a produção constrói com os dados legais preenchidos: aberta aos motore
   assert.match(fs.readFileSync(path.join(pasta, '_site/loja/tablets/index.html'), 'utf8'), /<meta name="robots" content="noindex">/);
   assert.ok(!mapa.includes('/loja/tablets/<'));
   assert.doesNotMatch(fs.readFileSync(path.join(pasta, '_site/loja/audio/index.html'), 'utf8'), /name="robots"/);
+  // a conta do cliente: fora do Google (noindex, fora do mapa), mas não no robots.txt — o Google tem de ler o noindex
+  assert.match(fs.readFileSync(path.join(pasta, '_site/conta/index.html'), 'utf8'), /<meta name="robots" content="noindex">/);
+  assert.ok(!mapa.includes('/conta/'), 'a conta não vai ao sitemap');
+  assert.doesNotMatch(fs.readFileSync(path.join(pasta, '_site/robots.txt'), 'utf8'), /conta/);
   // uma categoria cujo título é só o nome leva o resumo no <title>; a descrição diz onde é a loja e como se recebe
   const smart = fs.readFileSync(path.join(pasta, '_site/loja/smartwatches/index.html'), 'utf8');
   assert.match(smart, /<title>Smartwatches — Relógios inteligentes para o dia a dia e o desporto \| LF Mobile<\/title>/);
@@ -755,12 +759,67 @@ teste('um marcador desconhecido numa página de texto pára a construção', () 
   assert.notEqual(r.codigo, 0);
   assert.match(r.saida, /inexistente/);
 });
+teste('a conta do cliente: a página /conta/, a ligação no cabeçalho, no menu do telemóvel e no «obrigado», o gancho próprio do script e a sessão na política de cookies', () => {
+  const pasta = copia('conta');
+  const r = construir(pasta);
+  assert.equal(r.codigo, 0, r.saida);
+  const conta = fs.readFileSync(path.join(pasta, '_site/conta/index.html'), 'utf8');
+  assert.match(conta, /<meta name="robots" content="noindex/);
+  assert.match(conta, /<title>A minha conta \| LF Mobile<\/title>/);
+  assert.match(conta, /<div class="contentor conta" data-area-cliente /);
+  assert.match(conta, /<input id="conta-codigo"[^>]*inputmode="numeric" autocomplete="one-time-code"/);
+  assert.match(conta, /<input id="conta-email"[^>]*type="email" autocomplete="email"/);
+  // [data-conta] é o número do carrinho no cabeçalho (carrinho.js, desenharConta, que lhe troca o texto): a página da
+  // conta não o pode usar, senão os dois scripts apanham o elemento um do outro (13 nov 2026)
+  assert.doesNotMatch(conta.replace(/<header[\s\S]*?<\/header>/, ''), /data-conta[\s>]/);
+  assert.match(fs.readFileSync(path.join(RAIZ, 'src/scripts/conta.js'), 'utf8'), /querySelector\('\[data-area-cliente\]'\)/);
+  const index = fs.readFileSync(path.join(pasta, '_site/index.html'), 'utf8');
+  assert.match(index, /<a class="topo__botao topo__pessoa" href="\/conta\/"><svg[^>]*>[\s\S]*?<\/svg><span class="visualmente-escondido">A minha conta<\/span><\/a>/);
+  assert.match(index, /<li><a href="\/conta\/">As minhas encomendas/);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/obrigado/index.html'), 'utf8'), /<a class="botao botao--contorno" href="\/conta\/">/);
+  assert.ok(!fs.readFileSync(path.join(pasta, '_site/sitemap.xml'), 'utf8').includes('/conta/'));
+  // o que a política de cookies promete é o que o site e o Worker usam
+  const cookies = fs.readFileSync(path.join(RAIZ, 'content/paginas/politica-de-cookies.md'), 'utf8');
+  assert.match(cookies, /«__Host-lf-sessao»/);
+  assert.match(cookies, /«lfmobile:conta-codigo»/);
+  assert.match(fs.readFileSync(path.join(RAIZ, 'worker/encomendas/conta.js'), 'utf8'), /export const COOKIE = '__Host-lf-sessao';/);
+  assert.match(fs.readFileSync(path.join(RAIZ, 'src/scripts/conta.js'), 'utf8'), /const CHAVE = 'lfmobile:conta-codigo';/);
+});
 teste('uma ligação interna partida pára a construção', () => {
   const pasta = copia('ligacao', (p) => fs.appendFileSync(path.join(p, 'content/paginas/garantia.md'), '\n\n[Ligação partida](/nao-existe/)\n'));
   const r = construir(pasta);
   assert.notEqual(r.codigo, 0);
   assert.match(r.saida, /nao-existe/);
 });
+
+// o Worker do site (worker/www.js) passa /conta/api/… ao Worker das encomendas, pela service binding do wrangler.jsonc
+{
+  const nome = 'o Worker do site passa /conta/api/… ao Worker das encomendas (o cookie vai e vem) e diz 503 sem a ligação; o resto são os ficheiros';
+  try {
+    const { default: www } = await import('../worker/www.js');
+    const pedidos = [];
+    const env = {
+      ASSETS: { fetch: async () => new Response('ficheiro') },
+      ENCOMENDAS: { fetch: async (r) => { pedidos.push(r); return new Response('{"ok":true}', { headers: { 'set-cookie': '__Host-lf-sessao=x; Path=/; HttpOnly; Secure; SameSite=Lax' } }); } },
+    };
+    const r1 = await www.fetch(new Request('https://lfmobile.pt/conta/api/eu', { headers: { cookie: '__Host-lf-sessao=abc' } }), env);
+    assert.equal(await r1.text(), '{"ok":true}');
+    assert.match(r1.headers.get('set-cookie'), /^__Host-lf-sessao=x; Path=\//);
+    assert.equal(pedidos.length, 1);
+    assert.equal(pedidos[0].headers.get('cookie'), '__Host-lf-sessao=abc');
+    assert.equal(await (await www.fetch(new Request('https://lfmobile.pt/conta/'), env)).text(), 'ficheiro', 'a página da conta é um ficheiro do site');
+    assert.equal(pedidos.length, 1);
+    assert.equal((await www.fetch(new Request('https://lfmobile.pt/conta/api/eu'), { ASSETS: env.ASSETS })).status, 503);
+    assert.equal((await www.fetch(new Request('https://www.lfmobile.pt/conta/api/eu'), env)).status, 301, 'o www vai primeiro para o domínio');
+    const cfg = JSON.parse(fs.readFileSync(path.join(RAIZ, 'wrangler.jsonc'), 'utf8').replace(/^\s*\/\/.*$/gm, ''));
+    assert.deepEqual(cfg.services, [{ binding: 'ENCOMENDAS', service: 'lfmobile-encomendas' }]);
+    feitos++;
+    console.log(`  ✓ ${nome}`);
+  } catch (e) {
+    console.error(`  ✗ ${nome}\n${e.stack}`);
+    process.exitCode = 1;
+  }
+}
 
 fs.rmSync(temporaria, { recursive: true, force: true });
 console.log(process.exitCode ? '\nHá testes a falhar.' : `\n${feitos} testes passaram.`);

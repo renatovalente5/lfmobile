@@ -313,3 +313,50 @@ primeira vez, o objecto traz do KV os cupões de antes (`cupao:`, `cupao-usos:`,
 - O painel: `GET /painel/cupoes` → `{ cupoes: [regra + usos + descricao] }`; `PUT /painel/cupoes/<CÓDIGO>`
   com a regra (400 `{ erro, campo }` quando não presta; as categorias conferem-se com o catálogo);
   `DELETE /painel/cupoes/<CÓDIGO>`.
+
+## 10. A conta do cliente (13 nov 2026)
+
+O Leandro pediu «a conta cliente para o cliente ver as encomendas». Entra-se com o email e um código, sem
+palavra-passe; lá dentro, as encomendas feitas com esse email, em que ponto está cada uma e o caminho que fez.
+
+**Onde vive.** As rotas são `/conta/api/…` deste Worker (`conta.js`), e chegam pelo Worker do site
+(`worker/www.js`) através da service binding `ENCOMENDAS` do `wrangler.jsonc`: no domínio, a sessão é um cookie do
+próprio `lfmobile.pt` e não há CORS (um cookie do `workers.dev` seria de terceiros, e o Safari recusa-o; um `fetch`
+a outro Worker da mesma zona falha — memória worker-na-mesma-zona). Pelo `workers.dev` as rotas respondem igual,
+mas sem o cookie não há conta. A página é `/conta/` (`src/scripts/conta.js`): noindex e fora do sitemap.
+
+| rota | corpo | resposta |
+|---|---|---|
+| `POST /conta/api/codigo` | `{ email }` | `{ pedido }` (22 caracteres); o código vai por email |
+| `POST /conta/api/entrar` | `{ email, pedido, codigo }` | `{ ok: true }` e o cookie; ou 400 `{ erro, campo?, novo? }` |
+| `GET /conta/api/eu` | — | `{ email, encomendas: [{ encomenda, estado, entrega, total_cents, criada_em, linhas: [{ nome, qtd }], linhas_a_mais? }] }` |
+| `GET /conta/api/encomenda?e=<id>` | — | a vista pública (§3) + `criada_em`, `morada` (no envio) e `historico: [{ em, estado, nota? }]`; 404 se não for desta conta |
+| `POST /conta/api/sair` | — | `{ ok: true }` e o cookie apagado |
+
+Sem sessão, `eu` e `encomenda` respondem 401 e apagam o cookie. Os `POST` só se aceitam com o `Origin` do site
+(`SITE_URL` ou `ALLOWED_ORIGINS`); outro, 403.
+
+**O cookie:** `__Host-lf-sessao=<id da conta>.<segredo>; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`.
+Nenhum script o lê. Dura 30 dias e renova-se com o uso (uma vez por dia).
+
+**O código:** 6 algarismos (sem enviesar), vale 10 minutos, 5 tentativas (à 5.ª errada pede-se outro). Dois toques no
+botão em 20 s dão o mesmo pedido e um só email. Travões: por IP (o binding `TRAVAO_CHECKOUT`, chaves
+`conta-codigo:<ip>` e `conta-entrar:<ip>`, 5 por minuto) e por email (4 códigos por hora, 10 por dia). O código vai a
+qualquer email (a resposta é a mesma, haja ou não encomendas); o email não leva texto de quem pede. Assunto:
+«123456 é o seu código da LF Mobile» (o código à frente: o telemóvel propõe-no sozinho).
+
+**O objecto `Conta`** (`CONTA`, migração `v4`, SQLite, na UE; o nome é o resumo SHA-256 de
+`lfmobile-conta:<email da conta>`): `email` (o da conta), `codigo` (`{ pedido, resumo, expira, tentativas, criado }`),
+`pedidos` (quando se pediram códigos, 24 h) e `sessao:<resumo do segredo>` (`{ criada, expira, renovada, mostrar }`,
+no máximo 10). Do código e da sessão só se guarda o resumo. Apaga-se sozinho quando já não tem sessões vivas.
+
+**O email da conta:** minúsculas, sem invisíveis; no Gmail sem os pontos nem o `+etiqueta` (vão dar à mesma caixa).
+Noutros domínios o `+etiqueta` fica.
+
+**As encomendas da conta** fazem-se dos metadados do KV (`order:` com `email`, §4), sem ler cada encomenda; um email
+que pode estar cortado nos metadados (80 caracteres, ou 40) confere-se na encomenda. A ficha lê o objecto da encomenda
+e confere o email outra vez.
+
+**O caminho** (`historico`): cada mudança de estado com a data; as linhas que não mudam o estado (as da Stripe que só
+ficaram no histórico) saem. A `nota` só vai na `enviada` (o rastreio) e na `anulada` (a razão): são as que o cliente
+já recebe por email (§6). As outras notas do painel e as `notas_painel` nunca saem.

@@ -209,7 +209,7 @@ const css = Buffer.concat([
   Buffer.from(`/* legal-comum v${LEGAL_COMUM_VERSAO}: o Livro de Reclamações */\n${livroCss()}\n`),
   fs.readFileSync(path.join(RAIZ, 'src/estilos/site.css')),
 ]);
-const js = Buffer.from(['site.js', 'carrinho.js', 'loja.js', 'reparacoes.js', 'retoma.js'].map((f) => `// ${f}\n${fs.readFileSync(path.join(RAIZ, 'src/scripts', f), 'utf8')}`).join('\n'));
+const js = Buffer.from(['site.js', 'carrinho.js', 'loja.js', 'reparacoes.js', 'retoma.js', 'conta.js'].map((f) => `// ${f}\n${fs.readFileSync(path.join(RAIZ, 'src/scripts', f), 'utf8')}`).join('\n'));
 const ficheiros = { css: `site-${resumo(css)}.css`, js: `site-${resumo(js)}.js`, videos: ficheirosVideo };
 fs.writeFileSync(path.join(SAIDA, 'assets', ficheiros.css), css);
 fs.writeFileSync(path.join(SAIDA, 'assets', ficheiros.js), js);
@@ -513,6 +513,7 @@ for (const c of campanhas) saidas.push(paginas.campanha(ctx, c));
 saidas.push(paginas.carrinho(ctx));
 saidas.push(paginas.checkout(ctx));
 saidas.push(paginas.obrigado(ctx));
+saidas.push(paginas.conta(ctx));
 saidas.push(paginas.contactos(ctx));
 for (const f of fs.readdirSync(path.join(CONTEUDO, 'paginas')).filter((x) => x.endsWith('.md'))) saidas.push(paginas.texto(ctx, paginaMarkdown(f)));
 saidas.push(paginas.erro404(ctx));
@@ -527,7 +528,7 @@ for (const s of saidas) {
 }
 
 // ---------------------------------------------------------------- robots, sitemap, _headers
-const FORA_DO_MAPA = new Set(['/404.html', '/carrinho/', '/checkout/', '/obrigado/']);
+const FORA_DO_MAPA = new Set(['/404.html', '/carrinho/', '/checkout/', '/obrigado/', '/conta/']);
 // as categorias da loja sem artigos publicados ficam fora do mapa (a página existe, mas vazia não se anuncia)
 const categoriasVazias = new Set(categorias.filter((k) => !categoriasComArtigos(ctx).some((x) => x.slug === k.slug)).map((k) => `/loja/${k.slug}/`));
 const indexaveis = saidas.filter((s) => !FORA_DO_MAPA.has(s.caminho) && s.indexar !== false && !categoriasVazias.has(s.caminho));

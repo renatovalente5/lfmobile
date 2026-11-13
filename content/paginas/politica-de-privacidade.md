@@ -1,6 +1,6 @@
 titulo: Política de privacidade
 descricao: Que dados pessoais tratamos, para quê e por quanto tempo: as encomendas, os pedidos de orçamento e de retoma, e o que este site guarda no seu browser.
-atualizado: 2026-11-11
+atualizado: 2026-11-13
 ---
 ## Responsável pelo tratamento dos dados
 
@@ -9,6 +9,8 @@ O responsável pelo tratamento dos dados pessoais recolhidos e tratados através
 ## O que este site guarda no seu browser
 
 **O carrinho** (os artigos, as escolhas, o modelo do telemóvel nas películas, a entrega e o código do cupão) fica guardado no armazenamento local do seu browser, para não se perder se fechar a página. Não sai do seu aparelho e apaga-se ao esvaziar o carrinho ou ao limpar os dados do site no browser.
+
+Se entrar na sua conta, o site guarda também um cookie de sessão, para saber que já entrou (veja a [política de cookies](/politica-de-cookies/)).
 
 Os pedidos de reparação e a simulação da retoma não ficam guardados neste site: o que escolhe e escreve serve apenas para compor a mensagem, no seu próprio aparelho, e passa para o WhatsApp quando carrega no botão. É você que a envia.
 
@@ -20,6 +22,10 @@ Quando faz uma encomenda no site, tratamos o nome, o email, o telemóvel, a mora
 - tratar de uma garantia, de uma desistência ou de uma reclamação (fundamento: obrigação legal).
 
 Esses dados ficam no servidor das encomendas, na Cloudflare (nos EUA, com as garantias que o quadro mais abaixo indica). Quando usa um cupão que só vale uma vez por cliente, guardamos também um código feito a partir do seu email (e não o email), para saber que já foi usado. {{privacidade.pagamento}}
+
+## A sua conta
+
+Para ver as suas encomendas no site, entra com o email e um código de 6 algarismos que lhe enviamos por email. Tratamos o email que escreve, para lhe enviar o código e lhe mostrar as encomendas feitas com ele (fundamento: execução do contrato). Do código e da sessão guardamos só um resumo, que não se pode ler: o código vale 10 minutos e a sessão 30 dias depois da última utilização, ou até sair. Ficam no servidor das encomendas, na Cloudflare, na União Europeia. A conta não junta dados novos sobre si: mostra as encomendas que já fez.
 
 ## O que tratamos quando nos contacta
 

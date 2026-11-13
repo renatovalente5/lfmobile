@@ -9,6 +9,8 @@
  *                             pública e o desconto, ou 400 com a frase (cupoes.js).
  *   POST /stripe/webhook      os eventos da Stripe (a fonte da verdade do pagamento).
  *   /painel/…                 as rotas do painel, com o PAINEL_SEGREDO (painel.js).
+ *   /conta/api/…              a conta do cliente (conta.js): entrar com um código por email e ver as
+ *                             encomendas; chega pelo Worker do site (worker/www.js), no domínio.
  *
  * A base é o Worker da Stripe do Armazém dos Pneus (worker/src/index.js): a estrutura dos
  * webhooks, a idempotência por evento, o Checkout hosted em português, o reprice do lado do
@@ -26,6 +28,7 @@ import { criarEncomenda, idLivre, novaChave, lerEncomenda, gravarEncomenda, alte
 import { criarSessao, stripeFetch, verificarAssinatura, aplicarEvento, idDoEvento, eventoNaoBate } from './stripe.js';
 import { avisar, falhou, podeAvisarCliente, TRAVADO } from './email.js';
 import { rotaPainel } from './painel.js';
+import { rotaConta } from './conta.js';
 
 const JANELA_DE_REENTREGA_SEGUNDOS = 3600;   // até quando vale pedir à Stripe que reentregue
 // Os avisos ao cliente sem pagamento, com o travão por endereço (email.js, podeAvisarCliente).
@@ -352,10 +355,11 @@ async function webhook(request, env) {
 
 /* ---------------------------------------------------------------- o encaminhador */
 
-// os objectos duráveis (wrangler.toml): as encomendas (ENCOMENDA, Encomenda), os cupões (CUPOES, Cupoes)
-// e o travão dos emails (CONTADOR, Contador)
+// os objectos duráveis (wrangler.toml): as encomendas (ENCOMENDA, Encomenda), os cupões (CUPOES, Cupoes),
+// o travão dos emails (CONTADOR, Contador) e as contas dos clientes (CONTA, Conta)
 export { Encomenda, Contador } from './objecto.js';
 export { Cupoes } from './cupoes.js';
+export { Conta } from './conta.js';
 
 export default {
   async fetch(request, env) {
@@ -364,6 +368,7 @@ export default {
     try {
       if (caminho === '/stripe/webhook') return await webhook(request, env);
       if (caminho === '/painel' || caminho.startsWith('/painel/')) return await rotaPainel(request, env, url, caminho);
+      if (caminho.startsWith('/conta/api/')) return await rotaConta(request, env, url, caminho);
 
       const cors = corsDe(request, env);
       if (!cors) return json({ erro: 'Origem não autorizada.' }, 403);

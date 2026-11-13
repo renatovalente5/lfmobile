@@ -680,12 +680,58 @@ export function obrigado(ctx) {
     <p class="obrigado__texto" data-obrigado-texto>A sua encomenda ficou registada. Enviámos-lhe um email com o resumo.</p>
     <div class="obrigado__detalhe" data-obrigado-detalhe hidden></div>
     <div class="obrigado__botoes">
+      <a class="botao botao--contorno" href="${ctx.url('/conta/')}">${icones.pessoa}<span>As minhas encomendas</span></a>
       <a class="botao botao--contorno" href="${ctx.url('/loja/')}">Voltar à loja</a>
       ${ctx.site.contactos.whatsapp ? `<a class="botao botao--whatsapp-suave" href="${ctx.whatsapp('Olá! Fiz uma encomenda no site e tenho uma dúvida.')}" target="_blank" rel="noopener">${icones.whatsapp}<span>Falar no WhatsApp</span></a>` : ''}
     </div>
   </div>
 </div>`;
   return { caminho: '/obrigado/', titulo: 'Encomenda registada', descricao: 'A sua encomenda ficou registada.', conteudo, classe: 'pagina-obrigado', indexar: false };
+}
+
+/* A CONTA DO CLIENTE (13 nov 2026; o Leandro: «a conta cliente para o cliente ver as encomendas»).
+   Entrar com o email e um código que vai por email; lá dentro, as encomendas desse email e, na ficha de
+   cada uma (?e=<número>), em que ponto está e o caminho que fez. O src/scripts/conta.js desenha tudo
+   com o que /conta/api/… responde (o Worker das encomendas, pelo worker/www.js). Fora do Google: noindex
+   e fora do mapa (não vai ao robots.txt, para o Google ver o noindex). */
+export function conta(ctx) {
+  const zap = ctx.site.contactos.whatsapp ? ctx.whatsapp('Olá! Tenho uma dúvida sobre a encomenda ') : '';
+  const conteudo = `<div class="contentor conta" data-area-cliente data-contactos-url="${ctx.url('/contactos/')}" data-localidade="${esc(ctx.site.local?.localidade || '')}"${zap ? ` data-whatsapp="${esc(zap)}"` : ''}>
+  <p class="conta__carregar" data-conta-carregar role="status">A abrir a sua conta…</p>
+  <section class="conta__entrar" data-conta-entrar hidden aria-labelledby="conta-titulo-entrar">
+    <h1 class="titulo-pagina" id="conta-titulo-entrar">A minha conta</h1>
+    <p class="conta__intro">Veja as suas encomendas e em que ponto estão.</p>
+    <form class="formulario conta__form" data-conta-form-email novalidate>
+      <div class="campo"><label for="conta-email">Email</label><input id="conta-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" required maxlength="160"></div>
+      <p class="comprar__erro" data-conta-erro role="alert" hidden></p>
+      <button class="botao botao--cheio botao--largo" type="submit"><span>Receber o código</span></button>
+      <p class="formulario__nota">Use o email das suas encomendas. Enviamos-lhe um código para entrar.</p>
+    </form>
+    <form class="formulario conta__form" data-conta-form-codigo novalidate hidden>
+      <p class="conta__enviado" data-conta-enviado></p>
+      <div class="campo"><label for="conta-codigo">Código</label><input id="conta-codigo" class="conta__codigo" name="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" required maxlength="12"></div>
+      <p class="comprar__erro" data-conta-erro role="alert" hidden></p>
+      <button class="botao botao--cheio botao--largo" type="submit"><span>Entrar</span></button>
+      <p class="conta__outras"><button class="conta__ligacao" type="button" data-conta-reenviar>Enviar outro código</button><button class="conta__ligacao" type="button" data-conta-mudar>Usar outro email</button></p>
+    </form>
+  </section>
+  <section class="conta__lista" data-conta-lista hidden aria-labelledby="conta-titulo-lista">
+    <div class="conta__cabeca">
+      <h1 class="titulo-pagina" id="conta-titulo-lista">As minhas encomendas</h1>
+      <p class="conta__quem"><span data-conta-quem></span><button class="conta__ligacao" type="button" data-conta-sair>Sair</button></p>
+    </div>
+    <ul class="conta__encomendas" data-conta-encomendas></ul>
+    <div class="conta__vazia" data-conta-vazia hidden>
+      <p>Ainda não há encomendas com este email.</p>
+      <a class="botao botao--contorno" href="${ctx.url('/loja/')}">Ver a loja</a>
+    </div>
+  </section>
+  <section class="conta__ficha" data-conta-ficha hidden aria-labelledby="conta-titulo-ficha"></section>
+  <p class="comprar__erro conta__falha" data-conta-falha role="alert" hidden></p>
+  <template data-icone-whatsapp>${icones.whatsapp}</template>
+  <noscript><p class="nota">A conta precisa de JavaScript. Pode sempre perguntar pela sua encomenda no <a href="${ctx.whatsapp('Olá! Queria saber da minha encomenda.')}">WhatsApp</a>.</p></noscript>
+</div>`;
+  return { caminho: '/conta/', titulo: 'A minha conta', descricao: 'As suas encomendas na LF Mobile e em que ponto estão.', conteudo, classe: 'pagina-conta', indexar: false };
 }
 
 // ---------------------------------------------------------------- páginas de texto

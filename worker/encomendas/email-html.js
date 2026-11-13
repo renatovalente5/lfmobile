@@ -79,6 +79,15 @@ export function caixaMultibanco(mb, totalCents) {
     </td></tr>`;
 }
 
+/* O código para entrar na conta (conta.js): texto vivo e monoespaçado, grande, para ler e copiar. */
+export function caixaCodigo(codigo) {
+  return `<tr><td class="p" style="padding:14px 40px 6px 40px;">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="${TINTA}" style="background-color:${TINTA};border-radius:8px;">
+        <tr><td align="center" style="padding:20px 24px;font-family:'Courier New',Courier,monospace;font-size:34px;line-height:40px;font-weight:bold;color:#ffffff;letter-spacing:6px;white-space:nowrap;">${esc(codigo)}</td></tr>
+      </table>
+    </td></tr>`;
+}
+
 /* O botão: VML para o Outlook clássico, tabela para os outros. 48 px de altura. */
 export function botao(url, txt) {
   return `<tr><td align="center" class="p" style="padding:18px 40px 8px 40px;">
@@ -99,8 +108,9 @@ export function botao(url, txt) {
 
 /* O documento inteiro: o logótipo, o título, o subtítulo (o número e a data), o corpo e o
    rodapé. `preheader` é a linha que a lista de mensagens mostra. */
-export function documento({ assunto, preheader, titulo, subtitulo, corpo, logo, marca, site }) {
+export function documento({ assunto, preheader, titulo, subtitulo, corpo, logo, marca, site, rodape = null }) {
   const dominio = String(site || '').replace(/^https?:\/\//, '').replace(/\/$/, '');
+  const fim = rodape || `Recebeu este email porque fez uma encomenda em ${dominio}. É um email transaccional, não é publicidade.`;
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html lang="pt-PT" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
@@ -156,7 +166,7 @@ ${corpo}
   </table>
   <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="w" style="width:600px;max-width:600px;">
     <tr><td align="center" class="t2" style="padding:18px 24px;font-family:${FONTE};font-size:12px;line-height:18px;color:${RODAPE};">
-      Recebeu este email porque fez uma encomenda em ${esc(dominio)}. É um email transaccional, não é publicidade.
+      ${esc(fim)}
     </td></tr>
   </table>
 </td></tr>

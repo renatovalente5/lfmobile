@@ -32,8 +32,8 @@ const dataPT = (iso) => {
 
 /* A nota do custo da chamada junto do número (DL 59/2021, art. 3.º, n.º 3), como no site. */
 const telefoneComNota = (n) => (n ? `${n} (chamada para a rede móvel nacional)` : '');
-const logoDe = (env) => env.LOGO_URL || `${siteUrl(env)}/assets/img/logo-b72d7bbaa1-128.png`;
-const marcaDe = (env) => env.STORE_NAME || 'LF Mobile';
+export const logoDe = (env) => env.LOGO_URL || `${siteUrl(env)}/assets/img/logo-b72d7bbaa1-128.png`;
+export const marcaDe = (env) => env.STORE_NAME || 'LF Mobile';
 
 /* ---------------------------------------------------------------- as peças comuns */
 
