@@ -395,6 +395,13 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   assert.doesNotMatch(inicio, /Vender o meu</);
   // os cartões levam à ficha, onde se compra: sem o carrinho nem o «Escolher», com a seta em todos (13 nov 2026)
   assert.doesNotMatch(lojaPag, /data-juntar|cartao__juntar|cartao__escolher/);
+  // envios e devoluções: os portes numa tabela (um escalão por linha) e as ligações do fim dos cartões como botões
+  const envios = ler2('envios-e-devolucoes/index.html');
+  assert.match(envios, /<p class="portes__titulo">Portes<\/p><dl class="portes"><div><dt>Até \d/);
+  assert.match(envios, /<div><dt>Mais de [\d,]+ kg<\/dt><dd>A combinar<\/dd><\/div><\/dl>/);
+  assert.match(envios, /<p class="nota-cartao__accoes"><a href="https:\/\/www\.google\.com\/maps\/[^"]*" target="_blank" rel="noopener">Como chegar<\/a><\/p>/);
+  assert.match(envios, /<p class="nota-cartao__accoes"><a href="\/desistir\/">Como desistir<\/a> <a href="\/garantia\/">Garantia<\/a><\/p>/);
+  assert.doesNotMatch(envios, /\{\{|O levantamento na loja não tem custos/);
   assert.equal((lojaPag.match(/<span class="cartao__seta" aria-hidden="true">/g) || []).length, (lojaPag.match(/<article class="cartao/g) || []).length);
   // o rodapé alto: a marca e as colunas da Loja e da Ajuda (a das reparações saiu: «está aí a mais»)
   const rodape = inicio.match(/<footer class="rodape">[\s\S]*?<\/footer>/)[0];

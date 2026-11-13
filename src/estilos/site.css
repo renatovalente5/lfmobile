@@ -1162,10 +1162,28 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .passo__texto h2 { margin-top: 4px; font-size: 1.2rem; }
 .notas { display: grid; gap: 14px; margin-top: 32px; }
 .texto > .notas:first-child { margin-top: 0; }
-@media (min-width: 700px) { .notas { grid-template-columns: 1fr 1fr; } }
-.nota-cartao { padding: 20px; border-radius: var(--raio); background: var(--cinza); }
-.nota-cartao h2 { margin-top: 6px; font-size: 1.1rem; }
-.nota-cartao__icone { display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 12px; background: var(--papel); color: var(--ouro-texto); }
+@media (min-width: 700px) { .notas { grid-template-columns: repeat(2, minmax(0, 1fr)); } .notas > :last-child:nth-child(odd) { grid-column: 1 / -1; } }
+/* Os cartões (Envios e devoluções): no computador lado a lado, a toda a largura da página e não só da coluna do
+   texto (o Renato, 13 nov 2026: «mete os 3 cards seguidos em vez de um embaixo no computador»). O ícone no círculo
+   dourado das garantias da página inicial; as ligações do fim como botões, alinhadas no fundo de cada cartão. */
+.texto-pagina--passos .texto { max-width: none; }
+.texto-pagina--passos .texto > :not(.notas) { max-width: 72ch; }
+@media (min-width: 900px) { .notas { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 16px; } .notas > :last-child:nth-child(odd) { grid-column: auto; } }
+.nota-cartao { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 24px; border-radius: var(--raio); background: var(--cinza); color: var(--tinta-2); font-size: .95rem; }
+.nota-cartao > * { align-self: stretch; }
+.nota-cartao h2 { margin: 8px 0 0; font-size: 1.2rem; color: var(--tinta); }
+.nota-cartao p { margin: 0; }
+.nota-cartao__icone { align-self: flex-start; display: inline-flex; width: 48px; height: 48px; align-items: center; justify-content: center; border-radius: 50%; background: var(--ouro-fundo); color: var(--ouro-texto); }
+.nota-cartao__icone .icone { width: 24px; height: 24px; }
+.nota-cartao__accoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto !important; padding-top: 8px; }
+.nota-cartao__accoes a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--linha-campo); background: var(--papel); color: var(--tinta); font-weight: 700; font-size: .9rem; text-decoration: none; }
+@media (hover: hover) { .nota-cartao__accoes a:hover { border-color: var(--tinta); } }
+.portes__titulo { margin-top: 6px !important; font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); }
+.portes { margin: 0; border-top: 1px solid var(--linha); }
+.portes div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--linha); }
+.portes dt { color: var(--tinta-2); }
+.portes dd { margin: 0; font-weight: 700; color: var(--tinta); white-space: nowrap; }
+.portes__nota { font-size: .85rem; color: var(--tinta-3); }
 .perguntas { display: grid; border-top: 1px solid var(--linha); }
 .pergunta { border-bottom: 1px solid var(--linha); }
 .pergunta summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; cursor: pointer; list-style: none; }

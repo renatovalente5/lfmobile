@@ -4,12 +4,18 @@ modelo: passos
 ---
 ## Envios
 
-{{prazo}} Portes: {{portes}}
+{{prazo}}
+
+{{portesTabela}}
 
 ## Levantamento
 
 {{levantamento}}
 
+[Como chegar]({{mapa}})
+
 ## Devoluções
 
-Tem 14 dias depois de receber o artigo para desistir da compra, sem dar justificação: [como desistir](/desistir/). Um artigo com defeito está coberto pela [garantia](/garantia/).
+Tem 14 dias depois de receber o artigo para desistir da compra, sem dar justificação. Um artigo com defeito está coberto pela garantia.
+
+[Como desistir](/desistir/) [Garantia](/garantia/)

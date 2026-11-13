@@ -331,6 +331,22 @@ fs.writeFileSync(path.join(SAIDA, 'assets', 'catalogo.json'), catalogoBuf);
 /* Os portes da loja (por encomenda), numa frase que se lê depois de «Portes:» ou de «são por
    encomenda:» — «4,90 € para Portugal Continental (grátis a partir de 50 € em artigos). O levantamento
    na loja não tem custos, e os artigos «só na loja» não se enviam.» */
+/* Os portes numa tabela (a página Envios e devoluções): um escalão de peso por linha, «a combinar» acima do último,
+   e os portes grátis quando os há. Com mais de uma zona com morada, o nome da zona por cima de cada tabela. */
+function tabelaPortes() {
+  const p = site.entrega.portes || {};
+  const zonas = site.entrega.zonas.filter((z) => z.morada);
+  const kg = (x) => `${String(x).replace('.', ',')} kg`;
+  const tabelas = zonas.map((z) => {
+    const e = R.escaloesDe(p[z.id]);
+    if (!e.length) return `<p>${ctx.marcador(`os portes para ${z.curto}`)}</p>`;
+    const linhas = [...e.map((x) => [`Até ${kg(x.ate)}`, euros(x.preco)]), [`Mais de ${kg(e[e.length - 1].ate)}`, 'A combinar']];
+    if (Number.isFinite(p.gratisAPartirDe)) linhas.push([`Encomendas a partir de ${euros(p.gratisAPartirDe)}`, 'Grátis']);
+    return `<p class="portes__titulo">${zonas.length > 1 ? `Portes · ${esc(z.curto)}` : 'Portes'}</p><dl class="portes">${linhas.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl>`;
+  });
+  return `${tabelas.join('')}<p class="portes__nota">O peso é o dos artigos da encomenda. Os artigos «só na loja» não se enviam.</p>`;
+}
+
 function textoPortes() {
   const p = site.entrega.portes || {};
   const t = site.entrega.transportadora;
@@ -429,6 +445,9 @@ function resolverMarcadores(fonte, onde) {
       ? 'O pagamento é feito na Stripe, na página dela: a Stripe recebe o seu email e o valor, e trata os dados do cartão ou do MB WAY segundo a sua própria política; nós nunca vemos os dados do cartão. O NIF e as observações não são enviados para a Stripe.'
       : 'O pagamento combina-se consigo depois de confirmarmos a encomenda: o site não recebe dados de pagamento.'),
     portes: () => guardar(textoPortes()),
+    portesTabela: () => guardar(tabelaPortes()),
+    // a ligação do mapa, para «[Como chegar]({{mapa}})» no texto (sem ela, a página dos contactos, que tem o mapa)
+    mapa: () => site.local?.mapa || ctx.url('/contactos/'),
     botoesDesistencia: () => guardar(botoesDesistencia()),
     comoSeFazAEncomenda: () => guardar(pagamentoOnline
       ? pecaLegal('como-encomendar', COMO_SE_FAZ_A_ENCOMENDA({ canal: 'site', pagamentos: ['cartão', 'MB WAY', 'Multibanco'], urlTermos: ctx.url('/termos-e-condicoes/') }))

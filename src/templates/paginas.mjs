@@ -661,6 +661,8 @@ function seccoes(html) {
     return m ? { id: m[1] || '', titulo: m[2], corpo: m[3].trim() } : { id: '', titulo: '', corpo: x };
   }) };
 }
+/* Um parágrafo só de ligações, no fim de um cartão, vira os botões do fundo dele («Como chegar», «Como desistir»). */
+const comAccoes = (corpo) => corpo.replace(/<p>((?:\s*<a [^>]*>[^<]*<\/a>\s*)+)<\/p>\s*$/, (_, ls) => `<p class="nota-cartao__accoes">${ls.trim()}</p>`);
 function comoPassos(html) {
   const { intro, lista } = seccoes(html);
   const numerado = (x) => /^\d+\.\s/.test(textoSimples(x.titulo));
@@ -668,7 +670,7 @@ function comoPassos(html) {
   const notas = lista.filter((x) => !numerado(x));
   return `${intro ? `<div class="texto__intro">${intro}</div>` : ''}
     ${passos.length ? `<ol class="passos">${passos.map((x, i) => `<li class="passo"><span class="passo__numero" aria-hidden="true">${i + 1}</span><div class="passo__texto"><h2 id="${x.id}">${x.titulo.replace(/^\d+\.\s*/, '')}</h2>${x.corpo}</div></li>`).join('')}</ol>` : ''}
-    ${notas.length ? `<div class="notas">${notas.map((x) => { const ic = icones[ICONE_DA_NOTA[chaveDe(x.titulo)]]; return `<section class="nota-cartao">${ic ? `<span class="nota-cartao__icone">${ic}</span>` : ''}<h2 id="${x.id}">${x.titulo}</h2>${x.corpo}</section>`; }).join('')}</div>` : ''}`;
+    ${notas.length ? `<div class="notas">${notas.map((x) => { const ic = icones[ICONE_DA_NOTA[chaveDe(x.titulo)]]; return `<section class="nota-cartao">${ic ? `<span class="nota-cartao__icone">${ic}</span>` : ''}<h2 id="${x.id}">${x.titulo}</h2>${comAccoes(x.corpo)}</section>`; }).join('')}</div>` : ''}`;
 }
 function comoPerguntas(html) {
   const { intro, lista } = seccoes(html);
