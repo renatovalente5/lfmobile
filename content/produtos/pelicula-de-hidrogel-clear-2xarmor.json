@@ -1,0 +1,19 @@
+{
+  "nome": "Película de Hidrogel Clear 2xArmor",
+  "nomeCurto": "Película de hidrogel clear 2xArmor",
+  "fotos": [
+    "pelicula-hidrogel-ilustracao"
+  ],
+  "resumo": "Película premium com com uma camada extra de proteção",
+  "descricao": "Película premium com com uma camada extra de proteção, desenvolvida para uma absorção de impactos superior. Mantém o toque suave e a tecnologia de autorregeneração, oferecendo maior resistência para o uso diário.\nSe a levantar na loja, aplicamo-la na hora, sem bolhas.",
+  "preco": 17.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "pedeModelo": true,
+  "peso": 0.015,
+  "categoria": "peliculas",
+  "destaque": false,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}
