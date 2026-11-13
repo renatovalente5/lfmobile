@@ -1,13 +1,13 @@
 {
-  "nome": "Película de vidro mate",
-  "nomeCurto": "Película de vidro mate",
+  "nome": "Película de Hidrogel Cerâmica Matte",
+  "nomeCurto": "Película de hidrogel cerâmica matte",
   "marca": "",
   "fotos": [
     "pelicula-vidro-mate-1"
   ],
-  "resumo": "Sem reflexos nem dedadas, com um toque suave.",
-  "descricao": "Vidro temperado com acabamento mate, que tira os reflexos e disfarça as dedadas. Se a levantar na loja, aplicamo-la na hora.",
-  "preco": 12.9,
+  "resumo": "Reduz dedadas, com um deslize suave.",
+  "descricao": "Película flexível em poliuretano elastomérico, com acabamento fosco de toque cerâmico. Proporciona um deslize suave, reduz impressões digitais e reflexos, mantendo elevada resistência e proteção contra quebra.\nSe a levantar na loja, aplicamo-la na hora.",
+  "preco": 14.9,
   "precoAnterior": null,
   "promocaoDesde": "",
   "promocaoAte": "",
@@ -25,6 +25,7 @@
     "email": ""
   },
   "avisos": "",
+  "peso": 0.015,
   "categoria": "peliculas",
   "destaque": false,
   "novidade": false,
