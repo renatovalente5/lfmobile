@@ -9,7 +9,7 @@
   "preco": 19.9,
   "estado": "novo",
   "disponibilidade": "disponivel",
-  "pedeModelo": false,
+  "pedeModelo": true,
   "peso": 0.015,
   "categoria": "peliculas",
   "destaque": false,
