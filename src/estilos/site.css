@@ -220,7 +220,7 @@ html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
 }
 @media (hover: hover) { .topo__ligacoes a:hover { opacity: 1; } }
 /* a folha da procura no computador (abre-se pela lupa): o campo ao meio, não de ponta a ponta */
-@media (min-width: 900px) { .folha-procura__topo, .folha-procura__atalhos { max-width: 760px; margin-left: auto; margin-right: auto; } }
+@media (min-width: 900px) { .folha-procura .busca, .folha-procura__atalhos { max-width: 760px; margin-left: auto; margin-right: auto; } }
 
 /* o cabeçalho da página inicial (topo--capa): no topo, transparente por cima da capa escura, com o
    logótipo, as letras e os ícones em branco; a descer, o claro das outras páginas, com o logótipo preto.
@@ -298,13 +298,26 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .redes a { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 999px; border: 1px solid var(--linha); color: var(--tinta); background: var(--papel); }
 @media (hover: hover) { .redes a:hover { background: var(--tinta); color: var(--branco); border-color: var(--tinta); } }
 .folha-procura { position: fixed; inset: 0 0 auto 0; width: 100%; }
-.folha-procura__corpo { background: var(--papel); padding: 12px var(--margem) 20px; border-radius: 0 0 var(--raio) var(--raio); box-shadow: var(--sombra); outline: none; max-height: 100dvh; overflow: auto; }
-.folha-procura__topo { display: flex; align-items: flex-start; gap: 10px; }
-.folha-procura__topo .busca { flex: 1; }
-.folha-procura__topo .busca__resultados { position: static; margin-top: 10px; box-shadow: none; border: 0; padding: 0; max-height: none; }
-.folha-procura__topo { flex-wrap: wrap; }
-.folha-procura__fechar { min-height: 44px; padding: 0 6px; font-weight: 700; color: var(--tinta-2); }
+.folha-procura__corpo { background: var(--papel); padding: 12px var(--margem) 20px; border-radius: 0 0 var(--raio) var(--raio); box-shadow: var(--sombra); outline: none; max-height: 100dvh; overflow: auto; overscroll-behavior: contain; }
+/* o campo e o «Fechar» numa linha; os resultados por baixo, a toda a largura */
+.busca__linha { display: flex; align-items: center; gap: 10px; }
+.busca__linha .busca__campo { flex: 1; min-width: 0; }
+.folha-procura .busca__resultados { position: static; margin-top: 10px; box-shadow: none; border: 0; padding: 0; max-height: none; }
+.folha-procura__fechar { flex: none; min-height: 44px; padding: 0 6px; font-weight: 700; color: var(--tinta-2); }
 .folha-procura__atalhos { margin-top: 18px; }
+/* No telemóvel e no tablet (onde é a lupa que abre a procura): o ecrã inteiro e branco, com o campo no lugar do
+   cabeçalho. A folha de cima deixava a página escura à vista entre ela e o teclado (o Renato, 13 nov 2026: «ao
+   entrar e sair da pesquisa no telemóvel não fica nada bem»). A parte que rola mede o que fica acima do teclado
+   (--altura-visivel, posta pelo site.js a partir do visualViewport): o Safari do iPhone não encolhe a página
+   quando o teclado abre, e os últimos resultados ficavam escondidos por baixo dele. */
+@media (max-width: 899.98px) {
+  .folha-procura { inset: 0; height: 100%; background: var(--papel); }
+  .folha-procura::backdrop { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .folha-procura__corpo { height: var(--altura-visivel, 100%); max-height: none; padding: 0 max(var(--margem), env(safe-area-inset-right)) 24px max(var(--margem), env(safe-area-inset-left)); border-radius: 0; box-shadow: none; }
+  .folha-procura .busca__linha { position: sticky; top: 0; z-index: 1; min-height: var(--topo); padding-top: env(safe-area-inset-top); background: var(--papel); }
+  .folha-procura .busca__resultados { margin-top: 2px; }
+  .folha-procura__atalhos { margin-top: 10px; }
+}
 .gaveta { position: fixed; inset: 0 0 0 auto; width: 100%; height: 100%; }
 @media (min-width: 48rem) { .gaveta { width: min(28rem, 48vw); } }
 .gaveta__corpo { height: 100dvh; display: flex; flex-direction: column; background: var(--papel); outline: none; box-shadow: var(--sombra); }
@@ -320,6 +333,12 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
   .menu[open] .menu__corpo { animation: daEsquerda .25s ease-out; }
   .gaveta[open] .gaveta__corpo { animation: daDireita .25s ease-out; }
   .folha-procura[open] .folha-procura__corpo { animation: deCima .2s ease-out; }
+  /* no telemóvel a procura aparece no sítio (só a opacidade: nada muda de lugar enquanto o teclado sobe) */
+  @media (max-width: 899.98px) {
+    .folha-procura[open] { animation: lf-procura-aparece .15s ease-out; }
+    .folha-procura[open] .folha-procura__corpo { animation: none; }
+  }
+  @keyframes lf-procura-aparece { from { opacity: 0; } to { opacity: 1; } }
   @keyframes daEsquerda { from { transform: translateX(-24px); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes daDireita { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes deCima { from { transform: translateY(-12px); opacity: 0; } to { transform: none; opacity: 1; } }

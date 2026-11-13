@@ -51,14 +51,22 @@ function faixaTopo(ctx) {
 /* A procura: a mesma no cabeçalho (computador) e na folha (telemóvel, e a página inicial). Sem
    JavaScript vai para a loja com ?q=. Os resultados vêm de assets/busca-*.json (artigos, modelos para
    reparar, páginas). O campo (a pílula) e os resultados são irmãos: na folha os resultados ficam por
-   baixo do campo (antes de 12 nov 2026 estavam dentro da pílula e saíam ao lado, fora do ecrã). */
-function procura(ctx, id) {
-  return `<form class="busca" role="search" action="${ctx.url('/loja/')}" data-busca="${esc(ctx.asset(ctx.ficheiros.busca))}">
-  <div class="busca__campo">
+   baixo do campo (antes de 12 nov 2026 estavam dentro da pílula e saíam ao lado, fora do ecrã).
+   O texto do campo não leva «iPhone», «telemóvel», «mobile», «nome» nem «email»: o Safari lê «phone» em
+   «iPhone» e, mesmo com autocomplete="off", punha por cima do teclado o «AutoFill Contact» com o número de
+   telemóvel de quem procurava (o Renato, 13 nov 2026). Na folha, o «Fechar» fica na linha do campo e os
+   resultados por baixo, a toda a largura. */
+function procura(ctx, id, { fechar = false } = {}) {
+  const campo = `<div class="busca__campo">
     <label class="visualmente-escondido" for="${id}">Procurar no site</label>
     <span class="busca__lupa">${icones.pesquisa}</span>
-    <input id="${id}" name="q" type="search" placeholder="Procurar iPhone, Galaxy, película, reparação…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
-  </div>
+    <input id="${id}" name="q" type="search" placeholder="O que procura?" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+  </div>`;
+  return `<form class="busca" role="search" action="${ctx.url('/loja/')}" data-busca="${esc(ctx.asset(ctx.ficheiros.busca))}">
+  ${fechar ? `<div class="busca__linha">
+  ${campo}
+  <button class="folha-procura__fechar" type="button" data-fechar>Fechar</button>
+  </div>` : campo}
   <div class="busca__resultados" data-busca-resultados hidden></div>
 </form>`;
 }
@@ -162,10 +170,7 @@ function menu(ctx, atual) {
 function folhaProcura(ctx) {
   return `<dialog class="folha-procura" id="procurar" aria-label="Procurar">
   <div class="folha-procura__corpo" tabindex="-1">
-    <div class="folha-procura__topo">
-      ${procura(ctx, 'busca-folha')}
-      <button class="folha-procura__fechar" type="button" data-fechar>Fechar</button>
-    </div>
+    ${procura(ctx, 'busca-folha', { fechar: true })}
     <div class="folha-procura__atalhos" data-busca-atalhos>
       <p class="menu__rotulo">Procurados</p>
       <ul class="pilulas">

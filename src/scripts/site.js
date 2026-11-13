@@ -182,18 +182,45 @@
       if (a && !a.target && a.getAttribute('aria-disabled') !== 'true') d.close();
     });
   });
+  /* A procura no telemóvel ocupa o ecrã inteiro (CSS), e a parte que rola mede o que fica acima do teclado:
+     o Safari do iPhone não encolhe a página quando o teclado abre, só a parte visível (visualViewport). */
+  const visivel = window.visualViewport;
+  function medirVisivel(d) {
+    if (!visivel || d._medir) return;
+    d._medir = () => d.style.setProperty('--altura-visivel', `${Math.round(visivel.height)}px`);
+    d._medir();
+    visivel.addEventListener('resize', d._medir);
+  }
+  function largarVisivel(d) {
+    if (!visivel || !d._medir) return;
+    visivel.removeEventListener('resize', d._medir);
+    d._medir = null;
+    d.style.removeProperty('--altura-visivel');
+  }
   function abrir(id, origem) {
     const d = document.getElementById(id);
     if (!d || d.open) return;
+    d._rolar = window.scrollY;
     d.showModal();
     /* O foco vai para o corpo (tabindex=-1, sem anel): o Safari do iPhone mostrava o anel no primeiro
        elemento depois de um toque. A procura é a excepção: o campo recebe logo o foco (o teclado). */
     const campo = id === 'procurar' && $('input[type="search"]', d);
-    if (campo) campo.focus(); else { const corpo = d.querySelector('.menu__corpo, .gaveta__corpo, .folha-procura__corpo'); if (corpo) corpo.focus({ preventScroll: true }); }
+    if (campo) { medirVisivel(d); campo.focus({ preventScroll: true }); } else { const corpo = d.querySelector('.menu__corpo, .gaveta__corpo, .folha-procura__corpo'); if (corpo) corpo.focus({ preventScroll: true }); }
     d._origem = origem || null;
     if (id === 'carrinho' && window.LFCarrinho) window.LFCarrinho.desenharGaveta();
   }
-  dialogos.forEach((d) => d.addEventListener('close', () => { if (d._origem && document.contains(d._origem)) d._origem.focus(); }));
+  /* Ao fechar, a página fica onde estava: com o teclado aberto o Safari do iPhone pode tê-la mexido, e o foco que
+     volta ao botão de origem não a desloca. Sem animação de scroll (o html tem scroll-behavior: smooth). */
+  dialogos.forEach((d) => d.addEventListener('close', () => {
+    largarVisivel(d);
+    if (typeof d._rolar === 'number' && Math.abs(window.scrollY - d._rolar) > 1) {
+      const raiz = document.documentElement;
+      raiz.style.scrollBehavior = 'auto';
+      window.scrollTo(0, d._rolar);
+      raiz.style.scrollBehavior = '';
+    }
+    if (d._origem && document.contains(d._origem)) d._origem.focus({ preventScroll: true });
+  }));
   $$('[data-abrir]').forEach((b) => b.addEventListener('click', (e) => {
     if (b.dataset.abrir === 'carrinho' && /pagina-(carrinho|checkout)/.test(document.body.className)) return; // já está no carrinho
     e.preventDefault();
