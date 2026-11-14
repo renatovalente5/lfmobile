@@ -1,0 +1,24 @@
+{
+  "nome": "Smartwatch YX3 Mini",
+  "nomeCurto": "Smartwatch yx3 mini",
+  "fotos": [
+    "smartwatch-yx3-mini-06a880a0",
+    "smartwatch-yx3-mini-ac205c0a"
+  ],
+  "resumo": "Estilo, tecnologia e praticidade no teu pulso!",
+  "descricao": "O Smartwatch YX3 Mini é perfeito para quem procura um relógio moderno e elegante para o dia a dia.",
+  "preco": 49.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Design compacto e moderno",
+    "Conectividade com Android ou iOS",
+    "Ideial para acompanhar a tua rotina"
+  ],
+  "pedeModelo": false,
+  "categoria": "smartwatches",
+  "destaque": true,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}
