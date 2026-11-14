@@ -6,7 +6,7 @@
     "micflip-localizador-passaporte-1"
   ],
   "resumo": "Porta-passaporte com localização pela rede Find My da Apple.",
-  "descricao": "Um porta-passaporte com localizador: aparece na app Encontrar da Apple e toca para o ajudar a encontrá-lo.",
+  "descricao": "O Localizador para passaporte  é muito mais do que um simples porta-passaporte. Com localizador integrado compatível com a rede Apple Find My, permite manter os teus documentos sempre localizados.",
   "preco": 46.9,
   "precoAnterior": null,
   "promocaoDesde": "",
@@ -14,8 +14,10 @@
   "estado": "novo",
   "disponibilidade": "disponivel",
   "caracteristicas": [
-    "Bateria duradoura",
-    "Carregamento por cabo"
+    "Localizador integrado compatível com Apple Find My",
+    "Localizador recarregável através de conector de pinos",
+    "Alertas sonoros e notificações caso te afastes do teu porta-passaporte",
+    "Compartimentos para passaporte, cartões, bilhetes e documentos"
   ],
   "inclui": [],
   "opcoes": [],
@@ -29,7 +31,7 @@
   },
   "avisos": "",
   "categoria": "localizadores",
-  "destaque": true,
+  "destaque": false,
   "novidade": true,
   "publicado": true,
   "ordem": 50
