@@ -1,0 +1,22 @@
+{
+  "nome": "Huawei Watch D2",
+  "nomeCurto": "Huawei Watch d2",
+  "marca": "Huawei",
+  "fotos": [
+    "huawei-watch-d2-4c5e8eae",
+    "huawei-watch-d2-129d3ff0",
+    "huawei-watch-d2-beeca3e3",
+    "huawei-watch-d2-053f9e38"
+  ],
+  "resumo": "Tecnologia e saúde no teu pulso",
+  "descricao": "Descobre o Huawei Watch D2, o smartwatch que combina elegância, tecnologia avançada e monitorização da saúde num só dispositivo! \n\nPrincipais características:\n\n- Monitorização do ritmo cardíaco\n- Medição da pressão arterial\n- Análise do sono\n- Monitorização do oxigénio no sangue (SpO₂)\n- Notificações de chamadas e mensagens\n- Acompanhamento de atividades físicas\n\nUm relógio completo para quem valoriza a tecnologia e o bem-estar no dia a dia!",
+  "preco": 299.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "pedeModelo": false,
+  "categoria": "smartwatches",
+  "destaque": true,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}
