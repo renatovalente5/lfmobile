@@ -1,0 +1,29 @@
+{
+  "nome": "iPhone 12 mini 128Gb",
+  "nomeCurto": "iPhone 12 mini 128gb",
+  "marca": "Apple",
+  "fotos": [
+    "iphone-12-mini-128gb-379aca81",
+    "iphone-12-mini-128gb-4b966376",
+    "iphone-12-mini-128gb-7da6a975",
+    "iphone-12-mini-128gb-3b26f634",
+    "iphone-12-mini-128gb-e83a9015"
+  ],
+  "resumo": "Poucas marcas de uso",
+  "descricao": "iPhone 12 mini",
+  "preco": 199.9,
+  "estado": "recondicionado",
+  "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "Testado na loja",
+    "Capacidade: 128Gb",
+    "Bateria: 85%",
+    "Grade A+"
+  ],
+  "pedeModelo": false,
+  "categoria": "recondicionados",
+  "destaque": false,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}
