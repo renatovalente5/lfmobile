@@ -391,8 +391,16 @@
   }
 
   /* SAIR, SAIR EM TODOS OS APARELHOS, APAGAR A CONTA */
-  async function sairDaqui(caminho) {
-    try { await api(caminho, {}); } catch (_) { /* o cookie acaba sozinho */ }
+  /* «Sair» sai sempre (o cookie acaba sozinho); «Sair em todos» e «Apagar a conta» só dizem que sim quando o Worker fez:
+     se falhar, diz-se, e a conta fica aberta (ninguém pensa que apagou o que ficou). Um 401 é a sessão que já acabou. */
+  async function sairDaqui(caminho, seFalhar) {
+    let r = null;
+    try { r = await api(caminho, {}); } catch (_) { r = null; }
+    if (seFalhar && !(r && (r.ok || r.status === 401))) {
+      await abrirJanela({ titulo: seFalhar, texto: `<p>${esc((r && r.j.erro) || 'Sem ligação. Veja a internet e tente outra vez.')}</p>`,
+        botoes: [{ t: 'Fechar', valor: 'nao', classe: 'botao--cheio', foco: true }] });
+      return;
+    }
     sinal(false);
     location.replace(`${base}conta/`);
   }
@@ -400,12 +408,12 @@
   $('[data-conta-sair-todos]').addEventListener('click', async () => {
     const r = await abrirJanela({ titulo: 'Sair em todos os aparelhos?', texto: '<p>Termina a sessão neste aparelho e em todos os outros onde entrou. Para voltar, basta entrar outra vez.</p>',
       botoes: [{ t: 'Cancelar', valor: 'nao', foco: true }, { t: 'Sair em todos', valor: 'sim', classe: 'botao--cheio' }] });
-    if (r === 'sim') sairDaqui('/sair-todos');
+    if (r === 'sim') sairDaqui('/sair-todos', 'Não foi possível sair em todos os aparelhos');
   });
   $('[data-conta-apagar]').addEventListener('click', async () => {
     const r = await abrirJanela({ titulo: 'Apagar a conta?', texto: '<p>Apagamos os seus dados, as sessões e o cartão das películas (as películas marcadas na loja perdem-se). As encomendas ficam: a lei obriga-nos a guardá-las.</p>',
       botoes: [{ t: 'Cancelar', valor: 'nao', foco: true }, { t: 'Apagar a conta', valor: 'sim', classe: 'botao--perigo' }] });
-    if (r === 'sim') sairDaqui('/apagar');
+    if (r === 'sim') sairDaqui('/apagar', 'A conta não foi apagada');
   });
 
   /* ---------------------------------------------------------------- a ficha de uma encomenda */
@@ -432,7 +440,7 @@
   function blocoDesistir(enc) {
     const d = enc.desistir || {};
     const pedidos = Array.isArray(d.pedidos) ? d.pedidos : [];
-    if (pedidos.length) return `<div class="conta__desistir conta__desistir--pedido" data-conta-desistir><p><strong>Pediu para desistir a ${esc(dataLonga(pedidos.at(-1)))}.</strong> Vamos contactá-lo para combinar a devolução.</p></div>`;
+    if (pedidos.length) return `<div class="conta__desistir conta__desistir--pedido" data-conta-desistir><p><strong>Pediu para desistir a ${esc(dataLonga(pedidos.at(-1)))}.</strong> Vamos entrar em contacto consigo para combinar a devolução.</p></div>`;
     if (!d.pode) return '';
     const prazo = d.ate ? `Pode desistir até ${esc(dataLonga(d.ate))}.` : 'Pode desistir até 14 dias depois de receber a encomenda.';
     return `<div class="conta__desistir" data-conta-desistir>
@@ -443,7 +451,7 @@
   async function pedirDesistencia(enc) {
     const r = await abrirJanela({
       titulo: 'Desistir da compra?',
-      texto: `<p>Encomenda ${esc(enc.encomenda)}. Vamos contactá-lo para combinar a devolução; o reembolso é feito até 14 dias depois do pedido.</p>
+      texto: `<p>Encomenda ${esc(enc.encomenda)}. Vamos entrar em contacto consigo para combinar a devolução.</p>
         <div class="campo"><label for="desistir-nota">Quer dizer porquê? <span class="campo__opcional">(opcional)</span></label><textarea id="desistir-nota" rows="3" maxlength="500"></textarea></div>`,
       botoes: [{ t: 'Cancelar', valor: 'nao', foco: true }, { t: 'Confirmar a desistência', valor: 'sim', classe: 'botao--cheio' }],
     });

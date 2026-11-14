@@ -420,6 +420,10 @@ test('as garantias: da entrega, 3 anos nos novos e a da loja nos recondicionados
   assert.equal(garantiasDasLinhas({ ...enc, estado: 'anulada' }, cat), null);
   assert.deepEqual(garantiasDasLinhas(enc, { ...cat, garantias: { recondicionados: null } })[1], { meses: 18, ate: '2028-05-15' }, 'sem o valor da loja, 18 meses');
   assert.equal(somarMeses('2026-01-31T12:00:00.000Z', 1), '2026-02-28', 'o fim do mês não passa para o seguinte');
+  // uma linha depois da entrega com o mesmo estado (o pedido para desistir, uma da Stripe) não muda o dia da entrega
+  const depois = { ...enc, historico: [...enc.historico, { em: '2026-11-20T10:00:00.000Z', estado: 'levantada', por: 'cliente', nota: 'Pediu para desistir da compra, na conta do site.' }] };
+  assert.deepEqual(garantiasDasLinhas(depois, cat)[0], { meses: 36, ate: '2029-11-15' }, 'conta da levantada, não da linha do pedido');
+  assert.equal(prazoDeDesistir(depois, Date.parse('2026-11-20T11:00:00.000Z')).ate, '2026-11-29T10:00:00.000Z', 'o prazo para desistir também');
 });
 
 test('a ficha diz a garantia de cada artigo entregue, e a conta lista as que correm', async () => {

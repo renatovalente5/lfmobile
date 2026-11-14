@@ -683,7 +683,10 @@ export function somarMeses(iso, meses) {
   alvo.setUTCDate(Math.min(d, ultimo));
   return alvo.toISOString().slice(0, 10);
 }
-const entregaDe = (enc) => [...(Array.isArray(enc.historico) ? enc.historico : [])].reverse().find((h) => h && (h.estado === 'levantada' || h.estado === 'enviada')) || null;
+/* A entrega: a PRIMEIRA linha do histórico em que a encomenda ficou levantada ou enviada. As linhas seguintes com o mesmo
+   estado (o pedido para desistir, uma linha da Stripe) não mudam o dia em que o cliente recebeu: a 14 nov 2026 a
+   garantia de uma levantada a 13 passava a contar do dia do pedido para desistir. */
+const entregaDe = (enc) => (Array.isArray(enc.historico) ? enc.historico : []).find((h) => h && (h.estado === 'levantada' || h.estado === 'enviada')) || null;
 export function garantiasDasLinhas(enc, cat) {
   const entrega = entregaDe(enc);
   if (!entrega || !['levantada', 'enviada'].includes(enc.estado)) return null;

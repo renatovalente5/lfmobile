@@ -408,12 +408,13 @@ Sem sessão, as rotas da conta respondem 401 `{ erro, sessao: false, google }` (
 - **Desistir da compra** (a «função de retratação» da Directiva (UE) 2023/2673, desde 19 jun 2026; o prazo do DL
   24/2014, art. 10.º): antes de receber, sempre; depois, 14 dias do levantamento, ou 21 do envio (não se sabe o dia da
   entrega; um pedido tardio decide-o a loja). Fica em `desistencias: [{ em, por, nota? }]` e numa linha do histórico; o
-  estado NÃO muda (a devolução e o reembolso tratam-se no painel, como até aqui). Vai um email ao cliente (a
+  estado NÃO muda (a devolução e o reembolso tratam-se no painel, como até aqui; a ficha da encomenda no painel mostra-o numa
+  faixa). Vai um email ao cliente (a
   confirmação, em suporte duradouro) e outro à loja (`AVISOS.desistencia`). Dois toques em 10 minutos são um pedido só.
 - **O código QR** leva o endereço do cartão no painel: `PAINEL_URL/#/cartoes?conta=<id da conta>`
   (`enderecoDoCartao`; o id é o resumo do email, não o diz). O Leandro lê-o com a câmara do telemóvel (abre o painel) ou
   no próprio painel («Ler o código do cliente», ecrã Cartões). `GET /painel/cartoes?conta=<id>` → o cartão, com o email
-  que o cliente escreveu; 404 «Este cartão já não existe.» se a conta não existir.
+  do cliente (em minúsculas); 404 se a conta não existir (o painel diz «…ou a conta foi apagada»).
 - **Entrar com o Google:** sem o script do Google na página — só um redireccionamento OpenID (`response_type=id_token`,
   `scope=openid email`, `prompt=select_account`). A página guarda o `state` e o `nonce` no sessionStorage
   (`lfmobile:conta-google`), confere o `state` à volta e manda o `id_token` e o `nonce`; o Worker confere a assinatura

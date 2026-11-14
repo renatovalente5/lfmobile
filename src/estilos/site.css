@@ -1177,7 +1177,8 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .conta__desistir { display: grid; gap: 10px; justify-items: start; padding-top: 14px; border-top: 1px solid var(--linha); }
 .conta__desistir--pedido p { color: var(--tinta-2); }
 /* a janela (perguntar antes de sair de todo o lado, apagar, desistir; e o código QR do cartão) */
-.conta-janela { width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 0; border-radius: var(--raio-g); background: var(--papel); color: var(--tinta); box-shadow: var(--sombra); }
+/* (o dialog de cima tira a margem a todos, para os de ecrã inteiro: esta janela centra-se com a margem automática) */
+.conta-janela { width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; overflow: auto; padding: 0; border: 0; border-radius: var(--raio-g); background: var(--papel); color: var(--tinta); box-shadow: var(--sombra); }
 .conta-janela::backdrop { background: rgba(17, 17, 19, .45); }
 .conta-janela__corpo { display: grid; gap: 14px; padding: 24px; }
 .conta-janela__titulo { font-size: 1.25rem; font-weight: 800; }
