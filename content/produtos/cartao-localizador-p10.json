@@ -1,0 +1,21 @@
+{
+  "nome": "Cartão Localizador 1.7mm P10",
+  "nomeCurto": "Cartão Localizador p10",
+  "fotos": [
+    "cartao-localizador-p10-42c4cff5",
+    "cartao-localizador-p10-05bffe82",
+    "cartao-localizador-p10-a6d71f49",
+    "cartao-localizador-p10-31a0518b"
+  ],
+  "resumo": "Nunca mais percas a tua carteira",
+  "descricao": "O cartão localizador p10 é a solução ideal para manter os teus objetos essenciais sempre localizados. Com um design ultrafino e elegante, cabe facilmente na carteira.",
+  "preco": 38.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "pedeModelo": false,
+  "categoria": "localizadores",
+  "destaque": false,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}
