@@ -11,16 +11,8 @@
     "alt": "Auscultadores P9, fotografia 1",
     "foco": "50% 50%"
   },
-  "fones-p9-2": {
-    "alt": "Auscultadores P9, fotografia 2",
-    "foco": "50% 50%"
-  },
   "fones-p9-3": {
     "alt": "Auscultadores P9, fotografia 3",
-    "foco": "50% 50%"
-  },
-  "fones-p9-4": {
-    "alt": "Auscultadores P9, fotografia 4",
     "foco": "50% 50%"
   },
   "guess-wireless-earbuds-1": {
@@ -197,6 +189,10 @@
   },
   "banner-inicio": {
     "alt": "Um Samsung Galaxy, um iPhone, auriculares e um relógio inteligente, em frente à caixa da LF Mobile",
+    "foco": "50% 50%"
+  },
+  "fones-p9-2abe383f": {
+    "alt": "Fones P9 preto",
     "foco": "50% 50%"
   }
 }
