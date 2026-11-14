@@ -1,8 +1,4 @@
 {
-  "capas-1": {
-    "alt": "Capas para telemóvel",
-    "foco": "50% 50%"
-  },
   "cartao-peliculas": {
     "alt": "O cartão de fidelidade das películas de hidrogel da LF Mobile, com seis casas para carimbar",
     "foco": "50% 55%"
@@ -261,6 +257,10 @@
   },
   "huawei-watch-d2-053f9e38": {
     "alt": "Huawei Watch D2",
+    "foco": "50% 50%"
+  },
+  "capas-77d92b0a": {
+    "alt": "Capas para telemóvel",
     "foco": "50% 50%"
   }
 }
