@@ -464,6 +464,10 @@ test('desistir da compra: antes de receber pode sempre; depois, 14 dias (no envi
     const novos = enviados.slice(antes);
     assert.deepEqual(novos.map((m) => m.to).sort(), ['dono@exemplo.pt', 'ines@exemplo.pt']);
     assert.ok(novos.some((m) => /^Recebemos o seu pedido para desistir/.test(m.subject) && /14 dias/.test(m.text)));
+    // o recibo (função de retratação): a data E a hora do pedido, e o que o cliente escreveu
+    assert.ok(novos.some((m) => /^Recebemos o seu pedido para desistir/.test(m.subject) && /a \d{1,2} de [a-zç]+ de \d{4}, às \d{2}:\d{2}\./.test(m.text)
+      && /Escreveu: «Encomendei a cor errada\.»/.test(m.text) && /Escreveu: «Encomendei a cor errada\.»/.test(m.html)), 'o recibo diz a data, a hora e o que o cliente escreveu');
+    assert.ok(novos.some((m) => /^Pedido para desistir: /.test(m.subject) && /na conta do site, a \d{1,2} de [a-zç]+ de \d{4}, às \d{2}:\d{2}\)/.test(m.text)), 'o da loja também diz a hora');
     assert.ok(novos.some((m) => /^Pedido para desistir: /.test(m.subject) && /Encomendei a cor errada/.test(m.text)));
     assert.equal((await desistir(enc.encomenda)).json.desistir.pedidos.length, 1, 'um duplo toque não repete o pedido nem os emails');
     assert.equal(enviados.length, antes + 2);

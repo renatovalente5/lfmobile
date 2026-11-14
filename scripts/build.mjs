@@ -377,7 +377,8 @@ function identificacao() {
 
 function botoesDesistencia() {
   const texto = `Olá! Quero desistir da compra (direito de livre resolução).\n\nArtigo: \nEncomenda n.º: \nRecebido em: \nNome: \nMorada: `;
-  const b = [];
+  // a conta do cliente (14 nov 2026): a ficha da encomenda tem «Desistir da compra», e o recibo vai logo por email
+  const b = [`<a class="botao botao--cheio" href="${ctx.url('/conta/')}">Desistir na minha conta</a>`];
   if (numero) b.push(`<a class="botao botao--whatsapp" href="${ctx.whatsapp(texto)}">Desistir pelo WhatsApp</a>`);
   if (site.contactos.email) b.push(`<a class="botao botao--contorno" href="mailto:${esc(site.contactos.email)}?subject=${encodeURIComponent('Desistência da compra (livre resolução)')}&amp;body=${encodeURIComponent(texto)}">Desistir por email</a>`);
   return `<div class="botoes">${b.join('')}</div><p class="nota">Respondemos a confirmar que recebemos a sua desistência.</p>`;

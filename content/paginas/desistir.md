@@ -1,6 +1,6 @@
 titulo: Desistir de uma compra
-descricao: Tem 14 dias depois de receber o artigo para desistir da compra. Envie-nos a desistência pelo WhatsApp ou por email.
-atualizado: 2026-11-08
+descricao: Tem 14 dias depois de receber o artigo para desistir da compra. Peça-a na sua conta, pelo WhatsApp ou por email.
+atualizado: 2026-11-14
 ---
 Tem 14 dias a contar do dia em que recebe o artigo para desistir da compra, sem dar justificação. Devolvemos tudo o que pagou, incluindo os portes de envio de valor mais baixo, no prazo de 14 dias; os custos de devolver o artigo ficam a seu cargo. As condições estão nos [termos e condições](/termos-e-condicoes/).
 

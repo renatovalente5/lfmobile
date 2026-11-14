@@ -29,6 +29,10 @@ export const eur = (c) => `${(c / 100).toFixed(2).replace('.', ',')} €`;
 const dataPT = (iso) => {
   try { return new Date(iso).toLocaleDateString('pt-PT', { timeZone: 'Europe/Lisbon', day: 'numeric', month: 'long', year: 'numeric' }); } catch { return ''; }
 };
+/* A data e a hora (o recibo da desistência tem de as dizer: Directiva 2011/83/UE, art. 11.º-A, n.º 4). */
+const dataHoraPT = (iso) => {
+  try { return `${dataPT(iso)}, às ${new Date(iso).toLocaleTimeString('pt-PT', { timeZone: 'Europe/Lisbon', hour: '2-digit', minute: '2-digit' })}`; } catch { return ''; }
+};
 
 /* A nota do custo da chamada junto do número (DL 59/2021, art. 3.º, n.º 3), como no site. */
 const telefoneComNota = (n) => (n ? `${n} (chamada para a rede móvel nacional)` : '');
@@ -218,12 +222,12 @@ const AVISOS = {
     cliente: emailCliente(env, enc, {
       assunto: `Recebemos o seu pedido para desistir — encomenda ${enc.encomenda}`,
       titulo: 'Pedido para desistir recebido',
-      frase: `Recebemos o seu pedido para desistir da compra, a ${dataPT(em)}. Vamos entrar em contacto consigo para combinar a devolução. O reembolso é feito até 14 dias depois deste pedido; podemos esperar até recebermos o artigo de volta.`,
+      frase: `Recebemos o seu pedido para desistir da compra, a ${dataHoraPT(em)}.${nota ? ` Escreveu: «${nota}».` : ''} Vamos entrar em contacto consigo para combinar a devolução. O reembolso é feito até 14 dias depois deste pedido; podemos esperar até recebermos o artigo de volta.`,
       semDesistencia: true,
     }),
     dono: emailDono(env, enc, {
       assunto: `Pedido para desistir: ${enc.encomenda} — ${eur(enc.total_cents)}`,
-      cabecalho: `O CLIENTE PEDIU PARA DESISTIR DA ENCOMENDA ${enc.encomenda} (na conta do site, a ${dataPT(em)})`,
+      cabecalho: `O CLIENTE PEDIU PARA DESISTIR DA ENCOMENDA ${enc.encomenda} (na conta do site, a ${dataHoraPT(em)})`,
       rodape: [nota ? `O cliente escreveu: ${nota}` : 'O cliente não escreveu nada.', `Combine a devolução com o cliente. O reembolso faz-se até 14 dias depois do pedido (pode esperar até receber o artigo).${['levantada', 'reembolsada', 'anulada'].includes(enc.estado) ? '' : ' Depois, anule a encomenda no painel.'}`],
     }),
   }),
