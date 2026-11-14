@@ -1,6 +1,6 @@
 titulo: Política de privacidade
 descricao: Que dados pessoais tratamos, para quê e por quanto tempo: as encomendas, os pedidos de orçamento e de retoma, e o que este site guarda no seu browser.
-atualizado: 2026-11-13
+atualizado: 2026-11-14
 ---
 ## Responsável pelo tratamento dos dados
 
@@ -10,7 +10,7 @@ O responsável pelo tratamento dos dados pessoais recolhidos e tratados através
 
 **O carrinho** (os artigos, as escolhas, o modelo do telemóvel nas películas, a entrega e o código do cupão) fica guardado no armazenamento local do seu browser, para não se perder se fechar a página. Não sai do seu aparelho e apaga-se ao esvaziar o carrinho ou ao limpar os dados do site no browser.
 
-Se entrar na sua conta, o site guarda também um cookie de sessão, para saber que já entrou (veja a [política de cookies](/politica-de-cookies/)).
+Se entrar na sua conta, o site guarda também um cookie de sessão, para saber que já entrou, e uma marca no armazenamento local a dizer que entrou (veja a [política de cookies](/politica-de-cookies/)).
 
 Os pedidos de reparação e a simulação da retoma não ficam guardados neste site: o que escolhe e escreve serve apenas para compor a mensagem, no seu próprio aparelho, e passa para o WhatsApp quando carrega no botão. É você que a envia.
 
@@ -25,9 +25,14 @@ Esses dados ficam no servidor das encomendas, na Cloudflare (nos EUA, com as gar
 
 ## A sua conta
 
-Para ver as suas encomendas no site, entra com o email e um código de 6 algarismos que lhe enviamos por email. Tratamos o email que escreve, para lhe enviar o código e lhe mostrar as encomendas feitas com ele (fundamento: execução do contrato). Do código e da sessão guardamos só um resumo, que não se pode ler: o código vale 10 minutos e a sessão 30 dias depois da última utilização, ou até sair. Ficam no servidor das encomendas, na Cloudflare, na União Europeia. A conta não junta dados novos sobre si: mostra as encomendas que já fez.
+Para ver as suas encomendas no site, entra com o email e um código de 6 algarismos que lhe enviamos por email, ou com a sua conta Google. Tratamos o email, para lhe mostrar as encomendas feitas com ele (fundamento: execução do contrato). Do código e da sessão guardamos só um resumo, que não se pode ler: o código vale 10 minutos e a sessão 30 dias depois da última utilização, ou até sair. Ficam no servidor das encomendas, na Cloudflare, na União Europeia.
 
-No **cartão das películas**, as películas de hidrogel compradas no site contam a partir das encomendas. As compradas na loja e as ofertas entregues guardamo-las ligadas ao seu email, com a data, durante 3 anos depois da última (fundamento: execução do contrato, a oferta).
+- **Entrar com o Google:** só se escolher. Vai à página do Google, que nos diz o seu email (já confirmado por ele); não recebemos a sua palavra-passe nem mais nada da sua conta Google. Este site não carrega nada do Google.
+- **Os seus dados** (nome, telemóvel, NIF e morada), se os gravar: servem para preencher as suas encomendas. Apagam-se dois anos depois da última vez que entrou, ou quando apagar a conta.
+- **O cartão das películas:** as películas de hidrogel compradas no site contam a partir das encomendas. As compradas na loja e as ofertas entregues guardamo-las ligadas ao seu email, com a data, durante 3 anos depois da última (fundamento: execução do contrato, a oferta).
+- **Desistir da compra na conta:** o pedido fica registado na encomenda, com a data e o que escrever, e enviamos-lhe a confirmação por email (fundamento: obrigação legal).
+
+Pode **apagar a conta** em «A minha conta»: saem os dados, as sessões e o cartão. As encomendas ficam, porque a lei nos obriga a guardá-las.
 
 ## O que tratamos quando nos contacta
 

@@ -635,6 +635,7 @@ export function checkout(ctx) {
     <form class="formulario checkout__form" data-checkout novalidate>
       <fieldset class="checkout__bloco">
         <legend>Os seus dados</legend>
+        <p class="formulario__nota" data-checkout-conta hidden>Preenchido com os dados da sua conta.</p>
         <div class="campo"><label for="c-nome">Nome</label><input id="c-nome" name="nome" type="text" autocomplete="name" required maxlength="80"></div>
         <div class="campos-lado">
           <div class="campo"><label for="c-email">Email</label><input id="c-email" name="email" type="email" autocomplete="email" required maxlength="120" inputmode="email"></div>
@@ -689,6 +690,9 @@ export function obrigado(ctx) {
   return { caminho: '/obrigado/', titulo: 'Encomenda registada', descricao: 'A sua encomenda ficou registada.', conteudo, classe: 'pagina-obrigado', indexar: false };
 }
 
+/* O «G» do Google, de quatro cores, como as regras de marca do Google pedem nos botões de entrar. */
+const LOGO_GOOGLE = '<svg class="logo-google" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" focusable="false"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+
 /* A CONTA DO CLIENTE (13 nov 2026; o Leandro: «a conta cliente para o cliente ver as encomendas»).
    Entrar com o email e um código que vai por email; lá dentro, as encomendas desse email e, na ficha de
    cada uma (?e=<número>), em que ponto está e o caminho que fez. O src/scripts/conta.js desenha tudo
@@ -696,11 +700,18 @@ export function obrigado(ctx) {
    e fora do mapa (não vai ao robots.txt, para o Google ver o noindex). */
 export function conta(ctx) {
   const zap = ctx.site.contactos.whatsapp ? ctx.whatsapp('Olá! Tenho uma dúvida sobre a encomenda ') : '';
-  const conteudo = `<div class="contentor conta" data-area-cliente data-contactos-url="${ctx.url('/contactos/')}" data-localidade="${esc(ctx.site.local?.localidade || '')}"${zap ? ` data-whatsapp="${esc(zap)}"` : ''}>
+  const recond = Number.isInteger(ctx.site.garantias?.recondicionados) ? ctx.site.garantias.recondicionados : 18;
+  const campo = (id, nome, rotulo, extra = '') => `<div class="campo"><label for="${id}">${rotulo}</label><input id="${id}" name="${nome}" ${extra}></div>`;
+  const conteudo = `<div class="contentor conta" data-area-cliente data-contactos-url="${ctx.url('/contactos/')}" data-desistir-url="${ctx.url('/desistir/')}" data-localidade="${esc(ctx.site.local?.localidade || '')}"${zap ? ` data-whatsapp="${esc(zap)}"` : ''}>
   <p class="conta__carregar" data-conta-carregar role="status">A abrir a sua conta…</p>
   <section class="conta__entrar" data-conta-entrar hidden aria-labelledby="conta-titulo-entrar">
     <h1 class="titulo-pagina" id="conta-titulo-entrar">A minha conta</h1>
-    <p class="conta__intro">Veja as suas encomendas e em que ponto estão.</p>
+    <p class="conta__intro">As suas encomendas, o cartão das películas e as garantias.</p>
+    <div class="conta__google" data-conta-google hidden>
+      <button class="botao botao--google botao--largo" type="button" data-conta-google-botao>${LOGO_GOOGLE}<span>Continuar com o Google</span></button>
+      <p class="conta__ou"><span>ou com o email</span></p>
+    </div>
+    <p class="comprar__erro" data-conta-google-erro role="alert" hidden></p>
     <form class="formulario conta__form" data-conta-form-email novalidate>
       <div class="campo"><label for="conta-email">Email</label><input id="conta-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" required maxlength="160"></div>
       <p class="comprar__erro" data-conta-erro role="alert" hidden></p>
@@ -715,26 +726,64 @@ export function conta(ctx) {
       <p class="conta__outras"><button class="conta__ligacao" type="button" data-conta-reenviar>Enviar outro código</button><button class="conta__ligacao" type="button" data-conta-mudar>Usar outro email</button></p>
     </form>
   </section>
-  <section class="conta__lista" data-conta-lista hidden aria-labelledby="conta-titulo-lista">
+  <section class="conta__painel" data-conta-lista hidden aria-labelledby="conta-titulo-lista">
     <div class="conta__cabeca">
-      <h1 class="titulo-pagina" id="conta-titulo-lista">As minhas encomendas</h1>
+      <h1 class="titulo-pagina" id="conta-titulo-lista" data-conta-ola>A minha conta</h1>
       <p class="conta__quem"><span data-conta-quem></span><button class="conta__ligacao" type="button" data-conta-sair>Sair</button></p>
     </div>
     <section class="cartao-peliculas" data-conta-cartao hidden aria-labelledby="cartao-peliculas-titulo"></section>
-    <ul class="conta__encomendas" data-conta-encomendas></ul>
-    <div class="conta__vazia" data-conta-vazia hidden>
-      <p>Ainda não há encomendas com este email.</p>
-      <a class="botao botao--contorno" href="${ctx.url('/loja/')}">Ver a loja</a>
-    </div>
+    <section class="conta__seccao" aria-labelledby="conta-titulo-encomendas">
+      <h2 class="conta__h2" id="conta-titulo-encomendas">As minhas encomendas</h2>
+      <ul class="conta__encomendas" data-conta-encomendas></ul>
+      <div class="conta__vazia" data-conta-vazia hidden>
+        <p>Ainda não há encomendas com este email.</p>
+        <a class="botao botao--contorno" href="${ctx.url('/loja/')}">Ver a loja</a>
+      </div>
+    </section>
+    <section class="conta__seccao" data-conta-garantias hidden aria-labelledby="conta-titulo-garantias">
+      <h2 class="conta__h2" id="conta-titulo-garantias">Garantias</h2>
+      <ul class="conta__garantias" data-conta-garantias-lista></ul>
+      <p class="conta__nota">Contam do dia da entrega: 3 anos nos artigos novos, ${recond} meses nos recondicionados.</p>
+    </section>
+    <section class="conta__seccao" aria-labelledby="conta-titulo-dados">
+      <div class="conta__seccao-topo"><h2 class="conta__h2" id="conta-titulo-dados">Os meus dados</h2><button class="conta__ligacao" type="button" data-conta-dados-editar>Editar</button></div>
+      <div class="conta__dados-resumo" data-conta-dados-resumo></div>
+      <form class="formulario conta__dados" data-conta-dados-form novalidate hidden>
+        ${campo('dados-nome', 'nome', 'Nome', 'type="text" autocomplete="name" maxlength="120"')}
+        <div class="campos-lado">
+          ${campo('dados-telefone', 'telefone', 'Telemóvel', 'type="tel" autocomplete="tel" inputmode="tel" maxlength="20"')}
+          ${campo('dados-nif', 'nif', 'NIF <span class="campo__opcional">(para a factura)</span>', 'type="text" inputmode="numeric" maxlength="12" autocomplete="off"')}
+        </div>
+        ${campo('dados-morada', 'morada', 'Morada', 'type="text" autocomplete="street-address" maxlength="160"')}
+        <div class="campos-lado">
+          ${campo('dados-cp', 'codigoPostal', 'Código postal', 'type="text" autocomplete="postal-code" inputmode="numeric" maxlength="8" placeholder="0000-000"')}
+          ${campo('dados-localidade', 'localidade', 'Localidade', 'type="text" autocomplete="address-level2" maxlength="60"')}
+        </div>
+        <p class="comprar__erro" data-conta-dados-erro role="alert" hidden></p>
+        <div class="conta__botoes"><button class="botao botao--cheio" type="submit">Gravar</button><button class="botao botao--contorno" type="button" data-conta-dados-cancelar>Cancelar</button></div>
+        <p class="formulario__nota">Ficam na sua conta e preenchem a próxima encomenda.</p>
+      </form>
+    </section>
+    <section class="conta__seccao conta__seccao--fim" aria-labelledby="conta-titulo-conta">
+      <h2 class="conta__h2" id="conta-titulo-conta">A conta</h2>
+      <div class="conta__botoes"><button class="botao botao--contorno" type="button" data-conta-sair-todos>Sair em todos os aparelhos</button><button class="botao botao--perigo" type="button" data-conta-apagar>Apagar a conta</button></div>
+    </section>
   </section>
   <section class="conta__ficha" data-conta-ficha hidden aria-labelledby="conta-titulo-ficha"></section>
   <p class="comprar__erro conta__falha" data-conta-falha role="alert" hidden></p>
+  <dialog class="conta-janela" data-conta-janela aria-labelledby="conta-janela-titulo">
+    <form class="conta-janela__corpo" method="dialog">
+      <h2 class="conta-janela__titulo" id="conta-janela-titulo" data-janela-titulo></h2>
+      <div class="conta-janela__texto" data-janela-texto></div>
+      <div class="conta-janela__botoes" data-janela-botoes></div>
+    </form>
+  </dialog>
   <template data-icone-whatsapp>${icones.whatsapp}</template>
   <template data-icone-certo>${icones.certo}</template>
   <template data-icone-presente>${icones.presente}</template>
   <noscript><p class="nota">A conta precisa de JavaScript. Pode sempre perguntar pela sua encomenda no <a href="${ctx.whatsapp('Olá! Queria saber da minha encomenda.')}">WhatsApp</a>.</p></noscript>
 </div>`;
-  return { caminho: '/conta/', titulo: 'A minha conta', descricao: 'As suas encomendas na LF Mobile e em que ponto estão.', conteudo, classe: 'pagina-conta', indexar: false };
+  return { caminho: '/conta/', titulo: 'A minha conta', descricao: 'As suas encomendas na LF Mobile, o cartão das películas e as garantias.', conteudo, classe: 'pagina-conta', indexar: false };
 }
 
 // ---------------------------------------------------------------- páginas de texto

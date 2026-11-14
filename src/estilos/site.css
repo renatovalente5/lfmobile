@@ -134,6 +134,13 @@ mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; borde
 @media (hover: hover) { .botao--whatsapp:hover { background: var(--verde-escuro); color: var(--branco); } }
 /* o WhatsApp sem gritar (a página «obrigado», a ficha da conta): o verde claro, com o verde escuro (7:1) */
 .botao--whatsapp-suave { background: var(--verde-fundo); color: var(--verde-escuro); }
+/* um acto que não se desfaz (apagar a conta): o vermelho na letra e no contorno, nunca o fundo */
+.botao--perigo { background: var(--papel); color: var(--vermelho); border-color: currentColor; }
+@media (hover: hover) { .botao--perigo:hover { background: #FDECEA; } }
+/* «Continuar com o Google»: o botão claro das regras de marca do Google (o «G» de quatro cores, o contorno cinzento) */
+.botao--google { background: var(--branco); color: #1F1F1F; border-color: #747775; gap: 12px; }
+@media (hover: hover) { .botao--google:hover { background: #F6F8FC; } }
+.botao--google .logo-google { width: 20px; height: 20px; flex: none; }
 @media (hover: hover) { .botao--whatsapp-suave:hover { background: #D5EADD; color: var(--verde-escuro); } }
 .botao--texto { min-height: 0; padding: 4px 0; border-radius: 6px; background: none; color: var(--tinta); gap: 6px; font-weight: 700; }
 @media (hover: hover) { .botao--texto:hover { text-decoration: underline; } }
@@ -1145,6 +1152,40 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .conta__subtitulo:not(:first-child) { margin-top: 6px; }
 .conta__bloco .totais p { padding: 4px 0; }
 .conta__falha { margin: 32px 0; }
+/* a entrada: o Google por cima e, a separar, «ou com o email» */
+.conta__google { display: grid; gap: 14px; margin-top: 6px; }
+.conta__ou { display: flex; align-items: center; gap: 12px; color: var(--tinta-3); font-size: .9rem; }
+.conta__ou::before, .conta__ou::after { content: ''; flex: 1; height: 1px; background: var(--linha); }
+/* o painel da conta: as secções umas por baixo das outras, cada uma com o seu título */
+.conta__seccao { display: grid; gap: 14px; margin-top: 36px; }
+.conta__seccao--fim { padding-top: 28px; border-top: 1px solid var(--linha); }
+.conta__seccao-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.conta__h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: -.01em; }
+.conta__nota { color: var(--tinta-3); font-size: .92rem; }
+.conta__botoes { display: flex; flex-wrap: wrap; gap: 10px; }
+.conta__garantias { display: grid; gap: 8px; max-width: 760px; }
+.conta__garantias a { display: flex; justify-content: space-between; gap: 16px; padding: 14px 18px; border-radius: var(--raio-m); background: var(--cinza); color: var(--tinta); text-decoration: none; }
+@media (hover: hover) { .conta__garantias a:hover { background: var(--cinza-2); } }
+.conta__ate { flex: none; color: var(--tinta-2); font-weight: 700; }
+.conta__dados-lista { display: grid; gap: 2px; max-width: 760px; padding: 6px 18px; border-radius: var(--raio-m); background: var(--cinza); }
+.conta__dados-lista > div { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 12px; padding: 10px 0; }
+.conta__dados-lista > div + div { border-top: 1px solid var(--linha); }
+.conta__dados-lista dt { color: var(--tinta-3); }
+.conta__dados-lista dd { margin: 0; overflow-wrap: anywhere; }
+.conta__dados { max-width: 640px; }
+.conta__garantia { display: block; margin-top: 2px; color: var(--verde-escuro) !important; font-weight: 600 !important; }
+.conta__desistir { display: grid; gap: 10px; justify-items: start; padding-top: 14px; border-top: 1px solid var(--linha); }
+.conta__desistir--pedido p { color: var(--tinta-2); }
+/* a janela (perguntar antes de sair de todo o lado, apagar, desistir; e o código QR do cartão) */
+.conta-janela { width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 0; border-radius: var(--raio-g); background: var(--papel); color: var(--tinta); box-shadow: var(--sombra); }
+.conta-janela::backdrop { background: rgba(17, 17, 19, .45); }
+.conta-janela__corpo { display: grid; gap: 14px; padding: 24px; }
+.conta-janela__titulo { font-size: 1.25rem; font-weight: 800; }
+.conta-janela__texto { display: grid; gap: 12px; color: var(--tinta-2); }
+.conta-janela__texto .campo textarea { min-height: 84px; }
+.conta-janela__qr { display: block; width: min(240px, 100%); height: auto; margin: 4px auto; border-radius: var(--raio-m); border: 1px solid var(--linha); background: #fff; image-rendering: pixelated; }
+.conta-janela__botoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.conta-janela__botoes .botao { flex: 1 1 auto; }
 /* o cartão das películas: escuro como a marca, as casas cheias a branco e a oferta a dourado */
 .cartao-peliculas { display: grid; gap: 14px; max-width: 560px; margin: 0 0 24px; padding: 20px; border-radius: var(--raio); background: var(--escuro); color: var(--branco); }
 .cartao-peliculas__cabeca { display: grid; gap: 2px; }
@@ -1157,6 +1198,8 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .cartao-peliculas__casa--oferta { border-style: dashed; border-color: var(--ouro); color: var(--ouro); }
 .cartao-peliculas__casa--ganha { border-style: solid; background: var(--ouro); color: var(--escuro); }
 .cartao-peliculas__frase { font-weight: 700; }
+.cartao-peliculas__codigo { justify-self: start; min-height: 44px; padding: 8px 18px; background: transparent; color: var(--branco); border-color: rgba(255, 255, 255, .45); }
+@media (hover: hover) { .cartao-peliculas__codigo:hover { background: rgba(255, 255, 255, .1); } }
 .caminho { display: grid; margin-top: 6px; }
 .caminho__passo { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; padding-bottom: 18px; }
 .caminho__passo:last-child { padding-bottom: 0; }

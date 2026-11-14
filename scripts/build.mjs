@@ -278,6 +278,9 @@ const catalogo = {
   transportadora: site.entrega.transportadora || '',
   // as categorias (o Worker diz o nome delas na frase dos cupões e confere as do painel)
   categorias: categorias.map((c) => ({ slug: c.slug, nome: c.nome })),
+  // a garantia dos recondicionados em meses (a dos novos é a da lei, 3 anos): a conta do cliente diz até quando
+  // vale a garantia de cada artigo entregue (worker/encomendas/conta.js, garantiasDasLinhas)
+  garantias: { recondicionados: Number.isInteger(site.garantias?.recondicionados) ? site.garantias.recondicionados : null },
   // os portes de cada zona: os escalões de peso [{ ate: kg, preco: € }] (R.portesDoPeso)
   portes: {
     ...Object.fromEntries(R.ZONAS_ENVIO.map((z) => [z, R.escaloesDe(site.entrega.portes?.[z])])),

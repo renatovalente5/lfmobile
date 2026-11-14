@@ -1,6 +1,6 @@
 titulo: Política de cookies
 descricao: Este site não usa cookies de publicidade nem de estatística. Guarda o carrinho no seu browser e, se entrar na sua conta, um cookie de sessão.
-atualizado: 2026-11-13
+atualizado: 2026-11-14
 ---
 **Este site não usa cookies de publicidade, de estatística nem de redes sociais.** Por isso não lhe pedimos autorização ao entrar. O único cookie é o da sua conta, e só se entrar nela.
 
@@ -9,6 +9,10 @@ atualizado: 2026-11-13
 - **O carrinho** (os artigos, as escolhas, o modelo do telemóvel nas películas, a entrega e o código do cupão), no armazenamento local do browser, com o nome «lfmobile:carrinho». Serve para o carrinho não se perder se fechar a página. É estritamente necessário para o serviço que pediu, não sai do seu aparelho e não nos é enviado. Apaga-se ao esvaziar o carrinho, ou nas definições do browser (limpar os dados deste site).
 - **A sessão da sua conta**, só se entrar em «A minha conta»: um cookie com o nome «__Host-lf-sessao», que diz ao site que já entrou, para lhe mostrar as suas encomendas. É estritamente necessário, não serve para mais nada e nenhum script do site o lê. Dura 30 dias desde a última vez que usou a conta, ou até carregar em «Sair».
 - **O pedido do código para entrar**, enquanto o escreve, no armazenamento do separador do browser («lfmobile:conta-codigo»). Apaga-se ao entrar ou ao fechar o separador.
+- **Que entrou na conta** («lfmobile:conta», no armazenamento local): só um «1», para a página da encomenda saber que pode preencher os seus dados. Apaga-se ao sair.
+- **A ida ao Google**, só se escolher «Continuar com o Google» («lfmobile:conta-google», no armazenamento do separador): dois códigos ao acaso que confirmam, na volta, que foi este browser que pediu. Apaga-se logo que volta.
+
+A página do Google, quando lá vai para entrar, é do Google e tem as regras dele. Este site não carrega nada do Google.
 
 ## Conteúdo de outros sites
 

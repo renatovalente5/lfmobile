@@ -212,6 +212,21 @@ const AVISOS = {
     }),
     dono: null,
   }),
+  /* O cliente pediu para desistir, na conta do site (conta.js, desistir): a confirmação de que recebemos o pedido (em
+     suporte duradouro) e, à loja, o que fazer (combinar a devolução e reembolsar: DL 24/2014, art. 12.º). */
+  desistencia: (env, enc, { nota, em }) => ({
+    cliente: emailCliente(env, enc, {
+      assunto: `Recebemos o seu pedido para desistir — encomenda ${enc.encomenda}`,
+      titulo: 'Pedido para desistir recebido',
+      frase: `Recebemos o seu pedido para desistir da compra, a ${dataPT(em)}. Vamos contactá-lo para combinar a devolução. O reembolso é feito até 14 dias depois deste pedido; podemos esperar até recebermos o artigo de volta.`,
+      semDesistencia: true,
+    }),
+    dono: emailDono(env, enc, {
+      assunto: `Pedido para desistir: ${enc.encomenda} — ${eur(enc.total_cents)}`,
+      cabecalho: `O CLIENTE PEDIU PARA DESISTIR DA ENCOMENDA ${enc.encomenda} (na conta do site, a ${dataPT(em)})`,
+      rodape: [nota ? `O cliente escreveu: ${nota}` : 'O cliente não escreveu nada.', 'Combine a devolução com o cliente. O reembolso faz-se até 14 dias depois do pedido (pode esperar até receber o artigo). Depois, anule a encomenda no painel.'],
+    }),
+  }),
   reembolsada: (env, enc) => ({
     cliente: emailCliente(env, enc, {
       assunto: `Reembolso feito — encomenda ${enc.encomenda}`,

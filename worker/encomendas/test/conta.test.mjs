@@ -370,3 +370,229 @@ test('um cartão feito no painel (de quem nunca entrou no site) aparece quando o
     assert.equal((await cartao(env, 'joanareis@gmail.com')).json.cartao.loja, 0, 'passados 3 anos sem movimentos, sai');
   } finally { repor(); }
 });
+
+/* ---------------------------------------------------------------- a conta, mais (14 nov 2026): os dados, as garantias,
+   desistir, sair em todos os aparelhos, apagar, o QR e o Google */
+import { garantiasDasLinhas, prazoDeDesistir, validarDados, somarMeses, enderecoDoCartao, verificarTokenDoGoogle } from '../conta.js';
+import { renderSVG } from '../vendor/uqr.mjs';
+
+const marcar = (env, id, estado, nota) => pedir(worker, env, 'POST', `/painel/encomendas/${id}/estado`, { corpo: { estado, ...(nota ? { nota } : {}), por: 'dono@exemplo.pt' }, cabecalhos: bearer() });
+
+test('os dados da conta: conferidos como no checkout; sem eles, a sugestão vem da última encomenda', async () => {
+  const rede = redeFalsa({ catalogo: catalogoBase() });
+  try {
+    const { env, enviados } = ambiente();
+    assert.equal((await pedir(worker, env, 'GET', '/conta/api/dados')).status, 401);
+    await registar(worker, env, { cliente: { nome: 'Sara Matos', email: 'sara@exemplo.pt', telefone: '912 345 678', nif: '123456789' } });
+    const cookie = await entrar(env, enviados, 'sara@exemplo.pt');
+    const d0 = await pedir(worker, env, 'GET', '/conta/api/dados', { cabecalhos: { Cookie: cookie } });
+    assert.equal(d0.status, 200, d0.texto);
+    assert.equal(d0.json.dados, null);
+    assert.deepEqual(d0.json.sugestao, { nome: 'Sara Matos', telefone: '912 345 678', nif: '123456789' });
+    const gravar = (corpo) => pedir(worker, env, 'POST', '/conta/api/dados', { corpo, cabecalhos: { ...ORIGEM, Cookie: cookie } });
+    assert.equal((await gravar({ nif: '123456780' })).json.campo, 'nif');
+    assert.equal((await gravar({ telefone: '12' })).json.campo, 'telefone');
+    assert.equal((await gravar({ codigoPostal: '3720' })).json.campo, 'codigoPostal');
+    assert.equal((await pedir(worker, env, 'POST', '/conta/api/dados', { corpo: { nome: 'X' }, cabecalhos: { Cookie: cookie } })).status, 403, 'só vindo do site');
+    const ok = await gravar({ nome: ' Sara  Matos ', telefone: '912 345 678', morada: 'Rua A, 1', codigoPostal: '3720-100', localidade: 'São Roque', inventado: 'x' });
+    assert.equal(ok.status, 200, ok.texto);
+    assert.deepEqual(Object.keys(ok.json.dados).sort(), ['actualizado_em', 'codigoPostal', 'localidade', 'morada', 'nome', 'telefone']);
+    assert.equal(ok.json.dados.nome, 'Sara Matos');
+    const eu = await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: cookie } });
+    assert.equal(eu.json.nome, 'Sara');
+    assert.equal(eu.json.dados.localidade, 'São Roque');
+    assert.equal(eu.json.sugestao, null, 'com os dados gravados, já não há sugestão');
+  } finally { rede.repor(); }
+});
+
+test('validarDados: tudo opcional; o que vem confere-se; o NIF sem espaços', () => {
+  assert.deepEqual(validarDados({}), { dados: {} });
+  assert.deepEqual(validarDados({ nif: '123 456 789' }), { dados: { nif: '123456789' } });
+  assert.equal(validarDados({ nif: '1' }).campo, 'nif');
+});
+
+test('as garantias: da entrega, 3 anos nos novos e a da loja nos recondicionados; um artigo fora do catálogo não diz', () => {
+  const cat = { produtos: { novo: { estado: 'novo' }, recond: { estado: 'recondicionado' } }, garantias: { recondicionados: 18 } };
+  const enc = { estado: 'levantada', linhas: [{ produto: 'novo', nome: 'A' }, { produto: 'recond', nome: 'B' }, { produto: 'saiu', nome: 'C' }],
+    historico: [{ em: '2026-11-13T10:00:00.000Z', estado: 'registada' }, { em: '2026-11-14T10:00:00.000Z', estado: 'paga' }, { em: '2026-11-15T10:00:00.000Z', estado: 'levantada' }] };
+  assert.deepEqual(garantiasDasLinhas(enc, cat), [{ meses: 36, ate: '2029-11-15' }, { meses: 18, ate: '2028-05-15' }, null]);
+  assert.equal(garantiasDasLinhas({ ...enc, estado: 'paga' }, cat), null, 'antes de entregar não há garantia a contar');
+  assert.equal(garantiasDasLinhas({ ...enc, estado: 'anulada' }, cat), null);
+  assert.deepEqual(garantiasDasLinhas(enc, { ...cat, garantias: { recondicionados: null } })[1], { meses: 18, ate: '2028-05-15' }, 'sem o valor da loja, 18 meses');
+  assert.equal(somarMeses('2026-01-31T12:00:00.000Z', 1), '2026-02-28', 'o fim do mês não passa para o seguinte');
+});
+
+test('a ficha diz a garantia de cada artigo entregue, e a conta lista as que correm', async () => {
+  const rede = redeFalsa({ catalogo: catalogoBase() });
+  try {
+    const { env, enviados } = ambiente();
+    const enc = await registar(worker, env, { cliente: { nome: 'Rui', email: 'rui.g@exemplo.pt', telefone: '912 345 678' } });
+    assert.equal((await marcar(env, enc.encomenda, 'paga')).status, 200);
+    assert.equal((await marcar(env, enc.encomenda, 'pronta')).status, 200);
+    const cookie = await entrar(env, enviados, 'rui.g@exemplo.pt');
+    let f = await pedir(worker, env, 'GET', `/conta/api/encomenda?e=${enc.encomenda}`, { cabecalhos: { Cookie: cookie } });
+    assert.equal(f.json.garantias, null, 'pronta, ainda não foi entregue');
+    assert.equal((await marcar(env, enc.encomenda, 'levantada')).status, 200);
+    f = await pedir(worker, env, 'GET', `/conta/api/encomenda?e=${enc.encomenda}`, { cabecalhos: { Cookie: cookie } });
+    const hoje = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Lisbon', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    const daqui3 = `${Number(hoje.slice(0, 4)) + 3}${hoje.slice(4)}`;
+    assert.deepEqual(f.json.garantias, [{ meses: 36, ate: daqui3 }]);
+    const eu = await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: cookie } });
+    assert.deepEqual(eu.json.garantias, [{ encomenda: enc.encomenda, nome: eu.json.encomendas[0].linhas[0].nome, ate: daqui3 }]);
+  } finally { rede.repor(); }
+});
+
+test('desistir da compra: antes de receber pode sempre; depois, 14 dias (no envio, mais uma semana); fica registado e os emails saem', async () => {
+  const rede = redeFalsa({ catalogo: catalogoBase() });
+  try {
+    const { env, enviados } = ambiente({ STORE_EMAIL: 'dono@exemplo.pt' });
+    const enc = await registar(worker, env, { cliente: { nome: 'Inês Cruz', email: 'ines@exemplo.pt', telefone: '912 345 678' } });
+    const outra = await registar(worker, env, { cliente: { nome: 'Outro', email: 'outro@exemplo.pt', telefone: '913 333 333' } });
+    const cookie = await entrar(env, enviados, 'ines@exemplo.pt');
+    const desistir = (e, nota) => pedir(worker, env, 'POST', '/conta/api/desistir', { corpo: { e, ...(nota ? { nota } : {}) }, cabecalhos: { ...ORIGEM, Cookie: cookie } });
+    let f = await pedir(worker, env, 'GET', `/conta/api/encomenda?e=${enc.encomenda}`, { cabecalhos: { Cookie: cookie } });
+    assert.deepEqual(f.json.desistir, { pode: true, ate: null, pedidos: [] }, 'registada: ainda não recebeu, pode');
+    assert.equal((await desistir(outra.encomenda)).status, 404, 'a de outra pessoa não existe para ela');
+    const antes = enviados.length;
+    const r = await desistir(enc.encomenda, 'Encomendei a cor errada.');
+    assert.equal(r.status, 200, r.texto);
+    assert.equal(r.json.desistir.pedidos.length, 1);
+    const novos = enviados.slice(antes);
+    assert.deepEqual(novos.map((m) => m.to).sort(), ['dono@exemplo.pt', 'ines@exemplo.pt']);
+    assert.ok(novos.some((m) => /^Recebemos o seu pedido para desistir/.test(m.subject) && /14 dias/.test(m.text)));
+    assert.ok(novos.some((m) => /^Pedido para desistir: /.test(m.subject) && /Encomendei a cor errada/.test(m.text)));
+    assert.equal((await desistir(enc.encomenda)).json.desistir.pedidos.length, 1, 'um duplo toque não repete o pedido nem os emails');
+    assert.equal(enviados.length, antes + 2);
+    // no painel: a linha do cliente no histórico, sem mudar o estado
+    const noPainel = (await pedir(worker, env, 'GET', `/painel/encomendas/${enc.encomenda}`, { cabecalhos: bearer() })).json;
+    assert.equal(noPainel.estado, 'registada');
+    assert.match(noPainel.historico.at(-1).nota, /Pediu para desistir da compra, na conta do site\. «Encomendei a cor errada\.»/);
+    // levantada: 14 dias
+    await marcar(env, enc.encomenda, 'paga'); await marcar(env, enc.encomenda, 'pronta'); await marcar(env, enc.encomenda, 'levantada');
+    f = await pedir(worker, env, 'GET', `/conta/api/encomenda?e=${enc.encomenda}`, { cabecalhos: { Cookie: cookie } });
+    assert.equal(f.json.desistir.pode, true);
+    const repor = comRelogio(15 * 86400_000);
+    try {
+      assert.equal(prazoDeDesistir(noPainel, Date.now()).pode, true, 'a registada (sem entrega) pode sempre');
+      const tarde = await desistir(enc.encomenda);
+      assert.equal(tarde.status, 409);
+      assert.match(tarde.json.erro, /já passou/);
+    } finally { repor(); }
+  } finally { rede.repor(); }
+});
+
+test('prazoDeDesistir: no envio conta mais uma semana; anulada não pode', () => {
+  const base = { historico: [{ em: '2026-11-01T10:00:00.000Z', estado: 'enviada' }], estado: 'enviada' };
+  assert.equal(prazoDeDesistir(base, Date.parse('2026-11-21T09:00:00.000Z')).pode, true);
+  assert.equal(prazoDeDesistir(base, Date.parse('2026-11-23T10:00:00.000Z')).pode, false);
+  assert.equal(prazoDeDesistir({ ...base, estado: 'anulada' }).pode, false);
+});
+
+test('sair em todos os aparelhos fecha as sessões todas (os dados ficam); apagar a conta tira tudo menos as encomendas', async () => {
+  const rede = redeFalsa({ catalogo: catalogoBase() });
+  try {
+    const { env, enviados } = ambiente();
+    const enc = await registar(worker, env, { cliente: { nome: 'Vera', email: 'vera@exemplo.pt', telefone: '912 345 678' } });
+    const a = await entrar(env, enviados, 'vera@exemplo.pt');
+    let b;
+    const repor = comRelogio(60_000);
+    try { b = await entrar(env, enviados, 'vera@exemplo.pt'); } finally { repor(); }
+    await pedir(worker, env, 'POST', '/conta/api/dados', { corpo: { nome: 'Vera Lima' }, cabecalhos: { ...ORIGEM, Cookie: a } });
+    const todos = await pedir(worker, env, 'POST', '/conta/api/sair-todos', { cabecalhos: { ...ORIGEM, Cookie: a } });
+    assert.equal(todos.status, 200);
+    assert.match(todos.headers.get('set-cookie'), /Max-Age=0/);
+    for (const c of [a, b]) assert.equal((await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: c } })).status, 401);
+    const c = await entrar(env, enviados, 'vera@exemplo.pt');
+    assert.equal((await pedir(worker, env, 'GET', '/conta/api/dados', { cabecalhos: { Cookie: c } })).json.dados.nome, 'Vera Lima', 'os dados ficaram');
+    await carimbar(env, 'vera@exemplo.pt', 2);
+    const ap = await pedir(worker, env, 'POST', '/conta/api/apagar', { cabecalhos: { ...ORIGEM, Cookie: c } });
+    assert.equal(ap.status, 200);
+    assert.equal((await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: c } })).status, 401);
+    assert.equal((await cartao(env, 'vera@exemplo.pt')).json.cartao.loja, 0, 'o cartão saiu com a conta');
+    assert.ok(await env.ORDERS.get(`order:${enc.encomenda}`), 'a encomenda fica (a lei manda guardá-la)');
+    const d = await entrar(env, enviados, 'vera@exemplo.pt');
+    assert.equal((await pedir(worker, env, 'GET', '/conta/api/dados', { cabecalhos: { Cookie: d } })).json.dados, null, 'entrar de novo começa sem dados');
+  } finally { rede.repor(); }
+});
+
+test('o código QR do cartão: só com sessão; leva o endereço do cartão no painel; o painel abre o cartão pelo id da conta', async () => {
+  const { env, enviados } = ambiente({ PAINEL_URL: 'https://painel.exemplo.pt/' });
+  assert.equal((await pedir(worker, env, 'GET', '/conta/api/cartao.svg')).status, 401);
+  const cookie = await entrar(env, enviados, 'Lara@exemplo.pt');
+  const id = cookie.split('=')[1].split('.')[0];
+  const qr = await pedir(worker, env, 'GET', '/conta/api/cartao.svg', { cabecalhos: { Cookie: cookie } });
+  assert.equal(qr.status, 200);
+  assert.match(qr.headers.get('content-type'), /^image\/svg\+xml/);
+  assert.match(qr.headers.get('cache-control'), /no-store/);
+  assert.equal(enderecoDoCartao(env, id), `https://painel.exemplo.pt/#/cartoes?conta=${id}`);
+  assert.equal(qr.texto, renderSVG(enderecoDoCartao(env, id), { ecc: 'M', border: 3, pixelSize: 8 }), 'o QR é o deste endereço');
+  await carimbar(env, 'lara@exemplo.pt', 2);
+  const peloQr = await pedir(worker, env, 'GET', `/painel/cartoes?conta=${id}`, { cabecalhos: bearer() });
+  assert.equal(peloQr.status, 200, peloQr.texto);
+  assert.equal(peloQr.json.email, 'lara@exemplo.pt', 'o email com que entrou');
+  assert.equal(peloQr.json.conta, id);
+  assert.equal(peloQr.json.cartao.loja, 2);
+  assert.equal((await pedir(worker, env, 'GET', '/painel/cartoes?conta=xyz', { cabecalhos: bearer() })).status, 404);
+  assert.equal((await pedir(worker, env, 'GET', `/painel/cartoes?conta=${'0'.repeat(64)}`, { cabecalhos: bearer() })).status, 404, 'uma conta que não existe');
+  assert.equal((await pedir(worker, env, 'GET', `/painel/cartoes?conta=${id}`)).status, 401, 'sem o segredo do painel, nada');
+});
+
+/* O Google de faz-de-conta: um par de chaves RSA nosso, as chaves públicas servidas no endereço do Google. */
+const b64u = (u8) => Buffer.from(u8).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const CLIENTE = '123456789-abcdefghij.apps.googleusercontent.com';
+const parGoogle = await crypto.subtle.generateKey({ name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['sign', 'verify']);
+const outroPar = await crypto.subtle.generateKey({ name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' }, true, ['sign', 'verify']);
+const jwkGoogle = { ...(await crypto.subtle.exportKey('jwk', parGoogle.publicKey)), kid: 'chave-1', use: 'sig', alg: 'RS256' };
+async function tokenGoogle(carga, { par = parGoogle, kid = 'chave-1' } = {}) {
+  const agora = Math.floor(Date.now() / 1000);
+  const cab = b64u(new TextEncoder().encode(JSON.stringify({ alg: 'RS256', kid, typ: 'JWT' })));
+  const c = b64u(new TextEncoder().encode(JSON.stringify({ iss: 'https://accounts.google.com', aud: CLIENTE, iat: agora, exp: agora + 3600, email_verified: true, nonce: 'n'.repeat(24), ...carga })));
+  const ass = new Uint8Array(await crypto.subtle.sign('RSASSA-PKCS1-v1_5', par.privateKey, new TextEncoder().encode(`${cab}.${c}`)));
+  return `${cab}.${c}.${b64u(ass)}`;
+}
+function comChavesDoGoogle(rede) {
+  const anterior = globalThis.fetch;
+  globalThis.fetch = (url, init) => (String(url) === 'https://www.googleapis.com/oauth2/v3/certs' ? Promise.resolve(Response.json({ keys: [jwkGoogle] })) : anterior(url, init));
+  return () => { globalThis.fetch = anterior; rede.repor(); };
+}
+
+test('verificarTokenDoGoogle: a assinatura, o emissor, o cliente, o prazo, o nonce e o email verificado', async () => {
+  const opcoes = { cliente: CLIENTE, nonce: 'n'.repeat(24), chaves: [jwkGoogle] };
+  assert.deepEqual(await verificarTokenDoGoogle(await tokenGoogle({ email: 'Ana@Gmail.com' }), opcoes), { email: 'ana@gmail.com' });
+  const casos = [
+    [{ email: 'a@gmail.com', aud: 'outro.apps.googleusercontent.com' }, {}, 'aud'],
+    [{ email: 'a@gmail.com', iss: 'https://evil.example' }, {}, 'iss'],
+    [{ email: 'a@gmail.com', exp: Math.floor(Date.now() / 1000) - 3600 }, {}, 'exp'],
+    [{ email: 'a@gmail.com', nonce: 'outro-nonce-com-24-letras' }, {}, 'nonce'],
+    [{ email: 'a@gmail.com', email_verified: false }, {}, 'email'],
+    [{ email: 'a@gmail.com' }, { par: outroPar }, 'assinatura'],
+    [{ email: 'a@gmail.com' }, { kid: 'outra' }, 'chave'],
+  ];
+  for (const [carga, extra, erro] of casos) assert.equal((await verificarTokenDoGoogle(await tokenGoogle(carga, extra), opcoes)).erro, erro, erro);
+  assert.equal((await verificarTokenDoGoogle('nada', opcoes)).erro, 'forma');
+  assert.equal((await verificarTokenDoGoogle(await tokenGoogle({ email: 'a@gmail.com' }), { ...opcoes, nonce: 'curto' })).erro, 'nonce');
+});
+
+test('entrar com o Google: o email verificado entra na conta dele (as mesmas encomendas); sem o cliente configurado, não há botão', async () => {
+  const semGoogle = ambiente();
+  const sem = await pedir(worker, semGoogle.env, 'GET', '/conta/api/eu');
+  assert.equal(sem.json.google, null, 'sem GOOGLE_CLIENTE a página não mostra o botão');
+  assert.equal((await pedir(worker, semGoogle.env, 'POST', '/conta/api/google', { corpo: { id_token: 'x', nonce: 'n'.repeat(24) }, cabecalhos: ORIGEM })).status, 503);
+  const rede = redeFalsa({ catalogo: catalogoBase() });
+  const repor = comChavesDoGoogle(rede);
+  try {
+    const { env } = ambiente({ GOOGLE_CLIENTE: CLIENTE });
+    assert.equal((await pedir(worker, env, 'GET', '/conta/api/eu')).json.google, CLIENTE);
+    const enc = await registar(worker, env, { cliente: { nome: 'Tiago', email: 'Tiago.Reis@gmail.com', telefone: '912 345 678' } });
+    const ok = await pedir(worker, env, 'POST', '/conta/api/google', { corpo: { id_token: await tokenGoogle({ email: 'tiagoreis@gmail.com' }), nonce: 'n'.repeat(24) }, cabecalhos: ORIGEM });
+    assert.equal(ok.status, 200, ok.texto);
+    const cookie = cookieDe(ok);
+    assert.match(cookie, /^__Host-lf-sessao=[0-9a-f]{64}\./);
+    const eu = await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: cookie } });
+    assert.deepEqual(eu.json.encomendas.map((x) => x.encomenda), [enc.encomenda], 'a mesma conta do email (o Gmail sem os pontos)');
+    const mau = await pedir(worker, env, 'POST', '/conta/api/google', { corpo: { id_token: await tokenGoogle({ email: 'x@gmail.com', aud: 'outro' }), nonce: 'n'.repeat(24) }, cabecalhos: ORIGEM });
+    assert.equal(mau.status, 400);
+    assert.equal(mau.headers.get('set-cookie'), null);
+    assert.equal((await pedir(worker, env, 'POST', '/conta/api/google', { corpo: { id_token: 'x', nonce: 'n'.repeat(24) } })).status, 403, 'só vindo do site');
+  } finally { repor(); }
+});

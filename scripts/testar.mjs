@@ -768,6 +768,23 @@ teste('a conta do cliente: a página /conta/, a ligação no cabeçalho, no menu
   assert.match(conta, /<title>A minha conta \| LF Mobile<\/title>/);
   assert.match(conta, /<div class="contentor conta" data-area-cliente /);
   assert.match(conta, /<section class="cartao-peliculas" data-conta-cartao hidden/, 'o cartão das películas');
+  // a conta inteira (14 nov 2026): o Google escondido até o Worker dizer o cliente, os dados, as garantias, a janela
+  assert.match(conta, /<div class="conta__google" data-conta-google hidden>[\s\S]*?<svg class="logo-google"[\s\S]*?Continuar com o Google/);
+  assert.match(conta, /<form class="formulario conta__dados" data-conta-dados-form novalidate hidden>/);
+  for (const n of ['nome', 'telefone', 'nif', 'morada', 'codigoPostal', 'localidade']) assert.match(conta, new RegExp(`<input id="dados-[a-z]+" name="${n}"`), n);
+  assert.match(conta, /data-conta-garantias hidden/);
+  assert.match(conta, /<dialog class="conta-janela" data-conta-janela/);
+  assert.match(conta, /data-conta-sair-todos>Sair em todos os aparelhos/);
+  assert.match(conta, /data-conta-apagar>Apagar a conta/);
+  assert.match(conta, /data-desistir-url="\/desistir\/"/);
+  // este site não carrega nada do Google: o endereço do Google só existe no script, para o clique
+  assert.doesNotMatch(conta, /<script[^>]+src="[^"]*google/i);
+  assert.doesNotMatch(conta, /<(iframe|img|link)[^>]+(google|gstatic)/i);
+  // o checkout: a nota de que veio preenchido, e o pedido aos dados da conta só com o sinal de que se entrou
+  assert.match(fs.readFileSync(path.join(pasta, '_site/checkout/index.html'), 'utf8'), /data-checkout-conta hidden>Preenchido com os dados da sua conta\./);
+  const carrinhoJs = fs.readFileSync(path.join(RAIZ, 'src/scripts/carrinho.js'), 'utf8');
+  assert.match(carrinhoJs, /localStorage\.getItem\('lfmobile:conta'\) === '1'/);
+  assert.match(carrinhoJs, /fetch\('\/conta\/api\/dados'/);
   assert.match(conta, /<template data-icone-presente><svg/);
   assert.match(conta, /<input id="conta-codigo"[^>]*inputmode="numeric" autocomplete="one-time-code"/);
   assert.match(conta, /<input id="conta-email"[^>]*type="email" autocomplete="email"/);
@@ -786,6 +803,11 @@ teste('a conta do cliente: a página /conta/, a ligação no cabeçalho, no menu
   assert.match(cookies, /«lfmobile:conta-codigo»/);
   assert.match(fs.readFileSync(path.join(RAIZ, 'worker/encomendas/conta.js'), 'utf8'), /export const COOKIE = '__Host-lf-sessao';/);
   assert.match(fs.readFileSync(path.join(RAIZ, 'src/scripts/conta.js'), 'utf8'), /const CHAVE = 'lfmobile:conta-codigo';/);
+  assert.match(cookies, /«lfmobile:conta»/);
+  assert.match(cookies, /«lfmobile:conta-google»/);
+  const contaJs = fs.readFileSync(path.join(RAIZ, 'src/scripts/conta.js'), 'utf8');
+  assert.match(contaJs, /const SINAL = 'lfmobile:conta';/);
+  assert.match(contaJs, /const CHAVE_GOOGLE = 'lfmobile:conta-google';/);
 });
 teste('uma ligação interna partida pára a construção', () => {
   const pasta = copia('ligacao', (p) => fs.appendFileSync(path.join(p, 'content/paginas/garantia.md'), '\n\n[Ligação partida](/nao-existe/)\n'));

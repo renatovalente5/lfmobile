@@ -436,6 +436,32 @@
   // ---------------------------------------------------------------- checkout
   const checkout = $('[data-checkout-pagina]');
   const form = checkout && $('form[data-checkout]', checkout);
+  /* A CONTA (14 nov 2026): quem entrou na conta encontra o checkout preenchido com os dados dela — só os campos vazios.
+     A sessão é um cookie que nenhum script lê; «lfmobile:conta» (conta.js) só diz que se entrou, para quem não tem
+     conta não fazer um pedido que dá 401. */
+  if (form) {
+    let comConta = false;
+    try { comConta = localStorage.getItem('lfmobile:conta') === '1'; } catch (_) { /* sem armazenamento */ }
+    if (comConta) {
+      fetch('/conta/api/dados', { credentials: 'same-origin', cache: 'no-store' })
+        .then((r) => {
+          if (r.status === 401) { try { localStorage.removeItem('lfmobile:conta'); } catch (_) { /* idem */ } }
+          return r.ok ? r.json() : null;
+        })
+        .then((j) => {
+          if (!j) return;
+          const d = { ...(j.sugestao || {}), ...(j.dados || {}), email: j.email };
+          let pus = false;
+          ['nome', 'email', 'telefone', 'nif', 'morada', 'codigoPostal', 'localidade'].forEach((k) => {
+            const i = form.elements[k];
+            if (i && !i.value && d[k]) { i.value = d[k]; pus = true; }
+          });
+          const nota = $('[data-checkout-conta]', form);
+          if (pus && nota) nota.hidden = false;
+        })
+        .catch(() => { /* sem ligação: o formulário fica como está */ });
+    }
+  }
   async function desenharCheckout() {
     if (!checkout) return;
     const resumo = $('[data-checkout-resumo]', checkout);

@@ -238,12 +238,14 @@ o que falta ligar). Os testes: `cd worker/encomendas && npm test`.
 `SITE_URL` (`https://lfmobile.pt`),
 `ALLOWED_ORIGINS`, `MAIL_FROM`, `STORE_EMAIL`, `STORE_NAME = "LF Mobile"`, `STORE_PHONE`,
 `STRIPE_API_VERSION = "2026-07-29.dahlia"`, `CATALOGO_URL` (por omissão `${SITE_URL}/assets/catalogo.json`),
-`LOGO_URL` (o PNG do logótipo para os emails: o Outlook não mostra WebP) e, opcional, `MODO = "encomenda"`
-como travão. Segredos: `STRIPE_SECRET_KEY`,
+`LOGO_URL` (o PNG do logótipo para os emails: o Outlook não mostra WebP), `PAINEL_URL` (o código QR do cartão
+leva o endereço do cartão lá, §10), `GOOGLE_CLIENTE` (o id público do cliente OAuth do Google; vazio, não há «Entrar
+com o Google», §10) e, opcional, `MODO = "encomenda"` como travão. Segredos: `STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET`, `RESEND_API_KEY`, `PAINEL_SEGREDO`. Bindings: KV `ORDERS`, rate limit
 `TRAVAO_CHECKOUT`, `send_email` `EMAIL` (só de `encomendas@lfmobile.pt`), objectos duráveis `CUPOES`
 (classe `Cupoes`, migração `v1`), `ENCOMENDA` (classe `Encomenda`, migração `v2`) e `CONTADOR` (classe
-`Contador`, migração `v3`: o travão dos emails), SQLite, na jurisdição da UE (
+`Contador`, migração `v3`: o travão dos emails) e `CONTA` (classe `Conta`, migração `v4`: a conta do cliente, §10),
+SQLite, na jurisdição da UE (
 num `wrangler dev` local, sem jurisdições, `ENCOMENDAS_LOCAL=1` no `.dev.vars`). `wrangler deploy --config worker/encomendas/wrangler.toml` sempre com
 `--config` (memória: wrangler-autoconfig-pasta-mae).
 
@@ -377,3 +379,45 @@ Hidrogel»: 5 casas e, na 6.ª, uma película de oferta, a contar na loja E no s
   `POST /painel/cartoes/carimbo { email, n, por, nota? }`, `POST /painel/cartoes/oferta { email, por, nota? }` (409 sem
   oferta). Na conta, `GET /conta/api/eu` leva `cartao: { por_cartao, total, atuais, disponiveis }` (sem quem marcou).
 - **Prazo:** o objecto guarda o cartão 3 anos depois do último movimento (`mexido`), mesmo sem sessões; depois apaga-o.
+
+### O resto da conta (14 nov 2026)
+
+O Renato, a 13 nov, depois de a ver no iPhone: um perfil mais completo, entrar com o Google, e o cartão das películas
+marcado na loja por um código QR. As rotas novas (as de cima continuam iguais):
+
+| rota | corpo | resposta |
+|---|---|---|
+| `GET /conta/api/eu` | — | também `nome`, `cartao`, `dados`, `sugestao` (os dados da última encomenda, enquanto a conta não tem os seus) e `garantias: [{ encomenda, nome, ate }]` (as que ainda correm; a que acaba primeiro, primeiro) |
+| `GET /conta/api/encomenda?e=<id>` | — | também `garantias` (por linha: `{ meses, ate }`, ou `null`) e `desistir: { pode, ate, pedidos }` |
+| `GET /conta/api/dados` | — | `{ email, dados, sugestao }` (o checkout lê-o) |
+| `POST /conta/api/dados` | `{ nome?, telefone?, nif?, morada?, codigoPostal?, localidade? }` | `{ dados }`; 400 `{ erro, campo }` (as regras do checkout) |
+| `POST /conta/api/desistir` | `{ e, nota? }` | `{ ok, desistir }`; 409 fora do prazo; 404 se não for desta conta |
+| `POST /conta/api/sair-todos` | — | `{ ok }`: saem todas as sessões (os dados e o cartão ficam) |
+| `POST /conta/api/apagar` | — | `{ ok }`: o objecto da conta apaga-se todo (dados, sessões, cartão); as encomendas ficam |
+| `GET /conta/api/cartao.svg` | — | o código QR do cartão (SVG, `no-store`); 401 sem sessão |
+| `POST /conta/api/google` | `{ id_token, nonce }` | `{ ok }` e o cookie; 400 se o token não passar; 503 sem `GOOGLE_CLIENTE` |
+
+Sem sessão, as rotas da conta respondem 401 `{ erro, sessao: false, google }` (`google`: o id público, ou `null`).
+
+- **Os dados** (`dados` no objecto `Conta`, com `actualizado_em`): só os que o cliente escreve na conta, todos
+  opcionais. Preenchem os campos VAZIOS do checkout (`src/scripts/carrinho.js`, quando o browser sabe que há sessão:
+  `localStorage lfmobile:conta`). Guardam-se 2 anos depois da última entrada (`visto`); depois o objecto apaga-os.
+- **As garantias:** 3 anos nos artigos novos; nos recondicionados, a do catálogo (`garantias.recondicionados`, 18
+  meses). Contam do levantamento ou do envio. Um artigo que já saiu do catálogo fica sem data (não se sabe se era
+  recondicionado): a conta não a inventa.
+- **Desistir da compra** (a «função de retratação» da Directiva (UE) 2023/2673, desde 19 jun 2026; o prazo do DL
+  24/2014, art. 10.º): antes de receber, sempre; depois, 14 dias do levantamento, ou 21 do envio (não se sabe o dia da
+  entrega; um pedido tardio decide-o a loja). Fica em `desistencias: [{ em, por, nota? }]` e numa linha do histórico; o
+  estado NÃO muda (a devolução e o reembolso tratam-se no painel, como até aqui). Vai um email ao cliente (a
+  confirmação, em suporte duradouro) e outro à loja (`AVISOS.desistencia`). Dois toques em 10 minutos são um pedido só.
+- **O código QR** leva o endereço do cartão no painel: `PAINEL_URL/#/cartoes?conta=<id da conta>`
+  (`enderecoDoCartao`; o id é o resumo do email, não o diz). O Leandro lê-o com a câmara do telemóvel (abre o painel) ou
+  no próprio painel («Ler o código do cliente», ecrã Cartões). `GET /painel/cartoes?conta=<id>` → o cartão, com o email
+  que o cliente escreveu; 404 «Este cartão já não existe.» se a conta não existir.
+- **Entrar com o Google:** sem o script do Google na página — só um redireccionamento OpenID (`response_type=id_token`,
+  `scope=openid email`, `prompt=select_account`). A página guarda o `state` e o `nonce` no sessionStorage
+  (`lfmobile:conta-google`), confere o `state` à volta e manda o `id_token` e o `nonce`; o Worker confere a assinatura
+  (RS256, as chaves públicas do Google, guardadas 1 h), o `iss`, o `aud` (`GOOGLE_CLIENTE`), o `exp`, o `iat`, o `nonce`
+  e o `email_verified`. Não há segredo do cliente. O email do Google entra na mesma conta que o do código.
+- **A política de privacidade** («A sua conta») e a **de cookies** (o `__Host-lf-sessao` e as três chaves do browser)
+  dizem tudo isto ao cliente.

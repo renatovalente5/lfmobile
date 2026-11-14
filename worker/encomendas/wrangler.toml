@@ -98,6 +98,12 @@ STORE_PHONE = "916 537 957"
 STORE_EMAIL = "geral.lfmobile@gmail.com"
 # O remetente (o binding EMAIL só deixa este endereço).
 MAIL_FROM = "LF Mobile <encomendas@lfmobile.pt>"
+# O painel (o código QR do cartão das películas leva o endereço do cartão lá: conta.js, enderecoDoCartao).
+PAINEL_URL = "https://backoffice.lfmobile.pt"
+# «Entrar com o Google» na conta do cliente: o id PÚBLICO do cliente OAuth (Google Cloud, projecto «LF Mobile»,
+# lf-mobile-514700; cliente Web com a origem https://lfmobile.pt e o regresso https://lfmobile.pt/conta/). Vazio,
+# o botão não aparece. Não há segredo do cliente: o Worker confere o id_token com as chaves públicas do Google.
+GOOGLE_CLIENTE = ""
 # A versão da API da Stripe, fixada (a mesma do Armazém dos Pneus). Não subir sem ler o changelog.
 STRIPE_API_VERSION = "2026-07-29.dahlia"
 # MODO = "encomenda" força o modo «encomenda» mesmo com o catálogo em «online» (travão de
