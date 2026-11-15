@@ -32,8 +32,8 @@
   },
   "avisos": "",
   "categoria": "samsung",
-  "destaque": false,
-  "novidade": true,
+  "destaque": true,
+  "novidade": false,
   "publicado": true,
   "ordem": 200
 }
