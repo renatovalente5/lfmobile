@@ -23,14 +23,6 @@
     "alt": "InPods 3, fotografia 2",
     "foco": "50% 50%"
   },
-  "inpods-pro-3-1": {
-    "alt": "InPods Pro 3, fotografia 1",
-    "foco": "50% 50%"
-  },
-  "inpods-pro-3-2": {
-    "alt": "InPods Pro 3, fotografia 2",
-    "foco": "50% 50%"
-  },
   "iphone-11-64gb-recondicionado-1": {
     "alt": "iPhone 11 64 GB, fotografia 1",
     "foco": "50% 50%"
@@ -285,6 +277,14 @@
   },
   "inpods-pro-2-e7d7a23c": {
     "alt": "InPods Pro 2",
+    "foco": "50% 50%"
+  },
+  "inpods-pro-3-5192e49a": {
+    "alt": "InPods Pro 3",
+    "foco": "50% 50%"
+  },
+  "inpods-pro-3-af983f33": {
+    "alt": "InPods Pro 3",
     "foco": "50% 50%"
   }
 }
