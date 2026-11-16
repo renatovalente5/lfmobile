@@ -23,18 +23,6 @@
     "alt": "InPods 3, fotografia 2",
     "foco": "50% 50%"
   },
-  "inpods-pro-2-1": {
-    "alt": "InPods Pro 2, fotografia 1",
-    "foco": "50% 50%"
-  },
-  "inpods-pro-2-2": {
-    "alt": "InPods Pro 2, fotografia 2",
-    "foco": "50% 50%"
-  },
-  "inpods-pro-2-3": {
-    "alt": "InPods Pro 2, fotografia 3",
-    "foco": "50% 50%"
-  },
   "inpods-pro-3-1": {
     "alt": "InPods Pro 3, fotografia 1",
     "foco": "50% 50%"
@@ -289,6 +277,14 @@
   },
   "inpods-4-a270e7b5": {
     "alt": "InPods 4",
+    "foco": "50% 50%"
+  },
+  "inpods-pro-2-71e0e871": {
+    "alt": "InPods Pro 2",
+    "foco": "50% 50%"
+  },
+  "inpods-pro-2-e7d7a23c": {
+    "alt": "InPods Pro 2",
     "foco": "50% 50%"
   }
 }
