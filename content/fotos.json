@@ -239,10 +239,6 @@
     "alt": "Huawei Watch D2",
     "foco": "50% 50%"
   },
-  "capas-77d92b0a": {
-    "alt": "Capas para telemóvel",
-    "foco": "50% 50%"
-  },
   "cartao-localizador-p10-42c4cff5": {
     "alt": "Cartão Localizador P10",
     "foco": "50% 50%"
@@ -325,6 +321,10 @@
   },
   "encomendas-misterio-10kg-76b007e4": {
     "alt": "Encomendas mistério 10kg",
+    "foco": "50% 50%"
+  },
+  "capas-9e559074": {
+    "alt": "Capas para telemóvel",
     "foco": "50% 50%"
   }
 }
