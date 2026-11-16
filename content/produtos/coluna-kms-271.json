@@ -13,6 +13,25 @@
   "caracteristicas": [
     "20W de potência"
   ],
+  "opcoes": [
+    {
+      "nome": "Cor",
+      "valores": [
+        {
+          "nome": "Azul",
+          "suplemento": 0
+        },
+        {
+          "nome": "Preto",
+          "suplemento": 0
+        },
+        {
+          "nome": "Vermelho",
+          "suplemento": 0
+        }
+      ]
+    }
+  ],
   "pedeModelo": false,
   "peso": 0.98,
   "categoria": "outros-gadgets",
