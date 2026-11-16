@@ -31,6 +31,6 @@
   "categoria": "audio",
   "destaque": false,
   "novidade": false,
-  "publicado": true,
+  "publicado": false,
   "ordem": 160
 }
