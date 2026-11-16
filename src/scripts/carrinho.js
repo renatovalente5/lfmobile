@@ -450,7 +450,7 @@
         })
         .then((j) => {
           if (!j) return;
-          const d = { ...(j.sugestao || {}), ...(j.dados || {}), email: j.email };
+          const d = { ...(j.dados || {}), email: j.email };   // só os dados que o cliente gravou na conta
           let pus = false;
           ['nome', 'email', 'telefone', 'nif', 'morada', 'codigoPostal', 'localidade'].forEach((k) => {
             const i = form.elements[k];

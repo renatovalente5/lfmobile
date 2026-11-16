@@ -1,6 +1,6 @@
 titulo: Política de cookies
 descricao: Este site não usa cookies de publicidade nem de estatística. Guarda o carrinho no seu browser e, se entrar na sua conta, um cookie de sessão.
-atualizado: 2026-11-14
+atualizado: 2026-11-16
 ---
 **Este site não usa cookies de publicidade, de estatística nem de redes sociais.** Por isso não lhe pedimos autorização ao entrar. O único cookie é o da sua conta, e só se entrar nela.
 
@@ -10,7 +10,7 @@ atualizado: 2026-11-14
 - **A sessão da sua conta**, só se entrar em «A minha conta»: um cookie com o nome «__Host-lf-sessao», que diz ao site que já entrou, para lhe mostrar as suas encomendas. É estritamente necessário, não serve para mais nada e nenhum script do site o lê. Dura 30 dias desde a última vez que usou a conta, ou até carregar em «Sair».
 - **O pedido do código para entrar**, enquanto o escreve, no armazenamento do separador do browser («lfmobile:conta-codigo»). Apaga-se ao entrar ou ao fechar o separador.
 - **Que entrou na conta** («lfmobile:conta», no armazenamento local): só um «1», para a página da encomenda saber que pode preencher os seus dados. Apaga-se ao sair.
-- **A ida ao Google**, só se escolher «Continuar com o Google» («lfmobile:conta-google», no armazenamento do separador): dois códigos ao acaso que confirmam, na volta, que foi este browser que pediu. Apaga-se logo que volta.
+- **A ida ao Google**, só se escolher «Continuar com o Google»: um cookie com o nome «__Host-lf-google» (um código ao acaso que nenhum script lê) e «lfmobile:conta-google», no armazenamento do separador. Confirmam, na volta, que foi este browser que pediu. Duram 15 minutos e apagam-se logo que volta.
 
 A página do Google, quando lá vai para entrar, é do Google e tem as regras dele. Este site não carrega nada do Google.
 

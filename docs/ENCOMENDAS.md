@@ -387,17 +387,38 @@ marcado na loja por um código QR. As rotas novas (as de cima continuam iguais):
 
 | rota | corpo | resposta |
 |---|---|---|
-| `GET /conta/api/eu` | — | também `nome`, `cartao`, `dados`, `sugestao` (os dados da última encomenda, enquanto a conta não tem os seus) e `garantias: [{ encomenda, nome, ate }]` (as que ainda correm; a que acaba primeiro, primeiro) |
-| `GET /conta/api/encomenda?e=<id>` | — | também `garantias` (por linha: `{ meses, ate }`, ou `null`) e `desistir: { pode, ate, pedidos }` |
-| `GET /conta/api/dados` | — | `{ email, dados, sugestao }` (o checkout lê-o) |
-| `POST /conta/api/dados` | `{ nome?, telefone?, nif?, morada?, codigoPostal?, localidade? }` | `{ dados }`; 400 `{ erro, campo }` (as regras do checkout) |
-| `POST /conta/api/desistir` | `{ e, nota? }` | `{ ok, desistir }`; 409 fora do prazo; 404 se não for desta conta |
-| `POST /conta/api/sair-todos` | — | `{ ok }`: saem todas as sessões (os dados e o cartão ficam) |
-| `POST /conta/api/apagar` | — | `{ ok }`: o objecto da conta apaga-se todo (dados, sessões, cartão); as encomendas ficam |
-| `GET /conta/api/cartao.svg` | — | o código QR do cartão (SVG, `no-store`); 401 sem sessão |
-| `POST /conta/api/google` | `{ id_token, nonce }` | `{ ok }` e o cookie; 400 se o token não passar; 503 sem `GOOGLE_CLIENTE` |
+| `GET /conta/api/eu` | — | também `conta` (o id da conta), `nome` (o primeiro do nome GRAVADO), `cartao`, `dados` e `garantias: [{ encomenda, nome, ate }]` (as que ainda correm; a que acaba primeiro, primeiro) |
+| `GET /conta/api/encomenda?e=<id>` | — | também `conta`, `garantias` (por linha: `{ meses, ate }`, ou `null`) e `desistir: { pode, ate, pedidos }` |
+| `GET /conta/api/dados` | — | `{ email, dados }` (o checkout lê-o) |
+| `POST /conta/api/dados` | `{ nome?, telefone?, nif?, morada?, codigoPostal?, localidade?, conta? }` | `{ dados }` (`null` se veio tudo vazio); 400 `{ erro, campo }` (as regras do checkout) |
+| `POST /conta/api/desistir` | `{ e, nota?, conta? }` | `{ ok, desistir, recibo? }` (`recibo: 'falhou'` se o email ao cliente não saiu); 409 fora do prazo; 404 se não for desta conta |
+| `POST /conta/api/sair-todos` | `{ conta? }` ou nada | `{ ok }`: saem todas as sessões (os dados e o cartão ficam) |
+| `POST /conta/api/apagar` | `{ conta? }` ou nada | `{ ok }`: saem os dados, as sessões, o email e as películas da loja; ficam as encomendas e as datas das ofertas entregues |
+| `GET /conta/api/cartao.svg?c=<conta>` | — | o código QR do cartão (SVG, `no-store`); 401 sem sessão |
+| `POST /conta/api/google/inicio` | — | `{ nonce }` e o cookie `__Host-lf-google` (o bilhete, 15 min); 503 sem `GOOGLE_CLIENTE` |
+| `POST /conta/api/google` | `{ id_token }` + o cookie do bilhete | `{ ok }`, o cookie da sessão e o do bilhete apagado; 400 sem o bilhete ou se o token não passar |
 
 Sem sessão, as rotas da conta respondem 401 `{ erro, sessao: false, google }` (`google`: o id público, ou `null`).
+**A conta do ecrã (`conta?`):** o id que o `/eu` e a ficha dão (o mesmo do código QR; não é segredo). A página manda-o em
+cada pedido que muda alguma coisa; se o cookie já é de outra conta (entrou-se noutra noutro separador), 409 `{ erro,
+mudou: true }` e nada muda — sem isto, «Apagar a conta» apagava a outra. Sem o id (uma página antiga), segue.
+
+**A revisão de 16 nov 2026** (um revisor independente e uma bateria no Chromium e no WebKit, `scratchpad/conta/pente-fino.mjs`):
+- **Nunca os dados de uma encomenda na conta.** A «sugestão» (o nome, o telefone, o NIF e a morada da última encomenda,
+  para quem ainda não gravou os seus) saiu: quem escreve um email por engano (ou de propósito) não pode ver os dados de
+  outra pessoa, nem metê-los no checkout dela. A conta e o checkout só usam o que o cliente grava.
+- **O bilhete do Google** (acima, e na secção do Google): o nonce dentro do token qualquer um o lê; o cookie não.
+- **Os códigos:** 15 errados por conta em 24 h (somando todos os pedidos) fecham a entrada até ao dia seguinte (antes
+  eram 5 por código, 10 códigos por dia: 50 palpites). Um código cujo email não saiu esquece-se (`esquecerCodigo`): o
+  toque seguinte manda outro, e não conta para os 4 da hora.
+- **Um email que pode estar cortado nos metadados** (80 ou 40 caracteres) confere-se SEMPRE na encomenda.
+- **O prazo para desistir** acaba no fim do último dia em Lisboa, e passa para o dia útil seguinte num sábado, domingo
+  ou feriado (abaixo).
+- **Apagar a conta** guarda as datas das ofertas entregues: as películas do site contam das encomendas, que ficam, e sem
+  isso a mesma oferta voltava depois de apagar e entrar outra vez.
+- **Por fazer (decisões):** as encomendas guardam-se 400 dias, mas as garantias correm 18 a 36 meses (depois disso a
+  conta já não as mostra, e as películas do site deixam de contar no cartão); uma encomenda levantada não se anula no
+  painel (uma devolução continua a contar no cartão); o código QR é o resumo do email (não se renova).
 
 - **Os dados** (`dados` no objecto `Conta`, com `actualizado_em`): só os que o cliente escreve na conta, todos
   opcionais. Preenchem os campos VAZIOS do checkout (`src/scripts/carrinho.js`, quando o browser sabe que há sessão:
@@ -407,7 +428,9 @@ Sem sessão, as rotas da conta respondem 401 `{ erro, sessao: false, google }` (
   recondicionado): a conta não a inventa.
 - **Desistir da compra** (a «função de retratação» da Directiva (UE) 2023/2673, desde 19 jun 2026; o prazo do DL
   24/2014, art. 10.º): antes de receber, sempre; depois, 14 dias do levantamento, ou 21 do envio (não se sabe o dia da
-  entrega; um pedido tardio decide-o a loja). Fica em `desistencias: [{ em, por, nota? }]` e numa linha do histórico; o
+  entrega; um pedido tardio decide-o a loja). Os dias contam-se no calendário de Lisboa e o prazo acaba às 23:59:59 do
+  último; num sábado, domingo ou feriado nacional (os fixos, a Sexta-feira Santa e o Corpo de Deus) passa para o dia útil
+  seguinte (Regulamento 1182/71; Código Civil, art. 279.º) — `fimDoPrazo`. Fica em `desistencias: [{ em, por, nota? }]` e numa linha do histórico; o
   estado NÃO muda (a devolução e o reembolso tratam-se no painel, como até aqui; a ficha da encomenda no painel mostra-o numa
   faixa). Vai um email ao cliente (a
   confirmação, em suporte duradouro) e outro à loja (`AVISOS.desistencia`). Dois toques em 10 minutos são um pedido só.
@@ -416,9 +439,11 @@ Sem sessão, as rotas da conta respondem 401 `{ erro, sessao: false, google }` (
   no próprio painel («Ler o código do cliente», ecrã Cartões). `GET /painel/cartoes?conta=<id>` → o cartão, com o email
   do cliente (em minúsculas); 404 se a conta não existir (o painel diz «…ou a conta foi apagada»).
 - **Entrar com o Google:** sem o script do Google na página — só um redireccionamento OpenID (`response_type=id_token`,
-  `scope=openid email`, `prompt=select_account`). A página guarda o `state` e o `nonce` no sessionStorage
-  (`lfmobile:conta-google`), confere o `state` à volta e manda o `id_token` e o `nonce`; o Worker confere a assinatura
-  (RS256, as chaves públicas do Google, guardadas 1 h), o `iss`, o `aud` (`GOOGLE_CLIENTE`), o `exp`, o `iat`, o `nonce`
-  e o `email_verified`. Não há segredo do cliente. O email do Google entra na mesma conta que o do código.
-- **A política de privacidade** («A sua conta») e a **de cookies** (o `__Host-lf-sessao` e as três chaves do browser)
-  dizem tudo isto ao cliente.
+  `scope=openid email`, `prompt=select_account`). Antes de ir, a página pede o bilhete (`/google/inicio`: o cookie
+  `__Host-lf-google`, HttpOnly, 15 min; o nonce é o resumo dele) e guarda o `state` no sessionStorage
+  (`lfmobile:conta-google`). À volta confere o `state` e manda o `id_token`; o Worker confere a assinatura (RS256, as
+  chaves públicas do Google, guardadas 1 h), o `iss`, o `aud` (`GOOGLE_CLIENTE`), o `exp`, o `iat`, o `nonce` (o do
+  bilhete deste browser) e o `email_verified`, e apaga o bilhete. Não há segredo do cliente. O email do Google entra na
+  mesma conta que o do código. Travões: 5 por minuto por IP no bilhete e 5 na entrada.
+- **A política de privacidade** («A sua conta») e a **de cookies** (o `__Host-lf-sessao`, o `__Host-lf-google` e as três
+  chaves do browser) dizem tudo isto ao cliente.

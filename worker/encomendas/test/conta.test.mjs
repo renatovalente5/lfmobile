@@ -373,12 +373,12 @@ test('um cartão feito no painel (de quem nunca entrou no site) aparece quando o
 
 /* ---------------------------------------------------------------- a conta, mais (14 nov 2026): os dados, as garantias,
    desistir, sair em todos os aparelhos, apagar, o QR e o Google */
-import { garantiasDasLinhas, prazoDeDesistir, validarDados, somarMeses, enderecoDoCartao, verificarTokenDoGoogle } from '../conta.js';
+import { garantiasDasLinhas, prazoDeDesistir, fimDoPrazo, diaUtil, validarDados, somarMeses, enderecoDoCartao, verificarTokenDoGoogle } from '../conta.js';
 import { renderSVG } from '../vendor/uqr.mjs';
 
 const marcar = (env, id, estado, nota) => pedir(worker, env, 'POST', `/painel/encomendas/${id}/estado`, { corpo: { estado, ...(nota ? { nota } : {}), por: 'dono@exemplo.pt' }, cabecalhos: bearer() });
 
-test('os dados da conta: conferidos como no checkout; sem eles, a sugestão vem da última encomenda', async () => {
+test('os dados da conta: conferidos como no checkout; só os que o cliente grava (nunca os de uma encomenda)', async () => {
   const rede = redeFalsa({ catalogo: catalogoBase() });
   try {
     const { env, enviados } = ambiente();
@@ -388,7 +388,11 @@ test('os dados da conta: conferidos como no checkout; sem eles, a sugestão vem 
     const d0 = await pedir(worker, env, 'GET', '/conta/api/dados', { cabecalhos: { Cookie: cookie } });
     assert.equal(d0.status, 200, d0.texto);
     assert.equal(d0.json.dados, null);
-    assert.deepEqual(d0.json.sugestao, { nome: 'Sara Matos', telefone: '912 345 678', nif: '123456789' });
+    // a encomenda feita com este email (por quem o escreveu, talvez por engano) não sai pela conta (revisão de 16 nov)
+    assert.ok(!('sugestao' in d0.json) && !/Sara|123456789|912 345/.test(d0.texto), d0.texto);
+    const eu0 = await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: cookie } });
+    assert.equal(eu0.json.nome, '', 'o «Olá» só com o nome gravado');
+    assert.ok(!('sugestao' in eu0.json) && !/123456789/.test(eu0.texto));
     const gravar = (corpo) => pedir(worker, env, 'POST', '/conta/api/dados', { corpo, cabecalhos: { ...ORIGEM, Cookie: cookie } });
     assert.equal((await gravar({ nif: '123456780' })).json.campo, 'nif');
     assert.equal((await gravar({ telefone: '12' })).json.campo, 'telefone');
@@ -401,7 +405,14 @@ test('os dados da conta: conferidos como no checkout; sem eles, a sugestão vem 
     const eu = await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: cookie } });
     assert.equal(eu.json.nome, 'Sara');
     assert.equal(eu.json.dados.localidade, 'São Roque');
-    assert.equal(eu.json.sugestao, null, 'com os dados gravados, já não há sugestão');
+    assert.equal(eu.json.conta, cookie.split('=')[1].split('.')[0], 'o /eu diz o id da conta (o mesmo do código QR)');
+    // apagar tudo (gravar os campos vazios): a conta deixa de ter dados e volta a sugestão (não fica um registo vazio)
+    const vazio = await gravar({ nome: '', telefone: ' ', nif: '', morada: '', codigoPostal: '', localidade: '' });
+    assert.equal(vazio.status, 200, vazio.texto);
+    assert.equal(vazio.json.dados, null);
+    const d1 = await pedir(worker, env, 'GET', '/conta/api/dados', { cabecalhos: { Cookie: cookie } });
+    assert.equal(d1.json.dados, null);
+    assert.equal((await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: cookie } })).json.nome, '', 'sem dados gravados, o «Olá» fica sem nome');
   } finally { rede.repor(); }
 });
 
@@ -423,7 +434,7 @@ test('as garantias: da entrega, 3 anos nos novos e a da loja nos recondicionados
   // uma linha depois da entrega com o mesmo estado (o pedido para desistir, uma da Stripe) não muda o dia da entrega
   const depois = { ...enc, historico: [...enc.historico, { em: '2026-11-20T10:00:00.000Z', estado: 'levantada', por: 'cliente', nota: 'Pediu para desistir da compra, na conta do site.' }] };
   assert.deepEqual(garantiasDasLinhas(depois, cat)[0], { meses: 36, ate: '2029-11-15' }, 'conta da levantada, não da linha do pedido');
-  assert.equal(prazoDeDesistir(depois, Date.parse('2026-11-20T11:00:00.000Z')).ate, '2026-11-29T10:00:00.000Z', 'o prazo para desistir também');
+  assert.equal(prazoDeDesistir(depois, Date.parse('2026-11-20T11:00:00.000Z')).ate, '2026-11-30T23:59:59.999Z', 'o prazo para desistir também (15 nov + 14 = domingo 29 → segunda 30, até ao fim do dia)');
 });
 
 test('a ficha diz a garantia de cada artigo entregue, e a conta lista as que correm', async () => {
@@ -459,6 +470,7 @@ test('desistir da compra: antes de receber pode sempre; depois, 14 dias (no envi
     assert.equal((await desistir(outra.encomenda)).status, 404, 'a de outra pessoa não existe para ela');
     const antes = enviados.length;
     const r = await desistir(enc.encomenda, 'Encomendei a cor errada.');
+    assert.equal(r.json.recibo, 'enviado', 'a resposta diz se o recibo saiu');
     assert.equal(r.status, 200, r.texto);
     assert.equal(r.json.desistir.pedidos.length, 1);
     const novos = enviados.slice(antes);
@@ -489,11 +501,26 @@ test('desistir da compra: antes de receber pode sempre; depois, 14 dias (no envi
   } finally { rede.repor(); }
 });
 
-test('prazoDeDesistir: no envio conta mais uma semana; anulada não pode', () => {
+test('prazoDeDesistir: até ao fim do último dia em Lisboa; no envio mais uma semana; fim de semana e feriado passam ao dia útil; anulada não pode', () => {
   const base = { historico: [{ em: '2026-11-01T10:00:00.000Z', estado: 'enviada' }], estado: 'enviada' };
-  assert.equal(prazoDeDesistir(base, Date.parse('2026-11-21T09:00:00.000Z')).pode, true);
-  assert.equal(prazoDeDesistir(base, Date.parse('2026-11-23T10:00:00.000Z')).pode, false);
+  // 1 nov + 21 = 22 nov, um domingo → segunda, 23 nov, até às 23:59:59 de Lisboa
+  assert.equal(prazoDeDesistir(base).ate, '2026-11-23T23:59:59.999Z');
+  assert.equal(prazoDeDesistir(base, Date.parse('2026-11-23T22:00:00.000Z')).pode, true, 'à noite do último dia ainda pode');
+  assert.equal(prazoDeDesistir(base, Date.parse('2026-11-24T00:00:00.000Z')).pode, false);
   assert.equal(prazoDeDesistir({ ...base, estado: 'anulada' }).pode, false);
+  const levantada = (em) => ({ estado: 'levantada', historico: [{ em, estado: 'levantada' }] });
+  // levantada às 10 h: conta o dia todo do 14.º (até 16 nov acabava às 10 h, e a página dizia «até dia 30»)
+  assert.equal(prazoDeDesistir(levantada('2026-11-16T10:00:00.000Z')).ate, '2026-11-30T23:59:59.999Z');
+  assert.equal(prazoDeDesistir(levantada('2026-11-16T10:00:00.000Z'), Date.parse('2026-11-30T15:00:00.000Z')).pode, true);
+  // o dia é o de Lisboa: 00:30 de 20 out em Lisboa (23:30 UTC do dia 19) → 3 nov
+  assert.equal(prazoDeDesistir(levantada('2026-10-19T23:30:00.000Z')).ate, '2026-11-03T23:59:59.999Z');
+  // no verão, o fim do dia em Lisboa é às 22:59:59 UTC
+  assert.equal(prazoDeDesistir(levantada('2026-07-01T09:00:00.000Z')).ate, '2026-07-15T22:59:59.999Z');
+  // a Sexta-feira Santa de 2026 (3 abril) e o fim de semana: segunda, 6 abril
+  assert.equal(prazoDeDesistir(levantada('2026-03-20T12:00:00.000Z')).ate, '2026-04-06T22:59:59.999Z');
+  // o 25 de Abril de 2025 (sexta) e o fim de semana: segunda, 28 abril
+  assert.equal(new Date(fimDoPrazo('2025-04-11T10:00:00.000Z', 14)).toISOString(), '2025-04-28T22:59:59.999Z');
+  assert.ok(!diaUtil(Date.UTC(2026, 11, 25)) && !diaUtil(Date.UTC(2026, 5, 4)) && diaUtil(Date.UTC(2026, 5, 3)), 'o Natal e o Corpo de Deus (4 jun 2026) não são dias úteis; a véspera é');
 });
 
 test('sair em todos os aparelhos fecha as sessões todas (os dados ficam); apagar a conta tira tudo menos as encomendas', async () => {
@@ -581,26 +608,142 @@ test('verificarTokenDoGoogle: a assinatura, o emissor, o cliente, o prazo, o non
   assert.equal((await verificarTokenDoGoogle(await tokenGoogle({ email: 'a@gmail.com' }), { ...opcoes, nonce: 'curto' })).erro, 'nonce');
 });
 
-test('entrar com o Google: o email verificado entra na conta dele (as mesmas encomendas); sem o cliente configurado, não há botão', async () => {
+/* O bilhete do Google: o POST /google/inicio dá o nonce e o cookie (HttpOnly, 15 min); o token tem de trazer esse nonce
+   e vir com esse cookie (o do browser que começou). */
+async function comecarGoogle(env) {
+  const r = await pedir(worker, env, 'POST', '/conta/api/google/inicio', { corpo: {}, cabecalhos: ORIGEM });
+  assert.equal(r.status, 200, r.texto);
+  assert.match(r.headers.get('set-cookie'), /^__Host-lf-google=[A-Za-z0-9_-]{43}; Path=\/; Max-Age=900; HttpOnly; Secure; SameSite=Lax$/);
+  assert.match(r.json.nonce, /^[0-9a-f]{64}$/);
+  return { nonce: r.json.nonce, cookie: r.headers.get('set-cookie').split(';')[0] };
+}
+
+test('entrar com o Google: só com o bilhete do browser que começou (um token apanhado não serve noutro); a conta do email; sem o cliente configurado, não há botão', async () => {
   const semGoogle = ambiente();
-  const sem = await pedir(worker, semGoogle.env, 'GET', '/conta/api/eu');
-  assert.equal(sem.json.google, null, 'sem GOOGLE_CLIENTE a página não mostra o botão');
-  assert.equal((await pedir(worker, semGoogle.env, 'POST', '/conta/api/google', { corpo: { id_token: 'x', nonce: 'n'.repeat(24) }, cabecalhos: ORIGEM })).status, 503);
+  assert.equal((await pedir(worker, semGoogle.env, 'GET', '/conta/api/eu')).json.google, null, 'sem GOOGLE_CLIENTE a página não mostra o botão');
+  assert.equal((await pedir(worker, semGoogle.env, 'POST', '/conta/api/google/inicio', { corpo: {}, cabecalhos: ORIGEM })).status, 503);
+  assert.equal((await pedir(worker, semGoogle.env, 'POST', '/conta/api/google', { corpo: { id_token: 'x' }, cabecalhos: ORIGEM })).status, 503);
   const rede = redeFalsa({ catalogo: catalogoBase() });
   const repor = comChavesDoGoogle(rede);
   try {
     const { env } = ambiente({ GOOGLE_CLIENTE: CLIENTE });
     assert.equal((await pedir(worker, env, 'GET', '/conta/api/eu')).json.google, CLIENTE);
+    assert.equal((await pedir(worker, env, 'POST', '/conta/api/google/inicio', { corpo: {} })).status, 403, 'o bilhete só se pede vindo do site');
     const enc = await registar(worker, env, { cliente: { nome: 'Tiago', email: 'Tiago.Reis@gmail.com', telefone: '912 345 678' } });
-    const ok = await pedir(worker, env, 'POST', '/conta/api/google', { corpo: { id_token: await tokenGoogle({ email: 'tiagoreis@gmail.com' }), nonce: 'n'.repeat(24) }, cabecalhos: ORIGEM });
+    const b = await comecarGoogle(env);
+    const token = await tokenGoogle({ email: 'tiagoreis@gmail.com', nonce: b.nonce });
+    // o token sem o cookie (outro browser; o histórico de um computador partilhado): não entra
+    const semCookie = await pedir(worker, env, 'POST', '/conta/api/google', { corpo: { id_token: token, nonce: b.nonce }, cabecalhos: ORIGEM });
+    assert.equal(semCookie.status, 400);
+    assert.match(semCookie.json.erro, /não se concluiu/);
+    // com o cookie de outro bilhete: não entra
+    const outro = await comecarGoogle(env);
+    assert.equal((await pedir(worker, env, 'POST', '/conta/api/google', { corpo: { id_token: token }, cabecalhos: { ...ORIGEM, Cookie: outro.cookie } })).status, 400);
+    // com o seu: entra; a resposta dá a sessão e apaga o bilhete
+    const ok = await pedir(worker, env, 'POST', '/conta/api/google', { corpo: { id_token: token }, cabecalhos: { ...ORIGEM, Cookie: b.cookie } });
     assert.equal(ok.status, 200, ok.texto);
-    const cookie = cookieDe(ok);
-    assert.match(cookie, /^__Host-lf-sessao=[0-9a-f]{64}\./);
+    const sc = ok.headers.getSetCookie();
+    assert.ok(sc.some((c) => /^__Host-lf-sessao=[0-9a-f]{64}\./.test(c)) && sc.some((c) => /^__Host-lf-google=; Path=\/; Max-Age=0;/.test(c)), sc.join(' | '));
+    const cookie = sc.find((c) => c.startsWith('__Host-lf-sessao=')).split(';')[0];
     const eu = await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: cookie } });
     assert.deepEqual(eu.json.encomendas.map((x) => x.encomenda), [enc.encomenda], 'a mesma conta do email (o Gmail sem os pontos)');
-    const mau = await pedir(worker, env, 'POST', '/conta/api/google', { corpo: { id_token: await tokenGoogle({ email: 'x@gmail.com', aud: 'outro' }), nonce: 'n'.repeat(24) }, cabecalhos: ORIGEM });
+    // o token certo de outro cliente (aud): não entra, e não sai sessão nenhuma
+    const c2 = await comecarGoogle(env);
+    const mau = await pedir(worker, env, 'POST', '/conta/api/google', { corpo: { id_token: await tokenGoogle({ email: 'x@gmail.com', aud: 'outro', nonce: c2.nonce }) }, cabecalhos: { ...ORIGEM, Cookie: c2.cookie } });
     assert.equal(mau.status, 400);
-    assert.equal(mau.headers.get('set-cookie'), null);
-    assert.equal((await pedir(worker, env, 'POST', '/conta/api/google', { corpo: { id_token: 'x', nonce: 'n'.repeat(24) } })).status, 403, 'só vindo do site');
+    assert.ok(!mau.headers.getSetCookie().some((c) => c.startsWith('__Host-lf-sessao=')));
+    assert.equal((await pedir(worker, env, 'POST', '/conta/api/google', { corpo: { id_token: 'x' } })).status, 403, 'só vindo do site');
   } finally { repor(); }
+});
+
+test('a página de outra conta (entrou-se noutra noutro separador): os pedidos que mudam alguma coisa não seguem', async () => {
+  const { env, enviados } = ambiente();
+  const a = await entrar(env, enviados, 'ines@exemplo.pt');
+  const idA = a.split('=')[1].split('.')[0];
+  assert.equal((await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: a } })).json.conta, idA);
+  const outra = 'e'.repeat(64);
+  for (const [rota, corpo] of [['/conta/api/dados', { nome: 'X', conta: outra }], ['/conta/api/sair-todos', { conta: outra }], ['/conta/api/apagar', { conta: outra }], ['/conta/api/desistir', { e: 'LF-20261116-ABCDEF', conta: outra }]]) {
+    const r = await pedir(worker, env, 'POST', rota, { corpo, cabecalhos: { ...ORIGEM, Cookie: a } });
+    assert.equal(r.status, 409, `${rota}: ${r.texto}`);
+    assert.equal(r.json.mudou, true);
+  }
+  assert.equal((await pedir(worker, env, 'GET', `/conta/api/cartao.svg?c=${outra}`, { cabecalhos: { Cookie: a } })).status, 409, 'o código QR de outra conta não se mostra');
+  assert.equal((await pedir(worker, env, 'GET', `/conta/api/cartao.svg?c=${idA}`, { cabecalhos: { Cookie: a } })).status, 200);
+  assert.equal((await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: a } })).status, 200, 'não saiu nem se apagou');
+  assert.equal((await pedir(worker, env, 'GET', '/conta/api/dados', { cabecalhos: { Cookie: a } })).json.dados, null, 'nada se gravou');
+  assert.equal((await pedir(worker, env, 'POST', '/conta/api/dados', { corpo: { nome: 'Inês', conta: idA }, cabecalhos: { ...ORIGEM, Cookie: a } })).status, 200, 'com o id certo, segue');
+  assert.equal((await pedir(worker, env, 'POST', '/conta/api/apagar', { cabecalhos: { ...ORIGEM, Cookie: a } })).status, 200, 'sem corpo nenhum também (uma página antiga na cache)');
+});
+
+test('o email do código que não sai: o código esquece-se, o toque seguinte manda um novo, e não gasta um dos 4 da hora', async () => {
+  let falhar = true;
+  const enviados = [];
+  const env = envFalso({ EMAIL: { send: async (m) => { if (falhar) throw new Error('o envio caiu'); enviados.push(m); } } });
+  const r1 = await pedirCodigo(env, 'olga@exemplo.pt');
+  assert.equal(r1.status, 503, r1.texto);
+  falhar = false;
+  const r2 = await pedirCodigo(env, 'olga@exemplo.pt');   // logo a seguir: antes, era «o mesmo toque» — 200 sem email nenhum
+  assert.equal(r2.status, 200, r2.texto);
+  assert.equal(enviados.length, 1, 'desta vez o email saiu');
+  for (const mais of [21, 42, 63]) {
+    const repor = comRelogio(mais * 1000);
+    try { assert.equal((await pedirCodigo(env, 'olga@exemplo.pt')).status, 200, `o pedido +${mais} s`); } finally { repor(); }
+  }
+  const repor = comRelogio(84_000);
+  try { assert.equal((await pedirCodigo(env, 'olga@exemplo.pt')).status, 429, 'o 5.º que saiu na hora pára (o que falhou não contou)'); } finally { repor(); }
+});
+
+test('15 códigos errados num dia (somando os pedidos) fecham a entrada até ao dia seguinte', async () => {
+  const { env, enviados } = ambiente();
+  const email = 'paulo@exemplo.pt';
+  for (let ronda = 0; ronda < 3; ronda++) {
+    const repor = comRelogio(ronda * 25 * 60 * 1000);
+    try {
+      const r = await pedirCodigo(env, email);
+      assert.equal(r.status, 200, r.texto);
+      const errado = ultimoCodigo(enviados) === '000000' ? '111111' : '000000';
+      for (let i = 0; i < 5; i++) await pedir(worker, env, 'POST', '/conta/api/entrar', { corpo: { email, pedido: r.json.pedido, codigo: errado }, cabecalhos: ORIGEM });
+    } finally { repor(); }
+  }
+  const repor = comRelogio(80 * 60 * 1000);
+  try {
+    const r = await pedirCodigo(env, email);
+    assert.equal(r.status, 429, r.texto);
+    assert.match(r.json.erro, /demasiadas tentativas com códigos errados/i);
+  } finally { repor(); }
+  const amanha = comRelogio(25 * 3600 * 1000);
+  try { assert.equal((await pedirCodigo(env, email)).status, 200, 'no dia seguinte volta a dar'); } finally { amanha(); }
+});
+
+test('apagar a conta e entrar outra vez não devolve uma oferta já entregue (as películas do site contam das encomendas, que ficam)', async () => {
+  const rede = redeFalsa({ catalogo: catalogoBase() });
+  try {
+    const { env, enviados } = ambiente();
+    const enc = await registar(worker, env, { ...HIDROGEL(5), cliente: { nome: 'Rui', email: 'rui@exemplo.pt', telefone: '912 345 678' } });
+    assert.equal((await pedir(worker, env, 'POST', `/painel/encomendas/${enc.encomenda}/estado`, { corpo: { estado: 'paga', por: 'dono@exemplo.pt' }, cabecalhos: bearer() })).status, 200);
+    assert.equal((await oferta(env, 'rui@exemplo.pt')).status, 200, 'a oferta das 5 do site');
+    await carimbar(env, 'rui@exemplo.pt', 2);
+    const c1 = await entrar(env, enviados, 'rui@exemplo.pt');
+    assert.equal((await pedir(worker, env, 'POST', '/conta/api/apagar', { corpo: {}, cabecalhos: { ...ORIGEM, Cookie: c1 } })).status, 200);
+    const depois = await cartao(env, 'rui@exemplo.pt');
+    assert.deepEqual([depois.json.cartao.site, depois.json.cartao.loja, depois.json.cartao.entregues, depois.json.cartao.disponiveis], [5, 0, 1, 0], 'as da loja saíram; a oferta entregue ficou: não há outra');
+    assert.equal((await oferta(env, 'rui@exemplo.pt')).status, 409, 'a mesma oferta não se dá outra vez');
+    const c2 = await entrar(env, enviados, 'rui@exemplo.pt');
+    assert.deepEqual((await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: c2 } })).json.cartao, { por_cartao: 5, total: 5, atuais: 0, disponiveis: 0 });
+  } finally { rede.repor(); }
+});
+
+test('um email de 80 caracteres não vê a encomenda de um email mais comprido que começa igual (o cortado confere-se sempre)', async () => {
+  const rede = redeFalsa({ catalogo: catalogoBase() });
+  try {
+    const { env, enviados } = ambiente();
+    const conta80 = `${'b'.repeat(68)}@exemplo.com`;
+    assert.equal(conta80.length, 80);
+    const deOutro = await registar(worker, env, { cliente: { nome: 'Outro', email: `${conta80}.pt`, telefone: '912 345 678' } });
+    const minha = await registar(worker, env, { cliente: { nome: 'Eu', email: conta80, telefone: '912 345 678' } });
+    const cookie = await entrar(env, enviados, conta80);
+    const eu = await pedir(worker, env, 'GET', '/conta/api/eu', { cabecalhos: { Cookie: cookie } });
+    assert.deepEqual(eu.json.encomendas.map((x) => x.encomenda), [minha.encomenda]);
+    assert.equal((await pedir(worker, env, 'GET', `/conta/api/encomenda?e=${deOutro.encomenda}`, { cabecalhos: { Cookie: cookie } })).status, 404);
+  } finally { rede.repor(); }
 });

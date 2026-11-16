@@ -72,6 +72,9 @@
   }
 
   const blocos = { carregar: $('[data-conta-carregar]'), entrar: $('[data-conta-entrar]'), lista: $('[data-conta-lista]'), ficha: $('[data-conta-ficha]') };
+  /* A conta que este ecrã mostra (o id que o /eu e a ficha dizem): vai em cada pedido que muda alguma coisa. Se
+     entretanto se entrou noutra conta noutro separador, o Worker recusa (409) em vez de mexer na outra. */
+  let contaAtual = '';
   let vista = 'carregar';
   function mostrar(qual) {
     const mudou = qual !== vista;
@@ -221,13 +224,25 @@
   let google = null;
   const erroGoogle = $('[data-conta-google-erro]');
   const aleatorio = () => { const b = crypto.getRandomValues(new Uint8Array(18)); return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); };
-  $('[data-conta-google-botao]').addEventListener('click', () => {
+  /* O nonce vem do Worker: é o resumo de um bilhete que ele guarda num cookie deste browser (HttpOnly, 15 minutos).
+     Na volta o token só entra com esse cookie: um token apanhado não serve noutro browser. */
+  const botaoGoogle = $('[data-conta-google-botao]');
+  botaoGoogle.addEventListener('click', async () => {
     if (!google) return;
+    erroGoogle.hidden = true;
+    ocupado(botaoGoogle, true);
+    let r = null;
+    try { r = await api('/google/inicio', {}); } catch (_) { r = null; }
+    if (!r || !r.ok || !r.j.nonce) {
+      ocupado(botaoGoogle, false);
+      erroGoogle.textContent = (r && r.j.erro) || 'Sem ligação. Veja a internet e tente outra vez.';
+      erroGoogle.hidden = false;
+      return;
+    }
     const state = aleatorio();
-    const nonce = aleatorio();
-    guardar('sessionStorage', CHAVE_GOOGLE, JSON.stringify({ state, nonce, em: Date.now(), volta: location.search }));
+    guardar('sessionStorage', CHAVE_GOOGLE, JSON.stringify({ state, em: Date.now(), volta: location.search }));
     const u = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-    u.search = new URLSearchParams({ client_id: google, redirect_uri: `${location.origin}${base}conta/`, response_type: 'id_token', scope: 'openid email', nonce, state, prompt: 'select_account' }).toString();
+    u.search = new URLSearchParams({ client_id: google, redirect_uri: `${location.origin}${base}conta/`, response_type: 'id_token', scope: 'openid email', nonce: r.j.nonce, state, prompt: 'select_account' }).toString();
     location.assign(u.toString());
   });
   /* A volta do Google: → true se tratou dela (entrou ou disse porquê). */
@@ -242,7 +257,7 @@
     if (h.get('error')) { if (h.get('error') !== 'access_denied') dizer('Não conseguimos entrar com o Google. Tente outra vez, ou entre com o email.'); return false; }
     if (!g || g.state !== h.get('state') || Date.now() - g.em > 15 * 60 * 1000) { dizer('A entrada com o Google não se concluiu. Tente outra vez.'); return false; }
     try {
-      const r = await api('/google', { id_token: h.get('id_token'), nonce: g.nonce });
+      const r = await api('/google', { id_token: h.get('id_token') });
       if (r.ok) { sinal(true); return true; }
       dizer(r.j.erro || 'Não conseguimos entrar com o Google. Tente outra vez, ou entre com o email.');
     } catch (_) { dizer('Sem ligação. Veja a internet e tente outra vez.'); }
@@ -261,6 +276,12 @@
       campoEmail.value = pedido.email;
       passoCodigo(false);
     } else {
+      // sem um pedido a meio: o passo do email (depois de uma sessão que acabou, não fica o código antigo à vista)
+      pedido = null;
+      formCodigo.hidden = true;
+      formEmail.hidden = false;
+      campoCodigo.value = '';
+      erroEm(formCodigo, '');
       $('[data-conta-google]').hidden = !google;
     }
   }
@@ -302,10 +323,12 @@
     if (!e.target.closest('[data-conta-mostrar-codigo]')) return;
     abrirJanela({
       titulo: 'O seu cartão',
-      texto: `<img class="conta-janela__qr" src="${API}/cartao.svg?v=${Date.now()}" width="240" height="240" alt="Código do seu cartão das películas">
+      texto: `<img class="conta-janela__qr" src="${API}/cartao.svg?c=${encodeURIComponent(contaAtual)}&amp;v=${Date.now()}" width="240" height="240" alt="Código do seu cartão das películas">
         <p>Mostre este código na loja: marcamos as películas no seu cartão.</p>`,
       botoes: [{ t: 'Fechar', valor: 'nao', classe: 'botao--cheio', foco: true }],
     });
+    const img = $('img.conta-janela__qr', janela);
+    if (img) img.addEventListener('error', () => { const n = document.createElement('p'); n.textContent = 'Não foi possível mostrar o código. Recarregue a página.'; img.replaceWith(n); }, { once: true });
   });
 
   function pintarGarantias(gs) {
@@ -315,30 +338,29 @@
     caixa.hidden = !itens.length;
   }
 
-  /* OS MEUS DADOS: os gravados, ou a sugestão da última encomenda (para gravar). Preenchem o checkout. */
+  /* OS MEUS DADOS: só os que o cliente gravou. Preenchem o checkout. (Até 16 nov 2026 vinha a sugestão da última
+     encomenda: mostrava os dados de quem escreveu este email numa encomenda, e o checkout trazia-os.) */
   let dadosAgora = null;
-  let sugestaoAgora = null;
   const formDados = $('[data-conta-dados-form]');
   const CAMPOS = [['nome', 'Nome'], ['telefone', 'Telemóvel'], ['nif', 'NIF'], ['morada', 'Morada']];
   function pintarDados() {
-    const d = dadosAgora || sugestaoAgora;
+    const d = dadosAgora;
     const resumo = $('[data-conta-dados-resumo]');
     const morada = (x) => [x.morada, [x.codigoPostal, x.localidade].filter(Boolean).join(' ')].filter(Boolean).join(', ');
     if (!d) {
       resumo.innerHTML = '<p class="conta__nota">Ainda sem dados. Grave-os e a próxima encomenda já vem preenchida.</p>';
     } else {
       const linhas = CAMPOS.map(([k, rot]) => [rot, k === 'morada' ? morada(d) : d[k]]).filter(([, v]) => v);
-      resumo.innerHTML = `<dl class="conta__dados-lista">${linhas.map(([r, v]) => `<div><dt>${esc(r)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
-        ${dadosAgora ? '' : '<p class="conta__nota">Da sua última encomenda. Grave-os para a próxima vir preenchida.</p>'}`;
+      resumo.innerHTML = `<dl class="conta__dados-lista">${linhas.map(([r, v]) => `<div><dt>${esc(r)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`;
     }
-    $('[data-conta-dados-editar]').textContent = dadosAgora ? 'Editar' : (d ? 'Gravar' : 'Preencher');
+    $('[data-conta-dados-editar]').textContent = d ? 'Editar' : 'Preencher';
   }
   function editarDados(sim) {
     formDados.hidden = !sim;
     $('[data-conta-dados-resumo]').hidden = sim;
     $('[data-conta-dados-editar]').hidden = sim;
     if (!sim) return;
-    const d = dadosAgora || sugestaoAgora || {};
+    const d = dadosAgora || {};
     ['nome', 'telefone', 'nif', 'morada', 'codigoPostal', 'localidade'].forEach((k) => { formDados.elements[k].value = d[k] || ''; formDados.elements[k].removeAttribute('aria-invalid'); });
     const erro = $('[data-conta-dados-erro]');
     erro.hidden = true;
@@ -353,7 +375,7 @@
     const corpo = Object.fromEntries(['nome', 'telefone', 'nif', 'morada', 'codigoPostal', 'localidade'].map((k) => [k, formDados.elements[k].value.trim()]));
     ocupado(botao, true);
     try {
-      const r = await api('/dados', corpo);
+      const r = await api('/dados', { ...corpo, conta: contaAtual });
       if (r.status === 401) { mostrarEntrar(r.j.google); return; }
       if (!r.ok) {
         erro.textContent = r.j.erro || 'Não conseguimos gravar. Tente outra vez.';
@@ -362,8 +384,7 @@
         if (c) { c.setAttribute('aria-invalid', 'true'); c.focus(); }
         return;
       }
-      dadosAgora = r.j.dados;
-      sugestaoAgora = null;
+      dadosAgora = r.j.dados || null;   // gravou tudo vazio: a conta fica sem dados
       pintarDados();
       editarDados(false);
       $('[data-conta-dados-editar]').focus();
@@ -374,6 +395,7 @@
   });
 
   function pintarLista(d) {
+    contaAtual = String(d.conta || '');
     $('[data-conta-quem]').textContent = d.email || '';
     $('[data-conta-ola]').textContent = d.nome ? `Olá, ${d.nome}` : 'A minha conta';
     pintarCartao(d.cartao);
@@ -383,7 +405,6 @@
     $('[data-conta-vazia]').hidden = encs.length > 0;
     pintarGarantias(d.garantias);
     dadosAgora = d.dados || null;
-    sugestaoAgora = d.sugestao || null;
     pintarDados();
     editarDados(false);
     document.title = document.title.replace(/^[^|]*\|/, 'A minha conta |');
@@ -395,10 +416,12 @@
      se falhar, diz-se, e a conta fica aberta (ninguém pensa que apagou o que ficou). Um 401 é a sessão que já acabou. */
   async function sairDaqui(caminho, seFalhar) {
     let r = null;
-    try { r = await api(caminho, {}); } catch (_) { r = null; }
-    if (seFalhar && !(r && (r.ok || r.status === 401))) {
-      await abrirJanela({ titulo: seFalhar, texto: `<p>${esc((r && r.j.erro) || 'Sem ligação. Veja a internet e tente outra vez.')}</p>`,
-        botoes: [{ t: 'Fechar', valor: 'nao', classe: 'botao--cheio', foco: true }] });
+    try { r = await api(caminho, { conta: contaAtual }); } catch (_) { r = null; }
+    if (seFalhar && !(r && r.ok)) {
+      // a sessão já tinha acabado (401): não se fez nada — diz-se, e vai-se à entrada para repetir lá dentro
+      const texto = r && r.status === 401 ? 'A sessão terminou. Entre outra vez e repita.' : ((r && r.j.erro) || 'Sem ligação. Veja a internet e tente outra vez.');
+      await abrirJanela({ titulo: seFalhar, texto: `<p>${esc(texto)}</p>`, botoes: [{ t: 'Fechar', valor: 'nao', classe: 'botao--cheio', foco: true }] });
+      if (r && r.status === 401) mostrarEntrar(r.j.google);
       return;
     }
     sinal(false);
@@ -411,7 +434,7 @@
     if (r === 'sim') sairDaqui('/sair-todos', 'Não foi possível sair em todos os aparelhos');
   });
   $('[data-conta-apagar]').addEventListener('click', async () => {
-    const r = await abrirJanela({ titulo: 'Apagar a conta?', texto: '<p>Apagamos os seus dados, as sessões e o cartão das películas (as películas marcadas na loja perdem-se). As encomendas ficam: a lei obriga-nos a guardá-las.</p>',
+    const r = await abrirJanela({ titulo: 'Apagar a conta?', texto: '<p>Apagamos os seus dados, as sessões e as películas marcadas na loja. Ficam as encomendas (a lei obriga-nos a guardá-las) e o registo das ofertas já entregues.</p>',
       botoes: [{ t: 'Cancelar', valor: 'nao', foco: true }, { t: 'Apagar a conta', valor: 'sim', classe: 'botao--perigo' }] });
     if (r === 'sim') sairDaqui('/apagar', 'A conta não foi apagada');
   });
@@ -459,13 +482,16 @@
     const nota = String(($('#desistir-nota', janela) || {}).value || '').trim();
     const caixa = $('[data-conta-desistir]');
     try {
-      const x = await api('/desistir', { e: enc.encomenda, ...(nota ? { nota } : {}) });
+      const x = await api('/desistir', { e: enc.encomenda, ...(nota ? { nota } : {}), conta: contaAtual });
       if (x.status === 401) { mostrarEntrar(x.j.google); return; }
       if (!x.ok) { dizerFalha(x.j.erro || 'Não conseguimos registar o pedido. Tente outra vez.'); return; }
       enc.desistir = x.j.desistir;
       caixa.outerHTML = blocoDesistir(enc);
-      $('[data-conta-desistir]').setAttribute('tabindex', '-1');
-      $('[data-conta-desistir]').focus();
+      const novo = $('[data-conta-desistir]');
+      // o email da confirmação não saiu: a página diz-o (fica como comprovativo; a loja vê o aviso no painel)
+      if (x.j.recibo === 'falhou') novo.insertAdjacentHTML('beforeend', '<p class="conta__nota">Não conseguimos enviar o email de confirmação. Esta página fica como comprovativo; se precisar, fale connosco pelo WhatsApp.</p>');
+      novo.setAttribute('tabindex', '-1');
+      novo.focus();
     } catch (_) { dizerFalha('Sem ligação. Veja a internet e tente outra vez.'); }
   }
 
@@ -473,6 +499,7 @@
   raiz.addEventListener('click', (e) => { if (e.target.closest('[data-conta-desistir-botao]') && fichaAtual) pedirDesistencia(fichaAtual); });
   function pintarFicha(enc) {
     fichaAtual = enc;
+    contaAtual = String(enc.conta || '');
     const levant = enc.entrega === 'levantamento';
     const gs = Array.isArray(enc.garantias) ? enc.garantias : [];
     const linhas = (enc.linhas || []).map((l, i) => `<p><span>${esc(l.qtd)} × ${esc(l.nome)}${(l.escolhas || []).length ? ` <small>(${esc(l.escolhas.join(', '))})</small>` : ''}${gs[i] ? `<small class="conta__garantia">Garantia até ${esc(dataLonga(gs[i].ate))}</small>` : ''}</span><span>${esc(centimos(l.total_cents))}</span></p>`).join('');
@@ -531,7 +558,7 @@
     if (id) pintarFicha(r.j); else pintarLista(r.j);
   }
   // voltar a esta página pelo «para trás» (a cache do browser) mostra-a como estava: abre-se outra vez
-  window.addEventListener('pageshow', (e) => { if (e.persisted) abrir(); });
+  window.addEventListener('pageshow', (e) => { if (e.persisted) { ocupado(botaoGoogle, false); abrir(); } });
   (async () => {
     await voltaDoGoogle();
     abrir();

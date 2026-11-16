@@ -55,6 +55,9 @@ export const TENTATIVAS = 5;
 export const CODIGOS_POR_HORA = 4;
 export const CODIGOS_POR_DIA = 10;
 export const MAX_SESSOES = 10;
+export const FALHAS_POR_DIA = 15;       // códigos errados numa conta em 24 h, somando todos os pedidos (revisão de 16 nov 2026)
+export const COOKIE_GOOGLE = '__Host-lf-google';   // o bilhete da entrada com o Google: só no browser que a começou
+const GOOGLE_SEGUNDOS = 15 * 60;
 const DIA_MS = 86400 * 1000;
 const SESSAO_MS = SESSAO_DIAS * DIA_MS;
 const CODIGO_MS = CODIGO_MINUTOS * 60 * 1000;
@@ -123,6 +126,7 @@ export class Conta {
     if (c.op === 'pedirCodigo') {
       const antes = (await s.get('codigo')) || null;
       if (antes && agora - antes.criado < REPETIDO_MS && agora < antes.expira) return { ok: true, pedido: antes.pedido, jaEnviado: true };
+      if (((await s.get('falhas')) || []).filter((t) => agora - t < DIA_MS).length >= FALHAS_POR_DIA) return { bloqueado: true };
       const pedidos = ((await s.get('pedidos')) || []).filter((t) => agora - t < DIA_MS);
       if (pedidos.filter((t) => agora - t < 3600 * 1000).length >= CODIGOS_POR_HORA || pedidos.length >= CODIGOS_POR_DIA) return { travado: true };
       const codigo = codigoNovo();
@@ -135,17 +139,35 @@ export class Conta {
     }
 
     if (c.op === 'entrar') {
+      // cada código vale 5 tentativas, e a conta 15 erradas por dia, somando todos os códigos (sem isto, 10 códigos
+      // por dia davam 50 palpites por dia a quem tentasse adivinhar)
+      const falhas = ((await s.get('falhas')) || []).filter((t) => agora - t < DIA_MS);
+      if (falhas.length >= FALHAS_POR_DIA) return { erro: 'bloqueado' };
       const cod = await s.get('codigo');
       if (!cod || !iguais(cod.pedido, c.pedido)) return { erro: 'pedido' };
       if (agora > cod.expira) { await s.delete('codigo'); return { erro: 'expirou' }; }
       cod.tentativas += 1;
       if (!iguais(cod.resumo, c.resumo)) {
+        await s.put('falhas', [...falhas, agora]);
         if (cod.tentativas >= TENTATIVAS) { await s.delete('codigo'); return { erro: 'esgotou' }; }
         await s.put('codigo', cod);
         return { erro: 'errado', restam: TENTATIVAS - cod.tentativas };
       }
       await s.delete('codigo');
+      await s.delete('falhas');
       return { ok: true, segredo: await this.novaSessao(agora, c.mostrar) };
+    }
+
+    // o email do código não saiu: o código não fica, nem conta para o travão (senão dois toques davam «enviámos»)
+    if (c.op === 'esquecerCodigo') {
+      const cod = await s.get('codigo');
+      if (cod && iguais(cod.pedido, String(c.pedido || ''))) {
+        await s.delete('codigo');
+        const pedidos = (await s.get('pedidos')) || [];
+        const i = pedidos.lastIndexOf(cod.criado);
+        if (i >= 0) { pedidos.splice(i, 1); await s.put('pedidos', pedidos); }
+      }
+      return { ok: true };
     }
 
     // entrar sem código: o Google já provou que o email é desta pessoa (o Worker conferiu o token)
@@ -177,6 +199,8 @@ export class Conta {
     // os dados do cliente (o checkout vem preenchido com eles)
     if (c.op === 'gravarDados') {
       if (!c.dados || typeof c.dados !== 'object') return { erro: 'dados' };
+      // tudo vazio: a conta deixa de ter dados (não fica um registo vazio)
+      if (!Object.keys(c.dados).length) { await s.delete('dados'); await this.prazo(agora); return { ok: true, dados: null }; }
       const dados = { ...c.dados, actualizado_em: new Date(agora).toISOString() };
       await s.put('dados', dados);
       await this.prazo(agora);
@@ -189,10 +213,19 @@ export class Conta {
       return { ok: true };
     }
 
-    // apagar a conta: sai tudo o que o objecto guarda (as encomendas ficam: a lei manda guardá-las)
+    // apagar a conta: saem os dados, as sessões, o email e as películas da loja. Fica o registo das ofertas já
+    // entregues (só as datas): as películas do site contam das encomendas, que ficam (a lei manda guardá-las), e sem
+    // ele a mesma oferta voltava a aparecer depois de apagar e entrar outra vez (revisão de 16 nov 2026).
     if (c.op === 'apagar') {
+      const ofertas = ((await s.get('ofertas')) || []).map((o) => ({ em: o.em }));
+      const mexido = await s.get('mexido');
       await s.deleteAll();
       try { await s.deleteAlarm(); } catch { /* sem alarme */ }
+      if (ofertas.length && mexido) {
+        await s.put('ofertas', ofertas);
+        await s.put('mexido', mexido);
+        await this.prazo(agora);
+      }
       return { ok: true };
     }
 
@@ -312,8 +345,11 @@ export async function encomendasDaConta(env, conta) {
     for (const k of r.keys || []) {
       const m = k.metadata;
       if (!m || typeof m.email !== 'string' || !m.email) continue;
-      let dela = emailDaConta(m.email) === conta;
-      if (!dela && (m.email.length === 80 || m.email.length === 40)) {
+      // 80 ou 40 caracteres: pode estar cortado; confere-se o email inteiro na encomenda, também quando o cortado é
+      // igual ao da conta (um email mais comprido de outra pessoa pode começar como o desta)
+      const cortado = m.email.length === 80 || m.email.length === 40;
+      let dela = !cortado && emailDaConta(m.email) === conta;
+      if (cortado) {
         const enc = await lerEncomenda(env, k.name.replace(/^order:/, ''));
         dela = Boolean(enc) && emailDaConta((enc.cliente || {}).email) === conta;
       }
@@ -514,6 +550,7 @@ async function travado(env, chave) {
 }
 
 const POUCO = 'Não conseguimos tratar o pedido agora. Tente daqui a pouco.';
+const BLOQUEADA = 'Houve demasiadas tentativas com códigos errados nesta conta. Tente outra vez amanhã.';
 
 async function pedirCodigo(request, env, ip) {
   if (await travado(env, `conta-codigo:${ip}`)) return json({ erro: 'Demasiados pedidos. Aguarde um minuto e tente outra vez.' }, 429);
@@ -525,12 +562,15 @@ async function pedirCodigo(request, env, ip) {
   let r;
   try { r = await pedirAoObjecto(env, 'CONTA', await idDaConta(conta), { op: 'pedirCodigo', email: conta }); } catch (e) { console.error('conta por ler', e.message); return json({ erro: POUCO }, 503); }
   if (r.travado) return json({ erro: 'Já enviámos vários códigos para este email. Espere um pouco e tente outra vez.', campo: 'email' }, 429);
+  if (r.bloqueado) return json({ erro: BLOQUEADA, campo: 'email' }, 429);
   if (!r.jaEnviado) {
     // Num wrangler dev local (ENCOMENDAS_LOCAL=1, nunca na Cloudflare) o código vê-se na consola.
     if (env.ENCOMENDAS_LOCAL === '1') console.log(`CÓDIGO DA CONTA (só local) ${email}: ${r.codigo}`);
     const enviado = await enviar(env, { para: email, ...emailDoCodigo(env, r.codigo), responderA: env.STORE_EMAIL || undefined });
     if (enviado !== 'enviado' && env.ENCOMENDAS_LOCAL !== '1') {
       console.error('CÓDIGO DA CONTA NÃO ENVIADO', enviado);
+      // o código que não saiu esquece-se: outro toque manda um novo, e não gasta um dos 4 da hora
+      try { await pedirAoObjecto(env, 'CONTA', await idDaConta(conta), { op: 'esquecerCodigo', pedido: r.pedido }); } catch (e) { console.error('código por esquecer', e.message); }
       return json({ erro: 'Não conseguimos enviar o código agora. Tente daqui a pouco.' }, 503);
     }
   }
@@ -551,6 +591,7 @@ async function entrar(request, env, ip) {
   try { r = await pedirAoObjecto(env, 'CONTA', id, { op: 'entrar', pedido, resumo: await resumo(`${pedido}:${codigo}`), mostrar: email }); } catch (e) { console.error('conta por ler', e.message); return json({ erro: POUCO }, 503); }
   if (r.erro === 'errado') return json({ erro: r.restam === 1 ? 'O código não está certo. Tem mais uma tentativa.' : `O código não está certo. Tem mais ${r.restam} tentativas.`, campo: 'codigo' }, 400);
   if (r.erro === 'esgotou') return json({ erro: 'O código não está certo. Peça um código novo.', campo: 'codigo', novo: true }, 400);
+  if (r.erro === 'bloqueado') return json({ erro: BLOQUEADA, campo: 'codigo', novo: true }, 429);
   if (r.erro || !r.segredo) return json({ erro: 'Este código já não vale. Peça um código novo.', campo: 'codigo', novo: true }, 400);
   return json({ ok: true }, 200, { 'Set-Cookie': cookieDaSessao(`${id}.${r.segredo}`, SESSAO_DIAS * 86400) });
 }
@@ -569,6 +610,11 @@ async function sessaoDe(request, env) {
 const semSessao = (env) => json({ erro: 'Entre outra vez na sua conta.', sessao: false, google: googleDe(env) }, 401, { 'Set-Cookie': APAGAR_COOKIE });
 const googleDe = (env) => (/^[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com$/.test(String(env.GOOGLE_CLIENTE || '')) ? env.GOOGLE_CLIENTE : null);
 const renovar = (s) => (s.renovou ? { 'Set-Cookie': cookieDaSessao(s.token, SESSAO_DIAS * 86400) } : {});
+/* A página diz de que conta é (o id que o /eu lhe deu; o mesmo do código QR, não é segredo). Entrou-se noutra conta
+   noutro separador: o pedido não segue — senão «Apagar a conta» apagava a outra (revisão de 16 nov 2026). Sem o id
+   (uma página antiga na cache), segue como antes. */
+const outraConta = (s, conta) => typeof conta === 'string' && conta !== '' && conta !== s.id;
+const contaMudou = () => json({ erro: 'Entrou noutra conta noutro separador. Recarregue a página.', mudou: true }, 409);
 
 async function eu(request, env) {
   let s;
@@ -582,15 +628,12 @@ async function eu(request, env) {
     const { total, atuais, disponiveis, por_cartao } = cartaoDe((await peliculasDoSite(env, encomendas)).n, s.guardado);
     cartao = { por_cartao, total, atuais, disponiveis };
   } catch (e) { console.error('cartão por contar', e.message); cartao = null; }
-  // os dados: os gravados; sem eles, a sugestão da última encomenda (o checkout e o «Os meus dados» começam por ela)
-  let sugestao = null;
-  if (!s.dados && encomendas.length) {
-    try { sugestao = dadosDaEncomenda(await lerEncomenda(env, encomendas[0].encomenda)); } catch (e) { console.error('última encomenda por ler', e.message); }
-  }
+  // os dados: só os que o cliente gravou na conta. Nunca os de uma encomenda: quem escreveu este email por engano (ou
+  // de propósito) não pode ver nem meter os seus dados no checkout de outra pessoa (revisão de 16 nov 2026)
   let garantias = [];
   try { garantias = await garantiasDaConta(env, encomendas); } catch (e) { console.error('garantias por contar', e.message); }
-  const nome = String((s.dados && s.dados.nome) || (sugestao && sugestao.nome) || '').trim().split(/\s+/)[0] || '';
-  return json({ email: s.mostrar, nome, encomendas, cartao, dados: s.dados, sugestao, garantias }, 200, renovar(s));
+  const nome = String((s.dados && s.dados.nome) || '').trim().split(/\s+/)[0] || '';
+  return json({ conta: s.id, email: s.mostrar, nome, encomendas, cartao, dados: s.dados, garantias }, 200, renovar(s));
 }
 
 async function fichaDaConta(request, env, url) {
@@ -605,7 +648,7 @@ async function fichaDaConta(request, env, url) {
   if (!enc || emailDaConta((enc.cliente || {}).email) !== s.email) return naoHa();
   let cat = null;
   try { cat = await lerCatalogo(env); } catch (e) { console.error('catálogo por ler (garantias)', e.message); }
-  return json({ ...vistaDaConta(enc), garantias: garantiasDasLinhas(enc, cat), desistir: prazoDeDesistir(enc) }, 200, renovar(s));
+  return json({ ...vistaDaConta(enc), conta: s.id, garantias: garantiasDasLinhas(enc, cat), desistir: prazoDeDesistir(enc) }, 200, renovar(s));
 }
 
 async function sair(request, env) {
@@ -635,25 +678,11 @@ export function validarDados(b) {
   return { dados: Object.fromEntries(Object.entries(d).filter(([, v]) => v)) };
 }
 
-/* Os dados de uma encomenda (a sugestão, quando a conta ainda não tem os seus). */
-export function dadosDaEncomenda(enc) {
-  const c = (enc && enc.cliente) || {};
-  const d = validarDados(c);
-  return d.dados && Object.keys(d.dados).length ? d.dados : null;
-}
-
 async function verDados(request, env) {
   let s;
   try { s = await sessaoDe(request, env); } catch (e) { console.error('sessão por ler', e.message); return json({ erro: POUCO }, 503); }
   if (!s) return semSessao(env);
-  let sugestao = null;
-  if (!s.dados) {
-    try {
-      const lista = await encomendasDaConta(env, s.email);
-      if (lista.length) sugestao = dadosDaEncomenda(await lerEncomenda(env, lista[0].encomenda));
-    } catch (e) { console.error('última encomenda por ler', e.message); }
-  }
-  return json({ email: s.mostrar, dados: s.dados, sugestao }, 200, renovar(s));
+  return json({ email: s.mostrar, dados: s.dados }, 200, renovar(s));
 }
 
 async function gravarDados(request, env) {
@@ -662,11 +691,12 @@ async function gravarDados(request, env) {
   if (!s) return semSessao(env);
   const { corpo, resposta } = await lerCorpoJson(request);
   if (resposta) return resposta;
+  if (outraConta(s, corpo.conta)) return contaMudou();
   const v = validarDados(corpo);
   if (v.erro) return json({ erro: v.erro, campo: v.campo }, 400);
   let r;
   try { r = await pedirAoObjecto(env, 'CONTA', s.id, { op: 'gravarDados', dados: v.dados }); } catch (e) { console.error('dados por gravar', e.message); return json({ erro: POUCO }, 503); }
-  return json({ dados: r.dados }, 200, renovar(s));
+  return json({ dados: r.dados || null }, 200, renovar(s));   // tudo vazio: a conta fica sem dados (null)
 }
 
 /* ---------------------------------------------------------------- as garantias */
@@ -717,15 +747,54 @@ async function garantiasDaConta(env, encomendas) {
 /* ---------------------------------------------------------------- desistir da compra */
 
 /* O prazo para desistir (DL 24/2014, art. 10.º): 14 dias depois de receber; antes de receber, pode sempre. Num envio
-   não se sabe o dia da entrega: conta-se do envio, mais uma semana. Para a loja, um pedido tardio decide-se à mão. */
+   não se sabe o dia da entrega: conta-se do envio, mais uma semana. Os dias são os do calendário de Lisboa e o prazo
+   acaba no FIM do último dia; se esse dia for sábado, domingo ou feriado nacional, passa para o dia útil seguinte
+   (Regulamento 1182/71, que a Directiva 2011/83 manda aplicar; Código Civil, art. 279.º). Até 16 nov 2026 contava
+   14×24 h desde a hora da entrega: a página dizia «até dia 29» e às 15 h do dia 29 já recusava. */
 export const DESISTIR_DIAS = 14;
+const FERIADOS_FIXOS = new Set(['01-01', '04-25', '05-01', '06-10', '08-15', '10-05', '11-01', '12-01', '12-08', '12-25']);
+/* O domingo de Páscoa (o algoritmo anónimo do calendário gregoriano), à meia-noite UTC. */
+function pascoa(ano) {
+  const a = ano % 19; const b = Math.floor(ano / 100); const c = ano % 100; const d = Math.floor(b / 4); const e = b % 4;
+  const f = Math.floor((b + 8) / 25); const g = Math.floor((b - f + 1) / 3); const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4); const k = c % 4; const l = (32 + 2 * e + 2 * i - h - k) % 7; const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const n = h + l - 7 * m + 114;
+  return Date.UTC(ano, Math.floor(n / 31) - 1, (n % 31) + 1);
+}
+/* Um dia (meia-noite UTC desse dia do calendário) é útil: nem fim de semana, nem feriado nacional (os fixos, a
+   Sexta-feira Santa e o Corpo de Deus). */
+export function diaUtil(t) {
+  const d = new Date(t);
+  if (d.getUTCDay() === 0 || d.getUTCDay() === 6) return false;
+  if (FERIADOS_FIXOS.has(d.toISOString().slice(5, 10))) return false;
+  const p = pascoa(d.getUTCFullYear());
+  return t !== p - 2 * DIA_MS && t !== p + 60 * DIA_MS;
+}
+const diaEmLisboa = (iso) => {
+  const [a, m, d] = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Lisbon', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(iso)).split('-').map(Number);
+  return Date.UTC(a, m - 1, d);
+};
+/* As 23:59:59,999 desse dia em Lisboa (UTC+0 no inverno, UTC+1 no verão), como instante. */
+function fimDoDiaEmLisboa(dia) {
+  const ingenuo = dia + DIA_MS - 1;
+  const p = {};
+  new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Lisbon', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+    .formatToParts(new Date(ingenuo)).forEach((x) => { p[x.type] = x.value; });
+  const comoEmLisboa = Date.UTC(Number(p.year), Number(p.month) - 1, Number(p.day), Number(p.hour), Number(p.minute), Number(p.second), 999);
+  return ingenuo - (comoEmLisboa - ingenuo);
+}
+export function fimDoPrazo(iso, dias) {
+  let t = diaEmLisboa(iso) + dias * DIA_MS;
+  while (!diaUtil(t)) t += DIA_MS;
+  return fimDoDiaEmLisboa(t);
+}
 export function prazoDeDesistir(enc, agora = Date.now()) {
   const pedidos = (Array.isArray(enc.desistencias) ? enc.desistencias : []).map((d) => d.em);
   if (['anulada', 'reembolsada', 'falhou', 'expirou'].includes(enc.estado)) return { pode: false, ate: null, pedidos };
   const entrega = entregaDe(enc);
   if (!entrega) return { pode: true, ate: null, pedidos };
   const dias = entrega.estado === 'enviada' ? DESISTIR_DIAS + 7 : DESISTIR_DIAS;
-  const ate = new Date(Date.parse(entrega.em) + dias * DIA_MS).toISOString();
+  const ate = new Date(fimDoPrazo(entrega.em, dias)).toISOString();
   return { pode: agora <= Date.parse(ate), ate, pedidos };
 }
 
@@ -736,6 +805,7 @@ async function desistir(request, env, ip) {
   if (!s) return semSessao(env);
   const { corpo, resposta } = await lerCorpoJson(request);
   if (resposta) return resposta;
+  if (outraConta(s, corpo.conta)) return contaMudou();
   const id = String(corpo.e || '');
   const nota = limpar(corpo.nota, 500, { linhas: true });
   const naoHa = () => json({ erro: 'Não encontrámos esta encomenda na sua conta.' }, 404);
@@ -757,21 +827,30 @@ async function desistir(request, env, ip) {
   } catch (e) { console.error('desistência por gravar', id, e.message); return json({ erro: POUCO }, 503); }
   if (!r.enc || r.alheia) return naoHa();
   if (r.fora) return json({ erro: 'O prazo para desistir desta encomenda já passou. Fale connosco pelo WhatsApp.' }, 409);
+  let recibo = null;
   if (r.novo) {
     // o aviso ao cliente (a confirmação, em suporte duradouro) e à loja (pede-lhe que trate da devolução)
     const resultado = await avisar(env, 'desistencia', r.enc, { nota, em });
     if (falhou(resultado)) console.error('EMAIL DA DESISTÊNCIA NÃO ENVIADO', id, JSON.stringify(resultado));
+    recibo = resultado && resultado.cliente === 'enviado' ? 'enviado' : 'falhou';   // a página diz-o, se não saiu
     try { await alterarEncomenda(env, id, (x) => { x.avisos = { ...(x.avisos || {}), [`desistencia:${em}`]: resultado }; return {}; }); } catch (e) { console.error('aviso por gravar', id, e.message); }
   }
-  return json({ ok: true, desistir: prazoDeDesistir(r.enc) }, 200, renovar(s));
+  return json({ ok: true, desistir: prazoDeDesistir(r.enc), ...(recibo ? { recibo } : {}) }, 200, renovar(s));
 }
 
 /* ---------------------------------------------------------------- sair em todos os aparelhos, apagar a conta */
+
+/* O corpo destes dois pode vir vazio (só leva o id da conta do ecrã, quando o leva). */
+async function corpoOuVazio(request) {
+  const r = await lerCorpoJson(request);
+  return r.corpo || {};
+}
 
 async function sairTodos(request, env) {
   let s;
   try { s = await sessaoDe(request, env); } catch (e) { console.error('sessão por ler', e.message); return json({ erro: POUCO }, 503); }
   if (!s) return semSessao(env);
+  if (outraConta(s, (await corpoOuVazio(request)).conta)) return contaMudou();
   try { await pedirAoObjecto(env, 'CONTA', s.id, { op: 'sairTodos' }); } catch (e) { console.error('sessões por apagar', e.message); return json({ erro: POUCO }, 503); }
   return json({ ok: true }, 200, { 'Set-Cookie': APAGAR_COOKIE });
 }
@@ -780,6 +859,7 @@ async function apagarConta(request, env) {
   let s;
   try { s = await sessaoDe(request, env); } catch (e) { console.error('sessão por ler', e.message); return json({ erro: POUCO }, 503); }
   if (!s) return semSessao(env);
+  if (outraConta(s, (await corpoOuVazio(request)).conta)) return contaMudou();
   try { await pedirAoObjecto(env, 'CONTA', s.id, { op: 'apagar' }); } catch (e) { console.error('conta por apagar', e.message); return json({ erro: POUCO }, 503); }
   return json({ ok: true }, 200, { 'Set-Cookie': APAGAR_COOKIE });
 }
@@ -790,10 +870,12 @@ async function apagarConta(request, env) {
    telemóvel ou no painel) e abre o cartão deste cliente. O id é o resumo do email: não diz o email, e sem a entrada no
    painel não serve para nada. */
 export const enderecoDoCartao = (env, id) => `${String(env.PAINEL_URL || 'https://backoffice.lfmobile.pt').replace(/\/+$/, '')}/#/cartoes?conta=${id}`;
-async function qrDoCartao(request, env) {
+async function qrDoCartao(request, env, url) {
   let s;
   try { s = await sessaoDe(request, env); } catch (e) { console.error('sessão por ler', e.message); return new Response('', { status: 503 }); }
   if (!s) return new Response('', { status: 401, headers: { 'Cache-Control': 'no-store' } });
+  // o código da conta que o ecrã mostra (?c=); se entretanto se entrou noutra, não se mostra o dela
+  if (outraConta(s, url.searchParams.get('c') || '')) return new Response('', { status: 409, headers: { 'Cache-Control': 'no-store' } });
   const svg = renderSVG(enderecoDoCartao(env, s.id), { ecc: 'M', border: 3, pixelSize: 8 });
   return new Response(svg, { headers: { 'Content-Type': 'image/svg+xml; charset=utf-8', 'Cache-Control': 'private, no-store', 'X-Content-Type-Options': 'nosniff' } });
 }
@@ -848,20 +930,40 @@ export async function verificarTokenDoGoogle(token, { cliente, nonce, agora = Da
   return { email };
 }
 
+/* O BILHETE (revisão de 16 nov 2026): antes de ir ao Google, a página pede-o aqui — um segredo num cookie HttpOnly
+   (__Host-lf-google, 15 minutos) — e o nonce que leva ao Google é o resumo dele. Na volta, o token só entra com o cookie
+   do mesmo browser: o nonce está dentro do token (qualquer um o lê), por isso não chega para provar quem começou. Um
+   token apanhado (o histórico de um computador partilhado) não serve noutro browser, e o cookie sai depois de usado. */
+const cookieGoogle = (valor, segundos) => `${COOKIE_GOOGLE}=${valor}; Path=/; Max-Age=${segundos}; HttpOnly; Secure; SameSite=Lax`;
+const nonceDoBilhete = (bilhete) => resumo(`lfmobile-google:${bilhete}`);
+const GOOGLE_FALHOU = 'Não conseguimos entrar com o Google. Tente outra vez, ou entre com o email.';
+
+async function comecarGoogle(request, env, ip) {
+  if (await travado(env, `conta-google-inicio:${ip}`)) return json({ erro: 'Demasiadas tentativas. Aguarde um minuto e tente outra vez.' }, 429);
+  if (!googleDe(env)) return json({ erro: 'Entrar com o Google ainda não está disponível. Entre com o email.' }, 503);
+  const bilhete = aleatorio(32);
+  return json({ nonce: await nonceDoBilhete(bilhete) }, 200, { 'Set-Cookie': cookieGoogle(bilhete, GOOGLE_SEGUNDOS) });
+}
+
 async function entrarComGoogle(request, env, ip) {
   if (await travado(env, `conta-google:${ip}`)) return json({ erro: 'Demasiadas tentativas. Aguarde um minuto e tente outra vez.' }, 429);
   const cliente = googleDe(env);
   if (!cliente) return json({ erro: 'Entrar com o Google ainda não está disponível. Entre com o email.' }, 503);
+  const limpar = { 'Set-Cookie': cookieGoogle('', 0) };   // o bilhete serve uma vez, corra bem ou mal
   const { corpo, resposta } = await lerCorpoJson(request);
   if (resposta) return resposta;
+  const bilhete = lerCookie(request.headers.get('Cookie'), COOKIE_GOOGLE);
+  if (!/^[A-Za-z0-9_-]{43}$/.test(bilhete)) return json({ erro: 'A entrada com o Google não se concluiu. Tente outra vez.' }, 400, limpar);
   let v;
-  try { v = await verificarTokenDoGoogle(corpo.id_token, { cliente, nonce: corpo.nonce }); } catch (e) { console.error('Google por conferir', e.message); return json({ erro: POUCO }, 503); }
-  if (v.erro) { console.error('token do Google recusado:', v.erro); return json({ erro: 'Não conseguimos entrar com o Google. Tente outra vez, ou entre com o email.' }, 400); }
+  try { v = await verificarTokenDoGoogle(corpo.id_token, { cliente, nonce: await nonceDoBilhete(bilhete) }); } catch (e) { console.error('Google por conferir', e.message); return json({ erro: POUCO }, 503, limpar); }
+  if (v.erro) { console.error('token do Google recusado:', v.erro); return json({ erro: GOOGLE_FALHOU }, 400, limpar); }
   const conta = emailDaConta(v.email);
   const id = await idDaConta(conta);
   let r;
-  try { r = await pedirAoObjecto(env, 'CONTA', id, { op: 'entrarSemCodigo', email: conta, mostrar: v.email }); } catch (e) { console.error('conta por ler', e.message); return json({ erro: POUCO }, 503); }
-  return json({ ok: true }, 200, { 'Set-Cookie': cookieDaSessao(`${id}.${r.segredo}`, SESSAO_DIAS * 86400) });
+  try { r = await pedirAoObjecto(env, 'CONTA', id, { op: 'entrarSemCodigo', email: conta, mostrar: v.email }); } catch (e) { console.error('conta por ler', e.message); return json({ erro: POUCO }, 503, limpar); }
+  const ok = json({ ok: true }, 200, { 'Set-Cookie': cookieDaSessao(`${id}.${r.segredo}`, SESSAO_DIAS * 86400) });
+  ok.headers.append('Set-Cookie', cookieGoogle('', 0));
+  return ok;
 }
 
 export async function rotaConta(request, env, url, caminho) {
@@ -878,7 +980,8 @@ export async function rotaConta(request, env, url, caminho) {
   if (sub === '/desistir') return request.method === 'POST' ? desistir(request, env, ip) : naoPermitido();
   if (sub === '/sair-todos') return request.method === 'POST' ? sairTodos(request, env) : naoPermitido();
   if (sub === '/apagar') return request.method === 'POST' ? apagarConta(request, env) : naoPermitido();
-  if (sub === '/cartao.svg') return request.method === 'GET' ? qrDoCartao(request, env) : naoPermitido();
+  if (sub === '/cartao.svg') return request.method === 'GET' ? qrDoCartao(request, env, url) : naoPermitido();
+  if (sub === '/google/inicio') return request.method === 'POST' ? comecarGoogle(request, env, ip) : naoPermitido();
   if (sub === '/google') return request.method === 'POST' ? entrarComGoogle(request, env, ip) : naoPermitido();
   return json({ erro: 'Rota desconhecida.' }, 404);
 }

@@ -805,6 +805,8 @@ teste('a conta do cliente: a página /conta/, a ligação no cabeçalho, no menu
   assert.match(fs.readFileSync(path.join(RAIZ, 'src/scripts/conta.js'), 'utf8'), /const CHAVE = 'lfmobile:conta-codigo';/);
   assert.match(cookies, /«lfmobile:conta»/);
   assert.match(cookies, /«lfmobile:conta-google»/);
+  assert.match(cookies, /«__Host-lf-google»/);
+  assert.match(fs.readFileSync(path.join(RAIZ, 'worker/encomendas/conta.js'), 'utf8'), /export const COOKIE_GOOGLE = '__Host-lf-google';/);
   const contaJs = fs.readFileSync(path.join(RAIZ, 'src/scripts/conta.js'), 'utf8');
   assert.match(contaJs, /const SINAL = 'lfmobile:conta';/);
   assert.match(contaJs, /const CHAVE_GOOGLE = 'lfmobile:conta-google';/);
@@ -824,11 +826,12 @@ teste('uma ligação interna partida pára a construção', () => {
     const pedidos = [];
     const env = {
       ASSETS: { fetch: async () => new Response('ficheiro') },
-      ENCOMENDAS: { fetch: async (r) => { pedidos.push(r); return new Response('{"ok":true}', { headers: { 'set-cookie': '__Host-lf-sessao=x; Path=/; HttpOnly; Secure; SameSite=Lax' } }); } },
+      ENCOMENDAS: { fetch: async (r) => { pedidos.push(r); const h = new Headers({ 'set-cookie': '__Host-lf-sessao=x; Path=/; HttpOnly; Secure; SameSite=Lax' }); h.append('set-cookie', '__Host-lf-google=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax'); return new Response('{"ok":true}', { headers: h }); } },
     };
     const r1 = await www.fetch(new Request('https://lfmobile.pt/conta/api/eu', { headers: { cookie: '__Host-lf-sessao=abc' } }), env);
     assert.equal(await r1.text(), '{"ok":true}');
     assert.match(r1.headers.get('set-cookie'), /^__Host-lf-sessao=x; Path=\//);
+    assert.deepEqual(r1.headers.getSetCookie().map((c) => c.split('=')[0]), ['__Host-lf-sessao', '__Host-lf-google'], 'os dois cookies passam (a entrada com o Google apaga o bilhete e dá a sessão)');
     assert.equal(pedidos.length, 1);
     assert.equal(pedidos[0].headers.get('cookie'), '__Host-lf-sessao=abc');
     assert.equal(await (await www.fetch(new Request('https://lfmobile.pt/conta/'), env)).text(), 'ficheiro', 'a página da conta é um ficheiro do site');
