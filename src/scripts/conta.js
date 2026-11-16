@@ -25,7 +25,8 @@
   const SINAL = 'lfmobile:conta';
   const guardar = (onde, k, v) => { try { if (v === null) window[onde].removeItem(k); else window[onde].setItem(k, v); } catch (_) { /* sem armazenamento: vale enquanto a página estiver aberta */ } };
   const ler = (onde, k) => { try { return window[onde].getItem(k); } catch (_) { return null; } };
-  const sinal = (entrou) => guardar('localStorage', SINAL, entrou ? '1' : null);
+  // o cabeçalho (site.js) muda o ícone da pessoa conforme haja sessão: avisa-se logo, nesta página
+  const sinal = (entrou) => { guardar('localStorage', SINAL, entrou ? '1' : null); try { window.dispatchEvent(new Event('lfmobile:conta')); } catch (_) { /* browser antigo */ } };
 
   // os estados como o cliente os lê (encomenda.js do Worker: ESTADOS)
   const ROTULOS = {
@@ -86,6 +87,16 @@
        O foco vai para o título, para quem usa um leitor de ecrã. */
     if (mudou && qual !== 'carregar') {
       if (document.activeElement && document.activeElement !== document.body && typeof document.activeElement.blur === 'function') document.activeElement.blur();
+      // «As minhas encomendas» (o menu da conta) leva a /conta/#encomendas: abre nessa secção
+      const id = qual === 'lista' && /^#[a-z-]+$/.test(location.hash) ? location.hash.slice(1) : '';
+      const seccao = id && blocos.lista.querySelector(`[id="${id}"]`);
+      if (seccao) {
+        const h2 = seccao.querySelector('h2') || seccao;
+        h2.tabIndex = -1;
+        seccao.scrollIntoView({ block: 'start' });
+        h2.focus({ preventScroll: true });
+        return;
+      }
       window.scrollTo(0, 0);
       const h = blocos[qual].querySelector('h1');
       if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }

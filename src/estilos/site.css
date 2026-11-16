@@ -228,6 +228,33 @@ html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
 .topo :focus-visible { outline-color: currentColor; }
 .topo__menu { margin-left: -8px; }
 @media (min-width: 900px) { .topo__menu { display: none; } }
+/* os ícones do cabeçalho do tamanho do cesto do iThos (16 nov 2026, o Renato: «aumenta um bocado os icons do site, vê o
+   tamanho deles no iThos, por exemplo o tamanho do cesto»): 24 px de caixa (medido: o cesto daqui fica com ~13×17 px de
+   desenho, o do iThos tem 15×16; antes eram 18 px e 10×13) e o traço a 1,5, como lá. */
+.topo__botao .icone { width: 24px; height: 24px; stroke-width: 1.5; }
+/* O MENU DA CONTA (o ícone da pessoa, com sessão; site.js): um cartão pequeno debaixo do ícone. No telemóvel ocupa a
+   largura da barra, debaixo dela (o cabeçalho é o contentor: .topo é sticky); no computador fica debaixo do ícone. */
+.topo__pessoa-caixa { display: flex; }
+.topo__pessoa[aria-expanded="true"] { background: color-mix(in srgb, currentColor 9%, transparent); }   /* aberto (sem o rato também) */
+.menu-conta { position: absolute; top: calc(100% + 6px); left: var(--margem); right: var(--margem); z-index: 60; padding: 8px; background: var(--papel); color: var(--tinta); border: 1px solid var(--linha); border-radius: var(--raio-m); box-shadow: var(--sombra); }
+.menu-conta[hidden] { display: none; }
+@media (min-width: 600px) {
+  .topo__pessoa-caixa { position: relative; }
+  .menu-conta { left: auto; right: -6px; top: calc(100% + 10px); width: 284px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .menu-conta:not([hidden]) { animation: menu-conta-abre .16s ease-out; }
+  @keyframes menu-conta-abre { from { opacity: 0; transform: translateY(-4px); } }
+}
+.menu-conta__quem { display: grid; gap: 2px; margin: 0 0 6px; padding: 8px 12px 12px; border-bottom: 1px solid var(--linha); }
+.menu-conta__quem strong { font-size: 1rem; font-weight: 800; }
+.menu-conta__quem span { color: var(--tinta-2); font-size: .88rem; overflow-wrap: anywhere; }
+.menu-conta__quem span:empty { display: none; }
+.menu-conta__lista { margin: 0 0 6px; padding: 0 0 6px; list-style: none; border-bottom: 1px solid var(--linha); }
+.menu-conta__lista a, .menu-conta__sair { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; font-size: .95rem; font-weight: 600; text-align: left; text-decoration: none; cursor: pointer; }
+.menu-conta .icone { width: 20px; height: 20px; stroke-width: 1.6; color: var(--tinta-2); }
+@media (hover: hover) { .menu-conta__lista a:hover, .menu-conta__sair:hover { background: color-mix(in srgb, var(--tinta) 6%, transparent); } }
+.menu-conta__sair:disabled { opacity: .6; cursor: default; }
 .topo__conta { position: absolute; top: 3px; right: 1px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--ouro); color: var(--escuro); font-size: .7rem; font-weight: 800; line-height: 19px; text-align: center; }
 /* as quatro ligações (computador): letras espaçadas e traços finos, como na imagem da LF Mobile; a
    página onde se está fica com a cor cheia e um traço dourado por baixo */
@@ -1121,6 +1148,16 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .conta__outras { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 22px; }
 .conta__ligacao { min-height: 44px; padding: 0; border: 0; background: none; color: var(--tinta); font: inherit; font-weight: 700; font-size: .95rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .conta__ligacao:disabled { color: var(--tinta-3); cursor: default; }
+/* AS DEFINIÇÕES DA CONTA: fechadas, no fundo da página, em letra discreta (sair em todos e apagar a conta) */
+.conta__definicoes { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--linha); }
+.conta__definicoes summary { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--tinta-2); font-weight: 700; font-size: .95rem; list-style: none; cursor: pointer; }
+.conta__definicoes summary::-webkit-details-marker { display: none; }
+.conta__definicoes summary::after { content: ''; width: 7px; height: 7px; margin-top: -3px; border-right: 1.8px solid currentColor; border-bottom: 1.8px solid currentColor; transform: rotate(45deg); transition: transform .15s; }
+.conta__definicoes[open] summary::after { margin-top: 3px; transform: rotate(-135deg); }
+.conta__definicoes-corpo { display: grid; gap: 12px; padding: 4px 0 8px; }
+.conta__definicao { display: grid; justify-items: start; }
+.conta__definicao .conta__nota { margin-top: -6px; }
+.conta__ligacao--perigo { color: var(--vermelho); }
 .conta__cabeca { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 6px 24px; margin: 6px 0 20px; }
 .conta__quem { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; color: var(--tinta-2); font-size: .95rem; overflow-wrap: anywhere; }
 .conta__encomendas { display: grid; gap: 12px; }
@@ -1158,7 +1195,6 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .conta__ou::before, .conta__ou::after { content: ''; flex: 1; height: 1px; background: var(--linha); }
 /* o painel da conta: as secções umas por baixo das outras, cada uma com o seu título */
 .conta__seccao { display: grid; gap: 14px; margin-top: 36px; }
-.conta__seccao--fim { padding-top: 28px; border-top: 1px solid var(--linha); }
 .conta__seccao-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .conta__h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: -.01em; }
 .conta__nota { color: var(--tinta-3); font-size: .92rem; }

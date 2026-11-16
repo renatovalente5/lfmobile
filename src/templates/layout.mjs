@@ -134,7 +134,19 @@ function cabecalho(ctx, atual, { naCapa = false } = {}) {
     </nav>
     <div class="topo__direita">
       <button class="topo__botao topo__lupa" type="button" data-abrir="procurar" aria-haspopup="dialog">${icones.pesquisa}<span class="visualmente-escondido">Procurar</span></button>
-      <a class="topo__botao topo__pessoa" href="${ctx.url('/conta/')}"${atual === '/conta/' ? ' aria-current="page"' : ''}>${icones.pessoa}<span class="visualmente-escondido">A minha conta</span></a>
+      <div class="topo__pessoa-caixa" data-menu-conta>
+        <a class="topo__botao topo__pessoa" href="${ctx.url('/conta/')}"${atual === '/conta/' ? ' aria-current="page"' : ''} data-menu-conta-botao>${icones.pessoa}<span class="visualmente-escondido">A minha conta</span></a>
+        ${/* O MENU DA CONTA (16 nov 2026; o Renato: «quando clico no ícone do perfil devia aparecer uma dropdown a dizer
+            Perfil, Logout…»). Só com sessão (site.js): sem ela, o ícone é a ligação para entrar. «Apagar a conta» e «Sair
+            em todos os aparelhos» não vêm aqui: ficam nas «Definições da conta», no fundo da página da conta. */ ''}<div class="menu-conta" id="menu-conta" data-menu-conta-lista hidden>
+          <p class="menu-conta__quem"><strong data-menu-conta-ola>Olá!</strong><span data-menu-conta-email></span></p>
+          <ul class="menu-conta__lista">
+            <li><a href="${ctx.url('/conta/')}">${icones.pessoa}<span>A minha conta</span></a></li>
+            <li><a href="${ctx.url('/conta/')}#encomendas">${icones.caixa}<span>As minhas encomendas</span></a></li>
+          </ul>
+          <button class="menu-conta__sair" type="button" data-menu-conta-sair>${icones.sair}<span>Sair</span></button>
+        </div>
+      </div>
       <a class="topo__botao topo__carrinho" href="${ctx.url('/carrinho/')}" data-abrir="carrinho" aria-haspopup="dialog">${icones.carrinho}<span class="visualmente-escondido">Carrinho</span><span class="topo__conta" data-conta hidden></span></a>
     </div>
   </div>

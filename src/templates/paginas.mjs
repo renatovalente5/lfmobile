@@ -732,7 +732,7 @@ export function conta(ctx) {
       <p class="conta__quem"><span data-conta-quem></span><button class="conta__ligacao" type="button" data-conta-sair>Sair</button></p>
     </div>
     <section class="cartao-peliculas" data-conta-cartao hidden aria-labelledby="cartao-peliculas-titulo"></section>
-    <section class="conta__seccao" aria-labelledby="conta-titulo-encomendas">
+    <section class="conta__seccao" id="encomendas" aria-labelledby="conta-titulo-encomendas">
       <h2 class="conta__h2" id="conta-titulo-encomendas">As minhas encomendas</h2>
       <ul class="conta__encomendas" data-conta-encomendas></ul>
       <div class="conta__vazia" data-conta-vazia hidden>
@@ -745,7 +745,7 @@ export function conta(ctx) {
       <ul class="conta__garantias" data-conta-garantias-lista></ul>
       <p class="conta__nota">Contam do dia da entrega: 3 anos nos artigos novos, ${recond} meses nos recondicionados.</p>
     </section>
-    <section class="conta__seccao" aria-labelledby="conta-titulo-dados">
+    <section class="conta__seccao" id="dados" aria-labelledby="conta-titulo-dados">
       <div class="conta__seccao-topo"><h2 class="conta__h2" id="conta-titulo-dados">Os meus dados</h2><button class="conta__ligacao" type="button" data-conta-dados-editar>Editar</button></div>
       <div class="conta__dados-resumo" data-conta-dados-resumo></div>
       <form class="formulario conta__dados" data-conta-dados-form novalidate hidden>
@@ -764,10 +764,14 @@ export function conta(ctx) {
         <p class="formulario__nota">Ficam na sua conta e preenchem a próxima encomenda.</p>
       </form>
     </section>
-    <section class="conta__seccao conta__seccao--fim" aria-labelledby="conta-titulo-conta">
-      <h2 class="conta__h2" id="conta-titulo-conta">A conta</h2>
-      <div class="conta__botoes"><button class="botao botao--contorno" type="button" data-conta-sair-todos>Sair em todos os aparelhos</button><button class="botao botao--perigo" type="button" data-conta-apagar>Apagar a conta</button></div>
-    </section>
+    ${/* AS DEFINIÇÕES DA CONTA, fechadas, no fundo (16 nov 2026; o Renato: «isto de apagar conta não pode estar assim
+        tão exposto»): como nas lojas grandes, apagar a conta é uma ligação discreta lá dentro, e pergunta antes. */ ''}<details class="conta__definicoes">
+      <summary>Definições da conta</summary>
+      <div class="conta__definicoes-corpo">
+        <div class="conta__definicao"><button class="conta__ligacao" type="button" data-conta-sair-todos>Sair em todos os aparelhos</button><p class="conta__nota">Termina a sessão neste e nos outros aparelhos onde entrou.</p></div>
+        <div class="conta__definicao"><button class="conta__ligacao conta__ligacao--perigo" type="button" data-conta-apagar>Apagar a conta</button><p class="conta__nota">Apaga os seus dados e as películas marcadas na loja. As encomendas ficam.</p></div>
+      </div>
+    </details>
   </section>
   <section class="conta__ficha" data-conta-ficha hidden aria-labelledby="conta-titulo-ficha"></section>
   <p class="comprar__erro conta__falha" data-conta-falha role="alert" hidden></p>

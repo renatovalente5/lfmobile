@@ -221,6 +221,67 @@
     }
     if (d._origem && document.contains(d._origem)) d._origem.focus({ preventScroll: true });
   }));
+  // ---------------------------------------------------------------- o menu da conta (o ícone da pessoa)
+  /* Com sessão — o sinal «lfmobile:conta» que a página da conta põe ao entrar e tira ao sair ou num 401 —, o ícone
+     abre um menu pequeno: quem entrou, «A minha conta», «As minhas encomendas» e «Sair». Sem sessão, o ícone é a
+     ligação para entrar (como antes). É uma revelação (o botão com aria-expanded e a lista a seguir), não um
+     role=menu: são ligações de navegação. O nome e o email pedem-se à conta só quando se abre. */
+  const caixaConta = $('[data-menu-conta]');
+  if (caixaConta) {
+    const botao = $('[data-menu-conta-botao]', caixaConta);
+    const lista = $('[data-menu-conta-lista]', caixaConta);
+    const comSessao = () => { try { return localStorage.getItem('lfmobile:conta') === '1'; } catch (_) { return false; } };
+    let quem = null;
+    const fecharConta = (devolver) => {
+      if (lista.hidden) return;
+      lista.hidden = true;
+      botao.setAttribute('aria-expanded', 'false');
+      if (devolver) botao.focus();
+    };
+    const prepararConta = () => {
+      if (comSessao()) { botao.setAttribute('aria-expanded', String(!lista.hidden)); botao.setAttribute('aria-controls', lista.id); return; }
+      fecharConta(false);
+      botao.removeAttribute('aria-expanded');
+      botao.removeAttribute('aria-controls');
+      quem = null;
+    };
+    const lerQuem = () => {
+      quem = quem || fetch('/conta/api/dados', { credentials: 'same-origin', cache: 'no-store' }).then((r) => {
+        if (r.status === 401) { try { localStorage.removeItem('lfmobile:conta'); } catch (_) { /* sem armazenamento */ } location.assign(botao.href); return null; }
+        return r.ok ? r.json() : null;
+      }).then((j) => {
+        if (!j) return;
+        const nome = String((j.dados && j.dados.nome) || '').trim().split(/\s+/)[0];
+        $('[data-menu-conta-ola]', lista).textContent = nome ? `Olá, ${nome}` : 'Olá!';
+        $('[data-menu-conta-email]', lista).textContent = j.email || '';
+      }).catch(() => { quem = null; });
+    };
+    botao.addEventListener('click', (e) => {
+      prepararConta();
+      if (!comSessao()) return;                 // sem sessão: segue para entrar
+      e.preventDefault();
+      if (!lista.hidden) { fecharConta(false); return; }
+      lista.hidden = false;
+      botao.setAttribute('aria-expanded', 'true');
+      lerQuem();
+    });
+    document.addEventListener('click', (e) => { if (!caixaConta.contains(e.target)) fecharConta(false); });
+    // o Escape fecha onde quer que esteja o foco (no Safari um clique não dá o foco ao ícone: ouvir só no menu não chegava)
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !lista.hidden) { e.preventDefault(); fecharConta(true); } });
+    caixaConta.addEventListener('focusout', (e) => { if (e.relatedTarget && !caixaConta.contains(e.relatedTarget)) fecharConta(false); });
+    $('[data-menu-conta-sair]', lista).addEventListener('click', async (e) => {
+      e.currentTarget.disabled = true;
+      try { await fetch('/conta/api/sair', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}', credentials: 'same-origin' }); } catch (_) { /* o cookie acaba sozinho */ }
+      try { localStorage.removeItem('lfmobile:conta'); } catch (_) { /* sem armazenamento */ }
+      location.assign(botao.href);              // a página da conta mostra a entrada: vê-se que saiu
+    });
+    // entrou ou saiu noutro separador, ou nesta página (a conta avisa)
+    window.addEventListener('storage', (e) => { if (e.key === 'lfmobile:conta') prepararConta(); });
+    window.addEventListener('lfmobile:conta', prepararConta);
+    window.addEventListener('pageshow', prepararConta);
+    prepararConta();
+  }
+
   $$('[data-abrir]').forEach((b) => b.addEventListener('click', (e) => {
     if (b.dataset.abrir === 'carrinho' && /pagina-(carrinho|checkout)/.test(document.body.className)) return; // já está no carrinho
     e.preventDefault();

@@ -776,6 +776,9 @@ teste('a conta do cliente: a página /conta/, a ligação no cabeçalho, no menu
   assert.match(conta, /<dialog class="conta-janela" data-conta-janela/);
   assert.match(conta, /data-conta-sair-todos>Sair em todos os aparelhos/);
   assert.match(conta, /data-conta-apagar>Apagar a conta/);
+  // sair em todos e apagar a conta: dentro das «Definições da conta», fechadas (não à vista)
+  assert.match(conta, /<details class="conta__definicoes">\s*<summary>Definições da conta<\/summary>[\s\S]*?data-conta-sair-todos[\s\S]*?data-conta-apagar[\s\S]*?<\/details>/);
+  assert.match(conta, /<section class="conta__seccao" id="encomendas"/, 'o menu da conta leva a /conta/#encomendas');
   assert.match(conta, /data-desistir-url="\/desistir\/"/);
   // este site não carrega nada do Google: o endereço do Google só existe no script, para o clique
   assert.doesNotMatch(conta, /<script[^>]+src="[^"]*google/i);
@@ -793,7 +796,14 @@ teste('a conta do cliente: a página /conta/, a ligação no cabeçalho, no menu
   assert.doesNotMatch(conta.replace(/<header[\s\S]*?<\/header>/, ''), /data-conta[\s>]/);
   assert.match(fs.readFileSync(path.join(RAIZ, 'src/scripts/conta.js'), 'utf8'), /querySelector\('\[data-area-cliente\]'\)/);
   const index = fs.readFileSync(path.join(pasta, '_site/index.html'), 'utf8');
-  assert.match(index, /<a class="topo__botao topo__pessoa" href="\/conta\/"><svg[^>]*>[\s\S]*?<\/svg><span class="visualmente-escondido">A minha conta<\/span><\/a>/);
+  assert.match(index, /<a class="topo__botao topo__pessoa" href="\/conta\/" data-menu-conta-botao><svg[^>]*>[\s\S]*?<\/svg><span class="visualmente-escondido">A minha conta<\/span><\/a>/);
+  // o menu da conta (com sessão, site.js): quem entrou, a conta, as encomendas e sair — e nunca «apagar a conta»
+  const menuConta = /<div class="menu-conta" id="menu-conta" data-menu-conta-lista hidden>([\s\S]*?)<\/div>/.exec(index)?.[1] || '';
+  assert.match(menuConta, /data-menu-conta-email/);
+  assert.match(menuConta, /<a href="\/conta\/">[\s\S]*?A minha conta<\/span><\/a>/);
+  assert.match(menuConta, /<a href="\/conta\/#encomendas">[\s\S]*?As minhas encomendas<\/span><\/a>/);
+  assert.match(menuConta, /<button class="menu-conta__sair" type="button" data-menu-conta-sair>[\s\S]*?Sair<\/span><\/button>/);
+  assert.doesNotMatch(menuConta, /[Aa]pagar|todos os aparelhos/);
   assert.match(index, /<li><a href="\/conta\/">As minhas encomendas/);
   assert.match(fs.readFileSync(path.join(pasta, '_site/obrigado/index.html'), 'utf8'), /<a class="botao botao--contorno" href="\/conta\/">/);
   assert.ok(!fs.readFileSync(path.join(pasta, '_site/sitemap.xml'), 'utf8').includes('/conta/'));

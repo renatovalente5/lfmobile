@@ -171,6 +171,8 @@ async function lerQR(ctx, svg) {
   await q.close();
   return lido;
 }
+/* «Sair em todos» e «Apagar a conta» vivem nas «Definições da conta», fechadas (16 nov 2026): abrem-se primeiro. */
+async function definicoes(p) { if (!(await p.$eval('.conta__definicoes', (d) => d.open))) await p.click('.conta__definicoes summary'); }
 async function fecharJanela(p, valor = 'nao') { await p.click(`[data-conta-janela][open] button[value="${valor}"]`); await p.waitForSelector('[data-conta-janela][open]', { state: 'detached' }).catch(() => {}); await esperar(150); }
 
 /* ================================================================== as provas, num motor */
@@ -498,6 +500,7 @@ async function correr() {
     await entrar(p2, Bm);
     await p1.reload({ waitUntil: 'networkidle' });
     await p1.waitForSelector('[data-conta-lista]:not([hidden])');
+    await definicoes(p1);
     await p1.click('[data-conta-sair-todos]');
     await p1.waitForSelector('[data-conta-janela][open]');
     await foto(p1, 'B6-sair-todos-janela');
@@ -559,12 +562,14 @@ async function correr() {
     certo(m.status === 200 && m.j?.cartao?.total === 3, 'a loja marca 2 (o cartão fica com 3: 1 do site + 2 da loja)', m.j?.cartao);
     let pedidosApagar = 0;
     p.on('request', (q) => { if (q.url().endsWith('/conta/api/apagar')) pedidosApagar++; });
+    await definicoes(p);
     await p.click('[data-conta-apagar]');
     await p.waitForSelector('[data-conta-janela][open]');
     const txt = await texto(p, '[data-conta-janela][open]');
     certo(/películas marcadas na loja/.test(txt) && /Ficam as encomendas/.test(txt) && /ofertas já entregues/.test(txt), 'a janela diz o que se perde e o que fica', txt);
     await fecharJanela(p, 'nao');
     certo(pedidosApagar === 0 && (await p.evaluate(() => fetch('/conta/api/eu').then((r) => r.status))) === 200, '«Cancelar» não apaga');
+    await definicoes(p);
     await p.click('[data-conta-apagar]');
     await p.waitForSelector('[data-conta-janela][open]');
     await fecharJanela(p, 'sim');
@@ -664,6 +669,7 @@ async function correr() {
     await p.waitForFunction(() => /Não foi possível mostrar o código/.test(document.querySelector('[data-conta-janela][open]')?.textContent ?? ''), null, { timeout: 8000 }).catch(() => {});
     certo(/Não foi possível mostrar o código/.test(await texto(p, '[data-conta-janela][open]')), 'o código QR no separador velho: não mostra o da outra conta', await texto(p, '[data-conta-janela][open]'));
     await fecharJanela(p, 'nao');
+    await definicoes(p);
     await p.click('[data-conta-apagar]');
     await p.waitForSelector('[data-conta-janela][open]');
     await fecharJanela(p, 'sim');
@@ -674,6 +680,7 @@ async function correr() {
     certo((await p2.evaluate(() => fetch('/conta/api/eu').then((r) => r.status))) === 200 && (await texto(p2, '[data-conta-quem]')).toLowerCase() === Dmais2, 'a outra conta continua lá, intacta');
     // a sessão acaba antes de «Sair em todos»: não finge que saiu em todos
     await ctx.clearCookies();
+    await definicoes(p2);
     await p2.click('[data-conta-sair-todos]');
     await p2.waitForSelector('[data-conta-janela][open]');
     await fecharJanela(p2, 'sim');
@@ -681,6 +688,45 @@ async function correr() {
     certo(/A sessão terminou/.test(await texto(p2, '[data-conta-janela][open]')), '«Sair em todos» com a sessão já acabada: diz que não se fez e manda entrar', await texto(p2, '[data-conta-janela][open]'));
     await fecharJanela(p2, 'nao');
     certo(await visivel(p2, '#conta-email'), 'e fica na entrada');
+    await ctx.close();
+  }
+
+  /* -------- M: o menu da conta no cabeçalho */
+  grupo('M · o menu da conta (o ícone da pessoa)');
+  {
+    const { ctx, p } = await contexto();
+    await p.goto(`${B}/loja/`, { waitUntil: 'networkidle' });
+    const icones = await p.$$eval('.topo__direita .topo__botao .icone', (xs) => xs.filter((x) => x.getBoundingClientRect().width).map((x) => Math.round(x.getBoundingClientRect().width)));
+    certo(icones.length >= 2 && icones.every((w) => w === 24), 'os ícones do cabeçalho com 24 px (o tamanho do cesto do iThos)', icones);
+    certo(await p.getAttribute('[data-menu-conta-botao]', 'aria-expanded') === null, 'sem sessão, o ícone é a ligação para entrar');
+    await Promise.all([p.waitForURL(/\/conta\/$/), p.click('[data-menu-conta-botao]')]);
+    await entrar(p, D);
+    certo(!(await p.$eval('.conta__definicoes', (d) => d.open)) && !(await visivel(p, '[data-conta-apagar]')), '«Apagar a conta» não está à vista: as definições da conta estão fechadas');
+    await p.goto(`${B}/`, { waitUntil: 'networkidle' });
+    await p.click('[data-menu-conta-botao]');
+    await p.waitForSelector('[data-menu-conta-lista]:not([hidden])');
+    await p.waitForFunction(() => document.querySelector('[data-menu-conta-email]').textContent.length > 0);
+    const menu = await p.$eval('[data-menu-conta-lista]', (m) => ({ email: m.querySelector('[data-menu-conta-email]').textContent, itens: [...m.querySelectorAll('a, button')].map((x) => x.textContent.trim()) }));
+    certo(menu.email === D && menu.itens.join('|') === 'A minha conta|As minhas encomendas|Sair' && await p.getAttribute('[data-menu-conta-botao]', 'aria-expanded') === 'true', 'com sessão: o menu com o email, a conta, as encomendas e «Sair» (sem apagar)', menu);
+    await foto(p, 'M1-menu');
+    await p.keyboard.press('Escape');
+    certo(await p.isHidden('[data-menu-conta-lista]') && await p.getAttribute('[data-menu-conta-botao]', 'aria-expanded') === 'false', 'Escape fecha o menu');
+    await p.click('[data-menu-conta-botao]');
+    await p.mouse.click(200, 600);
+    certo(await p.isHidden('[data-menu-conta-lista]'), 'um clique fora fecha');
+    await p.click('[data-menu-conta-botao]');
+    await Promise.all([p.waitForURL(/\/conta\/#encomendas$/), p.click('[data-menu-conta-lista] a[href$="#encomendas"]')]);
+    await p.waitForSelector('[data-conta-lista]:not([hidden])');
+    await esperar(400);
+    const sec = await caixa(p, '#encomendas');
+    certo(sec.cima >= 40 && sec.cima < 220, '«As minhas encomendas» abre a conta nessa secção', sec);
+    await p.goto(`${B}/loja/`, { waitUntil: 'networkidle' });
+    await p.click('[data-menu-conta-botao]');
+    await p.click('[data-menu-conta-sair]');
+    await p.waitForURL(/\/conta\/$/);
+    await p.waitForSelector('[data-conta-entrar]:not([hidden])');
+    const depois = await p.evaluate(async () => ({ eu: (await fetch('/conta/api/eu')).status, sinal: localStorage.getItem('lfmobile:conta'), aria: document.querySelector('[data-menu-conta-botao]').getAttribute('aria-expanded') }));
+    certo(depois.eu === 401 && depois.sinal === null && depois.aria === null, '«Sair» no menu: sai, vai para a entrada, e o ícone volta a ser a ligação', depois);
     await ctx.close();
   }
 
