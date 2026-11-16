@@ -1,0 +1,42 @@
+{
+  "nome": "Coluna KMS-273",
+  "nomeCurto": "Coluna KMS-273",
+  "fotos": [
+    "coluna-kms-273-aaa83a3b",
+    "coluna-kms-273-9a1082c0"
+  ],
+  "resumo": "Desfrute de graves poderosos",
+  "descricao": "Desfrute de graves poderosos com a coluna Kimiso KMS-273. Com 30W de potência, Bluetooth 5.3 e função TWS, oferece som surround graças as suas colunas laterais, perfeitos para qualquer ambiente.",
+  "preco": 44.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "30W de potência"
+  ],
+  "opcoes": [
+    {
+      "nome": "Cor",
+      "valores": [
+        {
+          "nome": "Azul",
+          "suplemento": 0
+        },
+        {
+          "nome": "Preto",
+          "suplemento": 0
+        },
+        {
+          "nome": "Vermelho",
+          "suplemento": 0
+        }
+      ]
+    }
+  ],
+  "pedeModelo": false,
+  "peso": 1.05,
+  "categoria": "outros-gadgets",
+  "destaque": false,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}
