@@ -425,8 +425,12 @@ function comoEncomendarSemPagamentoNoSite() {
 
 function resolverMarcadores(fonte, onde) {
   const c = site.contactos;
+  /* Cada marcador vira um «token» (o HTML só entra depois do markdown, para não ser mexido). Os de BLOCO (o
+     horário, as tabelas, os botões, as listas, o formulário, os avisos e as garantias, o RAL, a privacidade e a
+     figura) saem do <p> em que o markdown os pôs; os de texto ficam dentro dele (um parágrafo que era só
+     «{{empresa.identificacao}}» saía sem <p> e colava-se ao seguinte). */
   const tokens = [];
-  const guardar = (html) => { tokens.push(html); return `\u0000${tokens.length - 1}\u0000`; };
+  const guardar = (html, bloco = false) => { tokens.push({ html, bloco }); return `\u0000${tokens.length - 1}\u0000`; };
   const garantiaUsados = R.GARANTIAS_USADOS.includes(site.garantias?.recondicionados) ? site.garantias.recondicionados : null;
   const valores = {
     marca: () => esc(site.marca),
@@ -437,7 +441,7 @@ function resolverMarcadores(fonte, onde) {
     whatsapp: () => (c.whatsapp ? guardar(`<a href="https://wa.me/${numero}">WhatsApp</a>`) : guardar(`WhatsApp ${ctx.marcador('o número')}`)),
     telefone: () => (R.numeroPortugues(c.telefone) ? guardar(`<a href="tel:+351${R.numeroPortugues(c.telefone)}">${esc(numeroLegivel(c.telefone))}</a> ${notaChamada(c.telefone)}`) : guardar(ctx.marcador('o telefone'))),
     morada: () => (site.empresa.morada ? esc(moradaCompleta(site.empresa)) : guardar(ctx.marcador('a morada da loja'))),
-    horario: () => guardar(`<ul>${(Array.isArray(site.horario) ? site.horario : []).filter((l) => l && l.dias && l.horas).map((l) => `<li>${esc(l.dias)}: ${esc(l.horas)}</li>`).join('') || `<li>${ctx.marcador('o horário')}</li>`}</ul>`),
+    horario: () => guardar(`<ul>${(Array.isArray(site.horario) ? site.horario : []).filter((l) => l && l.dias && l.horas).map((l) => `<li>${esc(l.dias)}: ${esc(l.horas)}</li>`).join('') || `<li>${ctx.marcador('o horário')}</li>`}</ul>`, true),
     'empresa.identificacao': () => guardar(identificacao()),
     'empresa.iva': () => (site.empresa.iva ? esc(site.empresa.iva) : guardar(ctx.marcador('se os preços incluem IVA'))),
     prazo: () => (site.entrega.prazo ? esc(site.entrega.prazo) : guardar(ctx.marcador('o prazo de entrega'))),
@@ -449,31 +453,31 @@ function resolverMarcadores(fonte, onde) {
       ? 'O pagamento é feito na Stripe, na página dela: a Stripe recebe o seu email e o valor, e trata os dados do cartão ou do MB WAY segundo a sua própria política; nós nunca vemos os dados do cartão. O NIF e as observações não são enviados para a Stripe.'
       : 'O pagamento combina-se consigo depois de confirmarmos a encomenda: o site não recebe dados de pagamento.'),
     portes: () => guardar(textoPortes()),
-    portesTabela: () => guardar(tabelaPortes()),
+    portesTabela: () => guardar(tabelaPortes(), true),
     // a ligação do mapa, para «[Como chegar]({{mapa}})» no texto (sem ela, a página dos contactos, que tem o mapa)
     mapa: () => site.local?.mapa || ctx.url('/contactos/'),
-    botoesDesistencia: () => guardar(botoesDesistencia()),
+    botoesDesistencia: () => guardar(botoesDesistencia(), true),
     comoSeFazAEncomenda: () => guardar(pagamentoOnline
       ? pecaLegal('como-encomendar', COMO_SE_FAZ_A_ENCOMENDA({ canal: 'site', pagamentos: ['cartão', 'MB WAY', 'Multibanco'], urlTermos: ctx.url('/termos-e-condicoes/') }))
-      : comoEncomendarSemPagamentoNoSite()),
-    formularioLivreResolucao: () => guardar(pecaLegal('formulario-livre-resolucao', `<pre class="formulario-legal">${esc(formularioLivreResolucao({ nome: site.empresa.nome || `[${site.marca}]`, morada: site.empresa.morada ? moradaCompleta(site.empresa) : '[morada]', email: c.email || '[email]' }))}</pre>`)),
-    avisoRetoma: () => guardar(pecaLegal('retoma', `<p>${esc(AVISO_RETOMA({ tipos: ['eee', 'pilhas', 'baterias'], como: { eee: 'diga-nos nas observações da encomenda ou pelo WhatsApp, e entregue-o na loja ou junte-o à devolução', pilhas: 'basta trazê-las à loja', baterias: 'diga-nos ao comprar e entregue-a na loja' } }))}</p>`)),
+      : comoEncomendarSemPagamentoNoSite(), true),
+    formularioLivreResolucao: () => guardar(pecaLegal('formulario-livre-resolucao', `<pre class="formulario-legal">${esc(formularioLivreResolucao({ nome: site.empresa.nome || `[${site.marca}]`, morada: site.empresa.morada ? moradaCompleta(site.empresa) : '[morada]', email: c.email || '[email]' }))}</pre>`), true),
+    avisoRetoma: () => guardar(pecaLegal('retoma', `<p>${esc(AVISO_RETOMA({ tipos: ['eee', 'pilhas', 'baterias'], como: { eee: 'diga-nos nas observações da encomenda ou pelo WhatsApp, e entregue-o na loja ou junte-o à devolução', pilhas: 'basta trazê-las à loja', baterias: 'diga-nos ao comprar e entregue-a na loja' } }))}</p>`), true),
     garantiaRecondicionados: () => (garantiaUsados === 18
-      ? guardar(pecaLegal('garantia-usados', `<p>${esc('Nos telemóveis e equipamentos recondicionados ou usados, a garantia é de 18 meses a contar da entrega, por acordo entre as partes antes da venda (artigo 12.º, n.º 3, do Decreto-Lei n.º 84/2021); nesse caso presume-se, durante o primeiro ano, que o defeito já existia. Cada ficha diz o estado do equipamento e esta garantia.')}</p>`))
+      ? guardar(pecaLegal('garantia-usados', `<p>${esc('Nos telemóveis e equipamentos recondicionados ou usados, a garantia é de 18 meses a contar da entrega, por acordo entre as partes antes da venda (artigo 12.º, n.º 3, do Decreto-Lei n.º 84/2021); nesse caso presume-se, durante o primeiro ano, que o defeito já existia. Cada ficha diz o estado do equipamento e esta garantia.')}</p>`), true)
       : garantiaUsados === 36
-        ? guardar(`<p>Nos telemóveis e equipamentos recondicionados ou usados, a garantia é a mesma dos novos: 3 anos a contar da entrega.</p>`)
-        : guardar(`<p>${ctx.marcador('a garantia dos recondicionados e usados: 18 meses por acordo, ou os 3 anos da lei')}</p>`)),
-    garantia: () => guardar(pecaLegal('garantia', textoGarantia({ usados: garantiaUsados === 18, comercial: true }).split('\n\n').map((t) => `<p>${esc(t)}</p>`).join(''))),
-    ral: () => guardar(pecaLegal('ral', ralHtml({ ambito: 'local', concelhos: [site.local.concelho], comCec: false }))),
-    'privacidade.destinatarios': () => guardar(pecaLegal('privacidade-destinatarios', destinatariosComExtras())),
+        ? guardar(`<p>Nos telemóveis e equipamentos recondicionados ou usados, a garantia é a mesma dos novos: 3 anos a contar da entrega.</p>`, true)
+        : guardar(`<p>${ctx.marcador('a garantia dos recondicionados e usados: 18 meses por acordo, ou os 3 anos da lei')}</p>`, true)),
+    garantia: () => guardar(pecaLegal('garantia', textoGarantia({ usados: garantiaUsados === 18, comercial: true }).split('\n\n').map((t) => `<p>${esc(t)}</p>`).join('')), true),
+    ral: () => guardar(pecaLegal('ral', ralHtml({ ambito: 'local', concelhos: [site.local.concelho], comCec: false })), true),
+    'privacidade.destinatarios': () => guardar(pecaLegal('privacidade-destinatarios', destinatariosComExtras()), true),
     'privacidade.prazos': () => guardar(pecaLegal('privacidade-prazos', `<ul>${[
       PRAZOS_LEGAIS.pedidosDeContacto.texto,
       PRAZOS_LEGAIS.encomendas.texto,
       'Dados de uma encomenda guardados no servidor das encomendas (Cloudflare): 400 dias depois da encomenda.',
       PRAZOS_LEGAIS.registosTecnicos.texto,
-    ].map((t) => `<li>${esc(t)}</li>`).join('')}</ul>`)),
-    'privacidade.frases': () => guardar(pecaLegal('privacidade-frases', frasesPrivacidade(CONFIG_PRIVACIDADE).map((t) => `<p>${esc(t)}</p>`).join(''))),
-    avisoGarantia: () => guardar(`<figure class="aviso-garantia"><img src="${ctx.asset('legal/aviso-garantia-legal-pt.svg')}" width="600" height="848" alt="${esc(AVISO_ALT)}" loading="lazy"><figcaption><a href="${ctx.asset('legal/aviso-garantia-legal-pt.pdf')}">Descarregar o aviso oficial (PDF)</a> · <a href="https://europa.eu/youreurope/garantias" target="_blank" rel="noopener">europa.eu/youreurope/garantias</a></figcaption></figure>`),
+    ].map((t) => `<li>${esc(t)}</li>`).join('')}</ul>`), true),
+    'privacidade.frases': () => guardar(pecaLegal('privacidade-frases', frasesPrivacidade(CONFIG_PRIVACIDADE).map((t) => `<p>${esc(t)}</p>`).join('')), true),
+    avisoGarantia: () => guardar(`<figure class="aviso-garantia"><img src="${ctx.asset('legal/aviso-garantia-legal-pt.svg')}" width="600" height="848" alt="${esc(AVISO_ALT)}" loading="lazy"><figcaption><a href="${ctx.asset('legal/aviso-garantia-legal-pt.pdf')}">Descarregar o aviso oficial (PDF)</a> · <a href="https://europa.eu/youreurope/garantias" target="_blank" rel="noopener">europa.eu/youreurope/garantias</a></figcaption></figure>`, true),
   };
   const texto = fonte.replace(/\{\{([\w.]+)\}\}/g, (todo, chave) => {
     if (!valores[chave]) { erros.push(`${onde}: o marcador «${todo}» não existe (existem: ${Object.keys(valores).join(', ')})`); return todo; }
@@ -487,9 +491,13 @@ function paginaMarkdown(ficheiro) {
   const [cabeca, ...corpo] = fonte.split(/\n---\n/);
   const meta = Object.fromEntries(cabeca.split('\n').filter(Boolean).map((l) => { const i = l.indexOf(':'); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; }));
   const { texto, tokens } = resolverMarcadores(corpo.join('\n---\n'), `Páginas › ${ficheiro}`);
-  // um marcador sozinho num parágrafo (quadro, figura, botões) sai do <p> que o Markdown lhe põe
-  let html = markdown(texto, ctx.url).replace(/<p>\u0000(\d+)\u0000<\/p>/g, (_, i) => tokens[Number(i)]);
-  html = html.replace(/\u0000(\d+)\u0000/g, (_, i) => tokens[Number(i)]);
+  // um marcador de bloco sozinho num parágrafo (tabela, lista, botões, figura…) sai do <p> que o Markdown lhe
+  // põe; um de texto («{{empresa.identificacao}}») fica no <p>, a não ser que venha vazio (não deixa um <p> vazio)
+  let html = markdown(texto, ctx.url).replace(/<p>\u0000(\d+)\u0000<\/p>/g, (todo, i) => {
+    const t = tokens[Number(i)];
+    return t.bloco || !t.html.trim() ? t.html : todo;
+  });
+  html = html.replace(/\u0000(\d+)\u0000/g, (_, i) => tokens[Number(i)].html);
   const slug = ficheiro.replace(/\.md$/, '');
   if (meta.foto && !fotoExiste(meta.foto)) erros.push(`Páginas › ${ficheiro}: a fotografia «${meta.foto}» não existe`);
   /* Fora do Google (noindex e fora do sitemap; a página continua no site, com a ligação no rodapé):

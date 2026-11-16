@@ -858,5 +858,65 @@ teste('uma ligação interna partida pára a construção', () => {
   }
 }
 
+/* Os parágrafos partidos no <main> de uma página: o texto que fica solto onde entra o Markdown das páginas de
+   texto (o artigo, a introdução, os passos, os cartões, as respostas e a abertura do «Sobre»), fora de um <p>,
+   de um título ou de uma lista (um parágrafo que perdeu o <p> e se cola ao de baixo), e um bloco dentro de um
+   <p> (o browser fecha o <p> antes dele). → as descrições */
+const DO_MARKDOWN = /(^|\s)(texto|texto__intro|passo__texto|nota-cartao|pergunta__resposta|sobre__abertura)(\s|$)/;
+const BLOCOS = new Set(['article', 'aside', 'blockquote', 'details', 'div', 'dl', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'nav', 'ol', 'p', 'pre', 'section', 'table', 'ul']);
+const COM_TEXTO = new Set([...BLOCOS, 'li', 'dd', 'dt', 'td', 'th', 'caption', 'figcaption', 'summary', 'legend', 'label', 'button']);
+const VAZIOS = new Set(['area', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
+function paragrafosPartidos(html) {
+  const main = html.slice(html.indexOf('<main'), html.indexOf('</main>')).replace(/<!--[\s\S]*?-->|<(svg|script|style|template)\b[\s\S]*?<\/\1>/g, '');
+  const pilha = [];
+  const out = [];
+  for (const [, fecho, etiqueta, atributos, texto] of main.matchAll(/<(\/?)([a-zA-Z][\w-]*)([^>]*)>|([^<]+)/g)) {
+    if (texto !== undefined) {
+      if (!texto.trim()) continue;
+      for (let i = pilha.length - 1; i >= 0; i--) {
+        if (/^(a|button)$/.test(pilha[i].nome) && pilha[i].classe) break; // um botão ou uma ligação dos modelos
+        if (COM_TEXTO.has(pilha[i].nome)) {
+          if (DO_MARKDOWN.test(pilha[i].classe)) out.push(`texto fora de um parágrafo: «${texto.trim().slice(0, 60)}»`);
+          break;
+        }
+      }
+      continue;
+    }
+    const nome = etiqueta.toLowerCase();
+    if (fecho) {
+      const i = pilha.map((x) => x.nome).lastIndexOf(nome);
+      if (i >= 0) pilha.length = i;
+      continue;
+    }
+    if (BLOCOS.has(nome) && pilha.some((x) => x.nome === 'p')) out.push(`<${nome}> dentro de um <p>`);
+    if (!VAZIOS.has(nome) && !atributos.endsWith('/')) pilha.push({ nome, classe: /\sclass="([^"]*)"/.exec(atributos)?.[1] || '' });
+  }
+  return out;
+}
+teste('um parágrafo que é só um marcador fica num <p> (a identificação, os portes, o email…) e os de bloco não (o horário, as tabelas, os botões, as listas, o formulário, as garantias, o RAL, a privacidade, a figura)', () => {
+  const pasta = copia('marcadores-sozinhos');
+  const pagina = path.join(pasta, 'content/paginas/ensaio-marcadores.md');
+  // os marcadores que existem, pelo próprio gerador (um marcador que não existe pára-o e diz quais há); sem o
+  // GITHUB_ACTIONS, para esta paragem de propósito não deixar anotações ::error no CI
+  fs.writeFileSync(pagina, 'titulo: Ensaio dos marcadores\n---\n{{ensaio.inexistente}}\n');
+  const sonda = spawnSync(process.execPath, ['scripts/build.mjs', '--sem-imagens'], { cwd: pasta, encoding: 'utf8', env: { ...process.env, GITHUB_ACTIONS: '' } });
+  const saidaDaSonda = `${sonda.stdout}\n${sonda.stderr}`;
+  const marcadores = /o marcador «\{\{ensaio\.inexistente\}\}» não existe \(existem: ([^)]+)\)/.exec(saidaDaSonda)?.[1].split(', ') || [];
+  assert.ok(sonda.status !== 0 && marcadores.includes('empresa.identificacao') && marcadores.includes('avisoGarantia'), `o gerador não disse os marcadores que existem:\n${saidaDaSonda}`);
+  // uma página só dos testes, com cada marcador sozinho num parágrafo
+  fs.writeFileSync(pagina, `titulo: Ensaio dos marcadores\n---\n${marcadores.map((m) => `## Ensaio ${m}\n\n{{${m}}}\n`).join('\n')}`);
+  const paginas = fs.readdirSync(path.join(pasta, 'content/paginas')).filter((f) => f.endsWith('.md')).map((f) => `${f.slice(0, -3)}/index.html`);
+  // com os dados legais do conteúdo de ensaio (o nome e o NIF por dizer: os «[por confirmar: …]») e preenchidos
+  for (const [quando, mudar] of [['por dizer', () => {}], ['ditos', preencherDadosLegais]]) {
+    json(pasta, 'content/site.json', mudar);
+    const r = construir(pasta);
+    assert.equal(r.codigo, 0, `dados legais ${quando}: não construiu\n${r.saida}`);
+    const ensaio = fs.readFileSync(path.join(pasta, '_site/ensaio-marcadores/index.html'), 'utf8');
+    for (const m of ['empresa.identificacao', 'portes', 'email']) assert.match(ensaio, new RegExp(`Ensaio ${m.replace('.', '\\.')}</h2>\\s*<p>`), `dados legais ${quando}: o {{${m}}} sozinho não ficou num <p>`);
+    if (mudar === preencherDadosLegais) assert.ok(ensaio.includes('<p><strong>Nome de Teste</strong>'), 'a identificação sozinha não ficou num <p>');
+    for (const rel of paginas) assert.deepEqual(paragrafosPartidos(fs.readFileSync(path.join(pasta, '_site', rel), 'utf8')), [], `dados legais ${quando}: ${rel}`);
+  }
+});
+
 fs.rmSync(temporaria, { recursive: true, force: true });
 console.log(process.exitCode ? '\nHá testes a falhar.' : `\n${feitos} testes passaram.`);
