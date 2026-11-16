@@ -403,7 +403,7 @@ Sem sessão, as rotas da conta respondem 401 `{ erro, sessao: false, google }` (
 cada pedido que muda alguma coisa; se o cookie já é de outra conta (entrou-se noutra noutro separador), 409 `{ erro,
 mudou: true }` e nada muda — sem isto, «Apagar a conta» apagava a outra. Sem o id (uma página antiga), segue.
 
-**A revisão de 16 nov 2026** (um revisor independente e uma bateria no Chromium e no WebKit, `scratchpad/conta/pente-fino.mjs`):
+**A revisão de 16 nov 2026** (um revisor independente e uma bateria no Chromium e no WebKit, `scripts/pente-fino-conta.mjs`: 99 provas em cada um, com os dois Workers locais — o cabeçalho do ficheiro diz como se corre; não corre na CI):
 - **Nunca os dados de uma encomenda na conta.** A «sugestão» (o nome, o telefone, o NIF e a morada da última encomenda,
   para quem ainda não gravou os seus) saiu: quem escreve um email por engano (ou de propósito) não pode ver os dados de
   outra pessoa, nem metê-los no checkout dela. A conta e o checkout só usam o que o cliente grava.
