@@ -103,7 +103,7 @@ PAINEL_URL = "https://backoffice.lfmobile.pt"
 # «Entrar com o Google» na conta do cliente: o id PÚBLICO do cliente OAuth (Google Cloud, projecto «LF Mobile»,
 # lf-mobile-514700; cliente Web com a origem https://lfmobile.pt e o regresso https://lfmobile.pt/conta/). Vazio,
 # o botão não aparece. Não há segredo do cliente: o Worker confere o id_token com as chaves públicas do Google.
-GOOGLE_CLIENTE = ""
+GOOGLE_CLIENTE = "289976983619-3pcp3itbhdkcskmgmomfo33tolaeg3b0.apps.googleusercontent.com"
 # A versão da API da Stripe, fixada (a mesma do Armazém dos Pneus). Não subir sem ler o changelog.
 STRIPE_API_VERSION = "2026-07-29.dahlia"
 # MODO = "encomenda" força o modo «encomenda» mesmo com o catálogo em «online» (travão de
