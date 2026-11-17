@@ -279,10 +279,6 @@
     "alt": "Coluna KMS-274",
     "foco": "50% 50%"
   },
-  "coluna-kms-271-34109a57": {
-    "alt": "Coluna KMS-271",
-    "foco": "50% 50%"
-  },
   "coluna-kms-271-a14daefe": {
     "alt": "Coluna KMS-271",
     "foco": "50% 50%"
@@ -365,6 +361,10 @@
   },
   "carregador-magnetico-3-em-1-459f7564": {
     "alt": "Estação de Carga Magnética 3 em 1 360º",
+    "foco": "50% 50%"
+  },
+  "coluna-kms-271-4c285743": {
+    "alt": "Coluna KMS-271",
     "foco": "50% 50%"
   }
 }
