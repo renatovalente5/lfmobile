@@ -43,10 +43,6 @@
     "alt": "iPhone 11 64 GB, fotografia 5",
     "foco": "50% 50%"
   },
-  "iphone-12-mini-128gb-recondicionado-1": {
-    "alt": "iPhone 12 mini 128 GB, fotografia 1",
-    "foco": "50% 50%"
-  },
   "iphone-12-mini-128gb-recondicionado-2": {
     "alt": "iPhone 12 mini 128 GB, fotografia 2",
     "foco": "50% 50%"
@@ -341,6 +337,10 @@
   },
   "iphone-14-pro-max-256gb-recondicionado-bf198d4b": {
     "alt": "iPhone 14 Pro Max 256 GB",
+    "foco": "50% 50%"
+  },
+  "iphone-12-mini-128gb-recondicionado-411c7b84": {
+    "alt": "iPhone 12 mini 128 GB",
     "foco": "50% 50%"
   }
 }
