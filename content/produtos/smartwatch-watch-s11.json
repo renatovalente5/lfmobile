@@ -3,17 +3,27 @@
   "nomeCurto": "Smartwatch Watch S11",
   "marca": "",
   "fotos": [
-    "smartwatch-watch-s11-1"
+    "smartwatch-watch-s11-3d82f4f2",
+    "smartwatch-watch-s11-d7adb560",
+    "smartwatch-watch-s11-ccaa0b94"
   ],
-  "resumo": "Estilo e praticidade no pulso.",
-  "descricao": "Um smartwatch acessível com as notificações, o ritmo cardíaco e os passos no pulso.",
+  "resumo": "Smartwatch Watch S11",
+  "descricao": "O Watch S11 combina um design moderno e elegante com funcionalidades práticas para o teu dia a dia. Ideal para quem procura um smartwatch versátil, que permite acompanhar a atividade física, consultar notificações e manter-se ligado diretamente no pulso.\nCor: Preto",
   "preco": 64.9,
   "precoAnterior": null,
   "promocaoDesde": "",
   "promocaoAte": "",
   "estado": "novo",
   "disponibilidade": "disponivel",
-  "caracteristicas": [],
+  "caracteristicas": [
+    "Design moderno e confortável.",
+    "Monitorização do ritmo cardíaco.",
+    "Medição de oxigénio no sangue (SpO₂).",
+    "Monitorização de atividades físicas.",
+    "Contagem de passos e calorias.",
+    "Notificações de chamadas e mensagens.",
+    "Compatível com smartphones Android e iOS."
+  ],
   "inclui": [],
   "opcoes": [],
   "pedeModelo": false,
@@ -25,6 +35,7 @@
     "email": ""
   },
   "avisos": "",
+  "peso": 0.2,
   "categoria": "smartwatches",
   "destaque": false,
   "novidade": false,

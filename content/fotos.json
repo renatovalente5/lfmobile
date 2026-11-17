@@ -151,10 +151,6 @@
     "alt": "Samsung Galaxy S25 128 GB",
     "foco": "50% 50%"
   },
-  "smartwatch-watch-s11-1": {
-    "alt": "Smartwatch Watch S11",
-    "foco": "50% 50%"
-  },
   "banner-inicio": {
     "alt": "Um Samsung Galaxy, um iPhone, auriculares e um relógio inteligente, em frente à caixa da LF Mobile",
     "foco": "50% 50%"
@@ -353,6 +349,18 @@
   },
   "huawei-band-11-8d2aad1a": {
     "alt": "Huawei Band 11",
+    "foco": "50% 50%"
+  },
+  "smartwatch-watch-s11-d7adb560": {
+    "alt": "Smartwatch Watch S11",
+    "foco": "50% 50%"
+  },
+  "smartwatch-watch-s11-3d82f4f2": {
+    "alt": "Smartwatch Watch S11",
+    "foco": "50% 50%"
+  },
+  "smartwatch-watch-s11-ccaa0b94": {
+    "alt": "Smartwatch Watch S11",
     "foco": "50% 50%"
   }
 }
