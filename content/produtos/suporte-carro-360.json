@@ -1,13 +1,25 @@
 {
-  "nome": "Suporte carro 360",
+  "nome": "Suporte carro 360 H006",
+  "nomeCurto": "Suporte carro 360 H006",
   "fotos": [
-    "suporte-carro-360-c9136403"
+    "suporte-carro-360-c9136403",
+    "suporte-carro-360-26679058"
   ],
   "resumo": "Suporte para Telemóvel H006 – Rotação 360°",
-  "descricao": "O suporte  é a solução ideal para manter o teu smartphone seguro e acessível durante as viagens.\n\nCom um sistema de fixação ajustável e rotação de 360°, permite posicionar o telemóvel no ângulo ideal para uma utilização mais confortável.\n\nCaracterísticas:\n\n- Rotação de 360°.\n- Braços laterais ajustáveis.\n- Fixação segura e estável.\n- Ajuste multiângulo.\n- Estrutura resistente.\n- Fácil instalação e utilização.\n- Ideal para Tesla.\n\nIdeal para utilizar no automóvel, seja para navegação GPS, chamadas ou música.",
+  "descricao": "O suporte  é a solução ideal para manter o teu smartphone seguro e acessível durante as viagens.\n\nCom um sistema de fixação ajustável e rotação de 360°, permite posicionar o telemóvel no ângulo ideal para uma utilização mais confortável.\nIdeal para utilizar no automóvel, seja para navegação GPS, chamadas ou música.",
+  "preco": 17.9,
   "estado": "novo",
   "disponibilidade": "confirmar",
+  "caracteristicas": [
+    "Ideal para Tesla",
+    "Fácil instalação e utilização",
+    "Estrutura resistente",
+    "Ajuste multiângulo",
+    "Braços laterais ajustáveis",
+    "Rotação de 360°"
+  ],
   "pedeModelo": false,
+  "peso": 0.25,
   "categoria": "outros-acessorios",
   "destaque": false,
   "novidade": true,
