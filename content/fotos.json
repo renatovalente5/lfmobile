@@ -359,12 +359,12 @@
     "alt": "Estação de Carga Magnética 3 em 1 360º",
     "foco": "50% 50%"
   },
-  "coluna-kms-271-4c285743": {
-    "alt": "Coluna KMS-271",
-    "foco": "50% 50%"
-  },
   "coluna-kms-273-c1b30b0a": {
     "alt": "Coluna KMS-273",
+    "foco": "50% 50%"
+  },
+  "coluna-kms-271-7e3cc313": {
+    "alt": "Coluna KMS-271",
     "foco": "50% 50%"
   }
 }
