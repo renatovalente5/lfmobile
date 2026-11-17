@@ -1,0 +1,18 @@
+{
+  "nome": "Huawei Band 11",
+  "nomeCurto": "Huawei Band 11",
+  "marca": "Huawei",
+  "fotos": [
+    "huawei-band-11-ac597c61"
+  ],
+  "resumo": "Babd",
+  "descricao": "Band",
+  "estado": "novo",
+  "disponibilidade": "confirmar",
+  "pedeModelo": false,
+  "categoria": "smartwatches",
+  "destaque": false,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}
