@@ -23,7 +23,7 @@
   "pedeModelo": false,
   "categoria": "recondicionados",
   "destaque": false,
-  "novidade": true,
-  "publicado": true,
+  "novidade": false,
+  "publicado": false,
   "ordem": 500
 }
