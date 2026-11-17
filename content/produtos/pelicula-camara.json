@@ -28,6 +28,6 @@
   "categoria": "peliculas",
   "destaque": false,
   "novidade": false,
-  "publicado": true,
+  "publicado": false,
   "ordem": 64
 }
