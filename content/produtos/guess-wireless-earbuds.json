@@ -3,10 +3,11 @@
   "nomeCurto": "GUESS Wireless Earbuds",
   "marca": "GUESS",
   "fotos": [
+    "guess-wireless-earbuds-16524a21",
     "guess-wireless-earbuds-1"
   ],
   "resumo": "Auriculares Bluetooth GUESS com caixa de carregamento.",
-  "descricao": "Auriculares Bluetooth GUESS, com caixa de carregamento.",
+  "descricao": "Os auscultadores Guess Lipstick-Shape combinam um design glamoroso com uma funcionalidade prática. Perfeitos para o dia a dia ou um presente único que impressiona sempre.",
   "preco": 44.9,
   "precoAnterior": null,
   "promocaoDesde": "",
@@ -15,7 +16,10 @@
   "disponibilidade": "disponivel",
   "caracteristicas": [
     "Até 4,5 horas de reprodução",
-    "Carregamento USB-C"
+    "Carregamento USB-C",
+    "Tempo de carregamento: ~1,5 h",
+    "Alcance sem fios: até 10 m",
+    "Tempo total de reprodução com o estojo: até 16 h"
   ],
   "inclui": [],
   "opcoes": [],
