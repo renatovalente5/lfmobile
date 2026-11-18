@@ -19,7 +19,8 @@ construir sem ver as outras.
 O `content/site.json` do site diz `pagamentos.modo`: `"encomenda"` (o de agora: sem chaves da
 ifthenpay; a encomenda regista-se e o dono confirma o pagamento e a entrega) ou `"online"` (o pagamento
 no site pela ifthenpay: MB WAY, referência Multibanco, cartão; quando a adesão do Leandro for aprovada e
-houver chaves). O catálogo publicado leva o `modo`; o Worker lê-o de lá (`MODO` nas vars só o pode forçar
+houver chaves). Liga-se e desliga-se no painel, no botão «Pagamentos online» (em cima nas Encomendas, desde
+18 nov 2026), que só liga com a ifthenpay pronta. O catálogo publicado leva o `modo`; o Worker lê-o de lá (`MODO` nas vars só o pode forçar
 para `encomenda`, como travão). Em modo «online» sem nenhum método ligado (`IFTHENPAY_ACCOUNTS` e a
 `IFTHENPAY_BACKOFFICE_KEY`, que confirma os pagamentos) o Worker responde 503 com
 `{ erro: 'O pagamento no site não está ligado. Encomende pelo WhatsApp.' }`.

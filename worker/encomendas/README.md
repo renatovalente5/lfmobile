@@ -130,8 +130,9 @@ os pagamentos para fora da ifthenpay. Os passos estão no topo do script.
    `https://<worker>/ifthenpay/callback?key=[ANTI_PHISHING_KEY]&orderId=[ORDER_ID]&amount=[AMOUNT]&requestId=[REQUEST_ID]`.
    Sem callbacks, a varredura confirma na mesma (até 10 minutos depois). Conferir com
    `GET /painel/saude?sondar=1` (`pagamentos.metodos`, `backoffice`, `callback`, `sonda: "ok"`), fazer um
-   pagamento real pequeno por método, e só então `pagamentos.modo = "online"` no `site.json` (pelo
-   painel) — o catálogo leva o modo. A var `MODO = "encomenda"` volta a fechar o pagamento no site num
+   pagamento real pequeno por método, e só então ligar: o botão «Pagamentos online» do painel (em cima nas
+   Encomendas; desde 18 nov 2026) muda o `pagamentos.modo` do `site.json` para `"online"` — o catálogo leva o
+   modo. O mesmo botão desliga. A var `MODO = "encomenda"` volta a fechar o pagamento no site num
    deploy, se for preciso.
 4. ~~O domínio~~ — feito a 11 nov 2026: `SITE_URL`, `CATALOGO_URL`, `LOGO_URL` e `ALLOWED_ORIGINS`
    em `https://lfmobile.pt`. Se o logótipo mudar, o nome do ficheiro muda (leva a assinatura):
