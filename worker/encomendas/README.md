@@ -117,8 +117,13 @@ os pagamentos para fora da ifthenpay. Os passos estão no topo do script.
 2. **O email do dono** — `STORE_EMAIL` no toml (recebe só o que lhe pede alguma coisa: «Nova
    encomenda», «Encomenda paga» e um pagamento numa encomenda anulada; o «expirou» e o «falhou» vão só
    ao cliente; é o reply-to dos emails ao cliente). Vazio, o dono não recebe nada.
-3. **A ifthenpay** (modo «online», desde 11 nov 2026 em vez da Stripe; quando a adesão do Leandro for
-   aprovada) — três segredos, cada um pelo stdin a partir de um ficheiro em `_cliente/segredos/`:
+3. **A ifthenpay** (modo «online», desde 11 nov 2026 em vez da Stripe; a adesão foi aprovada a 18 nov 2026) —
+   `node scripts/ligar-ifthenpay.mjs` faz o que se segue de uma vez, a partir das chaves em
+   `_cliente/segredos/ifthenpay/` (backoffice, mbway, multibanco, cartao; a anti-phishing faz-se lá): os três
+   segredos pelo stdin, o callback de cada método (`POST /v2/callback/activation`, documentado em
+   https://ifthenpay.com/docs/en/api/callback/: `paymentMethod` é `MB`, `MBWAY` ou `CCARD`; responde em texto
+   «OK: Callback is activated with success»; não há maneira de ler o que ficou registado) e a saúde com a sonda.
+   Os três segredos:
    - `IFTHENPAY_ACCOUNTS`: `MBWAY|<chave MB WAY>;MB|<chave Multibanco>;CCARD|<chave CCARD>` (só os
      métodos que a conta tiver; o site mostra só esses);
    - `IFTHENPAY_BACKOFFICE_KEY`: a chave de backoffice (confirma os pagamentos e faz os reembolsos);
