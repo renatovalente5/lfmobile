@@ -1,0 +1,29 @@
+{
+  "nome": "InPods 4",
+  "nomeCurto": "Inpods 4",
+  "fotos": [
+    "inpods-4-ed581d19",
+    "inpods-4-a270e7b5"
+  ],
+  "resumo": "Design ergonómico que permite um ajuste perfeito ao teu ouvido",
+  "descricao": "Com um design ergonómico que permite um ajuste perfeito ao teu ouvido, um design mais curto com sensor de força e com uma caixa mais pequena.",
+  "preco": 34.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Design Ergonómico",
+    "Resistentes a água e suor",
+    "Carregamento rápido",
+    "Autonomia de 6 horas sem caixa e 30 horas com caixa",
+    "Tecnologia de Bluetooth sem fios",
+    "Compatível com MagSafe",
+    "Compatível com IOS e Android"
+  ],
+  "pedeModelo": false,
+  "peso": 0.085,
+  "categoria": "audio",
+  "destaque": false,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}

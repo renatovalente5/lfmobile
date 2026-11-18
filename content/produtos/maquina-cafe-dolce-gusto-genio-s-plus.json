@@ -8,11 +8,21 @@
     "maquina-cafe-dolce-gusto-genio-s-plus-90481c59"
   ],
   "resumo": "Transforma cada momento de café numa experiência especial!",
-  "descricao": "A Genio S Plus é a máquina ideal para quem aprecia café de qualidade, com praticidade, tecnologia e um design moderno e elegante.\n\nPrincipais características:\n- Espresso Boost – intensifica o sabor do café\n- Seleção de temperatura\n- Preparação de bebidas quentes e frias\n- Funcionamento automático\n- Compatível com diferentes tamanhos de chávena, incluindo XL\n- Modo Eco para poupança de energia\n- Função Play & Select para uma preparação simples\n\nPerfeita para preparar expressos, cappuccinos, lattes e muitas outras bebidas deliciosas!",
+  "descricao": "A Genio S Plus é a máquina ideal para quem aprecia café de qualidade, com praticidade, tecnologia e um design moderno e elegante.\nPerfeita para preparar expressos, cappuccinos, lattes e muitas outras bebidas deliciosas!",
   "preco": 69.9,
   "estado": "novo",
   "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Espresso Boost – intensifica o sabor do café",
+    "Seleção de temperatura",
+    "Preparação de bebidas quentes e frias",
+    "Funcionamento automático",
+    "Compatível com diferentes tamanhos de chávena, incluindo XL",
+    "Modo Eco para poupança de energia",
+    "Função Play & Select para uma preparação simples"
+  ],
   "pedeModelo": false,
+  "peso": 2.5,
   "categoria": "casa",
   "destaque": true,
   "novidade": true,

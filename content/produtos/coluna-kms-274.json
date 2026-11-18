@@ -1,0 +1,44 @@
+{
+  "nome": "Coluna KMS-274",
+  "nomeCurto": "Coluna KMS-274",
+  "fotos": [
+    "coluna-kms-274-2eaa5628",
+    "coluna-kms-274-8b5276f5"
+  ],
+  "resumo": "Perfeitos para qualquer ambiente.",
+  "descricao": "Desfrute de graves poderosos com a coluna Kimiso KMS-274. Com 10W de potência, Bluetooth 5.3 e função TWS, oferece som surround graças as suas colunas laterais, perfeitos para qualquer ambiente.",
+  "preco": 29.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Potencia de 10W",
+    "Conexão Bluetooth",
+    "Carregamento Tipo-C"
+  ],
+  "opcoes": [
+    {
+      "nome": "Cor",
+      "valores": [
+        {
+          "nome": "Azul",
+          "suplemento": 0
+        },
+        {
+          "nome": "Preto",
+          "suplemento": 0
+        },
+        {
+          "nome": "Vermelho",
+          "suplemento": 0
+        }
+      ]
+    }
+  ],
+  "pedeModelo": false,
+  "peso": 0.58,
+  "categoria": "outros-gadgets",
+  "destaque": false,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}

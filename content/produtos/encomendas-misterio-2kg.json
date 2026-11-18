@@ -1,0 +1,42 @@
+{
+  "nome": "Encomendas  Mistério 2kg",
+  "nomeCurto": "Encomendas mistério 2kg",
+  "fotos": [
+    "encomendas-misterio-2kg-f53fa595"
+  ],
+  "resumo": "Encomendas mistério",
+  "descricao": "Gostas de surpresas? Então prepara-te para descobrir o que está escondido dentro das nossas Caixas Mistério!\nCada caixa é uma surpresa diferente, recheada de artigos variados que podem incluir tecnologia, gadgets, acessórios, brinquedos e muitas outras coisas.\nNunca sabes exatamente o que vais encontrar. É isso que torna cada caixa uma experiência única e divertida!\nO que podes encontrar?\nGadgets e acessórios tecnológicos\nBrinquedos e artigos de entretenimento\nProdutos para o dia a dia\nSurpresas inesperadas\nAVISO IMPORTANTE – CAIXAS MISTÉRIO\nOs artigos podem ser novos, usados, devolvidos ou apresentar sinais de utilização.\nO conteúdo de cada caixa ou saca é aleatório.\nNão garantimos a presença de artigos específicos nem o estado de cada produto.\nNão são aceites trocas ou devoluções, nem damos garantia.",
+  "preco": 29.8,
+  "estado": "usado",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Não sabemos o conteúdo",
+    "Temos sacas e caixas"
+  ],
+  "opcoes": [
+    {
+      "nome": "Tipo",
+      "valores": [
+        {
+          "nome": "Caixas",
+          "suplemento": 0
+        },
+        {
+          "nome": "Sacos",
+          "suplemento": 0
+        },
+        {
+          "nome": "Misto",
+          "suplemento": 0
+        }
+      ]
+    }
+  ],
+  "pedeModelo": false,
+  "peso": 2,
+  "categoria": "encomendas-misterio",
+  "destaque": false,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}

@@ -3,11 +3,11 @@
   "nomeCurto": "InPods Pro 3",
   "marca": "",
   "fotos": [
-    "inpods-pro-3-1",
-    "inpods-pro-3-2"
+    "inpods-pro-3-5192e49a",
+    "inpods-pro-3-af983f33"
   ],
   "resumo": "Leves, confortáveis e práticos, para iOS e Android.",
-  "descricao": "Auriculares sem fios leves, confortáveis e práticos.",
+  "descricao": "Os Inpods Pro 3 são ideais para quem procura fones confortáveis e práticos para o dia a dia, compatíveis com lOS e Android, com conexão Bluetooth, resistência à chuva e suor.",
   "preco": 34.9,
   "precoAnterior": null,
   "promocaoDesde": "",
@@ -15,6 +15,9 @@
   "estado": "novo",
   "disponibilidade": "disponivel",
   "caracteristicas": [
+    "Design leve, confortável e suave ao toque",
+    "Resistência ao suor e à chuva",
+    "Conexão via Bluetooth",
     "Compatíveis com iOS e Android"
   ],
   "inclui": [],
@@ -28,6 +31,7 @@
     "email": ""
   },
   "avisos": "",
+  "peso": 0.13,
   "categoria": "audio",
   "destaque": false,
   "novidade": false,

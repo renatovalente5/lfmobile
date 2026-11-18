@@ -23,26 +23,6 @@
     "alt": "InPods 3, fotografia 2",
     "foco": "50% 50%"
   },
-  "inpods-pro-2-1": {
-    "alt": "InPods Pro 2, fotografia 1",
-    "foco": "50% 50%"
-  },
-  "inpods-pro-2-2": {
-    "alt": "InPods Pro 2, fotografia 2",
-    "foco": "50% 50%"
-  },
-  "inpods-pro-2-3": {
-    "alt": "InPods Pro 2, fotografia 3",
-    "foco": "50% 50%"
-  },
-  "inpods-pro-3-1": {
-    "alt": "InPods Pro 3, fotografia 1",
-    "foco": "50% 50%"
-  },
-  "inpods-pro-3-2": {
-    "alt": "InPods Pro 3, fotografia 2",
-    "foco": "50% 50%"
-  },
   "iphone-11-64gb-recondicionado-1": {
     "alt": "iPhone 11 64 GB, fotografia 1",
     "foco": "50% 50%"
@@ -61,10 +41,6 @@
   },
   "iphone-11-64gb-recondicionado-5": {
     "alt": "iPhone 11 64 GB, fotografia 5",
-    "foco": "50% 50%"
-  },
-  "iphone-12-mini-128gb-recondicionado-1": {
-    "alt": "iPhone 12 mini 128 GB, fotografia 1",
     "foco": "50% 50%"
   },
   "iphone-12-mini-128gb-recondicionado-2": {
@@ -101,10 +77,6 @@
   },
   "iphone-13-128gb-recondicionado-5": {
     "alt": "iPhone 13 128 GB, fotografia 5",
-    "foco": "50% 50%"
-  },
-  "iphone-14-pro-max-256gb-recondicionado-1": {
-    "alt": "iPhone 14 Pro Max 256 GB, fotografia 1",
     "foco": "50% 50%"
   },
   "iphone-14-pro-max-256gb-recondicionado-2": {
@@ -177,10 +149,6 @@
   },
   "samsung-galaxy-s25-128gb-1": {
     "alt": "Samsung Galaxy S25 128 GB",
-    "foco": "50% 50%"
-  },
-  "smartwatch-watch-s11-1": {
-    "alt": "Smartwatch Watch S11",
     "foco": "50% 50%"
   },
   "banner-inicio": {
@@ -259,10 +227,6 @@
     "alt": "Huawei Watch D2",
     "foco": "50% 50%"
   },
-  "capas-77d92b0a": {
-    "alt": "Capas para telemóvel",
-    "foco": "50% 50%"
-  },
   "cartao-localizador-p10-42c4cff5": {
     "alt": "Cartão Localizador P10",
     "foco": "50% 50%"
@@ -281,6 +245,134 @@
   },
   "samsung-galaxy-a17-f5f2b31a": {
     "alt": "Samsung Galaxy A17",
+    "foco": "50% 50%"
+  },
+  "inpods-4-ed581d19": {
+    "alt": "InPods 4",
+    "foco": "50% 50%"
+  },
+  "inpods-4-a270e7b5": {
+    "alt": "InPods 4",
+    "foco": "50% 50%"
+  },
+  "inpods-pro-2-71e0e871": {
+    "alt": "InPods Pro 2",
+    "foco": "50% 50%"
+  },
+  "inpods-pro-2-e7d7a23c": {
+    "alt": "InPods Pro 2",
+    "foco": "50% 50%"
+  },
+  "inpods-pro-3-5192e49a": {
+    "alt": "InPods Pro 3",
+    "foco": "50% 50%"
+  },
+  "inpods-pro-3-af983f33": {
+    "alt": "InPods Pro 3",
+    "foco": "50% 50%"
+  },
+  "coluna-kms-274-2eaa5628": {
+    "alt": "Coluna KMS-274",
+    "foco": "50% 50%"
+  },
+  "coluna-kms-274-8b5276f5": {
+    "alt": "Coluna KMS-274",
+    "foco": "50% 50%"
+  },
+  "coluna-kms-271-a14daefe": {
+    "alt": "Coluna KMS-271",
+    "foco": "50% 50%"
+  },
+  "coluna-kms-273-9a1082c0": {
+    "alt": "Coluna KMS-273",
+    "foco": "50% 50%"
+  },
+  "encomendas-misterio-187541a3": {
+    "alt": "Encomendas Mistério",
+    "foco": "50% 50%"
+  },
+  "encomendas-misterio-2kg-f53fa595": {
+    "alt": "Encomendas Mistério 2kg",
+    "foco": "50% 50%"
+  },
+  "encomendas-misterio-5kg-25f083aa": {
+    "alt": "Encomendas mistério 5kg",
+    "foco": "50% 50%"
+  },
+  "encomendas-misterio-10kg-76b007e4": {
+    "alt": "Encomendas mistério 10kg",
+    "foco": "50% 50%"
+  },
+  "capas-9e559074": {
+    "alt": "Capas para telemóvel",
+    "foco": "50% 50%"
+  },
+  "carregador-magnetico-3-em-1-7be7b721": {
+    "alt": "Carregador Magnético 3 em 1",
+    "foco": "50% 50%"
+  },
+  "carregador-magnetico-3-em-1-3a9f099a": {
+    "alt": "Carregador Magnético 3 em 1",
+    "foco": "50% 50%"
+  },
+  "suporte-carro-360-c9136403": {
+    "alt": "Suporte carro 360",
+    "foco": "50% 50%"
+  },
+  "oppo-a5x-3d351bdc": {
+    "alt": "Oppo A5x 128Gb",
+    "foco": "50% 50%"
+  },
+  "iphone-14-pro-max-256gb-recondicionado-bf198d4b": {
+    "alt": "iPhone 14 Pro Max 256 GB",
+    "foco": "50% 50%"
+  },
+  "iphone-12-mini-128gb-recondicionado-411c7b84": {
+    "alt": "iPhone 12 mini 128 GB",
+    "foco": "50% 50%"
+  },
+  "guess-wireless-earbuds-16524a21": {
+    "alt": "GUESS Wireless Earbuds",
+    "foco": "50% 50%"
+  },
+  "huawei-band-11-ac597c61": {
+    "alt": "Huawei Band 11",
+    "foco": "50% 50%"
+  },
+  "huawei-band-11-8d2aad1a": {
+    "alt": "Huawei Band 11",
+    "foco": "50% 50%"
+  },
+  "smartwatch-watch-s11-d7adb560": {
+    "alt": "Smartwatch Watch S11",
+    "foco": "50% 50%"
+  },
+  "smartwatch-watch-s11-3d82f4f2": {
+    "alt": "Smartwatch Watch S11",
+    "foco": "50% 50%"
+  },
+  "smartwatch-watch-s11-ccaa0b94": {
+    "alt": "Smartwatch Watch S11",
+    "foco": "50% 50%"
+  },
+  "carregador-magnetico-3-em-1-459f7564": {
+    "alt": "Estação de Carga Magnética 3 em 1 360º",
+    "foco": "50% 50%"
+  },
+  "coluna-kms-273-c1b30b0a": {
+    "alt": "Coluna KMS-273",
+    "foco": "50% 50%"
+  },
+  "coluna-kms-271-7e3cc313": {
+    "alt": "Coluna KMS-271",
+    "foco": "50% 50%"
+  },
+  "oppo-a5x-a4e909e4": {
+    "alt": "Oppo A5x 128Gb",
+    "foco": "50% 50%"
+  },
+  "suporte-carro-360-26679058": {
+    "alt": "Suporte carro 360 H006",
     "foco": "50% 50%"
   }
 }

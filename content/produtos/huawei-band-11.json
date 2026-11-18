@@ -1,0 +1,32 @@
+{
+  "nome": "Huawei Band 11",
+  "nomeCurto": "Huawei Band 11",
+  "marca": "Huawei",
+  "fotos": [
+    "huawei-band-11-ac597c61",
+    "huawei-band-11-8d2aad1a"
+  ],
+  "resumo": "Huawei Band 11 – Smartband",
+  "descricao": "A Huawei Band 11 é a escolha ideal para quem procura tecnologia, conforto e estilo no dia a dia. Com um design moderno e elegante, permite acompanhar a tua atividade física, monitorizar a saúde e receber notificações diretamente no pulso.\nApenas na cor: Beje.",
+  "preco": 65.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Ecrã AMOLED de elevada qualidade.",
+    "Monitorização do ritmo cardíaco.",
+    "Monitorização do sono.",
+    "Acompanhamento dos níveis de oxigénio no sangue (SpO₂).",
+    "Monitorização de atividades físicas e desportivas.",
+    "Notificações de chamadas e mensagens.",
+    "Controlo de atividade diária e passos.",
+    "Design leve e confortável para utilização diária.",
+    "Compatível com smartphones Android e iOS."
+  ],
+  "pedeModelo": false,
+  "peso": 0.115,
+  "categoria": "smartwatches",
+  "destaque": false,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}

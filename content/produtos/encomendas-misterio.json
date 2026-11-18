@@ -1,0 +1,42 @@
+{
+  "nome": "Encomendas Mistério 1kg",
+  "nomeCurto": "Encomendas mistério",
+  "fotos": [
+    "encomendas-misterio-187541a3"
+  ],
+  "resumo": "CAIXAS MISTÉRIO – LF MOBILE",
+  "descricao": "Gostas de surpresas? Então prepara-te para descobrir o que está escondido dentro das nossas Caixas Mistério!\n\nCada caixa é uma surpresa diferente, recheada de artigos variados que podem incluir tecnologia, gadgets, acessórios, brinquedos e muitas outras coisas.\n\nNunca sabes exatamente o que vais encontrar. É isso que torna cada caixa uma experiência única e divertida!\n\nO que podes encontrar?\n\n- Gadgets e acessórios tecnológicos\n- Brinquedos e artigos de entretenimento\n- Produtos para o dia a dia\n- Surpresas inesperadas\n\nAVISO IMPORTANTE – CAIXAS MISTÉRIO\n\n- Os artigos podem ser novos, usados, devolvidos ou apresentar sinais de utilização.\n- O conteúdo de cada caixa ou saca é aleatório.\n- Não garantimos a presença de artigos específicos nem o estado de cada produto.\n- Não são aceites trocas ou devoluções, nem damos garantia.",
+  "preco": 14.9,
+  "estado": "usado",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Não sabemos o conteúdo",
+    "Temos sacos e caixas"
+  ],
+  "opcoes": [
+    {
+      "nome": "Tipo",
+      "valores": [
+        {
+          "nome": "Sacos",
+          "suplemento": 0
+        },
+        {
+          "nome": "Caixas",
+          "suplemento": 0
+        },
+        {
+          "nome": "Misto",
+          "suplemento": 0
+        }
+      ]
+    }
+  ],
+  "pedeModelo": false,
+  "peso": 1,
+  "categoria": "encomendas-misterio",
+  "destaque": true,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}
