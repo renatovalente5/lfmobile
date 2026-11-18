@@ -584,3 +584,15 @@ test('a saúde diz o que está ligado (nunca os valores), e ?sondar=1 prova a ch
   r = await pedir(worker, envFalso({ IFTHENPAY_ACCOUNTS: 'MB' }), 'GET', '/painel/saude', { cabecalhos: bearer() });
   assert.deepEqual(r.json.pagamentos, { metodos: [], contas: [], erro: 'conta mal formada (tem de ser METODO|CHAVE): MB|…', backoffice: false, callback: false });
 });
+
+test('IFTHENPAY_API (os ensaios no browser) só leva a ifthenpay para o localhost: outra morada fica a api.ifthenpay.com', async () => {
+  const vistos = [];
+  const antes = globalThis.fetch;
+  globalThis.fetch = async (url) => { vistos.push(new URL(String(url)).origin); return Response.json({ status: 200, payments: [] }); };
+  try {
+    for (const IFTHENPAY_API of ['http://localhost:8795', 'http://127.0.0.1:9000', 'https://ifthenpay.exemplo.pt', 'http://localhost.exemplo.pt', undefined]) {
+      await I.lerPagamento({ IFTHENPAY_BACKOFFICE_KEY: CHAVES.BO, IFTHENPAY_API }, { orderId: 'LF261118ABCDEF' }).catch(() => {});
+    }
+  } finally { globalThis.fetch = antes; }
+  assert.deepEqual(vistos, ['http://localhost:8795', 'http://127.0.0.1:9000', 'https://api.ifthenpay.com', 'https://api.ifthenpay.com', 'https://api.ifthenpay.com']);
+});

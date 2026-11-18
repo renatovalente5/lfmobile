@@ -16,6 +16,9 @@
  * confere a sua. */
 
 const BASE = 'https://api.ifthenpay.com';
+/* Os ensaios no browser (wrangler dev) põem IFTHENPAY_API numa ifthenpay de faz-de-conta. Só aceita o
+   localhost: uma var mal posta na Cloudflare nunca leva os pagamentos para fora da ifthenpay. */
+const baseDe = (env) => (env && typeof env.IFTHENPAY_API === 'string' && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(env.IFTHENPAY_API) ? env.IFTHENPAY_API : BASE);
 const TEMPO_MS = 15000;   // uma chamada presa não prende o pedido do cliente até ao fim do Worker
 
 /* ---------------------------------------------------------------- valores */
@@ -51,8 +54,8 @@ async function ler(r) {
   const texto = await r.text();
   try { return texto ? JSON.parse(texto) : null; } catch { return texto; }
 }
-async function chamar(caminho, corpo, { tempoMs = TEMPO_MS } = {}) {
-  const r = await fetch(`${BASE}${caminho}`, {
+async function chamar(env, caminho, corpo, { tempoMs = TEMPO_MS } = {}) {
+  const r = await fetch(`${baseDe(env)}${caminho}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', accept: 'application/json' },
     body: JSON.stringify(corpo),
@@ -62,8 +65,8 @@ async function chamar(caminho, corpo, { tempoMs = TEMPO_MS } = {}) {
   if (!r.ok) throw new IfthenpayErro(r.status, dados);
   return dados;
 }
-async function chamarGet(caminho, params, { tempoMs = TEMPO_MS } = {}) {
-  const r = await fetch(`${BASE}${caminho}?${new URLSearchParams(params)}`, { headers: { accept: 'application/json' }, ...(tempoMs ? { signal: AbortSignal.timeout(tempoMs) } : {}) });
+async function chamarGet(env, caminho, params, { tempoMs = TEMPO_MS } = {}) {
+  const r = await fetch(`${baseDe(env)}${caminho}?${new URLSearchParams(params)}`, { headers: { accept: 'application/json' }, ...(tempoMs ? { signal: AbortSignal.timeout(tempoMs) } : {}) });
   const dados = await ler(r);
   if (!r.ok) throw new IfthenpayErro(r.status, dados);
   return dados;
@@ -137,7 +140,7 @@ export function telemovelMbway(texto) {
 export async function criarMbway(env, { id, cents, telemovel, descricao }) {
   const mobileNumber = telemovelMbway(telemovel);
   if (!mobileNumber) throw new TypeError('telemóvel inválido para MB WAY');
-  const r = await chamar('/spg/payment/mbway', {
+  const r = await chamar(env, '/spg/payment/mbway', {
     mbWayKey: chaveDe(env, 'MBWAY'),
     orderId: id,
     amount: paraValor(cents),
@@ -154,7 +157,7 @@ export const MBWAY_SEGUNDOS = 240;
 const MBWAY_ESTADOS = { '000': 'pago', '020': 'recusado', '101': 'expirado', '122': 'recusado' };
 export async function estadoMbway(env, { requestId }) {
   if (!requestId) throw new TypeError('falta o requestId');
-  const r = await chamarGet('/spg/payment/mbway/status', { mbWayKey: chaveDe(env, 'MBWAY'), requestId }, { tempoMs: 8000 });
+  const r = await chamarGet(env, '/spg/payment/mbway/status', { mbWayKey: chaveDe(env, 'MBWAY'), requestId }, { tempoMs: 8000 });
   const codigo = String(r?.Status ?? '');
   return { codigo, estado: MBWAY_ESTADOS[codigo] ?? 'pendente' };
 }
@@ -163,7 +166,7 @@ export async function estadoMbway(env, { requestId }) {
 
 /** Gera uma referência: a entidade, a referência e o dia em que deixa de valer (AAAA-MM-DD). */
 export async function criarMultibanco(env, { id, cents, descricao, dias }) {
-  const r = await chamar('/multibanco/reference/init', {
+  const r = await chamar(env, '/multibanco/reference/init', {
     mbKey: chaveDe(env, 'MB'),
     orderId: id,
     amount: paraValor(cents),
@@ -193,7 +196,7 @@ export async function listarMultibanco(env, { orderId, deDias = 30 }) {
   if (!orderId) throw new TypeError('falta o orderId');
   const hoje = Date.now();
   const dia = (t) => new Date(t).toISOString().slice(0, 10);
-  const r = await chamar('/multibanco/reference/list', { mbKey: chaveDe(env, 'MB'), fromDate: dia(hoje - deDias * 86400000), toDate: dia(hoje + 86400000), orderId });
+  const r = await chamar(env, '/multibanco/reference/list', { mbKey: chaveDe(env, 'MB'), fromDate: dia(hoje - deDias * 86400000), toDate: dia(hoje + 86400000), orderId });
   return Array.isArray(r) ? r : [];
 }
 export function pagosDaLista(linhas) {
@@ -207,7 +210,7 @@ export function pagosDaLista(linhas) {
    pelo site nem por este Worker. Três endereços de regresso, obrigatórios. */
 export async function criarCartao(env, { id, cents, urls }) {
   if (!urls?.sucesso || !urls?.erro || !urls?.cancelado) throw new TypeError('o cartão exige os três endereços de regresso');
-  const r = await chamar(`/creditcard/init/${chaveDe(env, 'CCARD')}`, {
+  const r = await chamar(env, `/creditcard/init/${chaveDe(env, 'CCARD')}`, {
     orderId: id,
     amount: paraValor(cents),
     successUrl: urls.sucesso,
@@ -224,7 +227,7 @@ export async function criarCartao(env, { id, cents, urls }) {
 export async function lerPagamento(env, { orderId, tempoMs = TEMPO_MS }) {
   if (!env.IFTHENPAY_BACKOFFICE_KEY) throw new Error('falta IFTHENPAY_BACKOFFICE_KEY');
   if (!orderId) throw new TypeError('falta o orderId');
-  const r = await chamar('/v2/payments/read', { boKey: env.IFTHENPAY_BACKOFFICE_KEY, orderId }, { tempoMs });
+  const r = await chamar(env, '/v2/payments/read', { boKey: env.IFTHENPAY_BACKOFFICE_KEY, orderId }, { tempoMs });
   // O estado vem DENTRO do corpo: uma chave errada ou revogada é HTTP 200 com `status: 403` e sem lista,
   // que se leria como «não há pagamentos» — a loja deixava de reconhecer dinheiro sem um erro.
   if (Number(r?.status) !== 200) throw new IfthenpayErro(r?.status ?? 502, r);
@@ -267,7 +270,7 @@ export async function reembolsar(env, { requestId, cents, metodo, tempoMs = 2000
   if (!Number.isInteger(cents) || cents <= 0) throw new TypeError('valor do reembolso inválido');
   let r;
   try {
-    r = await chamar('/v2/payments/refund', { backofficekey: env.IFTHENPAY_BACKOFFICE_KEY, requestId, amount: paraValor(cents) }, { tempoMs });
+    r = await chamar(env, '/v2/payments/refund', { backofficekey: env.IFTHENPAY_BACKOFFICE_KEY, requestId, amount: paraValor(cents) }, { tempoMs });
   } catch (e) {
     if (e?.ifthenpay && e.estado >= 400 && e.estado < 500) { e.recusado = true; throw e; }
     const d = e?.ifthenpay ? e : new IfthenpayErro(0, String(e?.message ?? e));

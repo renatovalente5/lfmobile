@@ -101,6 +101,14 @@ do Armazém dos Pneus), id `b1609f701d5f43e7ad515c939b39ca6d`. Apagar uma encome
 Nota: a lista do painel (`list()` do KV) pode levar até um minuto a reflectir uma mudança de
 estado; a ficha (`get`) é imediata.
 
+## O ensaio dos pagamentos no browser
+
+`scripts/pente-fino-pagamentos.mjs` (na raiz do repositório; 38 provas no Chromium e no WebKit, 18 nov 2026) faz
+encomendas com cada método contra três servidores locais: o site com os pagamentos ligados, este Worker, e a
+ifthenpay de faz-de-conta dos testes, servida por `scripts/ifthenpay-de-ensaio.mjs`. O Worker fala com ela pela var
+`IFTHENPAY_API`, que só aceita o localhost (`ifthenpay.js`, `baseDe`): uma var mal posta na Cloudflare nunca leva
+os pagamentos para fora da ifthenpay. Os passos estão no topo do script.
+
 ## O que falta ligar
 
 1. ~~Os emails pelo domínio~~ — feito a 11 nov 2026: o lfmobile.pt está no Email Sending da

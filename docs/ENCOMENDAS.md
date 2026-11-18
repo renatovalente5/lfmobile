@@ -282,7 +282,8 @@ leva o endereço do cartão lá, §10), `GOOGLE_CLIENTE` (o id público do clien
 com o Google», §10) e, opcional, `MODO = "encomenda"` como travão. Segredos: `IFTHENPAY_ACCOUNTS`
 (`MBWAY|…;MB|…;CCARD|…`: segredo e não var, porque o repositório é público e uma var posta no painel da Cloudflare
 apaga-se no deploy seguinte), `IFTHENPAY_BACKOFFICE_KEY`, `IFTHENPAY_ANTIPHISHING_KEY` (escolhida por nós),
-`RESEND_API_KEY`, `PAINEL_SEGREDO`. Cron: `*/10 * * * *` (a varredura, §9). Bindings: KV `ORDERS`, rate limit
+`RESEND_API_KEY`, `PAINEL_SEGREDO`. Só nos ensaios locais: `IFTHENPAY_API` (a ifthenpay de faz-de-conta; o
+Worker só a aceita no localhost). Cron: `*/10 * * * *` (a varredura, §9). Bindings: KV `ORDERS`, rate limit
 `TRAVAO_CHECKOUT`, `send_email` `EMAIL` (só de `encomendas@lfmobile.pt`), objectos duráveis `CUPOES`
 (classe `Cupoes`, migração `v1`), `ENCOMENDA` (classe `Encomenda`, migração `v2`) e `CONTADOR` (classe
 `Contador`, migração `v3`: o travão dos emails) e `CONTA` (classe `Conta`, migração `v4`: a conta do cliente, §10),
