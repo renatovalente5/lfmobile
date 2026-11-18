@@ -91,7 +91,7 @@
       const fams = D.familias.filter((f) => f.marca === s.marca);
       return `${topo('Qual é o modelo?', 'No iPhone vê-se em Definições › Geral › Informações; no Samsung, em Definições › Acerca do telemóvel.')}
       ${fams.length > 1 ? `<div class="sim-familias">${fams.map((f) => `<button class="sim-familia" type="button" data-sim-familia="${esc(f.id)}" aria-pressed="${s.familia === f.id}">${esc(f.nome)}</button>`).join('')}</div>` : ''}
-      <label class="sim-procura">${LUPA}<span class="visualmente-escondido">Procurar o modelo</span><input type="search" placeholder="Procurar (ex.: 13 Pro, S23)" autocomplete="off" data-sim-procura></label>
+      <label class="sim-procura">${LUPA}<span class="visualmente-escondido">Procurar o modelo</span><input type="search" placeholder="Modelo (ex.: 13 Pro, S23)" autocomplete="off" data-sim-procura></label>
       <div class="sim-modelos" data-sim-modelos></div>
       <p class="sim-ajuda" data-sim-nada hidden>Não encontramos esse modelo. <a href="${esc(whatsappDe('Olá! Quero vender o meu telemóvel (retoma) e não o encontrei no simulador: '))}" target="_blank" rel="noopener">Pergunte-nos pelo WhatsApp</a>.</p>`;
     },

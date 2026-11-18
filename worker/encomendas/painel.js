@@ -11,6 +11,9 @@
  *   GET    /painel/cupoes                 os cupões, com os usos
  *   PUT    /painel/cupoes/<CÓDIGO>        cria ou muda um cupão (a regra: cupoes.js, validarRegra)
  *   DELETE /painel/cupoes/<CÓDIGO>        apaga um cupão (as encomendas que o usaram ficam como estão)
+ *   GET  /painel/cartoes?email=           o cartão das películas de um cliente (conta.js, rotaCartoes)
+ *   POST /painel/cartoes/carimbo          { email, n, por, nota? }: as películas compradas na loja
+ *   POST /painel/cartoes/oferta           { email, por, nota? }: a película de oferta entregue
  */
 
 import { json, lerCorpoJson } from './http.js';
@@ -22,6 +25,7 @@ import { listarCupoes, validarRegra, gravarCupao, apagarCupao, normalizarCodigo,
 import { notaAoSairDePendente } from './pagamento.js';
 import { chavesPorMetodo, metodosLigados, lerPagamento, reembolsar, REEMBOLSAVEL } from './ifthenpay.js';
 import { eur } from './email.js';
+import { rotaCartoes } from './conta.js';
 
 const POR_PAGINA = 200;
 /* As transições do painel que avisam o cliente (§6). «levantada» não manda nada. */
@@ -36,6 +40,7 @@ export async function rotaPainel(request, env, url, caminho) {
   if (resto === '/saude') return request.method === 'GET' ? saude(env, url.searchParams.get('sondar') === '1') : json({ erro: 'Método não permitido.' }, 405);
   if (resto === '/encomendas') return request.method === 'GET' ? listar(env, url) : json({ erro: 'Método não permitido.' }, 405);
   if (resto === '/cupoes') return request.method === 'GET' ? json({ cupoes: await listarCupoes(env) }) : json({ erro: 'Método não permitido.' }, 405);
+  if (resto === '/cartoes' || resto.startsWith('/cartoes/')) return rotaCartoes(request, env, url, resto);
   const rc = /^\/cupoes\/([^/]+)$/.exec(resto);
   if (rc) return cupao(request, env, decodeURIComponent(rc[1]));
   const r = /^\/encomendas\/([^/]+)(?:\/(estado|nota|reembolso))?$/.exec(resto);

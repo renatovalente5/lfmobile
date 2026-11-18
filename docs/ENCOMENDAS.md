@@ -277,14 +277,16 @@ o que falta ligar). Os testes: `cd worker/encomendas && npm test`.
 `SITE_URL` (`https://lfmobile.pt`),
 `ALLOWED_ORIGINS`, `MAIL_FROM`, `STORE_EMAIL`, `STORE_NAME = "LF Mobile"`, `STORE_PHONE`,
 `CATALOGO_URL` (por omissão `${SITE_URL}/assets/catalogo.json`),
-`LOGO_URL` (o PNG do logótipo para os emails: o Outlook não mostra WebP) e, opcional, `MODO = "encomenda"`
-como travão. Segredos: `IFTHENPAY_ACCOUNTS` (`MBWAY|…;MB|…;CCARD|…`: segredo e não var, porque o
-repositório é público e uma var posta no painel da Cloudflare apaga-se no deploy seguinte),
-`IFTHENPAY_BACKOFFICE_KEY`, `IFTHENPAY_ANTIPHISHING_KEY` (escolhida por nós), `RESEND_API_KEY`,
-`PAINEL_SEGREDO`. Cron: `*/10 * * * *` (a varredura, §9). Bindings: KV `ORDERS`, rate limit
+`LOGO_URL` (o PNG do logótipo para os emails: o Outlook não mostra WebP), `PAINEL_URL` (o código QR do cartão
+leva o endereço do cartão lá, §10), `GOOGLE_CLIENTE` (o id público do cliente OAuth do Google; vazio, não há «Entrar
+com o Google», §10) e, opcional, `MODO = "encomenda"` como travão. Segredos: `IFTHENPAY_ACCOUNTS`
+(`MBWAY|…;MB|…;CCARD|…`: segredo e não var, porque o repositório é público e uma var posta no painel da Cloudflare
+apaga-se no deploy seguinte), `IFTHENPAY_BACKOFFICE_KEY`, `IFTHENPAY_ANTIPHISHING_KEY` (escolhida por nós),
+`RESEND_API_KEY`, `PAINEL_SEGREDO`. Cron: `*/10 * * * *` (a varredura, §9). Bindings: KV `ORDERS`, rate limit
 `TRAVAO_CHECKOUT`, `send_email` `EMAIL` (só de `encomendas@lfmobile.pt`), objectos duráveis `CUPOES`
 (classe `Cupoes`, migração `v1`), `ENCOMENDA` (classe `Encomenda`, migração `v2`) e `CONTADOR` (classe
-`Contador`, migração `v3`: o travão dos emails), SQLite, na jurisdição da UE (
+`Contador`, migração `v3`: o travão dos emails) e `CONTA` (classe `Conta`, migração `v4`: a conta do cliente, §10),
+SQLite, na jurisdição da UE (
 num `wrangler dev` local, sem jurisdições, `ENCOMENDAS_LOCAL=1` no `.dev.vars`). `wrangler deploy --config worker/encomendas/wrangler.toml` sempre com
 `--config` (memória: wrangler-autoconfig-pasta-mae).
 
@@ -386,3 +388,135 @@ O desenho é o da ithos·cathelier (ithos-cathelier-api, desde set 2026), no có
   também); um MB WAY ainda à espera na app não deixa sair outro (409).
 - **Reembolsos**: §5. A ifthenpay só devolve MB WAY e cartão; o Multibanco é por transferência (o IBAN
   do cliente: a política de privacidade di-lo).
+
+## 10. A conta do cliente (13 nov 2026)
+
+O Leandro pediu «a conta cliente para o cliente ver as encomendas». Entra-se com o email e um código, sem
+palavra-passe; lá dentro, as encomendas feitas com esse email, em que ponto está cada uma e o caminho que fez.
+
+**Onde vive.** As rotas são `/conta/api/…` deste Worker (`conta.js`), e chegam pelo Worker do site
+(`worker/www.js`) através da service binding `ENCOMENDAS` do `wrangler.jsonc`: no domínio, a sessão é um cookie do
+próprio `lfmobile.pt` e não há CORS (um cookie do `workers.dev` seria de terceiros, e o Safari recusa-o; um `fetch`
+a outro Worker da mesma zona falha — memória worker-na-mesma-zona). Pelo `workers.dev` as rotas respondem igual,
+mas sem o cookie não há conta. A página é `/conta/` (`src/scripts/conta.js`): noindex e fora do sitemap.
+
+| rota | corpo | resposta |
+|---|---|---|
+| `POST /conta/api/codigo` | `{ email }` | `{ pedido }` (22 caracteres); o código vai por email |
+| `POST /conta/api/entrar` | `{ email, pedido, codigo }` | `{ ok: true }` e o cookie; ou 400 `{ erro, campo?, novo? }` |
+| `GET /conta/api/eu` | — | `{ email, encomendas: [{ encomenda, estado, entrega, total_cents, criada_em, linhas: [{ nome, qtd }], linhas_a_mais? }] }` |
+| `GET /conta/api/encomenda?e=<id>` | — | a vista pública (§3) + `criada_em`, `morada` (no envio) e `historico: [{ em, estado, nota? }]`; 404 se não for desta conta |
+| `POST /conta/api/sair` | — | `{ ok: true }` e o cookie apagado |
+
+Sem sessão, `eu` e `encomenda` respondem 401 e apagam o cookie. Os `POST` só se aceitam com o `Origin` do site
+(`SITE_URL` ou `ALLOWED_ORIGINS`); outro, 403.
+
+**O cookie:** `__Host-lf-sessao=<id da conta>.<segredo>; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`.
+Nenhum script o lê. Dura 30 dias e renova-se com o uso (uma vez por dia).
+
+**O código:** 6 algarismos (sem enviesar), vale 10 minutos, 5 tentativas (à 5.ª errada pede-se outro). Dois toques no
+botão em 20 s dão o mesmo pedido e um só email. Travões: por IP (o binding `TRAVAO_CHECKOUT`, chaves
+`conta-codigo:<ip>` e `conta-entrar:<ip>`, 5 por minuto) e por email (4 códigos por hora, 10 por dia). O código vai a
+qualquer email (a resposta é a mesma, haja ou não encomendas); o email não leva texto de quem pede. Assunto:
+«123456 é o seu código da LF Mobile» (o código à frente: o telemóvel propõe-no sozinho).
+
+**O objecto `Conta`** (`CONTA`, migração `v4`, SQLite, na UE; o nome é o resumo SHA-256 de
+`lfmobile-conta:<email da conta>`): `email` (o da conta), `codigo` (`{ pedido, resumo, expira, tentativas, criado }`),
+`pedidos` (quando se pediram códigos, 24 h) e `sessao:<resumo do segredo>` (`{ criada, expira, renovada, mostrar }`,
+no máximo 10). Do código e da sessão só se guarda o resumo. Apaga-se sozinho quando já não tem sessões vivas.
+
+**O email da conta:** minúsculas, sem invisíveis; no Gmail sem os pontos nem o `+etiqueta` (vão dar à mesma caixa).
+Noutros domínios o `+etiqueta` fica.
+
+**As encomendas da conta** fazem-se dos metadados do KV (`order:` com `email`, §4), sem ler cada encomenda; um email
+que pode estar cortado nos metadados (80 caracteres, ou 40) confere-se na encomenda. A ficha lê o objecto da encomenda
+e confere o email outra vez.
+
+**O caminho** (`historico`): cada mudança de estado com a data; as linhas que não mudam o estado (as da Stripe que só
+ficaram no histórico) saem. A `nota` só vai na `enviada` (o rastreio) e na `anulada` (a razão): são as que o cliente
+já recebe por email (§6). As outras notas do painel e as `notas_painel` nunca saem.
+
+**O cartão das películas (13 nov 2026; o Leandro: «Sim» à proposta).** O cartão de papel da loja, «Películas
+Hidrogel»: 5 casas e, na 6.ª, uma película de oferta, a contar na loja E no site. Vive no objecto da conta (o email):
+
+- **As do site contam sozinhas:** cada película de hidrogel (o nome do artigo tem «hidrogel», `ehHidrogel`) numa
+  encomenda `paga`, `pronta`, `enviada` ou `levantada` (`CONTAM`), lidas dos metadados do KV como a lista da conta.
+- **As da loja e as ofertas** marca-as o dono no painel (ecrã «Cartões»), pelo email do cliente:
+  `carimbos: [{ em, n, por, nota? }]` (n de −10 a 10; o negativo corrige, nunca abaixo de zero) e
+  `ofertas: [{ em, por, nota? }]` no objecto `Conta`. A oferta só se entrega se o cartão a tiver (conferido no objecto,
+  num passo só). Um cartão pode nascer no painel antes de o cliente entrar no site.
+- **As contas** (`cartaoDe`): `total = site + loja`; cada 5 dão uma oferta; `disponiveis = floor(total / 5) − entregues`;
+  `atuais = total mod 5` (as casas do cartão de agora). Com uma oferta por entregar e 0 casas, o cartão mostra as 5
+  cheias e a 6.ª acesa.
+- **Rotas do painel** (com o `PAINEL_SEGREDO`): `GET /painel/cartoes?email=` → `{ email, cartao, movimentos }`,
+  `POST /painel/cartoes/carimbo { email, n, por, nota? }`, `POST /painel/cartoes/oferta { email, por, nota? }` (409 sem
+  oferta). Na conta, `GET /conta/api/eu` leva `cartao: { por_cartao, total, atuais, disponiveis }` (sem quem marcou).
+- **Prazo:** o objecto guarda o cartão 3 anos depois do último movimento (`mexido`), mesmo sem sessões; depois apaga-o.
+
+### O resto da conta (14 nov 2026)
+
+O Renato, a 13 nov, depois de a ver no iPhone: um perfil mais completo, entrar com o Google, e o cartão das películas
+marcado na loja por um código QR. As rotas novas (as de cima continuam iguais):
+
+| rota | corpo | resposta |
+|---|---|---|
+| `GET /conta/api/eu` | — | também `conta` (o id da conta), `nome` (o primeiro do nome GRAVADO), `cartao`, `dados` e `garantias: [{ encomenda, nome, ate }]` (as que ainda correm; a que acaba primeiro, primeiro) |
+| `GET /conta/api/encomenda?e=<id>` | — | também `conta`, `garantias` (por linha: `{ meses, ate }`, ou `null`) e `desistir: { pode, ate, pedidos }` |
+| `GET /conta/api/dados` | — | `{ email, dados }` (o checkout lê-o) |
+| `POST /conta/api/dados` | `{ nome?, telefone?, nif?, morada?, codigoPostal?, localidade?, conta? }` | `{ dados }` (`null` se veio tudo vazio); 400 `{ erro, campo }` (as regras do checkout) |
+| `POST /conta/api/desistir` | `{ e, nota?, conta? }` | `{ ok, desistir, recibo? }` (`recibo: 'falhou'` se o email ao cliente não saiu); 409 fora do prazo; 404 se não for desta conta |
+| `POST /conta/api/sair-todos` | `{ conta? }` ou nada | `{ ok }`: saem todas as sessões (os dados e o cartão ficam) |
+| `POST /conta/api/apagar` | `{ conta? }` ou nada | `{ ok }`: saem os dados, as sessões, o email e as películas da loja; ficam as encomendas e as datas das ofertas entregues |
+| `GET /conta/api/cartao.svg?c=<conta>` | — | o código QR do cartão (SVG, `no-store`); 401 sem sessão |
+| `POST /conta/api/google/inicio` | — | `{ nonce }` e o cookie `__Host-lf-google` (o bilhete, 15 min); 503 sem `GOOGLE_CLIENTE` |
+| `POST /conta/api/google` | `{ id_token }` + o cookie do bilhete | `{ ok }`, o cookie da sessão e o do bilhete apagado; 400 sem o bilhete ou se o token não passar |
+
+Sem sessão, as rotas da conta respondem 401 `{ erro, sessao: false, google }` (`google`: o id público, ou `null`).
+**A conta do ecrã (`conta?`):** o id que o `/eu` e a ficha dão (o mesmo do código QR; não é segredo). A página manda-o em
+cada pedido que muda alguma coisa; se o cookie já é de outra conta (entrou-se noutra noutro separador), 409 `{ erro,
+mudou: true }` e nada muda — sem isto, «Apagar a conta» apagava a outra. Sem o id (uma página antiga), segue.
+
+**A revisão de 16 nov 2026** (um revisor independente e uma bateria no Chromium e no WebKit, `scripts/pente-fino-conta.mjs`: 99 provas em cada um, com os dois Workers locais — o cabeçalho do ficheiro diz como se corre; não corre na CI):
+- **Nunca os dados de uma encomenda na conta.** A «sugestão» (o nome, o telefone, o NIF e a morada da última encomenda,
+  para quem ainda não gravou os seus) saiu: quem escreve um email por engano (ou de propósito) não pode ver os dados de
+  outra pessoa, nem metê-los no checkout dela. A conta e o checkout só usam o que o cliente grava.
+- **O bilhete do Google** (acima, e na secção do Google): o nonce dentro do token qualquer um o lê; o cookie não.
+- **Os códigos:** 15 errados por conta em 24 h (somando todos os pedidos) fecham a entrada até ao dia seguinte (antes
+  eram 5 por código, 10 códigos por dia: 50 palpites). Um código cujo email não saiu esquece-se (`esquecerCodigo`): o
+  toque seguinte manda outro, e não conta para os 4 da hora.
+- **Um email que pode estar cortado nos metadados** (80 ou 40 caracteres) confere-se SEMPRE na encomenda.
+- **O prazo para desistir** acaba no fim do último dia em Lisboa, e passa para o dia útil seguinte num sábado, domingo
+  ou feriado (abaixo).
+- **Apagar a conta** guarda as datas das ofertas entregues: as películas do site contam das encomendas, que ficam, e sem
+  isso a mesma oferta voltava depois de apagar e entrar outra vez.
+- **Por fazer (decisões):** as encomendas guardam-se 400 dias, mas as garantias correm 18 a 36 meses (depois disso a
+  conta já não as mostra, e as películas do site deixam de contar no cartão); uma encomenda levantada não se anula no
+  painel (uma devolução continua a contar no cartão); o código QR é o resumo do email (não se renova).
+
+- **Os dados** (`dados` no objecto `Conta`, com `actualizado_em`): só os que o cliente escreve na conta, todos
+  opcionais. Preenchem os campos VAZIOS do checkout (`src/scripts/carrinho.js`, quando o browser sabe que há sessão:
+  `localStorage lfmobile:conta`). Guardam-se 2 anos depois da última entrada (`visto`); depois o objecto apaga-os.
+- **As garantias:** 3 anos nos artigos novos; nos recondicionados, a do catálogo (`garantias.recondicionados`, 18
+  meses). Contam do levantamento ou do envio. Um artigo que já saiu do catálogo fica sem data (não se sabe se era
+  recondicionado): a conta não a inventa.
+- **Desistir da compra** (a «função de retratação» da Directiva (UE) 2023/2673, desde 19 jun 2026; o prazo do DL
+  24/2014, art. 10.º): antes de receber, sempre; depois, 14 dias do levantamento, ou 21 do envio (não se sabe o dia da
+  entrega; um pedido tardio decide-o a loja). Os dias contam-se no calendário de Lisboa e o prazo acaba às 23:59:59 do
+  último; num sábado, domingo ou feriado nacional (os fixos, a Sexta-feira Santa e o Corpo de Deus) passa para o dia útil
+  seguinte (Regulamento 1182/71; Código Civil, art. 279.º) — `fimDoPrazo`. Fica em `desistencias: [{ em, por, nota? }]` e numa linha do histórico; o
+  estado NÃO muda (a devolução e o reembolso tratam-se no painel, como até aqui; a ficha da encomenda no painel mostra-o numa
+  faixa). Vai um email ao cliente (a
+  confirmação, em suporte duradouro) e outro à loja (`AVISOS.desistencia`). Dois toques em 10 minutos são um pedido só.
+- **O código QR** leva o endereço do cartão no painel: `PAINEL_URL/#/cartoes?conta=<id da conta>`
+  (`enderecoDoCartao`; o id é o resumo do email, não o diz). O Leandro lê-o com a câmara do telemóvel (abre o painel) ou
+  no próprio painel («Ler o código do cliente», ecrã Cartões). `GET /painel/cartoes?conta=<id>` → o cartão, com o email
+  do cliente (em minúsculas); 404 se a conta não existir (o painel diz «…ou a conta foi apagada»).
+- **Entrar com o Google:** sem o script do Google na página — só um redireccionamento OpenID (`response_type=id_token`,
+  `scope=openid email`, `prompt=select_account`). Antes de ir, a página pede o bilhete (`/google/inicio`: o cookie
+  `__Host-lf-google`, HttpOnly, 15 min; o nonce é o resumo dele) e guarda o `state` no sessionStorage
+  (`lfmobile:conta-google`). À volta confere o `state` e manda o `id_token`; o Worker confere a assinatura (RS256, as
+  chaves públicas do Google, guardadas 1 h), o `iss`, o `aud` (`GOOGLE_CLIENTE`), o `exp`, o `iat`, o `nonce` (o do
+  bilhete deste browser) e o `email_verified`, e apaga o bilhete. Não há segredo do cliente. O email do Google entra na
+  mesma conta que o do código. Travões: 5 por minuto por IP no bilhete e 5 na entrada.
+- **A política de privacidade** («A sua conta») e a **de cookies** (o `__Host-lf-sessao`, o `__Host-lf-google` e as três
+  chaves do browser) dizem tudo isto ao cliente.

@@ -3,17 +3,23 @@
   "nomeCurto": "Samsung Galaxy A17",
   "marca": "Samsung",
   "fotos": [
+    "samsung-galaxy-a17-f5f2b31a",
     "samsung-galaxy-a17-1"
   ],
   "resumo": "Design moderno e tudo o que precisa para estar sempre ligado.",
-  "descricao": "O essencial da Samsung a um preço acessível: ecrã grande, boa bateria e câmaras para o dia a dia.",
-  "preco": null,
+  "descricao": "Smartphone SAMSUNG Galaxy A17 5G com ecrã Super AMOLED de 6,7 polegadas a 90 Hz, processador Samsung Exynos 1330, câmara tripla de 50 MP com estabilização óptica e bateria de 5000 mAh.",
+  "preco": 189.9,
   "precoAnterior": null,
   "promocaoDesde": "",
   "promocaoAte": "",
   "estado": "novo",
   "disponibilidade": "confirmar",
-  "caracteristicas": [],
+  "caracteristicas": [
+    "Cor: Preto",
+    "Armazenamento interno: 128 GB",
+    "Memória RAM: 4 GB",
+    "Geração de Rede Móvel: 5G"
+  ],
   "inclui": [],
   "opcoes": [],
   "pedeModelo": false,
@@ -26,7 +32,7 @@
   },
   "avisos": "",
   "categoria": "samsung",
-  "destaque": false,
+  "destaque": true,
   "novidade": false,
   "publicado": true,
   "ordem": 200

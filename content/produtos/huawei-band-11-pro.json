@@ -1,0 +1,23 @@
+{
+  "nome": "Huawei Band 11 Pro",
+  "nomeCurto": "Huawei band 11 pro",
+  "marca": "Huawei",
+  "fotos": [
+    "huawei-band-11-pro-5cb16ad5",
+    "huawei-band-11-pro-b389b0ca"
+  ],
+  "resumo": "Mais tecnologia, conforto e funcionalidades para o teu dia.",
+  "descricao": "Smartband HUAWEI Band 11 Pro é uma pulseira inteligente com ecrã AMOLED tátil de 1,62 polegadas, GPS integrado, monitorização de frequência cardíaca e autonomia até 14 dias.",
+  "preco": 74.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Cor: Azul"
+  ],
+  "pedeModelo": false,
+  "categoria": "smartwatches",
+  "destaque": false,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}

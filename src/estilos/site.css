@@ -59,7 +59,12 @@
 
 /* ---------------------------------------------------------------- base */
 *, *::before, *::after { box-sizing: border-box; }
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-top: calc(var(--topo) + 16px); scroll-behavior: smooth; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-behavior: smooth; }
+/* O espaço do cabeçalho fixo ao saltar para uma secção ou ao andar com o Tab: o que recebe o foco não fica tapado.
+   Mas não enquanto o foco está no próprio cabeçalho. O campo da procura vive nesse espaço, e a cada letra o browser
+   rolava a página ~60 px para o «mostrar»; o cabeçalho acompanha, e na letra seguinte rolava outra vez (o Renato,
+   13 nov 2026: «o fundo da página sobe a cada letra que adiciono»). */
+html:not(:has(.topo:focus-within)) { scroll-padding-top: calc(var(--topo) + 16px); }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 html:has(dialog[open]), html:has(.filtros[data-aberto]) { overflow: hidden; }
 body { margin: 0; background: var(--papel); color: var(--tinta); font: 400 1rem/1.6 var(--sans); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-variant-numeric: lining-nums; }
@@ -67,9 +72,20 @@ img, svg, video { display: block; max-width: 100%; }
 img { height: auto; }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .16em; }
 p, ul, ol, dl, h1, h2, h3, h4, figure { margin: 0; }
+/* Os títulos em linhas equilibradas e os parágrafos sem uma palavra sozinha na última linha («São / Roque.» no rodapé,
+   «Em São Roque, Oliveira de / Azeméis»). Onde o browser não sabe, fica como estava. */
+h1, h2, h3, h4 { text-wrap: balance; }
+p, li, dd, dt, label, figcaption { text-wrap: pretty; }
 ul, ol { padding: 0; list-style: none; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
 input, select, textarea { font: inherit; color: inherit; }
+/* No telemóvel (e no tablet), os campos com letra abaixo de 16 px fazem o Safari aproximar a página ao tocar
+   num deles, e ela fica aproximada e a fugir enquanto se escreve (o Renato, 13 nov 2026: «quando estou a
+   escrever na barra de pesquisa o ecrã está a subir»: a procura tinha 15,2 px; o «Ordenar» da loja, 14,4).
+   16 px em todos, com !important para ganhar às regras de cada campo; no computador ficam como estão. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: max(16px, 1em) !important; }
+}
 .icone { width: 1.25em; height: 1.25em; flex: none; }
 .visualmente-escondido { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 [hidden] { display: none !important; }
@@ -80,6 +96,9 @@ input, select, textarea { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--tinta); outline-offset: 3px; }
 html[data-entrada="ponteiro"] :focus:not(:focus-visible) { outline: none; }
 html[data-entrada="ponteiro"] :is(a, button, summary, input, select, textarea):focus { outline: none; }
+/* um título que recebe o foco por programa (o carrinho, a conta: para o leitor de ecrã saber onde está) não é um
+   controlo: sem o anel, também depois de escrever (no iPhone, o código da conta deixava o título com o anel) */
+:is(h1, h2)[tabindex="-1"]:focus { outline: none; }
 mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; border-radius: 4px; font-style: italic; }
 .nota-confirmar { display: inline-flex; align-items: flex-start; gap: 8px; margin-top: 14px; font-size: .88rem; }
 .nota-confirmar .icone { color: #8A6D00; margin-top: 2px; }
@@ -113,6 +132,16 @@ mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; borde
 @media (hover: hover) { .botao--claro:hover { background: var(--ouro-claro); } }
 .botao--whatsapp { background: var(--verde); color: var(--branco); }
 @media (hover: hover) { .botao--whatsapp:hover { background: var(--verde-escuro); color: var(--branco); } }
+/* o WhatsApp sem gritar (a página «obrigado», a ficha da conta): o verde claro, com o verde escuro (7:1) */
+.botao--whatsapp-suave { background: var(--verde-fundo); color: var(--verde-escuro); }
+/* um acto que não se desfaz (apagar a conta): o vermelho na letra e no contorno, nunca o fundo */
+.botao--perigo { background: var(--papel); color: var(--vermelho); border-color: currentColor; }
+@media (hover: hover) { .botao--perigo:hover { background: #FDECEA; } }
+/* «Continuar com o Google»: o botão claro das regras de marca do Google (o «G» de quatro cores, o contorno cinzento) */
+.botao--google { background: var(--branco); color: #1F1F1F; border-color: #747775; gap: 12px; }
+@media (hover: hover) { .botao--google:hover { background: #F6F8FC; } }
+.botao--google .logo-google { width: 20px; height: 20px; flex: none; }
+@media (hover: hover) { .botao--whatsapp-suave:hover { background: #D5EADD; color: var(--verde-escuro); } }
 .botao--texto { min-height: 0; padding: 4px 0; border-radius: 6px; background: none; color: var(--tinta); gap: 6px; font-weight: 700; }
 @media (hover: hover) { .botao--texto:hover { text-decoration: underline; } }
 .botao--largo { width: 100%; }
@@ -122,8 +151,10 @@ mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; borde
 .pilulas { display: flex; flex-wrap: wrap; gap: 8px; }
 .pilula { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 6px 15px; border-radius: 999px; border: 1px solid var(--linha); background: var(--papel); color: var(--tinta); text-decoration: none; font-size: .92rem; font-weight: 600; }
 .pilula[aria-current="page"] { background: var(--tinta); color: var(--branco); border-color: var(--tinta); }
+.pilula--todos { font-weight: 700; }
+.pilula--todos .icone { width: 1em; height: 1em; }
 @media (hover: hover) { .pilula:hover { border-color: var(--tinta); } }
-.selo { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: .72rem; font-weight: 800; letter-spacing: .02em; background: var(--papel); color: var(--tinta); text-decoration: none; white-space: nowrap; }
+.selo { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 999px; font-size: .75rem; font-weight: 800; letter-spacing: .02em; background: var(--papel); color: var(--tinta); text-decoration: none; white-space: nowrap; }
 .selo--desconto { background: var(--promo); color: var(--branco); }
 .selo--campanha { background: var(--escuro); color: var(--ouro-claro); }
 .selo--promocao { background: var(--tinta); color: var(--branco); }
@@ -150,45 +181,142 @@ mark.por-confirmar { background: #FFF2B8; color: #5C4A00; padding: 0 .3em; borde
 @media (min-width: 900px) { .faixa-topo__loja:not([hidden]) { display: inline-flex; } }
 .faixa-topo__loja::before { content: ''; width: 8px; height: 8px; border-radius: 999px; background: var(--claro-2); }
 .faixa-topo__loja[data-aberta="sim"]::before { background: #3CCB7F; box-shadow: 0 0 0 3px rgba(60, 203, 127, .2); }
+/* o mesmo junto do horário (página inicial e contactos), em fundo claro */
+.estado-loja { display: inline-flex; align-items: center; gap: 8px; margin: 2px 0 8px; font-size: .9rem; font-weight: 700; color: var(--tinta-2); }
+.estado-loja[hidden] { display: none; }
+.estado-loja::before { content: ''; width: 8px; height: 8px; border-radius: 999px; background: var(--tinta-3); }
+.estado-loja[data-aberta="sim"] { color: var(--verde); }
+.estado-loja[data-aberta="sim"]::before { background: #2FA866; box-shadow: 0 0 0 3px rgba(47, 168, 102, .18); }
 
 /* ---------------------------------------------------------------- cabeçalho */
-.topo { position: sticky; top: 0; z-index: 50; background: rgba(255, 255, 255, .92); -webkit-backdrop-filter: saturate(160%) blur(14px); backdrop-filter: saturate(160%) blur(14px); border-bottom: 1px solid var(--linha); transition: box-shadow .2s; }
+/* UM SÓ CABEÇALHO em todas as páginas (o Renato, 12 nov 2026: «está aqui informação repetida…»), CLARO,
+   com o logótipo como ele é, a preto («a navbar não pode ser preta, porque o logo original é preto»): o
+   logótipo, quatro ligações em letras espaçadas (Loja · Reparações · Retoma · Contactos), a lupa (a
+   procura abre na folha) e o carrinho. Na página inicial, só no topo, fica transparente por cima da capa
+   escura, com o logótipo em branco; mal se começa a descer passa a este (topo--capa, abaixo). Sempre do
+   mesmo tamanho («já não quero que [o logo] fique maior quando estamos no topo»; as letras e os ícones
+   «ficaram muito grandes, volta a meter pequeno»). As cores das letras e dos ícones vêm da cor do
+   cabeçalho (currentColor): assim a capa muda tudo de uma vez. */
+.topo { position: sticky; top: 0; z-index: 50; background: var(--papel); border-bottom: 1px solid var(--linha); color: var(--tinta); transition: box-shadow .2s; }
 html[data-rolado="sim"] .topo { box-shadow: 0 6px 24px rgba(17, 17, 19, .06); }
 .topo__barra { max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); height: var(--topo); display: flex; align-items: center; gap: 8px; }
 @media (min-width: 900px) { .topo__barra { gap: 24px; } }
 .topo__marca { display: inline-flex; align-items: center; flex: none; }
-.topo__marca .logo { height: 40px; width: auto; }
-@media (min-width: 1100px) { .topo__marca .logo { height: 46px; } }
-.topo__procura { display: none; flex: 1; max-width: 640px; }
-@media (min-width: 900px) { .topo__procura { display: block; } }
-.topo__direita { display: flex; align-items: center; gap: 4px; margin-left: auto; }
-.topo__botao, .topo__accao { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 999px; color: var(--tinta); text-decoration: none; font-weight: 700; font-size: .92rem; transition: background-color .15s; }
-@media (hover: hover) { .topo__botao:hover, .topo__accao:hover { background: var(--cinza); } }
-.topo__accao .icone { color: var(--ouro-texto); }
-/* os serviços (Reparações e Retoma), juntos ao lado do carrinho; no telemóvel estão no menu */
-.topo__servicos { display: none; }
-@media (min-width: 900px) { .topo__servicos { display: flex; align-items: center; gap: 2px; } }
-.topo__accao[aria-current="page"] { background: var(--cinza); }
-.topo__menu { margin-left: -8px; }
-@media (min-width: 900px) { .topo__menu, .topo__lupa { display: none; } }
-.topo__conta { position: absolute; top: 3px; right: 1px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--ouro); color: var(--escuro); font-size: .7rem; font-weight: 800; line-height: 19px; text-align: center; }
-/* a fila das categorias (computador): as categorias da loja; à direita, a campanha que está a correr */
-.topo__fila { display: none; }
-@media (min-width: 900px) {
-  .topo__fila { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: var(--largura); margin: 0 auto; padding: 0 var(--margem); height: 46px; }
-  .topo__categorias { display: flex; align-items: center; gap: 2px; min-width: 0; }
-  .topo__categorias { overflow-x: auto; scrollbar-width: none; }
-  .topo__categorias::-webkit-scrollbar { display: none; }
-  .topo__fila a { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; border-radius: 999px; text-decoration: none; font-weight: 600; font-size: .92rem; color: var(--tinta-2); white-space: nowrap; transition: background-color .15s, color .15s; }
-  .topo__fila a[aria-current="page"] { color: var(--tinta); background: var(--cinza); }
-  .topo__fila .topo__campanha { flex: none; background: var(--escuro); color: var(--ouro-claro); font-weight: 700; }
-  .topo__fila .topo__campanha .icone { width: 1.05em; height: 1.05em; }
+.topo__marca .logo { height: 44px; width: auto; }
+@media (min-width: 1100px) { .topo__marca .logo { height: 52px; } }
+/* a barra da procura (computador), grande, ao lado do logótipo; no telemóvel a lupa abre a folha. A pílula
+   segue a cor do cabeçalho (currentColor): no topo da página inicial, translúcida e clara por cima da capa;
+   no resto, o cinzento de sempre */
+.topo__procura { display: none; flex: 1; min-width: 0; max-width: 560px; }
+@media (min-width: 900px) { .topo__procura { display: block; } .topo .topo__lupa { display: none; } }
+/* entre 900 e 1099 px, as quatro ligações mais juntas, para a barra ficar larga */
+@media (min-width: 900px) and (max-width: 1099.98px) {
+  .topo .topo__ligacoes a { padding: 0 10px; letter-spacing: .12em; }
+  .topo .topo__ligacoes a[aria-current="page"]::after { left: 10px; right: calc(10px + .12em); }
 }
-@media (hover: hover) and (min-width: 900px) { .topo__fila a:hover { color: var(--tinta); background: var(--cinza); } .topo__fila .topo__campanha:hover { background: var(--escuro-3); color: var(--ouro-claro); } }
+.topo .busca__campo { background: color-mix(in srgb, currentColor 7%, transparent); border-color: color-mix(in srgb, currentColor 9%, transparent); }
+.topo .busca__lupa { color: inherit; opacity: .6; }
+.topo .busca input { color: inherit; }
+.topo .busca input::placeholder { color: inherit; opacity: .62; }
+.topo .busca__campo:focus-within { background: var(--papel); border-color: var(--tinta); color: var(--tinta); }
+/* os resultados são um cartão branco: letra escura sempre (no topo da página inicial o cabeçalho é branco
+   e os nomes herdavam-no, ficando invisíveis) */
+.topo .busca__resultados { color: var(--tinta); }
+.topo__direita { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+.topo__botao { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 0 10px; border-radius: 999px; color: inherit; text-decoration: none; font-weight: 700; font-size: .92rem; transition: background-color .15s; }
+@media (hover: hover) { .topo__botao:hover { background: color-mix(in srgb, currentColor 9%, transparent); } }
+.topo :focus-visible { outline-color: currentColor; }
+.topo__menu { margin-left: -8px; }
+@media (min-width: 900px) { .topo__menu { display: none; } }
+/* os ícones do cabeçalho do tamanho do cesto do iThos (16 nov 2026, o Renato: «aumenta um bocado os icons do site, vê o
+   tamanho deles no iThos, por exemplo o tamanho do cesto»): 24 px de caixa (medido: o cesto daqui fica com ~13×17 px de
+   desenho, o do iThos tem 15×16; antes eram 18 px e 10×13) e o traço a 1,5, como lá. */
+.topo__botao .icone { width: 24px; height: 24px; stroke-width: 1.5; }
+/* O MENU DA CONTA (o ícone da pessoa, com sessão; site.js): um cartão pequeno debaixo do ícone. No telemóvel ocupa a
+   largura da barra, debaixo dela (o cabeçalho é o contentor: .topo é sticky); no computador fica debaixo do ícone. */
+.topo__pessoa-caixa { display: flex; }
+.topo__pessoa[aria-expanded="true"] { background: color-mix(in srgb, currentColor 9%, transparent); }   /* aberto (sem o rato também) */
+.menu-conta { position: absolute; top: calc(100% + 6px); left: var(--margem); right: var(--margem); z-index: 60; padding: 8px; background: var(--papel); color: var(--tinta); border: 1px solid var(--linha); border-radius: var(--raio-m); box-shadow: var(--sombra); }
+.menu-conta[hidden] { display: none; }
+@media (min-width: 600px) {
+  .topo__pessoa-caixa { position: relative; }
+  .menu-conta { left: auto; right: -6px; top: calc(100% + 10px); width: 284px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .menu-conta:not([hidden]) { animation: menu-conta-abre .16s ease-out; }
+  @keyframes menu-conta-abre { from { opacity: 0; transform: translateY(-4px); } }
+}
+.menu-conta__quem { display: grid; gap: 2px; margin: 0 0 6px; padding: 8px 12px 12px; border-bottom: 1px solid var(--linha); }
+.menu-conta__quem strong { font-size: 1rem; font-weight: 800; }
+.menu-conta__quem span { color: var(--tinta-2); font-size: .88rem; overflow-wrap: anywhere; }
+.menu-conta__quem span:empty { display: none; }
+.menu-conta__lista { margin: 0 0 6px; padding: 0 0 6px; list-style: none; border-bottom: 1px solid var(--linha); }
+.menu-conta__lista a, .menu-conta__sair { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; font-size: .95rem; font-weight: 600; text-align: left; text-decoration: none; cursor: pointer; }
+.menu-conta .icone { width: 20px; height: 20px; stroke-width: 1.6; color: var(--tinta-2); }
+@media (hover: hover) { .menu-conta__lista a:hover, .menu-conta__sair:hover { background: color-mix(in srgb, var(--tinta) 6%, transparent); } }
+.menu-conta__sair:disabled { opacity: .6; cursor: default; }
+.topo__conta { position: absolute; top: 3px; right: 1px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: var(--ouro); color: var(--escuro); font-size: .7rem; font-weight: 800; line-height: 19px; text-align: center; }
+/* as quatro ligações (computador): letras espaçadas e traços finos, como na imagem da LF Mobile; a
+   página onde se está fica com a cor cheia e um traço dourado por baixo */
+.topo__ligacoes { display: none; }
+@media (min-width: 900px) {
+  .topo__ligacoes { display: block; margin-left: auto; }
+  .topo__ligacoes ul { display: flex; align-items: center; }
+  .topo__ligacoes li { display: flex; align-items: center; }
+  .topo__ligacoes li + li::before { content: ''; width: 1px; height: 14px; background: currentColor; opacity: .22; }
+  .topo__ligacoes a { position: relative; display: inline-flex; align-items: center; min-height: 44px; padding: 0 clamp(12px, 1.6vw, 22px); color: inherit; opacity: .72; text-decoration: none; font-size: .78rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; transition: opacity .15s; }
+  .topo__ligacoes a[aria-current="page"] { opacity: 1; }
+  .topo__ligacoes a[aria-current="page"]::after { content: ''; position: absolute; left: clamp(12px, 1.6vw, 22px); right: calc(clamp(12px, 1.6vw, 22px) + .18em); bottom: 7px; height: 2px; border-radius: 2px; background: var(--ouro); }
+  .topo__direita { margin-left: 4px; }
+}
+@media (hover: hover) { .topo__ligacoes a:hover { opacity: 1; } }
+/* O MENU DA LOJA (computador com rato): um painel branco por baixo do cabeçalho, ao passar o rato por «Loja» ou ao
+   lá chegar com o Tab. A ponte invisível por baixo da ligação deixa o rato descer até ao painel sem o fechar. As
+   regras das ligações de cima (maiúsculas, traços, o sublinhado dourado) não entram no painel. */
+.topo__mega { display: none; }
+@media (min-width: 900px) and (hover: hover) {
+  .topo__loja > a::before { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 24px; }
+  .topo__mega { display: block; position: absolute; left: 0; right: 0; top: 100%; z-index: 1; background: var(--papel); color: var(--tinta); border-top: 1px solid var(--linha); box-shadow: 0 28px 40px rgba(17, 17, 19, .10); visibility: hidden; opacity: 0; transform: translateY(-6px); transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s; }
+  .topo__loja:hover .topo__mega, .topo__loja:focus-within .topo__mega { visibility: visible; opacity: 1; transform: none; transition: opacity .18s ease .06s, transform .18s ease .06s, visibility 0s linear .06s; }
+  .topo__mega-dentro { max-width: var(--largura); margin: 0 auto; padding: 28px var(--margem) 36px; display: flex; flex-wrap: wrap; gap: 24px clamp(40px, 6vw, 96px); }
+  .topo__ligacoes .topo__mega ul { display: block; }
+  .topo__ligacoes .topo__mega li { display: block; }
+  .topo__ligacoes .topo__mega li::before { content: none; }
+  .topo__ligacoes .topo__mega a { display: inline-block; min-height: 0; padding: 5px 0; opacity: 1; color: var(--tinta-2); text-transform: none; letter-spacing: 0; font-size: .95rem; font-weight: 600; }
+  .topo__ligacoes .topo__mega a::after { content: none; }
+  /* com as nove de cima, a letra a 1,15 rem: o painel cabe num ecrã de portátil sem tapar a página toda */
+  .topo__ligacoes .topo__mega-cima a { padding: 3px 0; color: var(--tinta); font-size: 1.15rem; font-weight: 800; letter-spacing: -.01em; }
+  .topo__ligacoes .topo__mega a:hover, .topo__ligacoes .topo__mega a:focus-visible { color: var(--tinta); text-decoration: underline; text-underline-offset: .2em; }
+  .topo__mega-titulo { margin: 4px 0 8px; font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); }
+  /* na página inicial, no topo (o cabeçalho transparente por cima da capa), com o painel aberto o cabeçalho fica claro */
+  .topo--capa:has(.topo__loja:hover, .topo__loja:focus-within) { background-color: var(--papel) !important; border-bottom-color: var(--linha) !important; color: var(--tinta) !important; }
+  .topo--capa:has(.topo__loja:hover, .topo__loja:focus-within) .topo__marca .logo { filter: none !important; }
+}
+/* a folha da procura no computador (abre-se pela lupa): o campo ao meio, não de ponta a ponta */
+@media (min-width: 900px) { .folha-procura .busca, .folha-procura__atalhos { max-width: 760px; margin-left: auto; margin-right: auto; } }
+
+/* o cabeçalho da página inicial (topo--capa): no topo, transparente por cima da capa escura, com o
+   logótipo, as letras e os ícones em branco; a descer, o claro das outras páginas, com o logótipo preto.
+   Onde o browser anima com o próprio scroll, acompanha o dedo nos primeiros 32 px; nos outros, a classe
+   (html[data-rolado], aos 12 px, em 0,2 s). */
+.topo--capa { margin-bottom: calc(-1 * var(--topo) - 1px); background: transparent; border-bottom-color: transparent; color: var(--branco); transition: background-color .2s, border-color .2s, color .2s; }
+.topo--capa .topo__marca .logo { filter: invert(1); transition: filter .2s; }
+html[data-rolado="sim"] .topo--capa { background: var(--papel); border-bottom-color: var(--linha); color: var(--tinta); }
+html[data-rolado="sim"] .topo--capa .topo__marca .logo { filter: none; }
+@media (prefers-reduced-motion: reduce) { .topo--capa, .topo--capa .topo__marca .logo { transition: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) {
+    .topo--capa { animation: lf-topo-clareia linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
+    .topo--capa .topo__marca .logo { animation: lf-logo-escurece linear both; animation-timeline: scroll(root); animation-range: 0 32px; }
+    @keyframes lf-topo-clareia { from { background-color: rgba(255, 255, 255, 0); border-bottom-color: rgba(227, 227, 232, 0); color: #FFFFFF; } to { background-color: rgba(255, 255, 255, 1); border-bottom-color: rgba(227, 227, 232, 1); color: #111113; } }
+    @keyframes lf-logo-escurece { from { filter: invert(1); } to { filter: invert(0); } }
+  }
+}
 
 /* ---------------------------------------------------------------- a procura */
-.busca { position: relative; display: flex; align-items: center; height: 44px; border-radius: 999px; background: var(--cinza); border: 1px solid transparent; transition: border-color .15s, background-color .15s, box-shadow .15s; }
-.busca:focus-within { background: var(--papel); border-color: var(--tinta); box-shadow: 0 0 0 3px rgba(17, 17, 19, .06); }
+.busca { position: relative; }
+.busca__campo { display: flex; align-items: center; height: 44px; border-radius: 999px; background: var(--cinza); border: 1px solid transparent; transition: border-color .15s, background-color .15s, box-shadow .15s; }
+.busca__campo:focus-within { background: var(--papel); border-color: var(--tinta); box-shadow: 0 0 0 3px rgba(17, 17, 19, .06); }
 .busca__lupa { display: inline-flex; padding-left: 16px; color: var(--tinta-3); }
 .busca input { flex: 1; min-width: 0; height: 100%; padding: 0 16px 0 10px; border: 0; background: none; outline: none; font-size: .95rem; }
 .busca input::-webkit-search-cancel-button { -webkit-appearance: none; }
@@ -228,12 +356,16 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .menu__servico--campanha .menu__servico-icone { background: var(--papel); color: var(--ouro-texto); }
 .menu__rotulo { font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); margin: 0 0 6px; }
 /* a loja numa grelha de duas colunas: cabe num ecrã de telemóvel sem rolar */
-.menu__grelha { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; }
+.menu__grelha { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 20px; }
 .menu__grelha a { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 12px; border-radius: var(--raio-m); background: var(--cinza); text-decoration: none; font-weight: 700; font-size: .95rem; line-height: 1.2; }
 .menu__grelha .icone { flex: none; width: 1.25em; height: 1.25em; color: var(--ouro-texto); }
 .menu__grelha a[aria-current="page"] { background: var(--tinta); color: var(--branco); }
 .menu__grelha a[aria-current="page"] .icone { color: var(--ouro-claro); }
 @media (hover: hover) { .menu__grelha a:hover { background: var(--cinza-2); } .menu__grelha a[aria-current="page"]:hover { background: var(--tinta); } }
+/* Abaixo dos 390 px «Recondicionados» e «Smartwatches» saíam do quadrado: a letra um pouco mais pequena; abaixo dos
+   360 px o ícone passa para cima da palavra. */
+@media (max-width: 389.98px) { .menu__grelha a { gap: 8px; font-size: .875rem; } }
+@media (max-width: 359.98px) { .menu__grelha a { flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; padding: 10px 12px; } }
 .menu__linhas { margin-bottom: 20px; border-top: 1px solid var(--linha); }
 .menu__linhas a { display: flex; align-items: center; justify-content: space-between; min-height: 48px; padding: 0 2px; border-bottom: 1px solid var(--linha); text-decoration: none; font-weight: 700; font-size: 1rem; }
 .menu__linhas .icone { color: var(--tinta-3); width: 1.1em; height: 1.1em; }
@@ -243,13 +375,26 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .redes a { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 999px; border: 1px solid var(--linha); color: var(--tinta); background: var(--papel); }
 @media (hover: hover) { .redes a:hover { background: var(--tinta); color: var(--branco); border-color: var(--tinta); } }
 .folha-procura { position: fixed; inset: 0 0 auto 0; width: 100%; }
-.folha-procura__corpo { background: var(--papel); padding: 12px var(--margem) 20px; border-radius: 0 0 var(--raio) var(--raio); box-shadow: var(--sombra); outline: none; max-height: 100dvh; overflow: auto; }
-.folha-procura__topo { display: flex; align-items: center; gap: 10px; }
-.folha-procura__topo .busca { flex: 1; }
-.folha-procura__topo .busca__resultados { position: static; margin-top: 10px; box-shadow: none; border: 0; padding: 0; max-height: none; }
-.folha-procura__topo { flex-wrap: wrap; }
-.folha-procura__fechar { min-height: 44px; padding: 0 6px; font-weight: 700; color: var(--tinta-2); }
+.folha-procura__corpo { background: var(--papel); padding: 12px var(--margem) 20px; border-radius: 0 0 var(--raio) var(--raio); box-shadow: var(--sombra); outline: none; max-height: 100dvh; overflow: auto; overscroll-behavior: contain; }
+/* o campo e o «Fechar» numa linha; os resultados por baixo, a toda a largura */
+.busca__linha { display: flex; align-items: center; gap: 10px; }
+.busca__linha .busca__campo { flex: 1; min-width: 0; }
+.folha-procura .busca__resultados { position: static; margin-top: 10px; box-shadow: none; border: 0; padding: 0; max-height: none; }
+.folha-procura__fechar { flex: none; min-height: 44px; padding: 0 6px; font-weight: 700; color: var(--tinta-2); }
 .folha-procura__atalhos { margin-top: 18px; }
+/* No telemóvel e no tablet (onde é a lupa que abre a procura): o ecrã inteiro e branco, com o campo no lugar do
+   cabeçalho. A folha de cima deixava a página escura à vista entre ela e o teclado (o Renato, 13 nov 2026: «ao
+   entrar e sair da pesquisa no telemóvel não fica nada bem»). A parte que rola mede o que fica acima do teclado
+   (--altura-visivel, posta pelo site.js a partir do visualViewport): o Safari do iPhone não encolhe a página
+   quando o teclado abre, e os últimos resultados ficavam escondidos por baixo dele. */
+@media (max-width: 899.98px) {
+  .folha-procura { inset: 0; height: 100%; background: var(--papel); }
+  .folha-procura::backdrop { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .folha-procura__corpo { height: var(--altura-visivel, 100%); max-height: none; padding: 0 max(var(--margem), env(safe-area-inset-right)) 24px max(var(--margem), env(safe-area-inset-left)); border-radius: 0; box-shadow: none; }
+  .folha-procura .busca__linha { position: sticky; top: 0; z-index: 1; min-height: var(--topo); padding-top: env(safe-area-inset-top); background: var(--papel); }
+  .folha-procura .busca__resultados { margin-top: 2px; }
+  .folha-procura__atalhos { margin-top: 10px; }
+}
 .gaveta { position: fixed; inset: 0 0 0 auto; width: 100%; height: 100%; }
 @media (min-width: 48rem) { .gaveta { width: min(28rem, 48vw); } }
 .gaveta__corpo { height: 100dvh; display: flex; flex-direction: column; background: var(--papel); outline: none; box-shadow: var(--sombra); }
@@ -265,64 +410,92 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
   .menu[open] .menu__corpo { animation: daEsquerda .25s ease-out; }
   .gaveta[open] .gaveta__corpo { animation: daDireita .25s ease-out; }
   .folha-procura[open] .folha-procura__corpo { animation: deCima .2s ease-out; }
+  /* no telemóvel a procura aparece no sítio (só a opacidade: nada muda de lugar enquanto o teclado sobe) */
+  @media (max-width: 899.98px) {
+    .folha-procura[open] { animation: lf-procura-aparece .15s ease-out; }
+    .folha-procura[open] .folha-procura__corpo { animation: none; }
+  }
+  @keyframes lf-procura-aparece { from { opacity: 0; } to { opacity: 1; } }
   @keyframes daEsquerda { from { transform: translateX(-24px); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes daDireita { from { transform: translateX(24px); opacity: 0; } to { transform: none; opacity: 1; } }
   @keyframes deCima { from { transform: translateY(-12px); opacity: 0; } to { transform: none; opacity: 1; } }
 }
 
-/* ---------------------------------------------------------------- página inicial: o mosaico */
-.inicio { padding-top: 16px; }
-@media (min-width: 900px) { .inicio { padding-top: 24px; } }
-.mosaico { display: grid; gap: 12px; }
-@media (min-width: 900px) { .mosaico { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); grid-template-rows: auto auto; gap: 16px; } .mosaico__principal { grid-row: span 2; } }
-.mosaico__principal { position: relative; display: grid; gap: 20px; padding: clamp(22px, 4vw, 44px); border-radius: var(--raio-g); background: radial-gradient(120% 90% at 85% 0%, #2B2418 0%, rgba(43, 36, 24, 0) 55%), var(--escuro); color: var(--branco); overflow: hidden; }
-/* no computador, a fotografia fica ao lado do texto e a escolha do modelo por baixo dos dois, a toda a largura
-   (o Renato, 10 nov 2026: no meio da coluna, o «Escolha o modelo» ficava cortado) */
-@media (min-width: 1100px) { .mosaico__principal { grid-template-columns: minmax(0, 1.3fr) minmax(0, .7fr); grid-template-areas: "palavras foto" "rapido rapido"; align-items: center; row-gap: 28px; } .mosaico__palavras { grid-area: palavras; } .mosaico__foto { grid-area: foto; } .mosaico__principal > .rapido { grid-area: rapido; } }
-.mosaico__palavras { display: grid; gap: 14px; align-content: start; }
-.mosaico__h1 { font-size: clamp(2rem, 1.3rem + 3vw, 3.4rem); font-weight: 800; letter-spacing: -.035em; line-height: 1.02; max-width: 13ch; }
-.mosaico__sub { color: rgba(255, 255, 255, .78); font-size: clamp(1rem, .95rem + .25vw, 1.12rem); max-width: 42ch; }
-.mosaico__foto { position: relative; display: none; }
-@media (min-width: 1100px) { .mosaico__foto { display: block; transform: rotate(2deg); } }
-.mosaico__foto img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--raio); box-shadow: 0 24px 60px rgba(0, 0, 0, .5); }
-.mosaico__cartao { position: relative; display: grid; align-content: start; gap: 8px; min-height: 200px; padding: 24px; border-radius: var(--raio-g); text-decoration: none; overflow: hidden; isolation: isolate; transition: transform .2s ease; }
-@media (hover: hover) { .mosaico__cartao:hover { transform: translateY(-2px); } .mosaico__cartao:hover .mosaico__seta .icone { transform: translateX(3px); } }
-.mosaico__titulo { font-size: clamp(1.25rem, 1.05rem + .8vw, 1.6rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.12; max-width: 15ch; }
-.mosaico__texto { font-size: .95rem; max-width: 26ch; }
-.mosaico__seta { display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 10px; font-weight: 800; font-size: .95rem; }
-.mosaico__seta .icone { transition: transform .15s; }
-.mosaico__grande { font-size: clamp(2.6rem, 2rem + 2vw, 3.6rem); font-weight: 800; letter-spacing: -.04em; line-height: 1; color: var(--ouro); }
-.mosaico__cartao--retoma { background: linear-gradient(140deg, #F7EED6 0%, #EFDDB0 100%); color: var(--tinta); }
-.mosaico__cartao--retoma .rotulo { color: var(--ouro-texto); }
-.mosaico__cartao--retoma .mosaico__texto { color: var(--tinta-2); max-width: 20ch; }
-.mosaico__desenhos { position: absolute; right: -6px; bottom: -34px; z-index: -1; display: flex; align-items: flex-end; }
-.mosaico__desenhos .aparelho { width: 74px; height: auto; filter: drop-shadow(0 10px 18px rgba(80, 60, 20, .25)); }
-.mosaico__d1 { transform: rotate(-12deg) translate(26px, 4px); }
-.mosaico__d2 { transform: rotate(8deg); }
-.mosaico__cartao--loja { background: var(--cinza); color: var(--tinta); }
-.mosaico__cartao--loja .mosaico__texto { color: var(--tinta-2); max-width: 18ch; }
-.mosaico__produto { position: absolute; right: 8px; bottom: 0; z-index: -1; width: 38%; max-width: 150px; }
-.mosaico__produto img { width: 100%; height: auto; filter: drop-shadow(0 12px 20px rgba(17, 17, 19, .18)); }
-.mosaico__cartao--campanha { background: radial-gradient(90% 90% at 100% 0%, #3A2E14 0%, rgba(58, 46, 20, 0) 60%), var(--escuro); color: var(--branco); }
-.mosaico__cartao--campanha .mosaico__texto { color: var(--claro-2); }
+/* ---------------------------------------------------------------- página inicial: a capa */
+/* A capa a ocupar o ecrã (o Leandro e o Renato, 12 nov 2026, com a imagem dele): um fundo quase preto
+   com duas luzes suaves (como a sala da imagem), a frase à esquerda, a fotografia dos aparelhos à
+   direita a fundir-se no fundo, e em baixo as vantagens e as marcas. O cabeçalho fica por cima
+   (topo--capa). No telemóvel: o texto, a fotografia de ponta a ponta e as três vantagens. */
+html.na-capa { background: #040404; }
+.capa { position: relative; background: radial-gradient(70% 55% at 8% 0%, rgba(255, 255, 255, .075) 0%, rgba(255, 255, 255, 0) 70%), radial-gradient(55% 65% at 76% 48%, rgba(255, 255, 255, .05) 0%, rgba(255, 255, 255, 0) 70%), #040404; color: var(--branco); overflow: hidden; isolation: isolate; }
+.capa__dentro { display: grid; gap: 22px; align-content: center; min-height: 100vh; min-height: 100svh; max-width: 1440px; margin: 0 auto; padding: calc(var(--topo) + 32px) var(--margem) 28px; }
+.capa__palavras { display: grid; gap: 14px; align-content: start; }
+.capa__rotulo { font-size: clamp(.75rem, .66rem + .35vw, .95rem); font-weight: 500; letter-spacing: .38em; text-transform: uppercase; color: rgba(255, 255, 255, .8); }
+.capa__titulo { font-size: clamp(3.1rem, 1.5rem + 5.4vw, 6.4rem); font-weight: 800; letter-spacing: -.015em; line-height: .92; text-transform: uppercase; color: var(--branco); }
+@supports ((-webkit-background-clip: text) or (background-clip: text)) {
+  .capa__titulo { background: linear-gradient(180deg, #FFFFFF 40%, #9A9AA1 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+}
+@media (forced-colors: active) { .capa__titulo { background: none; color: CanvasText; } }
+.capa__texto { font-size: clamp(1.02rem, .94rem + .4vw, 1.32rem); line-height: 1.45; color: rgba(255, 255, 255, .88); max-width: 30ch; }
+.capa__botoes { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.botao--vidro { background: rgba(255, 255, 255, .08); color: var(--branco); border-color: rgba(255, 255, 255, .32); }
+@media (hover: hover) { .botao--vidro:hover { background: rgba(255, 255, 255, .16); color: var(--branco); } }
+.capa :focus-visible { outline-color: var(--branco); }
+.capa__foto { margin: 0 calc(-1 * var(--margem)); }
+.capa__foto img { display: block; width: 100%; height: auto; -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%); mask-image: linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%); }
+.capa__vantagens { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.capa__vantagens a { display: grid; justify-items: center; align-content: start; gap: 8px; padding: 6px 2px; border-radius: var(--raio-m); color: inherit; text-align: center; text-decoration: none; transition: background-color .15s; }
+@media (hover: hover) { .capa__vantagens a:hover { background: rgba(255, 255, 255, .06); } }
+.capa__vicone { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .24); color: var(--ouro-claro); }
+.capa__vicone .icone { width: 20px; height: 20px; }
+.capa__vtexto { display: grid; gap: 2px; }
+.capa__vtexto strong { font-size: .75rem; font-weight: 800; letter-spacing: .07em; line-height: 1.25; text-transform: uppercase; }
+.capa__vtexto span { font-size: .75rem; line-height: 1.3; color: rgba(255, 255, 255, .66); }
+.capa__marcas { display: none; }
+.capa--sem-foto .capa__dentro { align-content: center; }
+@media (min-width: 900px) {
+  .capa__dentro { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); grid-template-rows: 1fr auto; grid-template-areas: "palavras foto" "pe pe"; column-gap: clamp(16px, 3vw, 48px); row-gap: 28px; align-content: stretch; padding: calc(var(--topo) + 28px) clamp(24px, 4vw, 64px) 36px; }
+  .capa--sem-foto .capa__dentro { grid-template-columns: 1fr; grid-template-areas: "palavras" "pe"; }
+  .capa__pe { grid-area: pe; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px 32px; }
+  .capa__palavras { grid-area: palavras; align-self: center; gap: 18px; }
+  .capa__foto { grid-area: foto; align-self: center; margin: 0 calc(-1 * clamp(24px, 4vw, 64px)) 0 0; }
+  .capa__foto img { -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 16%, #000 94%, transparent 100%), linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%); -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent 0%, #000 16%, #000 94%, transparent 100%), linear-gradient(180deg, transparent 0%, #000 12%, #000 88%, transparent 100%); mask-composite: intersect; }
+  .capa__vantagens { display: flex; flex-wrap: wrap; gap: 8px clamp(12px, 2.5vw, 36px); }
+  .capa__vantagens a { grid-auto-flow: column; justify-items: start; align-items: center; gap: 12px; padding: 6px 10px 6px 6px; text-align: left; }
+  .capa__vtexto strong, .capa__vtexto span { font-size: .78rem; }
+}
+/* as marcas, em baixo à direita, só onde cabem ao lado das vantagens */
+@media (min-width: 1240px) {
+  .capa__marcas { display: flex; align-items: center; flex: none; padding-bottom: 12px; }
+  .capa__marcas > span:not(.visualmente-escondido) { padding: 0 16px; font-size: .95rem; font-weight: 700; letter-spacing: .02em; line-height: 1.1; color: rgba(255, 255, 255, .74); }
+  .capa__marcas > span:not(.visualmente-escondido) + span { border-left: 1px solid rgba(255, 255, 255, .24); }
+  .capa__marcas > span:last-child { padding-right: 0; }
+}
 
-/* a escolha rápida do modelo (na capa) */
-.rapido { display: grid; gap: 10px; margin-top: 4px; padding: 10px; border-radius: var(--raio); background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .1); }
-@media (min-width: 560px) { .rapido { grid-template-columns: minmax(0, 1fr) auto; align-items: end; } }
-.rapido__campos { display: grid; grid-template-columns: minmax(118px, .55fr) minmax(0, 1fr); gap: 8px; }
-.rapido__campo { display: grid; gap: 4px; }
-.rapido__campo label { font-size: .74rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--claro-2); padding-left: 4px; }
-.rapido__campo select { width: 100%; min-height: 48px; padding: 8px 34px 8px 14px; border-radius: var(--raio-m); border: 1px solid rgba(255, 255, 255, .16); background: var(--escuro-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23E3C681' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 16px; color: var(--branco); font-weight: 600; -webkit-appearance: none; appearance: none; }
-.rapido__campo select:focus-visible { outline: 2px solid var(--ouro); outline-offset: 2px; }
-.rapido .botao { min-height: 48px; }
+/* ---------------------------------------------------------------- página inicial: depois da capa */
+.inicio { padding-top: 28px; }
+@media (min-width: 900px) { .inicio { padding-top: 40px; } }
 
 /* ---------------------------------------------------------------- as categorias numa fila redonda */
+/* Os carrosséis (esta fila, os destaques, as pílulas, a galeria, a fila do cabeçalho) deslizam SÓ de
+   lado: com overflow-x: auto, o overflow-y passa a auto também, e no iPhone a fila podia ser arrastada
+   para cima e para baixo dentro de si (o Renato, 12 nov 2026: «este carrossel só devia mexer para o
+   lado»). overflow-y: hidden tira-lhe esse eixo (o gesto vertical vai para a página); o overscroll
+   contido não deixa o fim da fila puxar o browser para trás. */
 .cat-fila { margin: 26px 0 8px; }
-.cat-fila ul { display: flex; gap: 14px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: none; scroll-snap-type: x proximity; }
+.cat-fila ul { display: flex; gap: 14px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; padding: 4px 2px 10px; scrollbar-width: none; scroll-snap-type: x proximity; }
 .cat-fila ul::-webkit-scrollbar { display: none; }
 @media (min-width: 1100px) { .cat-fila ul { justify-content: space-between; overflow: visible; } }
 .cat-fila li { flex: none; scroll-snap-align: start; }
 .cat-fila a { display: grid; justify-items: center; gap: 8px; width: 104px; text-decoration: none; }
+/* no telemóvel, bolas um pouco mais pequenas e a fila até à beira do ecrã (como a dos destaques): vê-se a ponta
+   da seguinte e percebe-se que desliza */
+@media (max-width: 479.98px) {
+  .cat-fila ul { gap: 12px; margin: 0 calc(-1 * var(--margem)); padding-left: var(--margem); padding-right: var(--margem); scroll-padding-inline: var(--margem); }
+  .cat-fila a { width: 96px; }
+  .cat-fila__poco { width: 72px; height: 72px; }
+  .cat-fila__nome { font-size: .76rem; }
+}
 .cat-fila__poco { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 999px; background: var(--cinza); overflow: hidden; transition: background-color .15s, transform .15s; }
 .cat-fila__poco--escuro { background: var(--escuro); color: var(--ouro-claro); }
 .cat-fila__poco picture, .cat-fila__img { display: grid; place-items: center; width: 100%; height: 100%; }
@@ -340,7 +513,7 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .fila__seta .icone { width: 1.1em; height: 1.1em; }
 .fila__seta:disabled { opacity: .35; cursor: default; }
 @media (hover: hover) and (min-width: 900px) { .fila__seta { display: inline-flex; } .fila__seta:not(:disabled):hover { border-color: var(--tinta); } }
-.fila__pista { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(168px, 46%); gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 var(--margem); padding: 2px 2px 14px; margin: 0 calc(var(--margem) * -1); padding-left: var(--margem); padding-right: var(--margem); scrollbar-width: none; }
+.fila__pista { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(168px, 46%); gap: 12px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; scroll-padding: 0 var(--margem); padding: 2px 2px 14px; margin: 0 calc(var(--margem) * -1); padding-left: var(--margem); padding-right: var(--margem); scrollbar-width: none; }
 .fila__pista::-webkit-scrollbar { display: none; }
 @media (min-width: 700px) { .fila__pista { grid-auto-columns: calc((100% - 3 * 16px) / 3.2); gap: 16px; } }
 @media (min-width: 1100px) { .fila__pista { grid-auto-columns: calc((100% - 4 * 18px) / 4.6); gap: 18px; } }
@@ -363,7 +536,10 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .cartao__selos { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; flex-wrap: wrap; gap: 5px; pointer-events: none; }
 .cartao--esgotado .cartao__foto img { opacity: .5; }
 .cartao__corpo { display: flex; flex-direction: column; gap: 4px; flex: 1; padding: 12px 14px 14px; }
-.cartao__marca { font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-3); }
+.cartao__marca { font-size: .75rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-3); overflow-wrap: anywhere; }
+/* abaixo dos 360 px «RECONDICIONADO» só cabe com o cartão um pouco menos almofadado e sem espaço entre as letras
+   (a letra fica nos 12 px, o mínimo) */
+@media (max-width: 359.98px) { .cartao__corpo { padding-left: 12px; padding-right: 12px; } .cartao__marca { letter-spacing: 0; } }
 .cartao__nome { font-size: .98rem; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .cartao__ligacao { text-decoration: none; }
 .cartao__ligacao:focus-visible { outline: none; }
@@ -372,12 +548,12 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .cartao__pe { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 8px; }
 .cartao__precos { display: grid; gap: 2px; min-width: 0; }
 .cartao__disp { font-size: .76rem; color: var(--tinta-3); font-weight: 600; }
-.cartao__juntar { position: relative; z-index: 2; display: inline-flex; align-items: center; justify-content: center; flex: none; width: 42px; height: 42px; border-radius: 999px; background: var(--tinta); color: var(--branco); transition: background-color .15s, transform .15s; }
-.cartao__juntar .icone { width: 19px; height: 19px; }
-.cartao__juntar-mais { position: absolute; top: 4px; right: 4px; width: 14px; height: 14px; border-radius: 999px; background: var(--ouro); color: var(--escuro); font-size: 11px; font-weight: 800; line-height: 14px; text-align: center; }
-@media (hover: hover) { .cartao__juntar:hover { background: #2E2E33; transform: scale(1.05); } }
-.cartao__juntar[data-feito] { background: var(--verde); }
-.cartao__escolher { position: relative; z-index: 0; flex: none; font-size: .82rem; font-weight: 800; color: var(--tinta-2); padding: 6px 0; }
+/* A seta do cartão: o cartão inteiro leva à ficha, onde se compra (13 nov 2026; antes, o carrinho com «+» ou o
+   «Escolher», conforme o artigo). Uma só forma em todos os cartões; no computador, escurece com o cartão. */
+.cartao__seta { display: inline-flex; align-items: center; justify-content: center; flex: none; width: 36px; height: 36px; border-radius: 999px; background: var(--cinza); color: var(--tinta); transition: background-color .2s, color .2s; }
+.cartao__seta .icone { width: 18px; height: 18px; transition: transform .2s; }
+@media (hover: hover) and (pointer: fine) { .cartao:hover .cartao__seta { background: var(--tinta); color: var(--branco); } .cartao:hover .cartao__seta .icone { transform: translateX(2px); } }
+@media (max-width: 374.98px) { .cartao__seta { width: 32px; height: 32px; } .cartao__seta .icone { width: 16px; height: 16px; } }
 .preco { font-weight: 800; font-size: 1.06rem; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
 .preco--grande { font-size: clamp(1.7rem, 1.4rem + 1vw, 2.2rem); letter-spacing: -.03em; }
 .preco--promocao .preco__atual { color: var(--promo); }
@@ -394,7 +570,9 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .problema { display: grid; justify-items: center; align-content: center; gap: 8px; min-height: 104px; height: 100%; padding: 14px 6px; border-radius: var(--raio-m); border: 1px solid var(--linha); background: var(--papel); text-decoration: none; text-align: center; transition: border-color .15s, background-color .15s, color .15s; }
 .problema__icone { display: inline-flex; width: 42px; height: 42px; align-items: center; justify-content: center; border-radius: 12px; background: var(--cinza); color: var(--tinta); transition: background-color .15s, color .15s; }
 .problema__icone .icone { width: 24px; height: 24px; }
-.problema__nome { font-size: .86rem; font-weight: 700; line-height: 1.2; }
+/* as palavras compridas partem com hífen («(micro-soldadura)»), as curtas nunca (pelo menos 5 letras de cada lado) */
+.problema__nome { font-size: .86rem; font-weight: 700; line-height: 1.2; overflow-wrap: anywhere; -webkit-hyphens: auto; hyphens: auto; hyphenate-limit-chars: 10 5 5; -webkit-hyphenate-limit-before: 5; -webkit-hyphenate-limit-after: 5; }
+@media (max-width: 400px) { .problema__nome { font-size: .8rem; } }
 .problema[aria-selected="true"] { border-color: var(--tinta); background: var(--tinta); color: var(--branco); }
 .problema[aria-selected="true"] .problema__icone { background: var(--ouro); color: var(--escuro); }
 .problema--loja { border-style: dashed; }
@@ -465,7 +643,9 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
 .estrelas__cheias { position: absolute; inset: 0 auto 0 0; width: calc(var(--nota, 5) / 5 * 100%); overflow: hidden; color: var(--ouro); }
 .estrelas .icone { flex: none; width: 16px; height: 16px; }
 @media (min-width: 640px) {
-  .garantias__lista { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; border-radius: 0; background: none; }
+  /* numa fila só, com tantas colunas como cartões e todas da mesma largura: com três ficava um lugar vazio à
+     direita (o Renato, 13 nov 2026: «centra esses 3 cards no meio») */
+  .garantias__lista { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 12px; border-radius: 0; background: none; }
   .garantia, .garantias__lista > li:first-child .garantia, .garantias__lista > li:last-child .garantia { grid-template-columns: minmax(0, 1fr); align-content: start; align-items: start; gap: 18px; padding: 24px; border-radius: var(--raio); background-color: var(--cinza); }
   .garantias__lista > li + li .garantia::before { content: none; }
   .garantia__icone { width: 48px; height: 48px; }
@@ -475,7 +655,9 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
   .garantia__seta { position: absolute; top: 24px; right: 24px; }
   .garantia:active { background-color: var(--cinza-2); }
 }
-@media (min-width: 1000px) { .garantias__lista { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; } }
+/* no computador, cartões mais pequenos e o grupo ao meio (o Renato, 13 nov 2026: «os cards podem ficar mais pequenos e
+   não ocupar a largura toda da página») */
+@media (min-width: 1000px) { .garantias__lista { gap: 16px; grid-auto-columns: minmax(0, 260px); justify-content: center; } }
 @media (hover: hover) {
   .garantia:hover { background-color: var(--cinza-2); }
   .garantia:hover .garantia__seta { transform: translateX(3px); color: var(--tinta); }
@@ -493,12 +675,21 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
 .migalhas li + li::before { content: '›'; margin-right: 8px; color: var(--tinta-3); }
 .migalhas a { text-decoration: none; }
 @media (hover: hover) { .migalhas a:hover { text-decoration: underline; } }
+/* No telemóvel, a última migalha (a página onde se está) sai da vista quando há três ou mais: o título logo por baixo
+   já a diz, e o caminho cabe numa linha (partia-se em duas, com o «›» a começar a segunda). Os leitores de ecrã
+   continuam a ouvi-la. */
+@media (max-width: 599.98px) { .migalhas li:last-child:nth-child(n+3) { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
 .chips { margin: 4px 0 14px; }
-.chips ul { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.chips ul { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; padding-bottom: 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .chips ul::-webkit-scrollbar { display: none; }
 .chip { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; min-height: 40px; padding: 6px 16px; border-radius: 999px; border: 1px solid var(--linha); text-decoration: none; font-weight: 700; font-size: .92rem; color: var(--tinta); background: var(--papel); }
 .chip[aria-current="page"] { background: var(--tinta); color: var(--branco); border-color: var(--tinta); }
 @media (hover: hover) { .chip:hover { border-color: var(--tinta); } }
+/* a mãe da categoria aberta, na fila de cima (numa filha): contorno escuro; e a fila das filhas, mais pequena */
+.chip[aria-current="true"] { border-color: var(--tinta); box-shadow: inset 0 0 0 1px var(--tinta); }
+.chips__filhas { margin-top: 4px; }
+.chip--filha { min-height: 34px; padding: 4px 13px; font-size: .86rem; font-weight: 600; background: var(--cinza); border-color: transparent; }
+.chip--filha[aria-current="page"] { background: var(--tinta); color: var(--branco); border-color: var(--tinta); }
 
 /* ---------------------------------------------------------------- loja: a barra, os filtros */
 .loja { padding-bottom: 32px; }
@@ -551,6 +742,9 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .campo select:disabled { color: var(--tinta-3); background-color: var(--cinza); border-color: var(--linha); cursor: not-allowed; opacity: 1; }
 .campos-lado { display: grid; gap: 14px; }
 @media (min-width: 560px) { .campos-lado { grid-template-columns: 1fr 1fr; } }
+/* na ficha em duas colunas (720–1099 px) a coluna da direita é estreita: a marca e o modelo um por baixo do outro
+   (lado a lado, o «Escolha primeiro a marca» ficava «Escolha pr…») */
+@media (min-width: 720px) and (max-width: 1099.98px) { .produto__info .campos-lado { grid-template-columns: minmax(0, 1fr); } }
 .caixa { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-size: .95rem; }
 .campo .caixa input, .caixa input { width: 20px; height: 20px; min-height: 0; padding: 0; margin: 2px 0 0; flex: none; border-radius: 4px; accent-color: var(--tinta); }
 .caixa--termos { font-size: .92rem; color: var(--tinta-2); }
@@ -558,16 +752,19 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 /* ---------------------------------------------------------------- ficha de artigo */
 .produto { padding-bottom: 32px; }
 .produto__grelha { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 8px; }
-@media (min-width: 1000px) { .produto__grelha { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(36px, 5vw, 64px); align-items: start; } }
+/* duas colunas a partir do tablet ao alto (a 768 px a fotografia, sozinha, tinha ~800 px de altura e o preço ficava
+   muito abaixo); a partir de 1000 px a fotografia mais larga */
+@media (min-width: 720px) { .produto__grelha { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; } }
+@media (min-width: 1000px) { .produto__grelha { grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(36px, 5vw, 64px); } }
 .galeria { min-width: 0; }
-@media (min-width: 1000px) { .galeria { position: sticky; top: calc(var(--topo) + 16px); } }
-.galeria__pista { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; gap: 12px; border-radius: var(--raio-g); scrollbar-width: none; }
+@media (min-width: 720px) { .galeria { position: sticky; top: calc(var(--topo) + 16px); } }
+.galeria__pista { display: flex; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x mandatory; gap: 12px; border-radius: var(--raio-g); scrollbar-width: none; }
 .galeria__pista::-webkit-scrollbar { display: none; }
 .galeria__foto { flex: 0 0 100%; scroll-snap-align: start; aspect-ratio: var(--forma, 1); background: var(--cinza); border-radius: var(--raio-g); overflow: hidden; display: grid; place-items: center; }
 .galeria__foto picture { display: contents; }
 .galeria__foto img { width: 100%; height: 100%; object-fit: contain; }
 .galeria__foto--recorte img { padding: 9%; filter: drop-shadow(0 18px 26px rgba(17, 17, 19, .16)); }
-.galeria__miniaturas { display: flex; gap: 8px; margin: 8px -4px 0; padding: 4px; overflow-x: auto; scrollbar-width: none; }
+.galeria__miniaturas { display: flex; gap: 8px; margin: 8px -4px 0; padding: 4px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scrollbar-width: none; }
 .galeria__miniaturas button { position: relative; width: 66px; height: 66px; flex: none; border-radius: 12px; overflow: hidden; border: 1px solid var(--linha); background: var(--cinza); }
 .galeria__miniaturas button[aria-current="true"] { border-color: var(--tinta); outline: 2px solid var(--tinta); outline-offset: 2px; }
 .galeria__miniaturas img { width: 100%; height: 100%; object-fit: cover; }
@@ -656,6 +853,9 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .seletor__modelos { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 8px; max-height: 360px; overflow: auto; padding: 2px; overscroll-behavior: contain; }
 .seletor__modelos a { display: grid; justify-items: center; gap: 8px; height: 100%; padding: 12px 6px 10px; border-radius: var(--raio-m); background: var(--cinza); text-decoration: none; text-align: center; font-weight: 700; font-size: .84rem; line-height: 1.2; transition: background-color .15s, transform .15s; }
 @media (hover: hover) { .seletor__modelos a:hover { background: var(--cinza-2); transform: translateY(-1px); } }
+/* como nos cartões dos modelos: os desenhos assentes na mesma linha (os dobráveis e os tablets são mais baixos) */
+.seletor__modelos a { grid-template-rows: 50px auto; align-content: start; }
+.seletor__modelos .aparelho { align-self: end; }
 .seletor__vazio { color: var(--tinta-2); font-size: .92rem; }
 .aparelho { height: auto; }
 .aparelho--mini { width: 30px; }
@@ -671,8 +871,16 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 /* a página de uma família: os modelos em cartões */
 .familia-pagina { padding-bottom: 32px; }
 .modelos-grelha { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+/* abaixo dos 360 px o mínimo de 140 px deixava uma coluna só, com quadrados enormes e a página com o dobro do comprimento */
+@media (max-width: 359.98px) { .modelos-grelha { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } }
 .modelo-cartao { display: grid; justify-items: center; gap: 10px; height: 100%; padding: 22px 10px 16px; border-radius: var(--raio); background: var(--cinza); text-decoration: none; text-align: center; transition: background-color .15s, transform .15s; }
 .modelo-cartao .aparelho { width: 46px; filter: drop-shadow(0 10px 14px rgba(17, 17, 19, .18)); }
+/* Os desenhos assentes na mesma linha e o nome e o ano logo por baixo. O iPhone Duo e os Galaxy Z dobráveis são mais
+   baixos: o nome ficava mais acima que o dos vizinhos e o ano solto lá em baixo. Nos telemóveis, a fila do desenho
+   tem a altura de um telemóvel. */
+.modelo-cartao { align-content: start; }
+.modelo-cartao .aparelho { align-self: end; }
+.modelos-grelha--telemovel .modelo-cartao { grid-template-rows: 77px auto auto; }
 .modelo-cartao__nome { font-weight: 800; font-size: .95rem; line-height: 1.2; }
 .modelo-cartao__ano { font-size: .8rem; color: var(--tinta-3); font-weight: 600; }
 @media (hover: hover) { .modelo-cartao:hover { background: var(--cinza-2); transform: translateY(-2px); } }
@@ -702,6 +910,13 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .rep__resumo { color: var(--tinta-3); font-size: .86rem; line-height: 1.35; }
 .rep__preco { font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; text-align: right; }
 .rep__preco--orcamento { font-weight: 700; color: var(--verde); font-size: .88rem; white-space: normal; max-width: 9em; }
+@media (max-width: 559.98px) {
+  .rep__cabeca { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "icone texto" "icone preco"; align-items: start; row-gap: 6px; }
+  .rep__icone { grid-area: icone; }
+  .rep__texto { grid-area: texto; }
+  .rep__preco { grid-area: preco; text-align: left; }
+  .rep__preco--orcamento { max-width: none; }
+}
 .rep__marca { display: none; width: 26px; height: 26px; align-items: center; justify-content: center; border-radius: 999px; border: 1.5px solid var(--linha-campo); color: transparent; flex: none; }
 @media (min-width: 560px) { .rep__marca { display: inline-flex; } }
 .rep__marca .icone { width: 16px; height: 16px; }
@@ -752,6 +967,8 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .simulador { display: grid; gap: 16px; margin-top: -64px; position: relative; }
 @media (min-width: 1000px) { .simulador { grid-template-columns: minmax(0, 1fr) 340px; align-items: start; gap: 24px; } }
 .simulador__palco { min-height: 420px; padding: clamp(20px, 3vw, 36px); border-radius: var(--raio-g); background: var(--papel); box-shadow: var(--sombra); }
+/* no telemóvel, sem altura mínima: no primeiro passo (as duas marcas) ficava um branco grande por baixo */
+@media (max-width: 699.98px) { .simulador__palco { min-height: 0; } }
 .simulador__lado { display: none; }
 @media (min-width: 1000px) { .simulador__lado { display: grid; gap: 16px; position: sticky; top: calc(var(--topo) + 16px); padding: 22px; border-radius: var(--raio-g); background: var(--papel); box-shadow: var(--sombra); } }
 .simulador__aparelho { display: flex; align-items: center; gap: 14px; }
@@ -867,6 +1084,10 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 @media (hover: hover) { .linha__tirar:hover { background: var(--cinza); color: var(--tinta); } }
 .carrinho-pagina__resumo, .checkout__resumo { padding: 22px; border-radius: var(--raio-g); background: var(--cinza); display: grid; gap: 16px; }
 @media (min-width: 900px) { .carrinho-pagina__resumo, .checkout__resumo { position: sticky; top: calc(var(--topo) + 16px); } }
+/* o total por cima de «Enviar encomenda», só no telemóvel e no tablet: aí o resumo fica depois do botão */
+.checkout__total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-top: 4px; font-weight: 700; }
+.checkout__total strong { font-size: 1.25rem; font-weight: 800; }
+@media (min-width: 900px) { .checkout__total { display: none !important; } }
 .resumo__titulo { font-size: 1.15rem; font-weight: 800; }
 .resumo__nota { font-size: .86rem; color: var(--tinta-2); }
 .entrega-escolha { display: grid; gap: 8px; }
@@ -878,6 +1099,8 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .opcao-entrega__nome small { display: block; font-weight: 500; color: var(--tinta-3); font-size: .8rem; }
 .opcao-entrega__preco { font-weight: 800; font-size: .92rem; white-space: nowrap; }
 .totais p { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; color: var(--tinta-2); }
+/* o valor nunca se parte («7,90» numa linha e o «€» na outra): quem encolhe é o nome do artigo */
+.totais p > span:last-child { flex: none; white-space: nowrap; }
 .totais__desconto { color: var(--verde) !important; font-weight: 700; }
 .totais__total { border-top: 1px solid var(--linha); margin-top: 6px; padding-top: 12px !important; color: var(--tinta) !important; font-weight: 800; font-size: 1.15rem; }
 .totais small { font-weight: 500; color: var(--tinta-3); }
@@ -894,8 +1117,12 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .cupao__estado[data-tipo="erro"] { color: var(--vermelho); }
 .cupao__estado button { margin-left: 8px; font-weight: 700; text-decoration: underline; color: var(--tinta-2); }
 .checkout__form { display: grid; gap: 22px; }
-.checkout__bloco { display: grid; gap: 14px; padding: 22px; border-radius: var(--raio-g); border: 1px solid var(--linha); }
-.checkout__bloco > legend { float: left; width: 100%; padding: 0; margin: 0; font-size: 1.05rem; font-weight: 800; }
+/* em bloco, não em grelha: num fieldset em grelha o WebKit (o Safari do iPhone) ignora o float e põe o título a
+   cavalo da borda (a mesma coisa da escolha do modelo, acima) */
+.checkout__bloco { display: block; padding: 22px; border-radius: var(--raio-g); border: 1px solid var(--linha); }
+.checkout__bloco > legend { float: left; width: 100%; padding: 0; margin: 0 0 14px; font-size: 1.05rem; font-weight: 800; }
+.checkout__bloco > legend + * { clear: both; }
+.checkout__bloco > :not(legend) + :not(legend) { margin-top: 14px; }
 .checkout__bloco .opcao-entrega { margin-bottom: 4px; }
 .checkout__resumo .linha { grid-template-columns: 56px minmax(0, 1fr); padding: 12px 0; }
 .checkout__resumo .linha__foto img { width: 56px; height: 56px; padding: 4px; }
@@ -908,6 +1135,121 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .obrigado__botoes { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; }
 .obrigado__numero { display: flex; justify-content: space-between; gap: 12px; font-size: 1.05rem; }
 .obrigado__numero strong { letter-spacing: .04em; }
+
+/* A CONTA DO CLIENTE (/conta/, 13 nov 2026): entrar com o código, a lista das encomendas (cartões cinzentos,
+   como o resto do site) e a ficha de cada uma, com o caminho (o que aconteceu, com a data, e o que falta). */
+.conta { padding-top: 20px; padding-bottom: 64px; }
+.conta__carregar { padding: 56px 0; text-align: center; color: var(--tinta-3); }
+.conta__entrar { max-width: 440px; margin: 12px auto 0; display: grid; gap: 12px; }
+.conta__intro, .conta__enviado { color: var(--tinta-2); }
+.conta__enviado strong { color: var(--tinta); overflow-wrap: anywhere; }
+.conta__form { margin-top: 6px; }
+.campo .conta__codigo { font-size: 1.5rem; font-weight: 700; letter-spacing: .3em; text-align: center; font-variant-numeric: tabular-nums; }
+.conta__outras { display: flex; flex-wrap: wrap; justify-content: center; gap: 0 22px; }
+.conta__ligacao { min-height: 44px; padding: 0; border: 0; background: none; color: var(--tinta); font: inherit; font-weight: 700; font-size: .95rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.conta__ligacao:disabled { color: var(--tinta-3); cursor: default; }
+/* AS DEFINIÇÕES DA CONTA: fechadas, no fundo da página, em letra discreta (sair em todos e apagar a conta) */
+.conta__definicoes { margin-top: 44px; padding-top: 16px; border-top: 1px solid var(--linha); }
+.conta__definicoes summary { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: var(--tinta-2); font-weight: 700; font-size: .95rem; list-style: none; cursor: pointer; }
+.conta__definicoes summary::-webkit-details-marker { display: none; }
+.conta__definicoes summary::after { content: ''; width: 7px; height: 7px; margin-top: -3px; border-right: 1.8px solid currentColor; border-bottom: 1.8px solid currentColor; transform: rotate(45deg); transition: transform .15s; }
+.conta__definicoes[open] summary::after { margin-top: 3px; transform: rotate(-135deg); }
+.conta__definicoes-corpo { display: grid; gap: 12px; padding: 4px 0 8px; }
+.conta__definicao { display: grid; justify-items: start; }
+.conta__definicao .conta__nota { margin-top: -6px; }
+.conta__ligacao--perigo { color: var(--vermelho); }
+.conta__cabeca { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 6px 24px; margin: 6px 0 20px; }
+.conta__quem { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; color: var(--tinta-2); font-size: .95rem; overflow-wrap: anywhere; }
+.conta__encomendas { display: grid; gap: 12px; }
+@media (min-width: 760px) { .conta__encomendas { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .conta__encomendas { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.conta-encomenda { display: grid; gap: 8px; height: 100%; padding: 18px 20px; border-radius: var(--raio); background: var(--cinza); color: inherit; text-decoration: none; }
+@media (hover: hover) { .conta-encomenda:hover { background: var(--cinza-2); } }
+.conta-encomenda__topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.conta-encomenda__topo strong { font-size: .95rem; letter-spacing: .03em; }
+.conta-encomenda__artigos { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--tinta-2); font-size: .92rem; }
+.conta-encomenda__pe { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; color: var(--tinta-3); font-size: .9rem; }
+.conta-encomenda__pe strong { color: var(--tinta); font-size: 1rem; }
+.estado { display: inline-flex; align-items: center; padding: 4px 10px; border-radius: 999px; background: var(--cinza-3); color: var(--tinta-2); font-size: .78rem; font-weight: 800; white-space: nowrap; }
+.estado--espera { background: var(--ouro-fundo); color: var(--ouro-texto); }
+.estado--ok { background: var(--verde-fundo); color: var(--verde-escuro); }
+.estado--fim { background: var(--tinta); color: var(--branco); }
+.conta__vazia { display: grid; justify-items: start; gap: 14px; padding: 24px; border-radius: var(--raio); background: var(--cinza); color: var(--tinta-2); }
+.conta__voltar { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--tinta-2); font-weight: 700; text-decoration: none; }
+@media (hover: hover) { .conta__voltar:hover { color: var(--tinta); } }
+.conta__cabeca-ficha { display: grid; gap: 6px; margin: 2px 0 20px; }
+.conta__numero { white-space: nowrap; }
+.conta__data { color: var(--tinta-3); }
+.conta__ficha-grelha { display: grid; gap: 16px; }
+@media (min-width: 900px) { .conta__ficha-grelha { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+.conta__bloco { display: grid; gap: 12px; padding: 22px 20px; border-radius: var(--raio); background: var(--cinza); }
+.conta__frase, .conta__entrega { color: var(--tinta-2); }
+.conta__entrega a { color: var(--tinta); font-weight: 700; }
+.conta__subtitulo { font-size: 1rem; font-weight: 800; }
+.conta__subtitulo:not(:first-child) { margin-top: 6px; }
+.conta__bloco .totais p { padding: 4px 0; }
+.conta__falha { margin: 32px 0; }
+/* a entrada: o Google por cima e, a separar, «ou com o email» */
+.conta__google { display: grid; gap: 14px; margin-top: 6px; }
+.conta__ou { display: flex; align-items: center; gap: 12px; color: var(--tinta-3); font-size: .9rem; }
+.conta__ou::before, .conta__ou::after { content: ''; flex: 1; height: 1px; background: var(--linha); }
+/* o painel da conta: as secções umas por baixo das outras, cada uma com o seu título */
+.conta__seccao { display: grid; gap: 14px; margin-top: 36px; }
+.conta__seccao-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.conta__h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: -.01em; }
+.conta__nota { color: var(--tinta-3); font-size: .92rem; }
+.conta__botoes { display: flex; flex-wrap: wrap; gap: 10px; }
+.conta__garantias { display: grid; gap: 8px; max-width: 760px; }
+.conta__garantias a { display: flex; justify-content: space-between; gap: 16px; padding: 14px 18px; border-radius: var(--raio-m); background: var(--cinza); color: var(--tinta); text-decoration: none; }
+@media (hover: hover) { .conta__garantias a:hover { background: var(--cinza-2); } }
+.conta__ate { flex: none; color: var(--tinta-2); font-weight: 700; }
+.conta__dados-lista { display: grid; gap: 2px; max-width: 760px; padding: 6px 18px; border-radius: var(--raio-m); background: var(--cinza); }
+.conta__dados-lista > div { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 12px; padding: 10px 0; }
+.conta__dados-lista > div + div { border-top: 1px solid var(--linha); }
+.conta__dados-lista dt { color: var(--tinta-3); }
+.conta__dados-lista dd { margin: 0; overflow-wrap: anywhere; }
+.conta__dados { max-width: 640px; }
+.conta__garantia { display: block; margin-top: 2px; color: var(--verde-escuro) !important; font-weight: 600 !important; }
+.conta__desistir { display: grid; gap: 10px; justify-items: start; padding-top: 14px; border-top: 1px solid var(--linha); }
+.conta__desistir--pedido p { color: var(--tinta-2); }
+/* a janela (perguntar antes de sair de todo o lado, apagar, desistir; e o código QR do cartão) */
+/* (o dialog de cima tira a margem a todos, para os de ecrã inteiro: esta janela centra-se com a margem automática) */
+.conta-janela { width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; overflow: auto; padding: 0; border: 0; border-radius: var(--raio-g); background: var(--papel); color: var(--tinta); box-shadow: var(--sombra); }
+.conta-janela::backdrop { background: rgba(17, 17, 19, .45); }
+.conta-janela__corpo { display: grid; gap: 14px; padding: 24px; }
+.conta-janela__titulo { font-size: 1.25rem; font-weight: 800; }
+.conta-janela__texto { display: grid; gap: 12px; color: var(--tinta-2); }
+.conta-janela__texto .campo textarea { min-height: 84px; }
+.conta-janela__qr { display: block; width: min(240px, 100%); height: auto; margin: 4px auto; border-radius: var(--raio-m); border: 1px solid var(--linha); background: #fff; image-rendering: pixelated; }
+.conta-janela__botoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+.conta-janela__botoes .botao { flex: 1 1 auto; }
+/* o cartão das películas: escuro como a marca, as casas cheias a branco e a oferta a dourado */
+.cartao-peliculas { display: grid; gap: 14px; max-width: 560px; margin: 0 0 24px; padding: 20px; border-radius: var(--raio); background: var(--escuro); color: var(--branco); }
+.cartao-peliculas__cabeca { display: grid; gap: 2px; }
+.cartao-peliculas__titulo { font-size: 1.1rem; font-weight: 800; }
+.cartao-peliculas__sub { color: var(--claro-2); font-size: .9rem; }
+.cartao-peliculas__casas { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.cartao-peliculas__casa { display: flex; align-items: center; justify-content: center; aspect-ratio: 1; max-width: 52px; border: 1.5px solid rgba(255, 255, 255, .32); border-radius: 999px; color: var(--claro-2); font-weight: 700; font-size: .9rem; }
+.cartao-peliculas__casa .icone { width: 55%; height: 55%; }
+.cartao-peliculas__casa--cheia { border-color: var(--branco); background: var(--branco); color: var(--escuro); }
+.cartao-peliculas__casa--oferta { border-style: dashed; border-color: var(--ouro); color: var(--ouro); }
+.cartao-peliculas__casa--ganha { border-style: solid; background: var(--ouro); color: var(--escuro); }
+.cartao-peliculas__frase { font-weight: 700; }
+.cartao-peliculas__codigo { justify-self: start; min-height: 44px; padding: 8px 18px; background: transparent; color: var(--branco); border-color: rgba(255, 255, 255, .45); }
+@media (hover: hover) { .cartao-peliculas__codigo:hover { background: rgba(255, 255, 255, .1); } }
+.caminho { display: grid; margin-top: 6px; }
+.caminho__passo { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; padding-bottom: 18px; }
+.caminho__passo:last-child { padding-bottom: 0; }
+.caminho__passo::before { content: ''; position: absolute; left: 10px; top: 22px; bottom: 0; width: 2px; background: var(--cinza-3); }
+.caminho__passo:last-child::before { display: none; }
+.caminho__passo--feito:not(.caminho__passo--atual)::before { background: var(--tinta); }
+.caminho__ponto { width: 22px; height: 22px; border-radius: 999px; border: 2px solid var(--linha-campo); background: var(--papel); }
+.caminho__passo--feito .caminho__ponto { border-color: var(--tinta); background: var(--tinta); }
+.caminho__passo--atual .caminho__ponto { border-color: var(--ouro-texto); background: var(--ouro); box-shadow: 0 0 0 4px var(--ouro-fundo); }
+.caminho__texto { display: grid; gap: 2px; padding-top: 1px; }
+.caminho__passo:not(.caminho__passo--feito) strong { color: var(--tinta-3); font-weight: 600; }
+.caminho__texto time, .caminho__falta { color: var(--tinta-3); font-size: .88rem; }
+.caminho__nota { margin-top: 6px; padding: 8px 12px; border-radius: var(--raio-p); background: var(--papel); color: var(--tinta-2); font-size: .9rem; overflow-wrap: anywhere; }
 .referencia-mb { display: grid; gap: 4px; padding: 14px; border-radius: var(--raio-m); border: 1px dashed var(--linha-campo); font-variant-numeric: tabular-nums; }
 .referencia-mb strong { font-size: 1.15rem; letter-spacing: .04em; }
 
@@ -978,7 +1320,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
   .contacto-cartao .botao { grid-column: 1 / -1; margin-top: 12px; }
   .contacto-cartao--whatsapp .contacto-cartao__texto { margin-bottom: 0; }
 }
-.chamada, .nota-chamada { font-size: .8em; color: var(--tinta-3); }
+.chamada, .nota-chamada { font-size: max(.75rem, .8em); color: var(--tinta-3); }
 .contactos-loja { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; margin-top: 40px; align-items: center; }
 @media (min-width: 900px) { .contactos-loja { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: clamp(32px, 5vw, 64px); } }
 .contactos-loja__titulo { font-size: clamp(1.4rem, 1.2rem + .8vw, 1.8rem); font-weight: 800; letter-spacing: -.02em; margin-bottom: 12px; }
@@ -1014,8 +1356,8 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .mapa-loja__ligacao { position: absolute; inset: 0; border-radius: var(--raio-g); color: var(--tinta); text-decoration: none; }
 .mapa-loja__abrir { position: absolute; left: 16px; bottom: 16px; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 18px; border-radius: 999px; background: var(--papel); box-shadow: 0 1px 2px rgba(18, 18, 18, .08), 0 6px 18px rgba(18, 18, 18, .14); font-weight: 700; transition: background-color .15s, color .15s; }
 @media (hover: hover) { .mapa-loja__ligacao:hover .mapa-loja__abrir { background: var(--tinta); color: var(--branco); } }
-.mapa-loja__credito { position: absolute; right: 12px; bottom: 10px; z-index: 1; font-size: .72rem; }
-.mapa-loja__credito a { padding: 2px 6px; border-radius: 6px; background: rgba(255, 255, 255, .85); color: var(--tinta-2); text-decoration: none; }
+.mapa-loja__credito { position: absolute; right: 12px; bottom: 10px; z-index: 1; font-size: .75rem; }
+.mapa-loja__credito a { display: inline-flex; align-items: center; min-height: 24px; padding: 2px 8px; border-radius: 6px; background: rgba(255, 255, 255, .85); color: var(--tinta-2); text-decoration: none; }
 
 /* ---------------------------------------------------------------- páginas de texto, sobre, perguntas */
 .texto { max-width: 72ch; }
@@ -1029,7 +1371,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .texto li + li { margin-top: 6px; }
 .texto strong { color: var(--tinta); }
 .texto__foto img { width: 100%; border-radius: var(--raio); }
-.texto .quadro { overflow-x: auto; }
+.texto .quadro { overflow-x: auto; overflow-y: hidden; }
 .texto table, .destinatarios { width: 100%; border-collapse: collapse; font-size: .92rem; }
 .texto th, .texto td, .destinatarios th, .destinatarios td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linha); vertical-align: top; }
 @media (max-width: 699.98px) {
@@ -1050,15 +1392,33 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .passo__texto h2 { margin-top: 4px; font-size: 1.2rem; }
 .notas { display: grid; gap: 14px; margin-top: 32px; }
 .texto > .notas:first-child { margin-top: 0; }
-@media (min-width: 700px) { .notas { grid-template-columns: 1fr 1fr; } }
-.nota-cartao { padding: 20px; border-radius: var(--raio); background: var(--cinza); }
-.nota-cartao h2 { margin-top: 6px; font-size: 1.1rem; }
-.nota-cartao__icone { display: inline-flex; width: 40px; height: 40px; align-items: center; justify-content: center; border-radius: 12px; background: var(--papel); color: var(--ouro-texto); }
+@media (min-width: 700px) { .notas { grid-template-columns: repeat(2, minmax(0, 1fr)); } .notas > :last-child:nth-child(odd) { grid-column: 1 / -1; } }
+/* Os cartões (Envios e devoluções): no computador lado a lado, a toda a largura da página e não só da coluna do
+   texto (o Renato, 13 nov 2026: «mete os 3 cards seguidos em vez de um embaixo no computador»). O ícone no círculo
+   dourado das garantias da página inicial; as ligações do fim como botões, alinhadas no fundo de cada cartão. */
+.texto-pagina--passos .texto { max-width: none; }
+.texto-pagina--passos .texto > :not(.notas) { max-width: 72ch; }
+@media (min-width: 900px) { .notas { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 16px; } .notas > :last-child:nth-child(odd) { grid-column: auto; } }
+.nota-cartao { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 24px; border-radius: var(--raio); background: var(--cinza); color: var(--tinta-2); font-size: .95rem; }
+.nota-cartao > * { align-self: stretch; }
+.nota-cartao h2 { margin: 8px 0 0; font-size: 1.2rem; color: var(--tinta); }
+.nota-cartao p { margin: 0; }
+.nota-cartao__icone { align-self: flex-start; display: inline-flex; width: 48px; height: 48px; align-items: center; justify-content: center; border-radius: 50%; background: var(--ouro-fundo); color: var(--ouro-texto); }
+.nota-cartao__icone .icone { width: 24px; height: 24px; }
+.nota-cartao__accoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto !important; padding-top: 8px; }
+.nota-cartao__accoes a { display: inline-flex; align-items: center; min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--linha-campo); background: var(--papel); color: var(--tinta); font-weight: 700; font-size: .9rem; text-decoration: none; }
+@media (hover: hover) { .nota-cartao__accoes a:hover { border-color: var(--tinta); } }
+.portes__titulo { margin-top: 6px !important; font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); }
+.portes { margin: 0; border-top: 1px solid var(--linha); }
+.portes div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--linha); }
+.portes dt { color: var(--tinta-2); }
+.portes dd { margin: 0; font-weight: 700; color: var(--tinta); white-space: nowrap; }
+.portes__nota { font-size: .85rem; color: var(--tinta-3); }
 .perguntas { display: grid; border-top: 1px solid var(--linha); }
 .pergunta { border-bottom: 1px solid var(--linha); }
 .pergunta summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; cursor: pointer; list-style: none; }
 .pergunta summary::-webkit-details-marker { display: none; }
-.pergunta__titulo { font-size: 1.05rem; font-weight: 700; margin: 0; }
+.pergunta .pergunta__titulo { font-size: 1.05rem; font-weight: 700; margin: 0; }
 .pergunta__sinal { flex: none; width: 10px; height: 10px; border-right: 1.8px solid currentColor; border-bottom: 1.8px solid currentColor; transform: rotate(45deg); transition: transform .2s; margin-right: 4px; }
 .pergunta[open] .pergunta__sinal { transform: rotate(-135deg); }
 .pergunta__resposta { padding: 0 0 18px; }
@@ -1081,10 +1441,12 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 @media (min-width: 900px) { .sobre__foto img { aspect-ratio: 4 / 5; } }
 
 /* ---------------------------------------------------------------- rodapé */
+/* O rodapé alto (memória rodape-com-logotipo): a marca à esquerda (o logótipo, a frase e as redes) e as
+   colunas com títulos (a Loja e a Ajuda); a linha legal em baixo. */
 .rodape { margin-top: 64px; background: var(--cinza); padding: 0 0 max(24px, env(safe-area-inset-bottom)); }
 .rodape__corpo { max-width: var(--largura); margin: 0 auto; padding: 40px var(--margem) 0; display: grid; gap: 32px; }
 .rodape__nav { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-@media (min-width: 760px) { .rodape__corpo { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); } .rodape__nav { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; } }
+@media (min-width: 760px) { .rodape__corpo { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); } .rodape__nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; } }
 .rodape__marca { display: grid; gap: 14px; justify-items: start; }
 .rodape__logo-img { height: 58px; width: auto; }
 .rodape__frase { color: var(--tinta-2); max-width: 30ch; }
@@ -1120,7 +1482,7 @@ html[data-whatsapp-fim="sim"] .whatsapp-flutuante { opacity: 0; visibility: hidd
    30 px em 0,7 s e acendem em 0,9 s, uns atrás dos outros (0,1 s). O site.js só põe .revelar no que
    está abaixo do ecrã quando a página abre: o que já se vê nunca pisca, e sem JavaScript está tudo à
    vista. Onde o browser anima com o próprio scroll (animation-timeline), as fotografias acompanham a
-   descida: os cartões da capa recuam ao sair, a fotografia da capa sobe mais devagar, a da loja e a
+   descida: o texto da capa recua ao sair, a fotografia da capa desce mais devagar, a da loja e a
    do «Sobre» aproximam-se ao entrar e as películas flutuam. Usa-se translate e scale (e não
    transform), para não pisar o :hover dos cartões. Com «reduzir movimento» no sistema, nada disto. */
 @media (prefers-reduced-motion: no-preference) {
@@ -1130,10 +1492,10 @@ html[data-whatsapp-fim="sim"] .whatsapp-flutuante { opacity: 0; visibility: hidd
   @keyframes lf-sobe { from { translate: 0 30px; } }
 
   @supports (animation-timeline: view()) {
-    .mosaico > * { animation: lf-recua linear both; animation-timeline: view(); animation-range: exit 0% exit 100%; }
-    @keyframes lf-recua { to { scale: .94; opacity: .8; } }
-    .mosaico__foto img { animation: lf-devagar linear both; animation-timeline: scroll(root); animation-range: 0 80vh; }
-    @keyframes lf-devagar { to { translate: 0 -40px; } }
+    .capa__palavras, .capa__vantagens { animation: lf-recua linear both; animation-timeline: view(); animation-range: exit 0% exit 100%; }
+    @keyframes lf-recua { to { scale: .94; opacity: .5; } }
+    .capa__foto img { animation: lf-devagar linear both; animation-timeline: scroll(root); animation-range: 0 100vh; }
+    @keyframes lf-devagar { to { translate: 0 70px; } }
     .loja-casa__foto img, .sobre__foto img { animation: lf-aproxima linear both; animation-timeline: view(); animation-range: entry 0% cover 45%; }
     @keyframes lf-aproxima { from { scale: 1.14; } }
     .faixa-peliculas__img img { animation: lf-flutua linear both; animation-timeline: view(); animation-range: cover; }

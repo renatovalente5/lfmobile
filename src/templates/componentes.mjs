@@ -2,7 +2,7 @@
 // horário e as peças legais comuns.
 import { esc, euros, precoDe, dataPorExtenso, numeroWhatsApp } from './util.mjs';
 import { icones } from './icones.mjs';
-import { temSuplementos, estadoDe, disponibilidadeDe, compravel, opcoesDe, ESTADOS, linhasDe, categoriasDoArtigo } from '../lib/regras.mjs';
+import { temSuplementos, estadoDe, disponibilidadeDe, compravel, ESTADOS, linhasDe, categoriasDoArtigo } from '../lib/regras.mjs';
 import { livroReclamacoes, VERSAO as LEGAL_COMUM_VERSAO } from '../../legal-comum/index.mjs';
 
 /* AS PEÇAS DA BIBLIOTECA legal-comum (a cópia está em legal-comum/, instalada por
@@ -49,11 +49,12 @@ export const temRecorte = (ctx, nome) => Boolean(ctx.manifesto.recortes?.[nome])
 
 /* O estado de um artigo, como se mostra: «Recondicionado · Grade A+» (a grade vem das
    características, se lá estiver). Um artigo novo não leva etiqueta. */
+/* O estado por cima do nome, na ficha: «Recondicionado». A grade não entra: já está nas pílulas por baixo do
+   nome (especificacoes), e aparecia duas vezes («Apple · Recondicionado · Grade A+» e «Grade A+»). */
 export function estadoRotulo(p) {
   const estado = estadoDe(p);
   if (estado === 'novo') return '';
-  const grade = linhasDe(p.caracteristicas).find((t) => /^grade\s/i.test(t));
-  return grade ? `${ESTADOS[estado]} · ${grade}` : ESTADOS[estado];
+  return ESTADOS[estado];
 }
 
 /* A linha das especificações do cartão: a capacidade, a bateria e a grade, quando as características
@@ -97,16 +98,14 @@ export function promocaoAte(ctx, p) {
   return v.anterior && v.ate ? `Promoção até ${dataPorExtenso(v.ate)}` : '';
 }
 
-/* Junta-se ao carrinho direto do cartão? Só quando não há nada para escolher na ficha. */
-export const juntaDoCartao = (p) => compravel(p) && !opcoesDe(p).length && p.pedeModelo !== true;
-
 /* O CARTÃO DE ARTIGO, como numa loja de electrónica: a imagem num poço claro (o recorte, sem fundo,
    quando o há; senão a fotografia a encher o poço), os selos (o desconto, a campanha, a novidade), a
-   marca e o estado em letra pequena, o nome, as especificações numa linha e, em baixo, o preço e o
-   botão de juntar (ou «Escolher», quando há escolhas ou o modelo a dizer). O cartão inteiro leva ao
-   artigo (a ligação do nome estende-se por cima dele com ::after; o botão fica por cima dela). Os
-   data-* servem os filtros e a ordem da loja (loja.js). */
-export function cartaoProduto(ctx, p, { tamanhos = '(min-width: 1200px) 260px, (min-width: 700px) 30vw, 46vw', titulo = 'h3', comBotao = true } = {}) {
+   marca e o estado em letra pequena, o nome, as especificações numa linha e, em baixo, o preço e uma
+   seta. O cartão inteiro leva ao artigo (a ligação do nome estende-se por cima dele com ::after), e
+   compra-se lá dentro: o botão do carrinho e o «Escolher» saíram dos cartões a 13 nov 2026 (o Renato:
+   «se calhar é melhor só comprar quando se vai ver dentro do produto»). Os data-* servem os filtros e a
+   ordem da loja (loja.js). */
+export function cartaoProduto(ctx, p, { tamanhos = '(min-width: 1200px) 260px, (min-width: 700px) 30vw, 46vw', titulo = 'h3' } = {}) {
   const pct = desconto(ctx, p);
   const camp = campanhaDe(ctx, p);
   const disp = disponibilidadeDe(p);
@@ -122,9 +121,6 @@ export function cartaoProduto(ctx, p, { tamanhos = '(min-width: 1200px) 260px, (
   const marca = [p.marca, estado !== 'novo' ? ESTADOS[estado] : ''].filter(Boolean).join(' · ');
   const specs = especificacoes(p);
   const dispTexto = disponibilidadeRotulo(p);
-  let botao = '';
-  if (comBotao && juntaDoCartao(p)) botao = `<button class="cartao__juntar" type="button" data-juntar="${esc(p.slug)}">${icones.carrinho}<span class="visualmente-escondido">Juntar ${esc(p.nomeCurto || p.nome)} ao carrinho</span><span class="cartao__juntar-mais" aria-hidden="true">+</span></button>`;
-  else if (comBotao && compravel(p)) botao = `<a class="cartao__escolher" href="${ctx.url(`/produtos/${p.slug}/`)}" tabindex="-1" aria-hidden="true">Escolher</a>`;
   return `<article class="cartao${disp === 'esgotado' ? ' cartao--esgotado' : ''}" data-artigo="${esc(p.slug)}" data-categoria="${esc(p.categoria)}" data-marca="${esc((p.marca || '').toLowerCase())}" data-estado="${esc(estado)}" data-preco="${v.atual ?? ''}" data-ordem="${p.ordem ?? 500}" data-compravel="${compravel(p) ? 'sim' : 'nao'}" data-texto="${esc(`${p.nome} ${p.marca || ''} ${p.resumo || ''}`.toLowerCase())}">
   <div class="cartao__foto${recorte ? ' cartao__foto--recorte' : ''}">${imagem(ctx, p.fotos[0], { tamanhos, classe: 'cartao__img', recorte: true })}</div>
   ${selos ? `<div class="cartao__selos">${selos}</div>` : ''}
@@ -134,7 +130,7 @@ export function cartaoProduto(ctx, p, { tamanhos = '(min-width: 1200px) 260px, (
     ${specs.length ? `<p class="cartao__specs">${specs.map(esc).join(' · ')}</p>` : ''}
     <div class="cartao__pe">
       <div class="cartao__precos">${preco(ctx, p)}${dispTexto && disp !== 'esgotado' ? `<span class="cartao__disp">${esc(dispTexto)}</span>` : ''}</div>
-      ${botao}
+      <span class="cartao__seta" aria-hidden="true">${icones.seta}</span>
     </div>
   </div>
 </article>`;
@@ -223,6 +219,14 @@ export function fila(ctx, produtos, { id, titulo, ligacao = '', textoLigacao = '
 
 /* As categorias com artigos no site. */
 export const categoriasComArtigos = (ctx) => ctx.categorias.filter((c) => ctx.produtos.some((p) => categoriasDoArtigo(p, ctx.categorias).includes(c.slug)));
+/* AS CATEGORIAS EM DOIS NÍVEIS (o esquema do Leandro, 13 nov 2026): as de cima (sem mãe: Telemóveis, Tablets,
+   Computadores, Gadgets, Casa, Kids, Acessórios, Encomendas mistério) e as filhas de uma (Apple, Samsung…). TODAS,
+   mesmo as que ainda não têm artigos (o Leandro: «precisava que tivesse aquelas categorias e subcategorias todas»):
+   a página de uma vazia diz que ainda não há e oferece a encomenda, e fica fora do Google até ter artigos. A fila
+   redonda da página inicial é que só mostra as que têm artigos e não têm filhas com artigos (leva fotografias). */
+export const categoriasDeCima = (ctx) => ctx.categorias.filter((c) => !c.grupo);
+export const filhasDe = (ctx, slug) => ctx.categorias.filter((c) => c.grupo === slug);
+export const categoriasSemFilhas = (ctx) => { const cs = categoriasComArtigos(ctx); return cs.filter((c) => !cs.some((x) => x.grupo === c.slug)); };
 
 /* A ligação do WhatsApp sem texto: o número da loja, em dígitos. */
 export const whatsappNumero = (ctx) => numeroWhatsApp(ctx.site.contactos.whatsapp);

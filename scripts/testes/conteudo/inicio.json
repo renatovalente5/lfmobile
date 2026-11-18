@@ -4,12 +4,10 @@
     "descricao": "Reparação de smartphones, tablets, computadores e consolas com orçamento gratuito. Telemóveis novos e recondicionados, acessórios e películas. Em São Roque, Oliveira de Azeméis, com envios para Portugal Continental."
   },
   "capa": {
-    "titulo": "Reparamos, vendemos e cuidamos da sua tecnologia.",
-    "texto": "Reparações com orçamento gratuito, telemóveis novos e recondicionados e envios para todo o continente.",
-    "botao": "Pedir orçamento",
-    "ligacao": "/reparacoes/",
-    "botao2": "Ver a loja",
-    "ligacao2": "/loja/",
+    "rotulo": "Mais que tecnologia",
+    "titulo": "Sempre contigo",
+    "texto": "Telemóveis, acessórios e assistência técnica num só lugar.",
+    "botao": "Ver a loja",
     "foto": "loja-letreiro"
   },
   "destaques": {

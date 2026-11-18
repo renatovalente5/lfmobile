@@ -5,7 +5,7 @@ import { esc, euros, precoDe, markdown, inline, textoSimples, numeroWhatsApp, nu
 import { icones } from './icones.mjs';
 import { usarAparelho, spriteAparelhos } from './aparelhos.mjs';
 import { numeroPortugues, opcoesDe, temSuplementos, estadoDe, disponibilidadeDe, compravel, enviavel, linhasDe, GARANTIAS_USADOS, ESTADOS, categoriasDoArtigo } from '../lib/regras.mjs';
-import { imagem, temRecorte, preco, cartaoProduto, migalhas, botaoSeta, desconto, promocaoAte, cabecaDePagina, convite, promocaoNota, horarioHtml, moradaHtml, estadoRotulo, especificacoes, categoriasComArtigos, campanhaDe, fila } from './componentes.mjs';
+import { imagem, temRecorte, preco, cartaoProduto, migalhas, botaoSeta, desconto, promocaoAte, cabecaDePagina, convite, promocaoNota, horarioHtml, moradaHtml, estadoRotulo, especificacoes, categoriasComArtigos, categoriasDeCima, filhasDe, categoriasSemFilhas, campanhaDe, fila } from './componentes.mjs';
 import { BOTAO_ENCOMENDA } from '../../legal-comum/index.mjs';
 
 /* Os artigos de uma categoria: os dela e, numa categoria de marca (Apple, Samsung), os dessa marca. */
@@ -48,76 +48,60 @@ function imagemDaCategoria(ctx, slug) {
   return `<span class="cat-fila__icone">${icones[ICONE_CATEGORIA[slug]] || icones.caixa}</span>`;
 }
 
-/* A ESCOLHA RÁPIDA da capa: a marca e o modelo em duas listas, e «Ver preços» abre a página do
-   modelo. Sem JavaScript, o botão leva às reparações. */
-function escolhaRapida(ctx, h) {
-  const { marcas, familias, modelos } = ctx.aparelhos;
-  return `<form class="rapido" action="${ctx.url('/reparacoes/')}" data-rapido="${esc(ctx.url('/reparacoes/'))}">
-  <div class="rapido__campos">
-    <div class="rapido__campo"><label for="rapido-marca">Marca</label>
-      <select id="rapido-marca" data-rapido-marca>${marcas.map((m) => `<option value="${esc(m.id)}">${esc(m.nome)}</option>`).join('')}</select></div>
-    <div class="rapido__campo rapido__campo--largo"><label for="rapido-modelo">Modelo</label>
-      <select id="rapido-modelo" name="modelo" data-rapido-modelo>
-        <option value="">Escolha o modelo…</option>
-        ${familias.map((f) => {
-    const lista = modelos.filter((m) => m.familia === f.id);
-    return lista.length ? `<optgroup label="${esc(f.nome)}" data-marca="${esc(f.marca)}">${lista.map((m) => `<option value="${esc(m.id)}">${esc(m.nome)}</option>`).join('')}</optgroup>` : '';
-  }).join('')}
-      </select></div>
-  </div>
-  <button class="botao botao--ouro" type="submit">${esc(h.capa.botao)}${icones.seta}</button>
-</form>`;
-}
+/* AS MARCAS que a capa mostra em baixo, à direita (como na imagem do Leandro, pela ordem dele): só
+   as que estão nas reparações. */
+const MARCAS_DA_CAPA = ['apple', 'samsung', 'xiaomi', 'oppo', 'huawei', 'realme'];
 
 // ---------------------------------------------------------------- página inicial
 export function inicio(ctx) {
   const h = ctx.inicio;
   const camp = ctx.campanhas[0];
 
-  /* O MOSAICO DA CAPA: o cartão grande e escuro com a escolha rápida do modelo para reparar (o que
-     a loja mais faz), a fotografia de uma reparação; ao lado, a retoma e — com uma campanha a correr
-     — a campanha, senão os recondicionados. */
-  const recond = produtosDe(ctx, 'recondicionados').filter((p) => precoDe(p, ctx.hoje).atual !== null);
-  const desde = recond.length ? Math.min(...recond.map((p) => precoDe(p, ctx.hoje).atual)) : null;
-  const fotoRecond = recond.find((p) => temRecorte(ctx, p.fotos[0]));
-  const terceiro = camp
-    ? `<a class="mosaico__cartao mosaico__cartao--campanha" href="${ctx.url(`/campanhas/${camp.slug}/`)}">
-      <span class="rotulo rotulo--ouro">${esc(camp.nome)}</span>
-      <strong class="mosaico__titulo">${esc(camp.titulo)}</strong>
-      ${camp.desconto ? `<span class="mosaico__grande">−${camp.desconto}%</span>` : ''}
-      <span class="mosaico__texto">Até ${dataPorExtenso(camp.ate)}.</span>
-      <span class="mosaico__seta">Ver a campanha${icones.seta}</span>
-    </a>`
-    : `<a class="mosaico__cartao mosaico__cartao--loja" href="${ctx.url('/loja/recondicionados/')}">
-      <span class="rotulo">Recondicionados</span>
-      <strong class="mosaico__titulo">${esc(categoriaDe(ctx, 'recondicionados')?.titulo || 'Recondicionados')}</strong>
-      ${desde !== null ? `<span class="mosaico__texto">Desde <b>${euros(desde)}</b>, testados na loja.</span>` : ''}
-      <span class="mosaico__seta">Ver os recondicionados${icones.seta}</span>
-      ${fotoRecond ? `<span class="mosaico__produto">${imagem(ctx, fotoRecond.fotos[0], { tamanhos: '200px', alt: '', recorte: true })}</span>` : ''}
-    </a>`;
-  const mosaico = `<section class="mosaico" aria-labelledby="capa-titulo">
-  <div class="mosaico__principal">
-    <div class="mosaico__palavras">
-      <p class="rotulo rotulo--claro">Reparação de telemóveis</p>
-      <h1 class="mosaico__h1" id="capa-titulo">${esc(h.capa.titulo)}</h1>
-      ${h.capa.texto ? `<p class="mosaico__sub">${esc(h.capa.texto)}</p>` : ''}
+  /* A CAPA, a ocupar o ecrã (o Leandro, 12 nov 2026, com uma imagem dele: «Consegues meter algo assim
+     de banner na página inicial?»; o Renato: «tira isso tudo e mete assim uma capa grande a ocupar a
+     página toda»). Saíram o cartão da reparação com a escolha do modelo, o da retoma e o dos
+     recondicionados: as reparações e a retoma estão no menu, e a loja logo por baixo da capa. O
+     cabeçalho fica por cima dela, transparente (layout.mjs, topo--capa). À esquerda a frase pequena, a
+     frase grande, o texto e os botões; à direita a fotografia (os aparelhos, num fundo escuro que se
+     funde no da capa); em baixo as três vantagens e, no computador largo, as marcas que se reparam.
+     Os textos e a fotografia mudam-se no painel (Página inicial › A capa). */
+  const cp = h.capa;
+  const fotoCapa = cp.foto && ctx.manifesto.fotos[cp.foto] ? cp.foto : null;
+  const transportadora = ctx.site.entrega.transportadora;
+  const wa = ctx.site.contactos?.whatsapp;
+  const vantagens = [
+    { href: ctx.url('/envios-e-devolucoes/'), icone: icones.camiao, titulo: 'Envio rápido', texto: transportadora ? `${transportadora} em 24/48 h` : 'Em 24/48 h' },
+    { href: ctx.url('/garantia/'), icone: icones.escudo, titulo: 'Garantia', texto: 'Até 3 anos' },
+    wa
+      ? { href: `https://wa.me/${numeroWhatsApp(wa)}`, icone: icones.whatsapp, titulo: 'Apoio ao cliente', texto: 'Na loja e no WhatsApp', fora: true }
+      : { href: ctx.url('/contactos/'), icone: icones.loja, titulo: 'Apoio ao cliente', texto: 'Na loja' },
+  ];
+  const marcasCapa = MARCAS_DA_CAPA.map((id) => ctx.aparelhos.marcas.find((m) => m.id === id)).filter(Boolean);
+  const capa = `<section class="capa${fotoCapa ? '' : ' capa--sem-foto'}" aria-labelledby="capa-titulo">
+  <div class="capa__dentro">
+    <div class="capa__palavras">
+      ${cp.rotulo ? `<p class="capa__rotulo">${esc(cp.rotulo)}</p>` : ''}
+      <h1 class="capa__titulo" id="capa-titulo">${esc(cp.titulo)}</h1>
+      ${cp.texto ? `<p class="capa__texto">${esc(cp.texto)}</p>` : ''}
+      <div class="capa__botoes">
+        <a class="botao botao--ouro" href="${ctx.url('/loja/')}">${esc(cp.botao)}${icones.seta}</a>
+        <a class="botao botao--vidro" href="${ctx.url('/reparacoes/')}">Reparações</a>
+      </div>
     </div>
-    ${escolhaRapida(ctx, h)}
-    ${h.capa.foto && ctx.manifesto.fotos[h.capa.foto] ? `<figure class="mosaico__foto">${imagem(ctx, h.capa.foto, { tamanhos: '(min-width: 1100px) 360px, (min-width: 700px) 40vw, 100vw', prioridade: true })}</figure>` : ''}
+    ${fotoCapa ? `<figure class="capa__foto">${imagem(ctx, fotoCapa, { tamanhos: '(min-width: 1440px) 820px, (min-width: 900px) 58vw, 100vw', prioridade: true })}</figure>` : ''}
+    <div class="capa__pe">
+      <ul class="capa__vantagens">
+        ${vantagens.map((v) => `<li><a href="${esc(v.href)}"${v.fora ? ' target="_blank" rel="noopener"' : ''}><span class="capa__vicone">${v.icone}</span><span class="capa__vtexto"><strong>${esc(v.titulo)}</strong><span>${esc(v.texto)}</span></span></a></li>`).join('')}
+      </ul>
+      ${marcasCapa.length ? `<p class="capa__marcas"><span class="visualmente-escondido">Reparamos todas as marcas, como: </span>${marcasCapa.map((m) => `<span>${esc(m.nome)}</span>`).join('')}</p>` : ''}
+    </div>
   </div>
-  <a class="mosaico__cartao mosaico__cartao--retoma" href="${ctx.url('/retoma/')}">
-    <span class="rotulo rotulo--ouro">Retoma</span>
-    <strong class="mosaico__titulo">${esc(h.retoma.titulo)}</strong>
-    ${h.retoma.texto ? `<span class="mosaico__texto">${esc(h.retoma.texto)}</span>` : ''}
-    <span class="mosaico__seta">${esc(h.retoma.botao)}${icones.seta}</span>
-    <span class="mosaico__desenhos" aria-hidden="true">${usarAparelho('galaxy', 'mosaico__d1')}${usarAparelho('iphone-ilha', 'mosaico__d2')}</span>
-  </a>
-  ${terceiro}
 </section>`;
 
   /* AS CATEGORIAS numa fila redonda (como as lojas de electrónica): a imagem de um artigo dela, sem
-     fundo, ou o desenho do aparelho. */
-  const cats = categoriasComArtigos(ctx);
+     fundo, ou o desenho do aparelho. As que não têm filhas (Apple, Samsung, Áudio, Capas…): as mães (Telemóveis,
+     Acessórios) estão no menu, e na fila repetiam as filhas. */
+  const cats = categoriasSemFilhas(ctx);
   const filaCats = `<nav class="cat-fila" aria-label="Categorias da loja">
   <ul>${cats.map((k) => `<li><a href="${ctx.url(`/loja/${k.slug}/`)}"><span class="cat-fila__poco">${imagemDaCategoria(ctx, k.slug)}</span><span class="cat-fila__nome">${esc(k.nome)}</span></a></li>`).join('')}
   <li><a href="${ctx.url('/reparacoes/')}"><span class="cat-fila__poco cat-fila__poco--escuro"><span class="cat-fila__icone">${icones.ferramentas}</span></span><span class="cat-fila__nome">Reparações</span></a></li>
@@ -144,10 +128,10 @@ export function inicio(ctx) {
   /* AS GARANTIAS, no fim da página inicial e só nela (o Renato, 11 nov 2026; antes estavam no rodapé
      de todas as páginas): a nota do Google primeiro, com as estrelas da própria nota e a ligação para
      as opiniões (para quem quiser conferir; as opiniões em si não se copiam, DL 57/2008, art. 8.º,
-     al. cc) — sem a nota ou sem a ligação, não aparece —, e depois o orçamento, os envios e o
-     levantamento. Cada cartão leva ao sítio onde isso se explica. */
+     al. cc) — sem a nota ou sem a ligação, não aparece —, e depois o orçamento e o levantamento. Os
+     envios já estão na capa, nas três vantagens, e saíram daqui a 13 nov 2026 (memória
+     sem-informacao-repetida). Cada cartão leva ao sítio onde isso se explica. */
   const g = ctx.site.google || {};
-  const transp = ctx.site.entrega.transportadora;
   const nota = Math.min(5, Math.max(0, Number(String(g.nota).replace(',', '.')) || 0));
   const estrelas = `<span class="estrelas" style="--nota: ${nota}" aria-hidden="true"><span class="estrelas__fundo">${icones.estrela.repeat(5)}</span><span class="estrelas__cheias">${icones.estrela.repeat(5)}</span></span>`;
   const garantia = (href, icone, titulo, texto, fora = false) => `<li><a class="garantia" href="${esc(href)}"${fora ? ' target="_blank" rel="noopener"' : ''}>
@@ -160,7 +144,6 @@ export function inicio(ctx) {
   <ul class="garantias__lista">
     ${g.nota && g.ligacao ? garantia(g.ligacao, icones.estrela, `${esc(String(g.nota).replace('.', ','))} no Google`, `${estrelas}${g.opinioes ? `${g.opinioes} opiniões.` : 'Ver as opiniões.'}`, true) : ''}
     ${garantia(ctx.url('/reparacoes/'), icones.ferramentas, 'Orçamento grátis', 'Dizemos o preço antes de reparar.')}
-    ${garantia(ctx.url('/envios-e-devolucoes/'), icones.camiao, `${transp ? `Envios ${esc(transp)}` : 'Envios'} em 24/48 h`, 'Para Portugal Continental.')}
     ${garantia(ctx.url('/contactos/'), icones.loja, 'Levantamento grátis', `Na loja, em ${esc(ctx.site.local.localidade)}.`)}
   </ul>
 </section>`;
@@ -174,7 +157,7 @@ export function inicio(ctx) {
     ${h.loja.texto ? `<p class="seccao__texto">${esc(h.loja.texto)}</p>` : ''}
     <div class="loja-casa__dados">
       <div><p class="loja-casa__rotulo">${icones.local}Morada</p>${moradaHtml(ctx)}</div>
-      <div><p class="loja-casa__rotulo">${icones.relogio}Horário</p>${horarioHtml(ctx)}</div>
+      <div><p class="loja-casa__rotulo">${icones.relogio}Horário</p><p class="estado-loja" data-estado-loja hidden></p>${horarioHtml(ctx)}</div>
     </div>
     <div class="botoes">
       ${ctx.site.local.mapa ? `<a class="botao botao--cheio" href="${esc(ctx.site.local.mapa)}" target="_blank" rel="noopener">${icones.local}<span>Como chegar</span></a>` : ''}
@@ -189,10 +172,13 @@ export function inicio(ctx) {
     titulo: h.seo.titulo,
     descricao: h.seo.descricao,
     classe: 'pagina-inicio',
-    jsonld: [org, { '@context': 'https://schema.org', '@type': 'WebSite', '@id': ctx.absoluto('/#site'), name: ctx.site.marca, url: ctx.absoluto('/'), inLanguage: 'pt-PT', publisher: { '@id': ctx.absoluto('/#loja') } }],
+    /* O nome do site para o Google (a linha por cima do endereço, nos resultados): «LF Mobile», e a forma colada
+       («LFMobile», como no domínio) como alternativa. Dois dias depois de abrir, o Google ainda mostrava «lfmobile.pt»
+       (o Renato, 13 nov 2026). O nome só se declara aqui, na página inicial. */
+    jsonld: [org, { '@context': 'https://schema.org', '@type': 'WebSite', '@id': ctx.absoluto('/#site'), name: ctx.site.marca, ...(/\s/.test(ctx.site.marca) ? { alternateName: [ctx.site.marca.replace(/\s+/g, '')] } : {}), url: ctx.absoluto('/'), inLanguage: 'pt-PT', publisher: { '@id': ctx.absoluto('/#loja') } }],
     conteudo: `${spriteAparelhos()}
+${capa}
 <div class="contentor inicio">
-  ${mosaico}
   ${filaCats}
   ${filaCampanha}
   ${destaques}
@@ -226,24 +212,56 @@ function filtros(ctx, lista) {
 </aside>`;
 }
 
+/* O LUGAR DA LOJA ao mudar de separador (loja.js guarda-o no toque): em linha, logo a seguir à loja, para correr
+   antes da primeira pintura. A página nova abre com a fila dos separadores onde ela estava no ecrã, e a fila
+   deslizada como estava. A altura por cima dos separadores ainda muda uns píxeis quando as letras chegam, e a
+   página pode não ser comprida que chegue antes de o rodapé ser lido: repete no DOMContentLoaded, no load e quando
+   as letras estão prontas, até a pessoa mexer (roda, toque, tecla, rato). Um lugar guardado há mais de 15 s não
+   conta (um toque que não chegou a abrir a página). */
+const LUGAR_DA_LOJA = "(function(){try{var k='lfmobile:lugar-da-loja',v=JSON.parse(sessionStorage.getItem(k)||'null');sessionStorage.removeItem(k);if(!v||v.para!==location.pathname||!(v.topo>=0)||!(Date.now()-v.t<15000))return;var n=document.querySelector('.chips');if(!n)return;var r=document.documentElement,parar=false,y=function(){return Math.max(0,n.getBoundingClientRect().top+window.scrollY-v.topo)},ir=function(){if(parar)return;var b=r.style.scrollBehavior;r.style.scrollBehavior='auto';window.scrollTo(0,y());r.style.scrollBehavior=b};ir();['wheel','touchstart','keydown','mousedown'].forEach(function(e){addEventListener(e,function(){parar=true},{once:true,passive:true,capture:true})});document.addEventListener('DOMContentLoaded',ir);addEventListener('load',ir);if(document.fonts&&document.fonts.ready)document.fonts.ready.then(ir);var u=n.querySelector('ul');if(u)u.scrollLeft=v.esq||0;r.dataset.lugarDaLoja=String(v.esq||0)}catch(e){}})();";
+
+/* O título e a descrição de uma categoria para o Google (13 nov 2026). O título da página (o do painel) fica como
+   está; quando é só o nome («Apple», «Smartwatches»), junta-se-lhe o resumo, para o resultado não ser «Apple | LF
+   Mobile». À descrição curta do painel junta-se onde é a loja e como se recebe, enquanto couber nos ~158 caracteres
+   que o Google mostra. */
+function tituloDaCategoria(c) {
+  const resumo = textoSimples(c.resumo || '').replace(/[.\s]+$/, '');
+  return c.titulo === c.nome && resumo ? `${c.titulo} — ${resumo}` : c.titulo;
+}
+function descricaoDaCategoria(ctx, c) {
+  const base = textoSimples(c.resumo || c.titulo);
+  const zonas = ctx.site.entrega.zonas;
+  const envios = zonas.filter((z) => z.morada).map((z) => z.curto);
+  const como = [envios.length ? `envios para ${envios.join(' e ')}` : '', zonas.some((z) => !z.morada) ? 'levantamento grátis na loja' : ''].filter(Boolean).join(' e ');
+  const comLoja = `${/[.!?]$/.test(base) ? base : `${base}.`} Na ${ctx.site.marca}, em ${ctx.site.local.localidade}${como ? `: ${como}` : ''}.`;
+  return comLoja.length <= 158 ? comLoja : base.slice(0, 158);
+}
+
 export function loja(ctx, cat = null) {
   const c = cat && categoriaDe(ctx, cat);
   const lista = c ? produtosDe(ctx, cat) : ctx.produtos;
   const caminho = c ? `/loja/${c.slug}/` : '/loja/';
-  const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: 'Loja', caminho: '/loja/' }, ...(c ? [{ nome: c.nome, caminho }] : [])]);
-  const chips = [{ slug: '', nome: 'Tudo' }, ...categoriasComArtigos(ctx)]
+  /* Em dois níveis (13 nov 2026): a fila de cima com as categorias de cima (a mãe da que está aberta assinalada), e,
+     numa mãe ou numa filha, uma segunda fila com «Todos» e as filhas. */
+  const mae = c && c.grupo ? categoriaDe(ctx, c.grupo) : null;
+  const m = migalhas(ctx, [{ nome: 'Início', caminho: '/' }, { nome: 'Loja', caminho: '/loja/' }, ...(mae ? [{ nome: mae.nome, caminho: `/loja/${mae.slug}/` }] : []), ...(c ? [{ nome: c.nome, caminho }] : [])]);
+  const deCima = mae ? mae.slug : (c ? c.slug : '');
+  const chips = [{ slug: '', nome: 'Tudo' }, ...categoriasDeCima(ctx)]
     .map((k) => {
       const href = ctx.url(k.slug ? `/loja/${k.slug}/` : '/loja/');
-      const atual = (k.slug || null) === (cat || null);
-      return `<li><a class="chip" href="${href}"${atual ? ' aria-current="page"' : ''}>${esc(k.nome)}</a></li>`;
+      const atual = k.slug === deCima ? (k.slug === (cat || '') ? ' aria-current="page"' : ' aria-current="true"') : '';
+      return `<li><a class="chip" href="${href}"${atual}>${esc(k.nome)}</a></li>`;
     }).join('');
+  const grupoAberto = mae || (c && filhasDe(ctx, c.slug).length ? c : null);
+  const filhas = grupoAberto ? [{ slug: grupoAberto.slug, nome: 'Todos' }, ...filhasDe(ctx, grupoAberto.slug)]
+    .map((k) => `<li><a class="chip chip--filha" href="${ctx.url(`/loja/${k.slug}/`)}"${k.slug === cat ? ' aria-current="page"' : ''}>${esc(k.nome)}</a></li>`).join('') : '';
   const f = filtros(ctx, lista);
   const conteudo = `<div class="contentor loja" data-loja>
   <header class="loja-cabeca">
     <h1 class="titulo-pagina">${esc(c ? c.titulo : 'Loja')}</h1>
     ${c?.resumo ? `<p class="cabeca__sub">${esc(c.resumo)}</p>` : '<p class="cabeca__sub">iPhone e Samsung novos e recondicionados, películas para qualquer telemóvel, áudio e acessórios.</p>'}
   </header>
-  <nav class="chips" aria-label="Categorias"><ul>${chips}</ul></nav>
+  <nav class="chips" aria-label="Categorias"><ul>${chips}</ul>${filhas ? `<ul class="chips__filhas" aria-label="${esc(grupoAberto.nome)}">${filhas}</ul>` : ''}</nav>
   <div class="loja-barra">
     <p class="loja-barra__conta" data-conta-artigos aria-live="polite">${lista.length} ${lista.length === 1 ? 'artigo' : 'artigos'}</p>
     <p class="loja-barra__procura" data-loja-procura hidden></p>
@@ -258,12 +276,15 @@ export function loja(ctx, cat = null) {
     <p class="loja__vazia" data-loja-vazia hidden>Nenhum artigo com estes filtros. <button class="botao botao--texto" type="button" data-limpar-filtros>Limpar os filtros</button></p>
   </div>
   ${convite(ctx, { titulo: 'Não encontra o que procura? Encomendamos para si.', texto: 'Olá! Gostava de encomendar um equipamento: ', contactos: false })}
-</div>`;
+</div>
+<script>${LUGAR_DA_LOJA}</script>`;
   return {
     caminho,
-    titulo: c ? c.titulo : 'Loja — iPhone, Samsung, películas e acessórios',
-    descricao: c ? textoSimples(c.resumo || c.titulo).slice(0, 158) : `iPhone e Samsung novos e recondicionados, películas para qualquer telemóvel, áudio e acessórios na ${ctx.site.marca}, em ${ctx.site.local.localidade}. Envios para Portugal Continental.`,
+    titulo: c ? tituloDaCategoria(c) : 'Loja — iPhone, Samsung, películas e acessórios',
+    descricao: c ? descricaoDaCategoria(ctx, c) : `iPhone e Samsung novos e recondicionados, películas para qualquer telemóvel, áudio e acessórios na ${ctx.site.marca}, em ${ctx.site.local.localidade}. Envios para Portugal Continental.`,
     classe: 'pagina-loja',
+    // uma categoria ainda sem artigos fica fora do Google (e do mapa do site) até ter
+    indexar: !(c && !lista.length),
     jsonld: [m.ld, {
       '@context': 'https://schema.org', '@type': 'ItemList',
       itemListElement: lista.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: ctx.absoluto(`/produtos/${p.slug}/`), name: p.nome })),
@@ -424,14 +445,14 @@ export function produto(ctx, p) {
      (o modelo agrupado pela família da marca escolhida, content/aparelhos.json), e «Outro modelo» no
      fim de cada lista, que abre o campo para o escrever; com «Outra marca», só o campo. Sem
      JavaScript fica só o campo escrito (a lista dos modelos enche-se no browser, site.js). Sem
-     modelo não se junta ao carrinho. Uma página que chega com ?modelo=Marca|Modelo (das reparações)
+     modelo não se junta ao carrinho. Uma página que chega com #modelo=Marca|Modelo (das reparações)
      já o traz escolhido, e muda-se como outro qualquer. */
   const idm = esc(p.slug);
   const blocoModelo = p.pedeModelo === true ? `<fieldset class="campo escolha-modelo" data-escolha-modelo>
     <legend>O seu telemóvel</legend>
     <div class="campos-lado">
       <div class="campo"><label for="m-marca-${idm}">Marca</label><select id="m-marca-${idm}" name="marcaModelo" required data-modelo-marca><option value="">Escolha…</option>${ctx.marcasParaModelo.map((mm) => `<option>${esc(mm)}</option>`).join('')}<option value="Outra">Outra marca</option></select></div>
-      <div class="campo" data-modelo-lista-campo hidden><label for="m-lista-${idm}">Modelo</label><select id="m-lista-${idm}" data-modelo-lista disabled><option value="">Escolha primeiro a marca</option></select></div>
+      <div class="campo" data-modelo-lista-campo hidden><label for="m-lista-${idm}">Modelo</label><select id="m-lista-${idm}" data-modelo-lista disabled><option value="">Primeiro, a marca</option></select></div>
       <div class="campo" data-modelo-nome-campo><label for="m-modelo-${idm}" data-modelo-nome-rotulo>Modelo</label><input id="m-modelo-${idm}" name="modelo" type="text" maxlength="60" required autocomplete="off" placeholder="Ex.: iPhone 13, Galaxy A55" data-modelo-nome></div>
     </div>
     <p class="campo__ajuda">Preparamos a película para este modelo. Se não souber o nome, veja em Definições › Geral › Informações (iPhone) ou Definições › Acerca do telemóvel (Android).</p>
@@ -498,7 +519,7 @@ export function produto(ctx, p) {
   const relacionados = ctx.produtos.filter((x) => x.slug !== p.slug)
     .sort((a, b) => (b.categoria === p.categoria) - (a.categoria === p.categoria) || (a.ordem ?? 500) - (b.ordem ?? 500)).slice(0, 8);
 
-  // A marca (ou a categoria) e o estado: «Huawei · Novo», «Apple · Recondicionado · Grade A+». Os
+  // A marca (ou a categoria) e o estado: «Huawei · Novo», «Apple · Recondicionado». Os
   // acessórios sem marca ficam só com a categoria.
   const estadoTexto = estadoRotulo(p) || (EQUIPAMENTOS.has(p.categoria) ? 'Novo' : '');
   const specs = especificacoes(p);
@@ -614,6 +635,7 @@ export function checkout(ctx) {
     <form class="formulario checkout__form" data-checkout novalidate>
       <fieldset class="checkout__bloco">
         <legend>Os seus dados</legend>
+        <p class="formulario__nota" data-checkout-conta hidden>Preenchido com os dados da sua conta.</p>
         <div class="campo"><label for="c-nome">Nome</label><input id="c-nome" name="nome" type="text" autocomplete="name" required maxlength="80"></div>
         <div class="campos-lado">
           <div class="campo"><label for="c-email">Email</label><input id="c-email" name="email" type="email" autocomplete="email" required maxlength="120" inputmode="email"></div>
@@ -637,6 +659,7 @@ export function checkout(ctx) {
       ${online ? metodosDePagamento() : ''}
       <label class="caixa caixa--termos"><input type="checkbox" name="termos" required><span>Li e aceito os <a href="${ctx.url('/termos-e-condicoes/')}" target="_blank" rel="noopener">termos e condições</a>. Posso desistir da compra em 14 dias.</span></label>
       <p class="comprar__erro" data-erro-checkout role="alert" hidden></p>
+      <p class="checkout__total" data-checkout-total hidden><span>Total</span><strong></strong></p>
       <button class="botao botao--cheio botao--largo" type="submit" data-botao-checkout>${online ? icones.cadeado : icones.certo}<span>${online ? esc(BOTAO_ENCOMENDA) : 'Enviar encomenda'}</span></button>
       <p class="formulario__nota">${online ? 'Sem o pagamento no prazo, a encomenda fica sem efeito e nada é cobrado.' : 'Registamos a encomenda e confirmamos consigo o pagamento e a entrega, por email ou WhatsApp. A encomenda fica feita quando a confirmarmos.'}</p>
     </form>
@@ -733,12 +756,113 @@ export function obrigado(ctx) {
     <p class="obrigado__texto" data-obrigado-texto>A sua encomenda ficou registada. Enviámos-lhe um email com o resumo.</p>
     <div class="obrigado__detalhe" data-obrigado-detalhe hidden></div>
     <div class="obrigado__botoes">
+      <a class="botao botao--contorno" href="${ctx.url('/conta/')}">${icones.pessoa}<span>As minhas encomendas</span></a>
       <a class="botao botao--contorno" href="${ctx.url('/loja/')}">Voltar à loja</a>
       ${ctx.site.contactos.whatsapp ? `<a class="botao botao--whatsapp-suave" href="${ctx.whatsapp('Olá! Fiz uma encomenda no site e tenho uma dúvida.')}" target="_blank" rel="noopener">${icones.whatsapp}<span>Falar no WhatsApp</span></a>` : ''}
     </div>
   </div>
 </div>`;
   return { caminho: '/obrigado/', titulo: 'Encomenda registada', descricao: 'A sua encomenda ficou registada.', conteudo, classe: 'pagina-obrigado', indexar: false };
+}
+
+/* O «G» do Google, de quatro cores, como as regras de marca do Google pedem nos botões de entrar. */
+const LOGO_GOOGLE = '<svg class="logo-google" viewBox="0 0 48 48" width="20" height="20" aria-hidden="true" focusable="false"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>';
+
+/* A CONTA DO CLIENTE (13 nov 2026; o Leandro: «a conta cliente para o cliente ver as encomendas»).
+   Entrar com o email e um código que vai por email; lá dentro, as encomendas desse email e, na ficha de
+   cada uma (?e=<número>), em que ponto está e o caminho que fez. O src/scripts/conta.js desenha tudo
+   com o que /conta/api/… responde (o Worker das encomendas, pelo worker/www.js). Fora do Google: noindex
+   e fora do mapa (não vai ao robots.txt, para o Google ver o noindex). */
+export function conta(ctx) {
+  const zap = ctx.site.contactos.whatsapp ? ctx.whatsapp('Olá! Tenho uma dúvida sobre a encomenda ') : '';
+  const recond = Number.isInteger(ctx.site.garantias?.recondicionados) ? ctx.site.garantias.recondicionados : 18;
+  const campo = (id, nome, rotulo, extra = '') => `<div class="campo"><label for="${id}">${rotulo}</label><input id="${id}" name="${nome}" ${extra}></div>`;
+  const conteudo = `<div class="contentor conta" data-area-cliente data-contactos-url="${ctx.url('/contactos/')}" data-desistir-url="${ctx.url('/desistir/')}" data-localidade="${esc(ctx.site.local?.localidade || '')}"${zap ? ` data-whatsapp="${esc(zap)}"` : ''}>
+  <p class="conta__carregar" data-conta-carregar role="status">A abrir a sua conta…</p>
+  <section class="conta__entrar" data-conta-entrar hidden aria-labelledby="conta-titulo-entrar">
+    <h1 class="titulo-pagina" id="conta-titulo-entrar">A minha conta</h1>
+    <p class="conta__intro">As suas encomendas, o cartão das películas e as garantias.</p>
+    <div class="conta__google" data-conta-google hidden>
+      <button class="botao botao--google botao--largo" type="button" data-conta-google-botao>${LOGO_GOOGLE}<span>Continuar com o Google</span></button>
+      <p class="conta__ou"><span>ou com o email</span></p>
+    </div>
+    <p class="comprar__erro" data-conta-google-erro role="alert" hidden></p>
+    <form class="formulario conta__form" data-conta-form-email novalidate>
+      <div class="campo"><label for="conta-email">Email</label><input id="conta-email" name="email" type="email" autocomplete="email" inputmode="email" autocapitalize="off" spellcheck="false" required maxlength="160"></div>
+      <p class="comprar__erro" data-conta-erro role="alert" hidden></p>
+      <button class="botao botao--cheio botao--largo" type="submit"><span>Receber o código</span></button>
+      <p class="formulario__nota">Use o email das suas encomendas. Enviamos-lhe um código para entrar.</p>
+    </form>
+    <form class="formulario conta__form" data-conta-form-codigo novalidate hidden>
+      <p class="conta__enviado" data-conta-enviado></p>
+      <div class="campo"><label for="conta-codigo">Código</label><input id="conta-codigo" class="conta__codigo" name="codigo" type="text" inputmode="numeric" autocomplete="one-time-code" required maxlength="12"></div>
+      <p class="comprar__erro" data-conta-erro role="alert" hidden></p>
+      <button class="botao botao--cheio botao--largo" type="submit"><span>Entrar</span></button>
+      <p class="conta__outras"><button class="conta__ligacao" type="button" data-conta-reenviar>Enviar outro código</button><button class="conta__ligacao" type="button" data-conta-mudar>Usar outro email</button></p>
+    </form>
+  </section>
+  <section class="conta__painel" data-conta-lista hidden aria-labelledby="conta-titulo-lista">
+    <div class="conta__cabeca">
+      <h1 class="titulo-pagina" id="conta-titulo-lista" data-conta-ola>A minha conta</h1>
+      <p class="conta__quem"><span data-conta-quem></span><button class="conta__ligacao" type="button" data-conta-sair>Sair</button></p>
+    </div>
+    <section class="cartao-peliculas" data-conta-cartao hidden aria-labelledby="cartao-peliculas-titulo"></section>
+    <section class="conta__seccao" id="encomendas" aria-labelledby="conta-titulo-encomendas">
+      <h2 class="conta__h2" id="conta-titulo-encomendas">As minhas encomendas</h2>
+      <ul class="conta__encomendas" data-conta-encomendas></ul>
+      <div class="conta__vazia" data-conta-vazia hidden>
+        <p>Ainda não há encomendas com este email.</p>
+        <a class="botao botao--contorno" href="${ctx.url('/loja/')}">Ver a loja</a>
+      </div>
+    </section>
+    <section class="conta__seccao" data-conta-garantias hidden aria-labelledby="conta-titulo-garantias">
+      <h2 class="conta__h2" id="conta-titulo-garantias">Garantias</h2>
+      <ul class="conta__garantias" data-conta-garantias-lista></ul>
+      <p class="conta__nota">Contam do dia da entrega: 3 anos nos artigos novos, ${recond} meses nos recondicionados.</p>
+    </section>
+    <section class="conta__seccao" id="dados" aria-labelledby="conta-titulo-dados">
+      <div class="conta__seccao-topo"><h2 class="conta__h2" id="conta-titulo-dados">Os meus dados</h2><button class="conta__ligacao" type="button" data-conta-dados-editar>Editar</button></div>
+      <div class="conta__dados-resumo" data-conta-dados-resumo></div>
+      <form class="formulario conta__dados" data-conta-dados-form novalidate hidden>
+        ${campo('dados-nome', 'nome', 'Nome', 'type="text" autocomplete="name" maxlength="120"')}
+        <div class="campos-lado">
+          ${campo('dados-telefone', 'telefone', 'Telemóvel', 'type="tel" autocomplete="tel" inputmode="tel" maxlength="20"')}
+          ${campo('dados-nif', 'nif', 'NIF <span class="campo__opcional">(para a factura)</span>', 'type="text" inputmode="numeric" maxlength="12" autocomplete="off"')}
+        </div>
+        ${campo('dados-morada', 'morada', 'Morada', 'type="text" autocomplete="street-address" maxlength="160"')}
+        <div class="campos-lado">
+          ${campo('dados-cp', 'codigoPostal', 'Código postal', 'type="text" autocomplete="postal-code" inputmode="numeric" maxlength="8" placeholder="0000-000"')}
+          ${campo('dados-localidade', 'localidade', 'Localidade', 'type="text" autocomplete="address-level2" maxlength="60"')}
+        </div>
+        <p class="comprar__erro" data-conta-dados-erro role="alert" hidden></p>
+        <div class="conta__botoes"><button class="botao botao--cheio" type="submit">Gravar</button><button class="botao botao--contorno" type="button" data-conta-dados-cancelar>Cancelar</button></div>
+        <p class="formulario__nota">Ficam na sua conta e preenchem a próxima encomenda.</p>
+      </form>
+    </section>
+    ${/* AS DEFINIÇÕES DA CONTA, fechadas, no fundo (16 nov 2026; o Renato: «isto de apagar conta não pode estar assim
+        tão exposto»): como nas lojas grandes, apagar a conta é uma ligação discreta lá dentro, e pergunta antes. */ ''}<details class="conta__definicoes">
+      <summary>Definições da conta</summary>
+      <div class="conta__definicoes-corpo">
+        <div class="conta__definicao"><button class="conta__ligacao" type="button" data-conta-sair-todos>Sair em todos os aparelhos</button><p class="conta__nota">Termina a sessão neste e nos outros aparelhos onde entrou.</p></div>
+        <div class="conta__definicao"><button class="conta__ligacao conta__ligacao--perigo" type="button" data-conta-apagar>Apagar a conta</button><p class="conta__nota">Apaga os seus dados e as películas marcadas na loja. As encomendas ficam.</p></div>
+      </div>
+    </details>
+  </section>
+  <section class="conta__ficha" data-conta-ficha hidden aria-labelledby="conta-titulo-ficha"></section>
+  <p class="comprar__erro conta__falha" data-conta-falha role="alert" hidden></p>
+  <dialog class="conta-janela" data-conta-janela aria-labelledby="conta-janela-titulo">
+    <form class="conta-janela__corpo" method="dialog">
+      <h2 class="conta-janela__titulo" id="conta-janela-titulo" data-janela-titulo></h2>
+      <div class="conta-janela__texto" data-janela-texto></div>
+      <div class="conta-janela__botoes" data-janela-botoes></div>
+    </form>
+  </dialog>
+  <template data-icone-whatsapp>${icones.whatsapp}</template>
+  <template data-icone-certo>${icones.certo}</template>
+  <template data-icone-presente>${icones.presente}</template>
+  <noscript><p class="nota">A conta precisa de JavaScript. Pode sempre perguntar pela sua encomenda no <a href="${ctx.whatsapp('Olá! Queria saber da minha encomenda.')}">WhatsApp</a>.</p></noscript>
+</div>`;
+  return { caminho: '/conta/', titulo: 'A minha conta', descricao: 'As suas encomendas na LF Mobile, o cartão das películas e as garantias.', conteudo, classe: 'pagina-conta', indexar: false };
 }
 
 // ---------------------------------------------------------------- páginas de texto
@@ -753,6 +877,8 @@ function seccoes(html) {
     return m ? { id: m[1] || '', titulo: m[2], corpo: m[3].trim() } : { id: '', titulo: '', corpo: x };
   }) };
 }
+/* Um parágrafo só de ligações, no fim de um cartão, vira os botões do fundo dele («Como chegar», «Como desistir»). */
+const comAccoes = (corpo) => corpo.replace(/<p>((?:\s*<a [^>]*>[^<]*<\/a>\s*)+)<\/p>\s*$/, (_, ls) => `<p class="nota-cartao__accoes">${ls.trim()}</p>`);
 function comoPassos(html) {
   const { intro, lista } = seccoes(html);
   const numerado = (x) => /^\d+\.\s/.test(textoSimples(x.titulo));
@@ -760,7 +886,7 @@ function comoPassos(html) {
   const notas = lista.filter((x) => !numerado(x));
   return `${intro ? `<div class="texto__intro">${intro}</div>` : ''}
     ${passos.length ? `<ol class="passos">${passos.map((x, i) => `<li class="passo"><span class="passo__numero" aria-hidden="true">${i + 1}</span><div class="passo__texto"><h2 id="${x.id}">${x.titulo.replace(/^\d+\.\s*/, '')}</h2>${x.corpo}</div></li>`).join('')}</ol>` : ''}
-    ${notas.length ? `<div class="notas">${notas.map((x) => { const ic = icones[ICONE_DA_NOTA[chaveDe(x.titulo)]]; return `<section class="nota-cartao">${ic ? `<span class="nota-cartao__icone">${ic}</span>` : ''}<h2 id="${x.id}">${x.titulo}</h2>${x.corpo}</section>`; }).join('')}</div>` : ''}`;
+    ${notas.length ? `<div class="notas">${notas.map((x) => { const ic = icones[ICONE_DA_NOTA[chaveDe(x.titulo)]]; return `<section class="nota-cartao">${ic ? `<span class="nota-cartao__icone">${ic}</span>` : ''}<h2 id="${x.id}">${x.titulo}</h2>${comAccoes(x.corpo)}</section>`; }).join('')}</div>` : ''}`;
 }
 function comoPerguntas(html) {
   const { intro, lista } = seccoes(html);
@@ -850,6 +976,7 @@ export function contactos(ctx) {
       ${moradaHtml(ctx)}
       ${e.nome ? `<p class="contactos-loja__vendedor">${esc(e.nome)}${e.tipo ? `, ${esc(e.tipo)}` : ''}${e.nif ? ` · NIF ${esc(e.nif)}` : ''}</p>` : ''}
       <h3 class="contactos-loja__rotulo">Horário</h3>
+      <p class="estado-loja" data-estado-loja hidden></p>
       ${horarioHtml(ctx)}
     </div>
   </section>

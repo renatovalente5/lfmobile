@@ -4,10 +4,11 @@
     "descricao": "Reparação de telemóveis de todas as marcas com o preço à vista, iPhone e Samsung novos e recondicionados, películas para qualquer telemóvel e retoma do seu usado. Em São Roque, Oliveira de Azeméis, com envios pela Nacex."
   },
   "capa": {
-    "titulo": "O seu telemóvel, como novo outra vez.",
-    "texto": "Reparamos todas as marcas. Escolha o modelo e veja o preço. Orçamento grátis, na loja ou pelo WhatsApp.",
-    "botao": "Ver preços",
-    "foto": "reparacao-ecra-iphone"
+    "rotulo": "Mais que tecnologia",
+    "titulo": "Sempre contigo",
+    "texto": "Telemóveis, acessórios e assistência técnica num só lugar.",
+    "botao": "Ver a loja",
+    "foto": "banner-inicio"
   },
   "destaques": {
     "titulo": "Em destaque",

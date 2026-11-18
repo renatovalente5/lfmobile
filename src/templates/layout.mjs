@@ -9,7 +9,7 @@
 // o menu abrem em folhas.
 import { esc, numeroWhatsApp } from './util.mjs';
 import { icones } from './icones.mjs';
-import { livroBotao, categoriasComArtigos } from './componentes.mjs';
+import { livroBotao, categoriasDeCima, filhasDe } from './componentes.mjs';
 
 function logotipo(ctx, { alto = 40, classe = 'logo' } = {}) {
   const l = ctx.manifesto.logo;
@@ -21,9 +21,11 @@ function logotipo(ctx, { alto = 40, classe = 'logo' } = {}) {
   return `<img class="${classe}" src="${ctx.asset(`img/${v.webp}`)}" width="${largo}" height="${alto}" alt="${esc(ctx.site.marca)}">`;
 }
 
-/* A FAIXA DO TOPO, por esta ordem: a campanha que está a correr (com a ligação para a página dela),
-   o aviso do dono (Dados da loja › Aviso do topo), ou as duas frases de sempre. À direita (no
-   computador), a loja aberta ou fechada agora, calculada no browser pelo horário (site.js). */
+/* A FAIXA DO TOPO: a campanha que está a correr (com a ligação para a página dela) ou o aviso do dono
+   (Dados da loja › Aviso do topo). Sem nenhum dos dois não aparece (o Renato, 12 nov 2026: as frases de
+   sempre — orçamento grátis, envios, levantamento — repetiam-se em todas as páginas e já estão onde
+   contam: na capa, no artigo, nas reparações). À direita (no computador), a loja aberta ou fechada agora,
+   calculada no browser pelo horário (site.js). */
 function faixaTopo(ctx) {
   const c = ctx.campanhas[0];
   const a = ctx.site.aviso || {};
@@ -36,8 +38,7 @@ function faixaTopo(ctx) {
     corpo = a.ligacao ? `<a href="${ctx.url(a.ligacao)}">${esc(a.texto)}</a>` : `<span>${esc(a.texto)}</span>`;
     ate = a.ate || '';
   } else {
-    const t = ctx.site.entrega.transportadora;
-    corpo = `<span class="faixa-topo__itens"><span>${icones.ferramentas}Orçamento grátis</span><span>${icones.camiao}${t ? `Envios ${esc(t)} 24/48 h` : 'Envios em 24/48 h'}</span><span class="so-largo">${icones.loja}Levantamento grátis em ${esc(ctx.site.local.localidade)}</span></span>`;
+    return '';
   }
   return `<div class="faixa-topo"${ate ? ` data-ate="${esc(ate)}"` : ''}>
   <div class="faixa-topo__dentro">
@@ -47,21 +48,34 @@ function faixaTopo(ctx) {
 </div>`;
 }
 
-/* A procura: a mesma no cabeçalho (computador) e na folha (telemóvel). Sem JavaScript vai para a
-   loja com ?q=. Os resultados vêm de assets/busca-*.json (artigos, modelos para reparar, páginas). */
-function procura(ctx, id) {
+/* A procura: a mesma no cabeçalho (computador) e na folha (telemóvel, e a página inicial). Sem
+   JavaScript vai para a loja com ?q=. Os resultados vêm de assets/busca-*.json (artigos, modelos para
+   reparar, páginas). O campo (a pílula) e os resultados são irmãos: na folha os resultados ficam por
+   baixo do campo (antes de 12 nov 2026 estavam dentro da pílula e saíam ao lado, fora do ecrã).
+   O texto do campo não leva «iPhone», «telemóvel», «mobile», «nome» nem «email»: o Safari lê «phone» em
+   «iPhone» e, mesmo com autocomplete="off", punha por cima do teclado o «AutoFill Contact» com o número de
+   telemóvel de quem procurava (o Renato, 13 nov 2026). Na folha, o «Fechar» fica na linha do campo e os
+   resultados por baixo, a toda a largura. */
+function procura(ctx, id, { fechar = false } = {}) {
+  const campo = `<div class="busca__campo">
+    <label class="visualmente-escondido" for="${id}">Procurar no site</label>
+    <span class="busca__lupa">${icones.pesquisa}</span>
+    <input id="${id}" name="q" type="search" placeholder="O que procura?" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+  </div>`;
   return `<form class="busca" role="search" action="${ctx.url('/loja/')}" data-busca="${esc(ctx.asset(ctx.ficheiros.busca))}">
-  <label class="visualmente-escondido" for="${id}">Procurar no site</label>
-  <span class="busca__lupa">${icones.pesquisa}</span>
-  <input id="${id}" name="q" type="search" placeholder="Procurar iPhone, Galaxy, película, reparação…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+  ${fechar ? `<div class="busca__linha">
+  ${campo}
+  <button class="folha-procura__fechar" type="button" data-fechar>Fechar</button>
+  </div>` : campo}
   <div class="busca__resultados" data-busca-resultados hidden></div>
 </form>`;
 }
 
 /* As ligações do cabeçalho e do menu: os serviços (as Reparações e a Retoma, que é vender ou
-   trocar) e as categorias da loja com artigos (Apple e Samsung juntam os da marca). */
+   trocar) e as categorias de cima da loja com artigos (Telemóveis, Gadgets, Acessórios…: as filhas estão
+   na página de cada uma). */
 function ligacoesDaFila(ctx) {
-  const cats = categoriasComArtigos(ctx).map((k) => ({ caminho: `/loja/${k.slug}/`, nome: k.nome, slug: k.slug }));
+  const cats = categoriasDeCima(ctx).map((k) => ({ caminho: `/loja/${k.slug}/`, nome: k.nome, slug: k.slug }));
   const servicos = [
     { caminho: '/reparacoes/', nome: 'Reparações', icone: icones.ferramentas, sub: 'Preço pelo modelo' },
     { caminho: '/retoma/', nome: 'Retoma', icone: icones.retoma, sub: 'Compramos o seu' },
@@ -69,32 +83,73 @@ function ligacoesDaFila(ctx) {
   return { cats, servicos };
 }
 /* O desenho de cada categoria no menu do telemóvel. */
-const ICONE_CATEGORIA = { apple: 'telemovel', samsung: 'telemovel', recondicionados: 'verificado', tablets: 'tablet', smartwatches: 'relogioPulso', audio: 'auriculares', peliculas: 'pelicula', acessorios: 'caixa' };
+const ICONE_CATEGORIA = { telemoveis: 'telemovel', apple: 'telemovel', samsung: 'telemovel', recondicionados: 'verificado', tablets: 'tablet', computadores: 'portatil', gadgets: 'auriculares', smartwatches: 'relogioPulso', audio: 'auriculares', casa: 'casa', kids: 'comando', acessorios: 'conector', peliculas: 'pelicula', 'encomendas-misterio': 'caixa' };
 
-function cabecalho(ctx, atual) {
-  const { cats, servicos } = ligacoesDaFila(ctx);
-  const marca = (caminho) => (atual === caminho || (caminho !== '/' && atual.startsWith(caminho)) ? ' aria-current="page"' : '');
-  const c = ctx.campanhas[0];
-  return `<header class="topo" data-topo>
+/* O CABEÇALHO, o mesmo em todas as páginas (o Renato, 12 nov 2026: «se for preciso refaz a Navbar
+   também nas outras páginas»; antes, fora da página inicial, havia a procura larga, os botões Reparações
+   e Retoma e uma fila com as categorias, que repetia as pílulas da loja): escuro, o logótipo em branco, e
+   no computador quatro ligações em letras espaçadas, separadas por traços finos (como na imagem da LF
+   Mobile), com a página onde se está assinalada; a barra da procura grande ao lado do logótipo (o Renato,
+   12 nov 2026: «eu gostava da barra de pesquisas em grande… remove o icon da direita»); o carrinho. No
+   telemóvel, onde a barra não cabe: o menu, o logótipo, a lupa (a procura abre na folha) e o carrinho. Claro, com o logótipo a preto, como ele é; na
+   página inicial (naCapa), só no topo, transparente por cima da capa com o logótipo em branco (o CSS). */
+const LIGACOES_DO_TOPO = [
+  { caminho: '/loja/', nome: 'Loja', tambem: ['/produtos/', '/campanhas/'] },
+  { caminho: '/reparacoes/', nome: 'Reparações' },
+  { caminho: '/retoma/', nome: 'Retoma' },
+  { caminho: '/contactos/', nome: 'Contactos' },
+];
+/* O MENU DA LOJA no computador (o esquema do Leandro, 13 nov 2026: as categorias «no cabeçalho»): ao passar o rato
+   por «Loja», ou ao chegar lá com o Tab, abre um painel por baixo do cabeçalho, como o da Apple: à esquerda as
+   categorias de cima em letra grande, e uma coluna com as filhas de cada uma que as tem. No telemóvel e no tablet
+   (sem rato), «Loja» leva à loja, que tem as categorias em cima. */
+function menuDaLoja(ctx) {
+  const cima = categoriasDeCima(ctx);
+  if (!cima.length) return '';
+  const colunas = cima.map((k) => ({ k, filhas: filhasDe(ctx, k.slug) })).filter((x) => x.filhas.length);
+  return `<div class="topo__mega" data-menu-loja>
+        <div class="topo__mega-dentro">
+          <ul class="topo__mega-cima">
+            <li><a href="${ctx.url('/loja/')}">Toda a loja</a></li>
+            ${cima.map((k) => `<li><a href="${ctx.url(`/loja/${k.slug}/`)}">${esc(k.nome)}</a></li>`).join('')}
+          </ul>
+          ${colunas.map(({ k, filhas }) => `<div class="topo__mega-coluna">
+            <p class="topo__mega-titulo">${esc(k.nome)}</p>
+            <ul>${filhas.map((f) => `<li><a href="${ctx.url(`/loja/${f.slug}/`)}">${esc(f.nome)}</a></li>`).join('')}</ul>
+          </div>`).join('')}
+        </div>
+      </div>`;
+}
+function cabecalho(ctx, atual, { naCapa = false } = {}) {
+  const corrente = (x) => [x.caminho, ...(x.tambem || [])].some((c) => atual.startsWith(c));
+  return `<header class="topo${naCapa ? ' topo--capa' : ''}" data-topo>
   <div class="topo__barra">
     <button class="topo__botao topo__menu" type="button" data-abrir="menu" aria-haspopup="dialog">${icones.menu}<span class="visualmente-escondido">Menu</span></button>
-    <a class="topo__marca" href="${ctx.url('/')}">${logotipo(ctx, { alto: 40 })}<span class="visualmente-escondido"> — página inicial</span></a>
+    <a class="topo__marca" href="${ctx.url('/')}"${atual === '/' ? ' aria-current="page"' : ''}>${logotipo(ctx, { alto: 46 })}<span class="visualmente-escondido"> — página inicial</span></a>
     <div class="topo__procura">${procura(ctx, 'busca-topo')}</div>
+    <nav class="topo__ligacoes" aria-label="Principal">
+      <ul>${LIGACOES_DO_TOPO.map((x) => (x.caminho === '/loja/'
+    ? `<li class="topo__loja"><a href="${ctx.url(x.caminho)}"${corrente(x) ? ' aria-current="page"' : ''}>${esc(x.nome)}</a>${menuDaLoja(ctx)}</li>`
+    : `<li><a href="${ctx.url(x.caminho)}"${corrente(x) ? ' aria-current="page"' : ''}>${esc(x.nome)}</a></li>`)).join('')}</ul>
+    </nav>
     <div class="topo__direita">
-      <nav class="topo__servicos" aria-label="Serviços">
-        ${servicos.map((x) => `<a class="topo__accao" href="${ctx.url(x.caminho)}"${marca(x.caminho)}>${x.icone}<span>${esc(x.nome)}</span></a>`).join('')}
-      </nav>
       <button class="topo__botao topo__lupa" type="button" data-abrir="procurar" aria-haspopup="dialog">${icones.pesquisa}<span class="visualmente-escondido">Procurar</span></button>
+      <div class="topo__pessoa-caixa" data-menu-conta>
+        <a class="topo__botao topo__pessoa" href="${ctx.url('/conta/')}"${atual === '/conta/' ? ' aria-current="page"' : ''} data-menu-conta-botao>${icones.pessoa}<span class="visualmente-escondido">A minha conta</span></a>
+        ${/* O MENU DA CONTA (16 nov 2026; o Renato: «quando clico no ícone do perfil devia aparecer uma dropdown a dizer
+            Perfil, Logout…»). Só com sessão (site.js): sem ela, o ícone é a ligação para entrar. «Apagar a conta» e «Sair
+            em todos os aparelhos» não vêm aqui: ficam nas «Definições da conta», no fundo da página da conta. */ ''}<div class="menu-conta" id="menu-conta" data-menu-conta-lista hidden>
+          <p class="menu-conta__quem"><strong data-menu-conta-ola>Olá!</strong><span data-menu-conta-email></span></p>
+          <ul class="menu-conta__lista">
+            <li><a href="${ctx.url('/conta/')}">${icones.pessoa}<span>A minha conta</span></a></li>
+            <li><a href="${ctx.url('/conta/')}#encomendas">${icones.caixa}<span>As minhas encomendas</span></a></li>
+          </ul>
+          <button class="menu-conta__sair" type="button" data-menu-conta-sair>${icones.sair}<span>Sair</span></button>
+        </div>
+      </div>
       <a class="topo__botao topo__carrinho" href="${ctx.url('/carrinho/')}" data-abrir="carrinho" aria-haspopup="dialog">${icones.carrinho}<span class="visualmente-escondido">Carrinho</span><span class="topo__conta" data-conta hidden></span></a>
     </div>
   </div>
-  <nav class="topo__fila" aria-label="Loja">
-    <ul class="topo__categorias">
-      <li><a href="${ctx.url('/loja/')}"${atual === '/loja/' ? ' aria-current="page"' : ''}>Toda a loja</a></li>
-      ${cats.map((x) => `<li><a href="${ctx.url(x.caminho)}"${marca(x.caminho)}>${esc(x.nome)}</a></li>`).join('')}
-    </ul>
-    ${c ? `<a class="topo__campanha" href="${ctx.url(`/campanhas/${c.slug}/`)}"${marca(`/campanhas/${c.slug}/`)}>${icones.presente}<span>${esc(c.nome)}</span></a>` : ''}
-  </nav>
 </header>`;
 }
 
@@ -134,6 +189,7 @@ function menu(ctx, atual) {
       </ul>
       <p class="menu__rotulo" id="menu-ajuda">Ajuda</p>
       <ul class="menu__linhas" aria-labelledby="menu-ajuda">
+        <li><a href="${ctx.url('/conta/')}"${marca('/conta/')}>As minhas encomendas${icones.seta}</a></li>
         <li><a href="${ctx.url('/contactos/')}"${marca('/contactos/')}>Contactos e horário${icones.seta}</a></li>
         <li><a href="${ctx.url('/envios-e-devolucoes/')}"${marca('/envios-e-devolucoes/')}>Envios e devoluções${icones.seta}</a></li>
         <li><a href="${ctx.url('/perguntas-frequentes/')}"${marca('/perguntas-frequentes/')}>Perguntas frequentes${icones.seta}</a></li>
@@ -152,10 +208,7 @@ function menu(ctx, atual) {
 function folhaProcura(ctx) {
   return `<dialog class="folha-procura" id="procurar" aria-label="Procurar">
   <div class="folha-procura__corpo" tabindex="-1">
-    <div class="folha-procura__topo">
-      ${procura(ctx, 'busca-folha')}
-      <button class="folha-procura__fechar" type="button" data-fechar>Fechar</button>
-    </div>
+    ${procura(ctx, 'busca-folha', { fechar: true })}
     <div class="folha-procura__atalhos" data-busca-atalhos>
       <p class="menu__rotulo">Procurados</p>
       <ul class="pilulas">
@@ -170,17 +223,13 @@ function folhaProcura(ctx) {
 </dialog>`;
 }
 
-/* O RODAPÉ (memória rodape-com-logotipo): o logótipo, a frase e as redes; a Loja, as Reparações e a
-   Ajuda em colunas; em baixo as páginas legais numa linha, com o Livro de Reclamações discreto. Sem o
-   bloco dos contactos e do horário (o Renato, 8 nov 2026): estão na página dos contactos. */
+/* O RODAPÉ (memória rodape-com-logotipo), alto: o logótipo, a frase e as redes; a Loja e a Ajuda em
+   colunas; em baixo o «©» (só o ano e a marca: memória rodape-sem-dados-da-empresa) e as páginas legais
+   numa linha, com o Livro de Reclamações discreto. O Renato, 12 nov 2026: a coluna das reparações estava
+   «a mais» e saiu; o rodapé curto que a seguir fiz (numa linha só) não gostou: «mete o que estava antes,
+   alto». Sem o bloco dos contactos e do horário (8 nov 2026): estão na página dos contactos. */
 function rodape(ctx) {
-  const e = ctx.site.empresa || {};
-  /* As garantias (a nota do Google, o orçamento, os envios e o levantamento) estão só no fim da
-     página inicial, em cartões (o Renato, 11 nov 2026): já não há faixa por cima do rodapé. */
   const ligacao = (caminho, texto) => `<li><a href="${ctx.url(caminho)}">${esc(texto)}</a></li>`;
-  const comModelos = ctx.aparelhos.familias.filter((f) => ctx.aparelhos.modelos.some((m) => m.familia === f.id));
-  // as reparações no rodapé: a primeira família de cada marca (iPhone, Galaxy S, Redmi…), até seis
-  const familias = ctx.aparelhos.marcas.map((m) => comModelos.find((f) => f.marca === m.id)).filter(Boolean);
   return `<footer class="rodape">
   <div class="rodape__corpo">
     <div class="rodape__marca">
@@ -192,15 +241,8 @@ function rodape(ctx) {
       <div class="rodape__coluna">
         <h2>Loja</h2>
         <ul>
-          ${categoriasComArtigos(ctx).map((k) => ligacao(`/loja/${k.slug}/`, k.nome)).join('')}
+          ${categoriasDeCima(ctx).map((k) => ligacao(`/loja/${k.slug}/`, k.nome)).join('')}
           ${ligacao('/loja/', 'Toda a loja')}
-        </ul>
-      </div>
-      <div class="rodape__coluna">
-        <h2>Reparações</h2>
-        <ul>
-          ${[...familias.slice(0, 6), ...comModelos.filter((f) => f.tipo === 'consola' || f.tipo === 'computador')].map((f) => ligacao(`/reparacoes/${f.id}/`, `${f.nome}`)).join('')}
-          ${ligacao('/reparacoes/', 'Todas as reparações')}
         </ul>
       </div>
       <div class="rodape__coluna">
@@ -216,7 +258,7 @@ function rodape(ctx) {
     </nav>
   </div>
   <div class="rodape__fim">
-    <p class="rodape__direitos">© ${ctx.hoje.slice(0, 4)} ${esc(ctx.site.marca)}${e.nome ? ` · ${esc(e.nome)}` : ''}${e.nif ? ` · NIF ${esc(e.nif)}` : ''}${e.morada && e.codigoPostal && e.localidade ? ` · ${esc(e.morada)}, ${esc(e.codigoPostal)} ${esc(e.localidade)}` : ''}</p>
+    <p class="rodape__direitos">© ${ctx.hoje.slice(0, 4)} ${esc(ctx.site.marca)}</p>
     <ul class="rodape__legal">
       ${ligacao('/termos-e-condicoes/', 'Termos e condições')}
       ${ligacao('/politica-de-privacidade/', 'Privacidade')}
@@ -256,16 +298,18 @@ function whatsappFlutuante(ctx, classe) {
 }
 
 export function pagina(ctx, { titulo, descricao, caminho, conteudo, partilha, tipo = 'website', jsonld = [], classe = '', indexar = true }) {
+  // a página inicial começa pela capa escura, com o cabeçalho transparente por cima (cabecalho, naCapa)
+  const naCapa = String(classe).split(/\s+/).includes('pagina-inicio');
   const tituloCompleto = titulo.includes(ctx.site.marca) ? titulo : `${titulo} | ${ctx.site.marca}`;
   const cartao = partilha || ctx.manifesto.partilha._site;
   const l = ctx.manifesto.logo;
   const imgAbs = ctx.absoluto(`/assets/img/${cartao}`);
   return `<!doctype html>
-<html lang="pt-PT">
+<html lang="pt-PT"${naCapa ? ' class="na-capa"' : ''}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<script>document.documentElement.dataset.rolado=scrollY>40?'sim':'nao'</script>
+<script>document.documentElement.dataset.rolado=scrollY>12?'sim':'nao'</script>
 <title>${esc(tituloCompleto)}</title>
 <meta name="description" content="${esc(descricao)}">
 <link rel="canonical" href="${ctx.absoluto(caminho)}">
@@ -281,7 +325,7 @@ ${!ctx.producao ? '<meta name="robots" content="noindex, nofollow">\n' : indexar
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="${esc(ctx.site.marca)}">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#0C0C0D">
+<meta name="theme-color" content="${naCapa ? '#040404' : '#FFFFFF'}">
 <link rel="icon" type="image/png" sizes="32x32" href="${ctx.asset(`img/${l.icones[32]}`)}">
 <link rel="icon" type="image/png" sizes="48x48" href="${ctx.asset(`img/${l.icones[48]}`)}">
 <link rel="apple-touch-icon" href="${ctx.asset(`img/${l.icones.apple}`)}">
@@ -293,7 +337,7 @@ ${jsonld.map((j) => `<script type="application/ld+json">${JSON.stringify(j).repl
 <body class="${esc(classe)}" data-catalogo="${ctx.asset(ctx.ficheiros.catalogo)}" data-base="${ctx.url('/')}" data-api="${esc(ctx.api)}">
 <a class="saltar" href="#conteudo">Saltar para o conteúdo</a>
 ${faixaTopo(ctx)}
-${cabecalho(ctx, caminho)}
+${cabecalho(ctx, caminho, { naCapa })}
 <main id="conteudo" tabindex="-1">
 ${conteudo}
 </main>

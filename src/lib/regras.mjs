@@ -349,7 +349,7 @@ function lerJson(valor) {
 export function categoriasDe(valor) {
   const l = lerJson(valor);
   if (!Array.isArray(l.obj)) return null;
-  return l.obj.filter((c) => eObjecto(c) && temTexto(c.slug)).map((c) => ({ slug: c.slug, nome: temTexto(c.nome) ? c.nome.trim() : c.slug }));
+  return l.obj.filter((c) => eObjecto(c) && temTexto(c.slug)).map((c) => ({ slug: c.slug, nome: temTexto(c.nome) ? c.nome.trim() : c.slug, ...(temTexto(c.grupo) ? { grupo: c.grupo } : {}) }));
 }
 
 /* As fotografias que existem para o site: as que têm ficheiro em media/fotos/ E
@@ -804,6 +804,12 @@ export function problemasDasCategorias(valor, { fotos = null } = {}) {
     if (!vazio(c.foto) && (!nomeDeFotoValido(c.foto) || (fotos && !fotos.has(c.foto)))) bloqueia(`${c.slug}.foto`, `${i}.foto`, `A fotografia da categoria ${c.nome || c.slug} não existe na biblioteca: escolha outra, ou nenhuma.`);
     /* Uma categoria de marca (Apple, Samsung) junta os artigos dessa marca de todas as categorias. */
     if (!ausente(c.marca) && (typeof c.marca !== 'string' || !temTexto(c.marca) || c.marca.length > TAMANHOS.marca)) avisa(`${c.slug}.marca`, `${i}.marca`, `A marca da categoria ${c.nome || c.slug} é um nome curto (ex.: Apple), ou fica vazia.`);
+    /* A categoria-mãe (o esquema do Leandro, 13 nov 2026): «grupo» é o endereço de outra categoria, que junta os
+       artigos das filhas (Telemóveis: Apple, Samsung…; Acessórios: Capas, Películas…). Um nível só: a mãe não tem mãe. */
+    if (!ausente(c.grupo)) {
+      const mae = l.obj.find((x) => eObjecto(x) && x.slug === c.grupo);
+      if (typeof c.grupo !== 'string' || c.grupo === c.slug || !mae || !ausente(mae.grupo)) bloqueia(`${c.slug}.grupo`, `${i}.grupo`, `A categoria-mãe de ${c.nome || c.slug} não existe ou não pode ser essa. Só o Renato a pode corrigir.`);
+    }
   });
   return out;
 }
@@ -814,10 +820,20 @@ export function problemasDasCategorias(valor, { fotos = null } = {}) {
 export function categoriasDoArtigo(a, categorias) {
   if (!eObjecto(a)) return [];
   const out = temTexto(a.categoria) ? [a.categoria] : [];
+  const lista = Array.isArray(categorias) ? categorias.filter((c) => eObjecto(c) && slugValido(c.slug)) : [];
+  /* A mãe da categoria do artigo (Telemóveis, Gadgets, Acessórios): a página dela, as campanhas e os cupões dela
+     apanham os artigos das filhas. */
+  const propria = out.length ? lista.find((c) => c.slug === a.categoria) : null;
+  const grupo = propria && temTexto(propria.grupo) ? propria.grupo : '';
+  if (grupo && !out.includes(grupo)) out.push(grupo);
   const marca = temTexto(a.marca) ? a.marca.trim().toLowerCase() : '';
-  if (marca && Array.isArray(categorias)) {
-    for (const c of categorias) {
-      if (eObjecto(c) && slugValido(c.slug) && temTexto(c.marca) && c.marca.trim().toLowerCase() === marca && !out.includes(c.slug)) out.push(c.slug);
+  if (marca) {
+    for (const c of lista) {
+      if (!temTexto(c.marca) || c.marca.trim().toLowerCase() !== marca || out.includes(c.slug)) continue;
+      /* Uma categoria de marca com mãe só junta os artigos da marca dentro dessa mãe: a Apple de Telemóveis junta os
+         iPhones (também os recondicionados), não um Apple Watch dos Gadgets. */
+      if (temTexto(c.grupo) && c.grupo !== grupo && c.grupo !== a.categoria) continue;
+      out.push(c.slug);
     }
   }
   return out;
@@ -1297,10 +1313,12 @@ export function portesDoPeso(kg, escaloes) {
 /* content/inicio.json                                                 */
 /* ------------------------------------------------------------------ */
 
-/* As secções da página inicial, pela ordem da página: a capa (com a escolha do modelo para
-   reparar e o cartão da retoma), os destaques da loja, as películas e a loja (a fotografia da
-   fachada). Poucas e curtas. A grelha dos problemas saiu para a página das reparações (o Renato, 10
-   nov 2026: «para não ficar gigante»). */
+/* As secções da página inicial, pela ordem da página: a capa (a ecrã inteiro desde 12 nov 2026: a
+   frase pequena, a frase grande, o texto, o botão para a loja e a fotografia), os destaques da loja,
+   as películas e a loja (a fotografia da fachada). Poucas e curtas. A grelha dos problemas saiu para
+   a página das reparações (o Renato, 10 nov 2026: «para não ficar gigante»). A «retoma» já não
+   aparece na página inicial (saiu com a capa nova), mas continua no ficheiro: o painel publicado
+   antes de 12 nov 2026 pede-a. */
 export const SECCOES_INICIO = Object.freeze(['seo', 'capa', 'destaques', 'retoma', 'peliculas', 'loja']);
 
 /* As fotografias que a página inicial usa (para saber se uma se pode apagar). */
@@ -1328,7 +1346,7 @@ export function problemasDoInicio(valor, { fotos = null } = {}) {
   /* Os textos todos: obrigatórios onde o gerador os escreve sem perguntar. Poucos e curtos. */
   const textos = [
     ['seo.titulo', TAMANHOS.inicioTitulo, true], ['seo.descricao', TAMANHOS.inicioTexto, true],
-    ['capa.titulo', TAMANHOS.inicioTitulo, true], ['capa.texto', TAMANHOS.inicioTexto, false], ['capa.botao', TAMANHOS.inicioCurto, true],
+    ['capa.rotulo', TAMANHOS.inicioCurto, false], ['capa.titulo', TAMANHOS.inicioTitulo, true], ['capa.texto', TAMANHOS.inicioTexto, false], ['capa.botao', TAMANHOS.inicioCurto, true],
     ['destaques.titulo', TAMANHOS.inicioTitulo, true], ['destaques.texto', TAMANHOS.inicioTexto, false], ['destaques.botao', TAMANHOS.inicioCurto, true],
     ['retoma.titulo', TAMANHOS.inicioTitulo, true], ['retoma.texto', TAMANHOS.inicioTexto, false], ['retoma.botao', TAMANHOS.inicioCurto, true],
     ['peliculas.titulo', TAMANHOS.inicioTitulo, true], ['peliculas.texto', TAMANHOS.inicioTexto, false], ['peliculas.botao', TAMANHOS.inicioCurto, true],
@@ -1496,7 +1514,7 @@ const valorEmCaminho = (o, caminho) => caminho.split('.').reduce((x, k) => (eObj
 /* mudancasBloqueadas(antes, depois, qual) → [{ caminho, motivo }] ([] = pode gravar)
  *   'artigo':     as chaves que não são CAMPOS_ARTIGO não mudam;
  *   'site':       BLOQUEADOS_SITE não mudam, e não aparecem secções novas;
- *   'categorias': as categorias são as mesmas, pela mesma ordem (o slug), com a mesma marca;
+ *   'categorias': as categorias são as mesmas, pela mesma ordem (o slug), com a mesma marca e a mesma mãe;
  *   'inicio':     não aparecem nem desaparecem secções;
  *   'aparelhos':  as marcas e as famílias são as mesmas; os modelos podem entrar (um id que já
  *                 existia não muda de família: os preços e os valores dependem dele);
@@ -1519,6 +1537,7 @@ export function mudancasBloqueadas(antes, depois, qual = 'site') {
     a.forEach((c, i) => {
       if (!mesmoValor(eObjecto(c) ? c.slug : null, eObjecto(d[i]) ? d[i].slug : null)) out.push({ caminho: `${i}.slug`, motivo: 'mudou' });
       else if (!mesmoValor(eObjecto(c) ? c.marca ?? null : null, eObjecto(d[i]) ? d[i].marca ?? null : null)) out.push({ caminho: `${i}.marca`, motivo: 'mudou' });
+      else if (!mesmoValor(eObjecto(c) ? c.grupo ?? null : null, eObjecto(d[i]) ? d[i].grupo ?? null : null)) out.push({ caminho: `${i}.grupo`, motivo: 'mudou' });
     });
     return out;
   }

@@ -14,6 +14,8 @@
  *   GET  /ifthenpay/callback  a campainha da ifthenpay (sem assinatura: confirma-se sempre com ela).
  *   /painel/…                 as rotas do painel, com o PAINEL_SEGREDO (painel.js).
  *   cron (10 em 10 min)       a varredura dos pagamentos por confirmar (pagamento.js, varrer).
+ *   /conta/api/…              a conta do cliente (conta.js): entrar com um código por email e ver as
+ *                             encomendas; chega pelo Worker do site (worker/www.js), no domínio.
  *
  * Os pagamentos pela ifthenpay desde 11 nov 2026 (antes, a Stripe); a base é o Worker da ithos·cathelier.
  * Sem dependências npm: fetch puro.
@@ -32,6 +34,7 @@ import { metodosLigados, telemovelMbway, estadoMbway, MBWAY_SEGUNDOS } from './i
 import { novoPagamento, pedirERegistar, mandarAvisos, confirmar, verNaPagina, vistaDoPagamento, urlDePagar, referenciaViva, podePedirMais, callback, varrer } from './pagamento.js';
 import { avisar, falhou, podeAvisarCliente, TRAVADO } from './email.js';
 import { rotaPainel } from './painel.js';
+import { rotaConta } from './conta.js';
 
 /* ---------------------------------------------------------------- CORS
    Só as origens de ALLOWED_ORIGINS. Um pedido SEM Origin (o curl, um servidor) não é um pedido
@@ -317,10 +320,11 @@ async function pagar(request, env, cors) {
 
 /* ---------------------------------------------------------------- o encaminhador */
 
-// os objectos duráveis (wrangler.toml): as encomendas (ENCOMENDA, Encomenda), os cupões (CUPOES, Cupoes)
-// e o travão dos emails (CONTADOR, Contador)
+// os objectos duráveis (wrangler.toml): as encomendas (ENCOMENDA, Encomenda), os cupões (CUPOES, Cupoes),
+// o travão dos emails (CONTADOR, Contador) e as contas dos clientes (CONTA, Conta)
 export { Encomenda, Contador } from './objecto.js';
 export { Cupoes } from './cupoes.js';
+export { Conta } from './conta.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -331,6 +335,7 @@ export default {
       // repetições deles sem proveito)
       if (caminho === '/ifthenpay/callback') return request.method === 'GET' ? await callback(url, env, ctx) : new Response('método', { status: 405 });
       if (caminho === '/painel' || caminho.startsWith('/painel/')) return await rotaPainel(request, env, url, caminho);
+      if (caminho.startsWith('/conta/api/')) return await rotaConta(request, env, url, caminho);
 
       const cors = corsDe(request, env);
       if (!cors) return json({ erro: 'Origem não autorizada.' }, 403);

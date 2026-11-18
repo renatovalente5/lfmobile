@@ -32,14 +32,20 @@ Publicado em `https://lfmobile-encomendas.renato-lima-valente-dcb.workers.dev` (
   chaves do KV, sem ler cada encomenda), a ficha, mudar o estado (só as transições do painel;
   as outras dão 409), as notas, os reembolsos (`/reembolso`: MB WAY e cartão pela ifthenpay; o
   Multibanco à mão, por transferência), a saúde (`?sondar=1` prova a chave de backoffice).
+- `/conta/api/…` — a conta do cliente (13 nov 2026, `conta.js`): entrar com o email e um código de 6 algarismos
+  que vai por email, e ver as encomendas desse email e o caminho de cada uma. Chega pelo Worker do site
+  (`worker/www.js`, a service binding `ENCOMENDAS`), para a sessão ser um cookie de `lfmobile.pt`. Um objecto
+  durável por conta (`Conta`, migração `v4`, na UE). Desde 14 nov 2026 também: os dados do cliente (preenchem o
+  checkout), as garantias, desistir da compra, o código QR do cartão das películas (o painel lê-o), entrar com o
+  Google, sair em todos os aparelhos e apagar a conta. O contrato no §10 do `docs/ENCOMENDAS.md`.
 
 Ficheiros: `index.js` (rotas, CORS, travão, checkout, cupão, `/pagar`, cron), `ifthenpay.js` (a API da
 ifthenpay, sem SDK: valores, métodos, confirmação, reembolsos, callback), `pagamento.js` (o pagamento
 na encomenda: pedir, confirmar, expirar, varredura, callback, a página), `prazos.js` (os prazos, que o
 site também diz), `contas.js` (preços, portes pelo peso, modelo do telemóvel, desconto e validações),
 `cupoes.js` (as regras, os usos, o painel), `encomenda.js` (ids, estados, vistas, as escritas com
-versão), `objecto.js`, `catalogo.js`, `email.js` + `email-html.js`, `painel.js`, `http.js`. Sem
-dependências npm.
+versão), `objecto.js`, `catalogo.js`, `email.js` + `email-html.js`, `painel.js`, `conta.js`, `http.js`.
+Sem dependências npm.
 
 O modo vem do catálogo (`site.json` → `pagamentos.modo`); a var `MODO = "encomenda"` força o
 modo «encomenda» como travão de emergência.
@@ -123,3 +129,7 @@ estado; a ficha (`get`) é imediata.
    em `https://lfmobile.pt`. Se o logótipo mudar, o nome do ficheiro muda (leva a assinatura):
    copiar o novo do `<img class="logo">` do `_site/index.html` gerado.
 5. **O painel** — o mesmo `PAINEL_SEGREDO` no Worker do painel (`wrangler secret put` lá).
+6. **Entrar com o Google** (a conta do cliente) — na Google Cloud, projecto «LF Mobile» (`lf-mobile-514700`):
+   o ecrã de consentimento (externo, só `openid` e `email`, publicado) e um cliente OAuth «Aplicação Web» com a
+   origem `https://lfmobile.pt` e o URI de redireccionamento `https://lfmobile.pt/conta/`. O id do cliente (público,
+   `….apps.googleusercontent.com`) vai para `GOOGLE_CLIENTE` no toml, e publica-se o Worker. Sem segredo.

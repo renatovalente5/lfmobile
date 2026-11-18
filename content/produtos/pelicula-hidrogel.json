@@ -1,13 +1,12 @@
 {
-  "nome": "Película de hidrogel",
+  "nome": "Película de Hidrogel Clear",
   "nomeCurto": "Película de hidrogel",
   "marca": "",
   "fotos": [
-    "pelicula-hidrogel-ilustracao",
-    "pelicula-hidrogel-1"
+    "pelicula-hidrogel-ilustracao"
   ],
   "resumo": "Cortada à medida do seu telemóvel, de qualquer marca.",
-  "descricao": "Cortada à medida do modelo que nos disser. Se a levantar na loja, aplicamo-la na hora, sem bolhas.",
+  "descricao": "A película de hidrogel clear  é uma película de proteção híbrida ultrafina e resistente, proporcionando uma proteção superior sem comprometer a estética do equipamento.\n\nProtege contra riscos e marcas de unhas, mantendo flexibilidade, elevada aderência e resistência à quebra. Ideal para ecrãs, bordas e traseiras.\n\nCortada à medida do modelo que nos disser. Se a levantar na loja, aplicamo-la na hora, sem bolhas.",
   "preco": 12.5,
   "precoAnterior": null,
   "promocaoDesde": "",
@@ -28,6 +27,7 @@
     "email": ""
   },
   "avisos": "",
+  "peso": 0.015,
   "categoria": "peliculas",
   "destaque": true,
   "novidade": false,

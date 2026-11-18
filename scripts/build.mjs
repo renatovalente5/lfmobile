@@ -211,7 +211,7 @@ const css = Buffer.concat([
   Buffer.from(`/* legal-comum v${LEGAL_COMUM_VERSAO}: o Livro de Reclamações */\n${livroCss()}\n`),
   fs.readFileSync(path.join(RAIZ, 'src/estilos/site.css')),
 ]);
-const js = Buffer.from(['site.js', 'carrinho.js', 'loja.js', 'reparacoes.js', 'retoma.js'].map((f) => `// ${f}\n${fs.readFileSync(path.join(RAIZ, 'src/scripts', f), 'utf8')}`).join('\n'));
+const js = Buffer.from(['site.js', 'carrinho.js', 'loja.js', 'reparacoes.js', 'retoma.js', 'conta.js'].map((f) => `// ${f}\n${fs.readFileSync(path.join(RAIZ, 'src/scripts', f), 'utf8')}`).join('\n'));
 const ficheiros = { css: `site-${resumo(css)}.css`, js: `site-${resumo(js)}.js`, videos: ficheirosVideo };
 fs.writeFileSync(path.join(SAIDA, 'assets', ficheiros.css), css);
 fs.writeFileSync(path.join(SAIDA, 'assets', ficheiros.js), js);
@@ -280,6 +280,9 @@ const catalogo = {
   transportadora: site.entrega.transportadora || '',
   // as categorias (o Worker diz o nome delas na frase dos cupões e confere as do painel)
   categorias: categorias.map((c) => ({ slug: c.slug, nome: c.nome })),
+  // a garantia dos recondicionados em meses (a dos novos é a da lei, 3 anos): a conta do cliente diz até quando
+  // vale a garantia de cada artigo entregue (worker/encomendas/conta.js, garantiasDasLinhas)
+  garantias: { recondicionados: Number.isInteger(site.garantias?.recondicionados) ? site.garantias.recondicionados : null },
   // os portes de cada zona: os escalões de peso [{ ate: kg, preco: € }] (R.portesDoPeso)
   portes: {
     ...Object.fromEntries(R.ZONAS_ENVIO.map((z) => [z, R.escaloesDe(site.entrega.portes?.[z])])),
@@ -333,6 +336,22 @@ fs.writeFileSync(path.join(SAIDA, 'assets', 'catalogo.json'), catalogoBuf);
 /* Os portes da loja (por encomenda), numa frase que se lê depois de «Portes:» ou de «são por
    encomenda:» — «4,90 € para Portugal Continental (grátis a partir de 50 € em artigos). O levantamento
    na loja não tem custos, e os artigos «só na loja» não se enviam.» */
+/* Os portes numa tabela (a página Envios e devoluções): um escalão de peso por linha, «a combinar» acima do último,
+   e os portes grátis quando os há. Com mais de uma zona com morada, o nome da zona por cima de cada tabela. */
+function tabelaPortes() {
+  const p = site.entrega.portes || {};
+  const zonas = site.entrega.zonas.filter((z) => z.morada);
+  const kg = (x) => `${String(x).replace('.', ',')} kg`;
+  const tabelas = zonas.map((z) => {
+    const e = R.escaloesDe(p[z.id]);
+    if (!e.length) return `<p>${ctx.marcador(`os portes para ${z.curto}`)}</p>`;
+    const linhas = [...e.map((x) => [`Até ${kg(x.ate)}`, euros(x.preco)]), [`Mais de ${kg(e[e.length - 1].ate)}`, 'A combinar']];
+    if (Number.isFinite(p.gratisAPartirDe)) linhas.push([`Encomendas a partir de ${euros(p.gratisAPartirDe)}`, 'Grátis']);
+    return `<p class="portes__titulo">${zonas.length > 1 ? `Portes · ${esc(z.curto)}` : 'Portes'}</p><dl class="portes">${linhas.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl>`;
+  });
+  return `${tabelas.join('')}<p class="portes__nota">O peso é o dos artigos da encomenda. Os artigos «só na loja» não se enviam.</p>`;
+}
+
 function textoPortes() {
   const p = site.entrega.portes || {};
   const t = site.entrega.transportadora;
@@ -360,7 +379,8 @@ function identificacao() {
 
 function botoesDesistencia() {
   const texto = `Olá! Quero desistir da compra (direito de livre resolução).\n\nArtigo: \nEncomenda n.º: \nRecebido em: \nNome: \nMorada: `;
-  const b = [];
+  // a conta do cliente (14 nov 2026): a ficha da encomenda tem «Desistir da compra», e o recibo vai logo por email
+  const b = [`<a class="botao botao--cheio" href="${ctx.url('/conta/')}">Desistir na minha conta</a>`];
   if (numero) b.push(`<a class="botao botao--whatsapp" href="${ctx.whatsapp(texto)}">Desistir pelo WhatsApp</a>`);
   if (site.contactos.email) b.push(`<a class="botao botao--contorno" href="mailto:${esc(site.contactos.email)}?subject=${encodeURIComponent('Desistência da compra (livre resolução)')}&amp;body=${encodeURIComponent(texto)}">Desistir por email</a>`);
   return `<div class="botoes">${b.join('')}</div><p class="nota">Respondemos a confirmar que recebemos a sua desistência.</p>`;
@@ -420,8 +440,12 @@ function comoEncomendarSemPagamentoNoSite() {
 
 function resolverMarcadores(fonte, onde) {
   const c = site.contactos;
+  /* Cada marcador vira um «token» (o HTML só entra depois do markdown, para não ser mexido). Os de BLOCO (o
+     horário, as tabelas, os botões, as listas, o formulário, os avisos e as garantias, o RAL, a privacidade e a
+     figura) saem do <p> em que o markdown os pôs; os de texto ficam dentro dele (um parágrafo que era só
+     «{{empresa.identificacao}}» saía sem <p> e colava-se ao seguinte). */
   const tokens = [];
-  const guardar = (html) => { tokens.push(html); return `\u0000${tokens.length - 1}\u0000`; };
+  const guardar = (html, bloco = false) => { tokens.push({ html, bloco }); return `\u0000${tokens.length - 1}\u0000`; };
   const garantiaUsados = R.GARANTIAS_USADOS.includes(site.garantias?.recondicionados) ? site.garantias.recondicionados : null;
   const valores = {
     marca: () => esc(site.marca),
@@ -432,7 +456,7 @@ function resolverMarcadores(fonte, onde) {
     whatsapp: () => (c.whatsapp ? guardar(`<a href="https://wa.me/${numero}">WhatsApp</a>`) : guardar(`WhatsApp ${ctx.marcador('o número')}`)),
     telefone: () => (R.numeroPortugues(c.telefone) ? guardar(`<a href="tel:+351${R.numeroPortugues(c.telefone)}">${esc(numeroLegivel(c.telefone))}</a> ${notaChamada(c.telefone)}`) : guardar(ctx.marcador('o telefone'))),
     morada: () => (site.empresa.morada ? esc(moradaCompleta(site.empresa)) : guardar(ctx.marcador('a morada da loja'))),
-    horario: () => guardar(`<ul>${(Array.isArray(site.horario) ? site.horario : []).filter((l) => l && l.dias && l.horas).map((l) => `<li>${esc(l.dias)}: ${esc(l.horas)}</li>`).join('') || `<li>${ctx.marcador('o horário')}</li>`}</ul>`),
+    horario: () => guardar(`<ul>${(Array.isArray(site.horario) ? site.horario : []).filter((l) => l && l.dias && l.horas).map((l) => `<li>${esc(l.dias)}: ${esc(l.horas)}</li>`).join('') || `<li>${ctx.marcador('o horário')}</li>`}</ul>`, true),
     'empresa.identificacao': () => guardar(identificacao()),
     'empresa.iva': () => (site.empresa.iva ? esc(site.empresa.iva) : guardar(ctx.marcador('se os preços incluem IVA'))),
     prazo: () => (site.entrega.prazo ? esc(site.entrega.prazo) : guardar(ctx.marcador('o prazo de entrega'))),
@@ -448,28 +472,31 @@ function resolverMarcadores(fonte, onde) {
       ? 'Os pagamentos no site passam pela ifthenpay (Ifthenpay, Lda., em Portugal): recebe o número da encomenda e o valor e, no MB WAY, o seu número de telemóvel; os dados do cartão escrevem-se na página dela, e nós nunca os vemos. O nome, o email, a morada, o NIF e as observações não lhe são enviados. Se tivermos de lhe devolver um pagamento feito por Multibanco, pedimos-lhe o IBAN para a transferência.'
       : 'O pagamento combina-se consigo depois de confirmarmos a encomenda: o site não recebe dados de pagamento.'),
     portes: () => guardar(textoPortes()),
-    botoesDesistencia: () => guardar(botoesDesistencia()),
+    portesTabela: () => guardar(tabelaPortes(), true),
+    // a ligação do mapa, para «[Como chegar]({{mapa}})» no texto (sem ela, a página dos contactos, que tem o mapa)
+    mapa: () => site.local?.mapa || ctx.url('/contactos/'),
+    botoesDesistencia: () => guardar(botoesDesistencia(), true),
     comoSeFazAEncomenda: () => guardar(pagamentoOnline
       ? pecaLegal('como-encomendar', COMO_SE_FAZ_A_ENCOMENDA({ canal: 'site', pagamentos: ['MB WAY', 'referência Multibanco', 'cartão'], urlTermos: ctx.url('/termos-e-condicoes/') }))
-      : comoEncomendarSemPagamentoNoSite()),
-    formularioLivreResolucao: () => guardar(pecaLegal('formulario-livre-resolucao', `<pre class="formulario-legal">${esc(formularioLivreResolucao({ nome: site.empresa.nome || `[${site.marca}]`, morada: site.empresa.morada ? moradaCompleta(site.empresa) : '[morada]', email: c.email || '[email]' }))}</pre>`)),
-    avisoRetoma: () => guardar(pecaLegal('retoma', `<p>${esc(AVISO_RETOMA({ tipos: ['eee', 'pilhas', 'baterias'], como: { eee: 'diga-nos nas observações da encomenda ou pelo WhatsApp, e entregue-o na loja ou junte-o à devolução', pilhas: 'basta trazê-las à loja', baterias: 'diga-nos ao comprar e entregue-a na loja' } }))}</p>`)),
+      : comoEncomendarSemPagamentoNoSite(), true),
+    formularioLivreResolucao: () => guardar(pecaLegal('formulario-livre-resolucao', `<pre class="formulario-legal">${esc(formularioLivreResolucao({ nome: site.empresa.nome || `[${site.marca}]`, morada: site.empresa.morada ? moradaCompleta(site.empresa) : '[morada]', email: c.email || '[email]' }))}</pre>`), true),
+    avisoRetoma: () => guardar(pecaLegal('retoma', `<p>${esc(AVISO_RETOMA({ tipos: ['eee', 'pilhas', 'baterias'], como: { eee: 'diga-nos nas observações da encomenda ou pelo WhatsApp, e entregue-o na loja ou junte-o à devolução', pilhas: 'basta trazê-las à loja', baterias: 'diga-nos ao comprar e entregue-a na loja' } }))}</p>`), true),
     garantiaRecondicionados: () => (garantiaUsados === 18
-      ? guardar(pecaLegal('garantia-usados', `<p>${esc('Nos telemóveis e equipamentos recondicionados ou usados, a garantia é de 18 meses a contar da entrega, por acordo entre as partes antes da venda (artigo 12.º, n.º 3, do Decreto-Lei n.º 84/2021); nesse caso presume-se, durante o primeiro ano, que o defeito já existia. Cada ficha diz o estado do equipamento e esta garantia.')}</p>`))
+      ? guardar(pecaLegal('garantia-usados', `<p>${esc('Nos telemóveis e equipamentos recondicionados ou usados, a garantia é de 18 meses a contar da entrega, por acordo entre as partes antes da venda (artigo 12.º, n.º 3, do Decreto-Lei n.º 84/2021); nesse caso presume-se, durante o primeiro ano, que o defeito já existia. Cada ficha diz o estado do equipamento e esta garantia.')}</p>`), true)
       : garantiaUsados === 36
-        ? guardar(`<p>Nos telemóveis e equipamentos recondicionados ou usados, a garantia é a mesma dos novos: 3 anos a contar da entrega.</p>`)
-        : guardar(`<p>${ctx.marcador('a garantia dos recondicionados e usados: 18 meses por acordo, ou os 3 anos da lei')}</p>`)),
-    garantia: () => guardar(pecaLegal('garantia', textoGarantia({ usados: garantiaUsados === 18, comercial: true }).split('\n\n').map((t) => `<p>${esc(t)}</p>`).join(''))),
-    ral: () => guardar(pecaLegal('ral', ralHtml({ ambito: 'local', concelhos: [site.local.concelho], comCec: false }))),
-    'privacidade.destinatarios': () => guardar(pecaLegal('privacidade-destinatarios', destinatariosComExtras())),
+        ? guardar(`<p>Nos telemóveis e equipamentos recondicionados ou usados, a garantia é a mesma dos novos: 3 anos a contar da entrega.</p>`, true)
+        : guardar(`<p>${ctx.marcador('a garantia dos recondicionados e usados: 18 meses por acordo, ou os 3 anos da lei')}</p>`, true)),
+    garantia: () => guardar(pecaLegal('garantia', textoGarantia({ usados: garantiaUsados === 18, comercial: true }).split('\n\n').map((t) => `<p>${esc(t)}</p>`).join('')), true),
+    ral: () => guardar(pecaLegal('ral', ralHtml({ ambito: 'local', concelhos: [site.local.concelho], comCec: false })), true),
+    'privacidade.destinatarios': () => guardar(pecaLegal('privacidade-destinatarios', destinatariosComExtras()), true),
     'privacidade.prazos': () => guardar(pecaLegal('privacidade-prazos', `<ul>${[
       PRAZOS_LEGAIS.pedidosDeContacto.texto,
       PRAZOS_LEGAIS.encomendas.texto,
       'Dados de uma encomenda guardados no servidor das encomendas (Cloudflare): 400 dias depois da encomenda.',
       PRAZOS_LEGAIS.registosTecnicos.texto,
-    ].map((t) => `<li>${esc(t)}</li>`).join('')}</ul>`)),
-    'privacidade.frases': () => guardar(pecaLegal('privacidade-frases', frasesPrivacidade(CONFIG_PRIVACIDADE).map((t) => `<p>${esc(t)}</p>`).join(''))),
-    avisoGarantia: () => guardar(`<figure class="aviso-garantia"><img src="${ctx.asset('legal/aviso-garantia-legal-pt.svg')}" width="600" height="848" alt="${esc(AVISO_ALT)}" loading="lazy"><figcaption><a href="${ctx.asset('legal/aviso-garantia-legal-pt.pdf')}">Descarregar o aviso oficial (PDF)</a> · <a href="https://europa.eu/youreurope/garantias" target="_blank" rel="noopener">europa.eu/youreurope/garantias</a></figcaption></figure>`),
+    ].map((t) => `<li>${esc(t)}</li>`).join('')}</ul>`), true),
+    'privacidade.frases': () => guardar(pecaLegal('privacidade-frases', frasesPrivacidade(CONFIG_PRIVACIDADE).map((t) => `<p>${esc(t)}</p>`).join('')), true),
+    avisoGarantia: () => guardar(`<figure class="aviso-garantia"><img src="${ctx.asset('legal/aviso-garantia-legal-pt.svg')}" width="600" height="848" alt="${esc(AVISO_ALT)}" loading="lazy"><figcaption><a href="${ctx.asset('legal/aviso-garantia-legal-pt.pdf')}">Descarregar o aviso oficial (PDF)</a> · <a href="https://europa.eu/youreurope/garantias" target="_blank" rel="noopener">europa.eu/youreurope/garantias</a></figcaption></figure>`, true),
   };
   const texto = fonte.replace(/\{\{([\w.]+)\}\}/g, (todo, chave) => {
     if (!valores[chave]) { erros.push(`${onde}: o marcador «${todo}» não existe (existem: ${Object.keys(valores).join(', ')})`); return todo; }
@@ -483,13 +510,23 @@ function paginaMarkdown(ficheiro) {
   const [cabeca, ...corpo] = fonte.split(/\n---\n/);
   const meta = Object.fromEntries(cabeca.split('\n').filter(Boolean).map((l) => { const i = l.indexOf(':'); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; }));
   const { texto, tokens } = resolverMarcadores(corpo.join('\n---\n'), `Páginas › ${ficheiro}`);
-  // um marcador sozinho num parágrafo (quadro, figura, botões) sai do <p> que o Markdown lhe põe
-  let html = markdown(texto, ctx.url).replace(/<p>\u0000(\d+)\u0000<\/p>/g, (_, i) => tokens[Number(i)]);
-  html = html.replace(/\u0000(\d+)\u0000/g, (_, i) => tokens[Number(i)]);
+  // um marcador de bloco sozinho num parágrafo (tabela, lista, botões, figura…) sai do <p> que o Markdown lhe
+  // põe; um de texto («{{empresa.identificacao}}») fica no <p>, a não ser que venha vazio (não deixa um <p> vazio)
+  let html = markdown(texto, ctx.url).replace(/<p>\u0000(\d+)\u0000<\/p>/g, (todo, i) => {
+    const t = tokens[Number(i)];
+    return t.bloco || !t.html.trim() ? t.html : todo;
+  });
+  html = html.replace(/\u0000(\d+)\u0000/g, (_, i) => tokens[Number(i)].html);
   const slug = ficheiro.replace(/\.md$/, '');
   if (meta.foto && !fotoExiste(meta.foto)) erros.push(`Páginas › ${ficheiro}: a fotografia «${meta.foto}» não existe`);
-  // «indexar: não» no cabeçalho tira a página do Google (noindex e fora do sitemap); continua no site
-  const indexar = !/^(n[ãa]o|false)$/i.test(meta.indexar || '');
+  /* Fora do Google (noindex e fora do sitemap; a página continua no site, com a ligação no rodapé):
+     - as páginas legais, que são as que levam «atualizado» no cabeçalho (termos, privacidade, cookies, garantia,
+       litígios, desistir), sem ser preciso dizê-lo em cada uma;
+     - e as que dizem «indexar: não» (envios e devoluções).
+     O Renato, 13 nov 2026: «não vale a pena aparecer esse tipo de páginas na pesquisa do Google». Apareciam à frente
+     da Retoma na pesquisa pelo nome da loja, e tiram o lugar às sub-páginas que interessam (a Loja, as Reparações,
+     a Retoma) no bloco que o Google mostra por baixo do resultado. «indexar: sim» volta a pô-la no Google. */
+  const indexar = meta.indexar ? !/^(n[ãa]o|false)$/i.test(meta.indexar) : !meta.atualizado;
   return { caminho: `/${slug}/`, titulo: meta.titulo, tituloSeo: meta.tituloSeo, subtitulo: meta.subtitulo, modelo: meta.modelo, descricao: meta.descricao, atualizado: meta.atualizado, foto: meta.foto, indexar, html };
 }
 
@@ -508,6 +545,7 @@ saidas.push(paginas.carrinho(ctx));
 saidas.push(paginas.checkout(ctx));
 saidas.push(paginas.pagar(ctx));
 saidas.push(paginas.obrigado(ctx));
+saidas.push(paginas.conta(ctx));
 saidas.push(paginas.contactos(ctx));
 for (const f of fs.readdirSync(path.join(CONTEUDO, 'paginas')).filter((x) => x.endsWith('.md'))) saidas.push(paginas.texto(ctx, paginaMarkdown(f)));
 saidas.push(paginas.erro404(ctx));
@@ -522,7 +560,7 @@ for (const s of saidas) {
 }
 
 // ---------------------------------------------------------------- robots, sitemap, _headers
-const FORA_DO_MAPA = new Set(['/404.html', '/carrinho/', '/checkout/', '/pagar/', '/obrigado/']);
+const FORA_DO_MAPA = new Set(['/404.html', '/carrinho/', '/checkout/', '/pagar/', '/obrigado/', '/conta/']);
 // as categorias da loja sem artigos publicados ficam fora do mapa (a página existe, mas vazia não se anuncia)
 const categoriasVazias = new Set(categorias.filter((k) => !categoriasComArtigos(ctx).some((x) => x.slug === k.slug)).map((k) => `/loja/${k.slug}/`));
 const indexaveis = saidas.filter((s) => !FORA_DO_MAPA.has(s.caminho) && s.indexar !== false && !categoriasVazias.has(s.caminho));
@@ -547,10 +585,12 @@ fs.writeFileSync(path.join(SAIDA, 'sitemap.xml'), `<?xml version="1.0" encoding=
 ${indexaveis.map((s) => `  <url><loc>${ctx.absoluto(s.caminho)}</loc><lastmod>${lastmod[s.caminho] || hoje}</lastmod></url>`).join('\n')}
 </urlset>
 `);
+// Em produção, os endereços antigos com ?modelo= (as películas com o modelo escolhido: 2416 repetidos das mesmas
+// fichas) ficam fora do rastreio; as ligações novas levam o modelo no fragmento (13 nov 2026).
 // Pré-visualização: fechada aos motores de busca, mas aberta aos robôs que fazem a pré-visualização
 // das ligações no WhatsApp e no Facebook (sem isto, partilhar o link mostra-se sem imagem).
 fs.writeFileSync(path.join(SAIDA, 'robots.txt'), producao
-  ? `User-agent: *\nAllow: /\nDisallow: /checkout/\nDisallow: /pagar/\nDisallow: /obrigado/\n\nSitemap: ${ctx.absoluto('/sitemap.xml')}\n`
+  ? `User-agent: *\nAllow: /\nDisallow: /checkout/\nDisallow: /pagar/\nDisallow: /obrigado/\nDisallow: /*?modelo=\n\nSitemap: ${ctx.absoluto('/sitemap.xml')}\n`
   : 'User-agent: facebookexternalhit\nAllow: /\n\nUser-agent: WhatsApp\nAllow: /\n\nUser-agent: *\nDisallow: /\n');
 // Em produção (Cloudflare): a cache dos ficheiros com o resumo no nome, e os cabeçalhos de segurança
 // em todas as respostas. O catalogo.json sem resumo fica fora (o Worker lê-o sempre fresco).

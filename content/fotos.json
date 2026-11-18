@@ -1,8 +1,4 @@
 {
-  "capas-1": {
-    "alt": "Capas para telemóvel",
-    "foco": "50% 50%"
-  },
   "cartao-peliculas": {
     "alt": "O cartão de fidelidade das películas de hidrogel da LF Mobile, com seis casas para carimbar",
     "foco": "50% 55%"
@@ -11,16 +7,8 @@
     "alt": "Auscultadores P9, fotografia 1",
     "foco": "50% 50%"
   },
-  "fones-p9-2": {
-    "alt": "Auscultadores P9, fotografia 2",
-    "foco": "50% 50%"
-  },
   "fones-p9-3": {
     "alt": "Auscultadores P9, fotografia 3",
-    "foco": "50% 50%"
-  },
-  "fones-p9-4": {
-    "alt": "Auscultadores P9, fotografia 4",
     "foco": "50% 50%"
   },
   "guess-wireless-earbuds-1": {
@@ -155,10 +143,6 @@
     "alt": "Ilustração: as costas de um telemóvel com os vidros de protecção sobre as lentes da câmara",
     "foco": "50% 50%"
   },
-  "pelicula-hidrogel-1": {
-    "alt": "Película de hidrogel aplicada",
-    "foco": "50% 50%"
-  },
   "pelicula-hidrogel-ilustracao": {
     "alt": "Ilustração: um telemóvel com uma película de hidrogel flexível, com o canto a levantar",
     "foco": "50% 50%"
@@ -197,6 +181,106 @@
   },
   "smartwatch-watch-s11-1": {
     "alt": "Smartwatch Watch S11",
+    "foco": "50% 50%"
+  },
+  "banner-inicio": {
+    "alt": "Um Samsung Galaxy, um iPhone, auriculares e um relógio inteligente, em frente à caixa da LF Mobile",
+    "foco": "50% 50%"
+  },
+  "fones-p9-2abe383f": {
+    "alt": "Fones P9 preto",
+    "foco": "50% 50%"
+  },
+  "smartwatch-yx3-mini-06a880a0": {
+    "alt": "Smartwatch YX3 Mini",
+    "foco": "50% 50%"
+  },
+  "smartwatch-yx3-mini-ac205c0a": {
+    "alt": "Smartwatch YX3 Mini",
+    "foco": "50% 50%"
+  },
+  "micflip-localizador-passaporte-6d6305cc": {
+    "alt": "Micflip — localizador para passaporte",
+    "foco": "50% 50%"
+  },
+  "iphone-12-mini-128gb-379aca81": {
+    "alt": "iPhone 12 mini 128Gb",
+    "foco": "50% 50%"
+  },
+  "iphone-12-mini-128gb-4b966376": {
+    "alt": "iPhone 12 mini 128Gb",
+    "foco": "50% 50%"
+  },
+  "iphone-12-mini-128gb-7da6a975": {
+    "alt": "iPhone 12 mini 128Gb",
+    "foco": "50% 50%"
+  },
+  "iphone-12-mini-128gb-3b26f634": {
+    "alt": "iPhone 12 mini 128Gb",
+    "foco": "50% 50%"
+  },
+  "iphone-12-mini-128gb-e83a9015": {
+    "alt": "iPhone 12 mini 128Gb",
+    "foco": "50% 50%"
+  },
+  "huawei-band-11-pro-5cb16ad5": {
+    "alt": "Huawei Band 11 Pro",
+    "foco": "50% 50%"
+  },
+  "huawei-band-11-pro-b389b0ca": {
+    "alt": "Huawei Band 11 Pro",
+    "foco": "50% 50%"
+  },
+  "maquina-cafe-dolce-gusto-genio-s-plus-fbb2df52": {
+    "alt": "Máquina Café Dolce Gusto Genio S Plus",
+    "foco": "50% 50%"
+  },
+  "maquina-cafe-dolce-gusto-genio-s-plus-f8d45294": {
+    "alt": "Máquina Café Dolce Gusto Genio S Plus",
+    "foco": "50% 50%"
+  },
+  "maquina-cafe-dolce-gusto-genio-s-plus-90481c59": {
+    "alt": "Máquina Café Dolce Gusto Genio S Plus",
+    "foco": "50% 50%"
+  },
+  "huawei-watch-d2-4c5e8eae": {
+    "alt": "Huawei Watch D2",
+    "foco": "50% 50%"
+  },
+  "huawei-watch-d2-129d3ff0": {
+    "alt": "Huawei Watch D2",
+    "foco": "50% 50%"
+  },
+  "huawei-watch-d2-beeca3e3": {
+    "alt": "Huawei Watch D2",
+    "foco": "50% 50%"
+  },
+  "huawei-watch-d2-053f9e38": {
+    "alt": "Huawei Watch D2",
+    "foco": "50% 50%"
+  },
+  "capas-77d92b0a": {
+    "alt": "Capas para telemóvel",
+    "foco": "50% 50%"
+  },
+  "cartao-localizador-p10-42c4cff5": {
+    "alt": "Cartão Localizador P10",
+    "foco": "50% 50%"
+  },
+  "cartao-localizador-p10-05bffe82": {
+    "alt": "Cartão Localizador P10",
+    "foco": "50% 50%"
+  },
+  "cartao-localizador-p10-a6d71f49": {
+    "alt": "Cartão Localizador P10",
+    "foco": "50% 50%"
+  },
+  "cartao-localizador-p10-31a0518b": {
+    "alt": "Cartão Localizador P10",
+    "foco": "50% 50%"
+  },
+  "samsung-galaxy-a17-f5f2b31a": {
+    "alt": "Samsung Galaxy A17",
     "foco": "50% 50%"
   }
 }

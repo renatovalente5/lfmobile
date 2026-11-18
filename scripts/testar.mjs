@@ -202,6 +202,19 @@ fs.cpSync(path.join(RAIZ, 'scripts/testes/fotos'), path.join(base, 'media/fotos'
   const r = spawnSync(process.env.PYTHON || 'python3', ['scripts/imagens.py'], { cwd: base, encoding: 'utf8' });
   if (r.status !== 0) { console.error(`\nAs imagens do conteúdo de ensaio falharam (precisa do Pillow):\n${r.stdout}\n${r.stderr}`); process.exit(1); }
 }
+/* O cabeçalho sem o menu da loja (o painel por baixo de «Loja», com divs dentro de divs): tira o bloco inteiro. */
+function semMenuDaLoja(html) {
+  const i = html.indexOf('<div class="topo__mega"');
+  if (i < 0) return html;
+  let n = 0;
+  const re = /<\/?div\b/g;
+  re.lastIndex = i;
+  for (let m = re.exec(html); m; m = re.exec(html)) {
+    n += m[0] === '<div' ? 1 : -1;
+    if (n === 0) return html.slice(0, i) + html.slice(html.indexOf('>', m.index) + 1);
+  }
+  return html;
+}
 function copia(nome, mexer = () => {}) {
   const destino = path.join(temporaria, nome);
   fs.cpSync(base, destino, { recursive: true });
@@ -240,6 +253,11 @@ teste('a pré-visualização constrói com --base, fecha-se aos motores de busca
   const index = fs.readFileSync(path.join(pasta, '_site/index.html'), 'utf8');
   assert.match(index, /<meta name="robots" content="noindex/);
   assert.match(index, /href="\/lfmobile\/assets\/site-[0-9a-f]+\.css"/);
+  // o espaço do cabeçalho (scroll-padding-top) só quando o foco não está no cabeçalho: com o foco no campo da procura,
+  // a página subia ~60 px a cada letra (13 nov 2026)
+  const css = fs.readFileSync(path.join(pasta, '_site/assets', index.match(/assets\/(site-[0-9a-f]+\.css)/)[1]), 'utf8');
+  assert.doesNotMatch(css, /(?:^|\})\s*html\s*\{[^}]*scroll-padding-top/);
+  assert.match(css, /html:not\(:has\(\.topo:focus-within\)\)\s*\{\s*scroll-padding-top/);
   assert.match(fs.readFileSync(path.join(pasta, '_site/termos-e-condicoes/index.html'), 'utf8'), /por confirmar: o NIF/);
   assert.ok(fs.existsSync(path.join(pasta, '_site/404.html')));
   assert.ok(fs.existsSync(path.join(pasta, '_site/assets/catalogo.json')));
@@ -263,7 +281,7 @@ teste('a pré-visualização constrói com --base, fecha-se aos motores de busca
   for (const f of todosHtml(pasta)) {
     const html = fs.readFileSync(f, 'utf8');
     assert.doesNotMatch(html, /obriga[çc][ãa]o de pagar/i, f);
-    assert.match(html, /<html lang="pt-PT">/, f);
+    assert.match(html, /<html lang="pt-PT"( class="na-capa")?>/, f);
   }
 });
 teste('a ficha de um artigo comprável tem o formulário do carrinho; a de um «confirmar» pergunta pelo WhatsApp; a película não se envia', () => {
@@ -335,11 +353,72 @@ teste('as reparações de outras marcas: «Outras» abre as marcas, a família e
   const m = ler2('reparacoes/redmi-note-13/index.html');
   assert.match(m, /Xiaomi · Redmi/);
   assert.match(m, /79,90/);
-  // o rodapé leva a primeira família de cada marca
-  assert.match(ler2('index.html'), /<li><a href="\/reparacoes\/redmi\/">Redmi<\/a><\/li>/);
+  // o rodapé já não lista as reparações (o Renato, 12 nov 2026: «essa lista de reparações está aí a mais»);
+  // a família chega-se pelo seletor das reparações
+  assert.doesNotMatch(ler2('index.html').match(/<footer class="rodape">[\s\S]*?<\/footer>/)[0], /\/reparacoes\//);
+  assert.match(hub, /<a class="seletor__familia" href="\/reparacoes\/redmi\/"/);
   // a escolha do modelo nas películas: a sugestão e o modelo da lista com o mesmo nome aparecem uma vez
   const dados = JSON.parse(ler2('produtos/pelicula-vidro/index.html').match(/id="dados-modelos">(.*?)<\/script>/)[1]);
   assert.deepEqual(dados.Xiaomi, [['Redmi', ['Redmi Note 13']]]);
+});
+teste('as categorias em dois níveis: a mãe junta as filhas, a loja tem a fila das filhas, e o menu, o do telemóvel e o rodapé com as de cima, todas (as vazias fora do Google)', () => {
+  const pasta = copia('dois-niveis', (p) => json(p, 'content/categorias.json', (cs) => {
+    const i = cs.findIndex((c) => c.slug === 'iphone');
+    cs[i] = { slug: 'apple', nome: 'Apple', titulo: 'iPhone', resumo: 'iPhone novos e recondicionados.', marca: 'Apple', grupo: 'telemoveis' };
+    cs.find((c) => c.slug === 'samsung').grupo = 'telemoveis';
+    cs.find((c) => c.slug === 'recondicionados').grupo = 'telemoveis';
+    cs.find((c) => c.slug === 'smartwatches').marca = 'Huawei';
+    cs.find((c) => c.slug === 'audio').grupo = 'gadgets';
+    cs.find((c) => c.slug === 'smartwatches').grupo = 'gadgets';
+    cs.unshift({ slug: 'telemoveis', nome: 'Telemóveis', titulo: 'Telemóveis', resumo: 'Novos e recondicionados.' });
+    cs.push({ slug: 'gadgets', nome: 'Gadgets', titulo: 'Gadgets', resumo: 'Áudio e smartwatches.' });
+  }));
+  const r = construir(pasta);
+  assert.equal(r.codigo, 0, r.saida);
+  const ler = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  const cartoes = (html) => [...html.matchAll(/<article class="cartao[^"]*" data-artigo="([^"]+)"/g)].map((m) => m[1]).sort();
+  // a mãe junta os artigos das filhas (e o iPhone recondicionado, que é da Apple, também na Apple)
+  assert.deepEqual(cartoes(ler('loja/telemoveis/index.html')), ['iphone-13-128gb-recondicionado', 'samsung-galaxy-s25-128gb']);
+  assert.deepEqual(cartoes(ler('loja/apple/index.html')), ['iphone-13-128gb-recondicionado']);
+  assert.deepEqual(cartoes(ler('loja/gadgets/index.html')), ['fones-p9', 'huawei-watch-d2']);
+  // o catálogo leva a mãe nas categorias de cada artigo (as campanhas e os cupões da mãe apanham as filhas)
+  const cat = JSON.parse(ler('assets/catalogo.json'));
+  assert.deepEqual(cat.produtos['iphone-13-128gb-recondicionado'].categorias, ['recondicionados', 'telemoveis', 'apple']);
+  // uma marca com mãe só junta a marca dentro dela: o Huawei Watch não entra numa «Huawei» de outra mãe
+  assert.deepEqual(cat.produtos['huawei-watch-d2'].categorias, ['smartwatches', 'gadgets']);
+  // a loja: a fila de cima só com as de cima (a mãe assinalada numa filha) e a fila das filhas com «Todos»
+  const apple = ler('loja/apple/index.html');
+  const fila = (html, classe) => [...(html.match(new RegExp(`<ul${classe ? ` class="${classe}"` : ''}[^>]*>([\\s\\S]*?)</ul>`)) || ['', ''])[1].matchAll(/<a class="chip[^"]*" href="([^"]+)"( aria-current="(page|true)")?>([^<]+)<\/a>/g)].map((m) => `${m[4]}${m[3] ? `:${m[3]}` : ''}`);
+  const chipsApple = apple.match(/<nav class="chips"[\s\S]*?<\/nav>/)[0];
+  // todas, mesmo as que ainda não têm artigos (o Leandro, 13 nov 2026: «aquelas categorias e subcategorias todas»)
+  assert.deepEqual(fila(chipsApple, ''), ['Tudo', 'Telemóveis:true', 'Tablets', 'Películas', 'Acessórios', 'Gadgets']);
+  assert.deepEqual(fila(chipsApple, 'chips__filhas'), ['Todos', 'Apple:page', 'Samsung', 'Recondicionados']);
+  assert.match(apple, /"name":"Telemóveis","item":"[^"]*\/loja\/telemoveis\/"/);
+  // o menu da loja no cabeçalho: as de cima e as filhas das mães
+  const mega = apple.match(/<div class="topo__mega"[\s\S]*?<\/nav>/)[0];
+  assert.deepEqual([...mega.match(/<ul class="topo__mega-cima">([\s\S]*?)<\/ul>/)[1].matchAll(/>([^<]+)<\/a>/g)].map((m) => m[1]), ['Toda a loja', 'Telemóveis', 'Tablets', 'Películas', 'Acessórios', 'Gadgets']);
+  assert.deepEqual([...mega.matchAll(/<p class="topo__mega-titulo">([^<]+)<\/p>/g)].map((m) => m[1]), ['Telemóveis', 'Gadgets']);
+  // o menu do telemóvel e o rodapé: só as de cima
+  const grelha = apple.match(/<ul class="menu__grelha"[\s\S]*?<\/ul>/)[0];
+  assert.deepEqual([...grelha.matchAll(/<span>([^<]+)<\/span><\/a>/g)].map((m) => m[1]), ['Telemóveis', 'Tablets', 'Películas', 'Acessórios', 'Gadgets', 'Toda a loja']);
+  // uma categoria ainda sem artigos: a página existe e diz que ainda não há (fora do Google: no teste da produção)
+  assert.match(ler('loja/tablets/index.html'), /Ainda não há artigos nesta categoria/);
+  const rodape = apple.match(/<footer class="rodape">[\s\S]*?<\/footer>/)[0];
+  assert.match(rodape, /<a href="\/loja\/telemoveis\/">Telemóveis<\/a>/);
+  assert.doesNotMatch(rodape, /\/loja\/apple\//);
+  // a fila redonda da página inicial: as que não têm filhas (sem as mães)
+  const inicio = ler('index.html');
+  const redonda = [...inicio.match(/<nav class="cat-fila"[\s\S]*?<\/nav>/)[0].matchAll(/<span class="cat-fila__nome">([^<]+)<\/span>/g)].map((m) => m[1]);
+  assert.deepEqual(redonda, ['Apple', 'Samsung', 'Recondicionados', 'Smartwatches', 'Áudio', 'Películas', 'Reparações']);
+});
+teste('as regras das categorias-mãe: a mãe tem de existir e não pode ter mãe', () => {
+  const base = [{ slug: 'a', nome: 'A', titulo: 'A' }, { slug: 'b', nome: 'B', titulo: 'B', grupo: 'a' }];
+  assert.ok(!R.problemasDasCategorias(JSON.stringify(base)).some((x) => x.classe === 'bloqueia'));
+  for (const mal of [[{ slug: 'b', nome: 'B', titulo: 'B', grupo: 'x' }], [{ slug: 'a', nome: 'A', titulo: 'A', grupo: 'a' }], [...base, { slug: 'c', nome: 'C', titulo: 'C', grupo: 'b' }]]) {
+    assert.ok(R.problemasDasCategorias(JSON.stringify(mal)).some((x) => x.classe === 'bloqueia' && /grupo/.test(x.chave)), JSON.stringify(mal));
+  }
+  // o painel não muda a mãe de uma categoria
+  assert.deepEqual(R.mudancasBloqueadas(base, [base[0], { ...base[1], grupo: undefined }], 'categorias').map((x) => x.caminho), ['1.grupo']);
 });
 teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços juntos no topo, a página inicial curta, a retoma com vender e retoma, o menu em grelha', () => {
   const pasta = copia('arrumacao', (p) => {
@@ -358,18 +437,69 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   assert.doesNotMatch(apple, /data-artigo="samsung-galaxy-s25-128gb"/);
   assert.match(ler2('loja/recondicionados/index.html'), /data-artigo="iphone-13-128gb-recondicionado"/);
   const inicio = ler2('index.html');
-  assert.match(inicio, /<li><a href="\/loja\/apple\/">Apple<\/a><\/li><li><a href="\/loja\/samsung\/">Samsung<\/a><\/li>/);
+  assert.match(ler2('loja/index.html'), /<a class="chip" href="\/loja\/apple\/">Apple<\/a><\/li><li><a class="chip" href="\/loja\/samsung\/">Samsung<\/a>/);
   // o catálogo leva as categorias de cada artigo (os cupões de uma categoria de marca apanham-nas)
   const cat = JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets/catalogo.json'), 'utf8'));
   assert.deepEqual(cat.produtos['iphone-13-128gb-recondicionado'].categorias, ['recondicionados', 'apple']);
   assert.deepEqual(cat.produtos['fones-p9'].categorias, ['audio']);
-  // o cabeçalho: as Reparações e a Retoma juntas ao lado do carrinho; o «Vender o meu» saiu; a fila de baixo é só a loja
-  assert.match(inicio, /<nav class="topo__servicos" aria-label="Serviços">\s*<a class="topo__accao" href="\/reparacoes\/">[\s\S]*?<span>Reparações<\/span><\/a><a class="topo__accao" href="\/retoma\/">[\s\S]*?<span>Retoma<\/span><\/a>/);
+  // o cabeçalho, o mesmo em todas as páginas (o Renato, 12 nov 2026: «está aqui informação repetida…»):
+  // as quatro ligações, com a página onde se está assinalada (a loja nas suas páginas e nas fichas), a
+  // lupa e o carrinho; sem a procura larga, sem os botões Reparações e Retoma e sem a fila das
+  // categorias (estão nas pílulas da loja); sem a faixa de cima quando não há campanha nem aviso
+  const lojaPag = ler2('loja/index.html');
+  const ligacoes = (html) => [...semMenuDaLoja(html.match(/<nav class="topo__ligacoes"[\s\S]*?<\/nav>/)[0]).matchAll(/<a href="([^"]+)"( aria-current="page")?>([^<]+)<\/a>/g)].map((m) => [m[1], m[3], Boolean(m[2])]);
+  assert.match(lojaPag, /<header class="topo" data-topo>/);
+  assert.deepEqual(ligacoes(lojaPag), [['/loja/', 'Loja', true], ['/reparacoes/', 'Reparações', false], ['/retoma/', 'Retoma', false], ['/contactos/', 'Contactos', false]]);
+  assert.deepEqual(ligacoes(ler2('produtos/fones-p9/index.html')).filter((x) => x[2]).map((x) => x[1]), ['Loja']);
+  assert.deepEqual(ligacoes(ler2('reparacoes/iphone-13/index.html')).filter((x) => x[2]).map((x) => x[1]), ['Reparações']);
+  assert.deepEqual(ligacoes(ler2('contactos/index.html')).filter((x) => x[2]).map((x) => x[1]), ['Contactos']);
+  for (const html of [lojaPag, inicio, ler2('produtos/fones-p9/index.html')]) {
+    assert.doesNotMatch(html, /topo__fila|topo__servicos|topo__accao|class="faixa-topo"/);
+    // a barra da procura grande ao lado do logótipo (computador) e a lupa para o telemóvel
+    assert.match(html, /<\/a>\s*<div class="topo__procura"><form class="busca" role="search"[\s\S]*?id="busca-topo"/);
+    assert.match(html, /class="topo__botao topo__lupa"[^>]*data-abrir="procurar"/);
+    // o texto do campo sem «iPhone», «telemóvel», «mobile», «nome» nem «email»: o Safari lia «phone» em «iPhone» e
+    // punha o número de telemóvel de quem procurava por cima do teclado (13 nov 2026)
+    for (const [, t] of html.matchAll(/<input[^>]*type="search"[^>]*placeholder="([^"]*)"/g)) assert.doesNotMatch(t, /phone|telem|mobile|nome|e-?mail|morada/i, t);
+    // na folha do telemóvel, o «Fechar» na linha do campo
+    assert.match(html, /<div class="busca__linha">[\s\S]*?id="busca-folha"[\s\S]*?<button class="folha-procura__fechar" type="button" data-fechar>Fechar<\/button>\s*<\/div>/);
+  }
   assert.doesNotMatch(inicio, /Vender o meu</);
-  assert.doesNotMatch(inicio.match(/<nav class="topo__fila"[\s\S]*?<\/nav>/)[0], /reparacoes|retoma/);
-  // a página inicial sem a grelha dos problemas e sem a faixa da retoma (o cartão da capa fica)
-  assert.doesNotMatch(inicio, /data-problemas|faixa-retoma/);
-  assert.match(inicio, /mosaico__cartao--retoma/);
+  // os cartões levam à ficha, onde se compra: sem o carrinho nem o «Escolher», com a seta em todos (13 nov 2026)
+  assert.doesNotMatch(lojaPag, /data-juntar|cartao__juntar|cartao__escolher/);
+  // mudar de separador não volta ao topo: o script em linha logo a seguir à loja repõe o lugar da fila (13 nov 2026)
+  assert.match(lojaPag, /<\/div>\s*<script>\(function\(\)\{try\{var k='lfmobile:lugar-da-loja'/);
+  // envios e devoluções: os portes numa tabela (um escalão por linha) e as ligações do fim dos cartões como botões
+  const envios = ler2('envios-e-devolucoes/index.html');
+  assert.match(envios, /<p class="portes__titulo">Portes<\/p><dl class="portes"><div><dt>Até \d/);
+  assert.match(envios, /<div><dt>Mais de [\d,]+ kg<\/dt><dd>A combinar<\/dd><\/div><\/dl>/);
+  assert.match(envios, /<p class="nota-cartao__accoes"><a href="https:\/\/www\.google\.com\/maps\/[^"]*" target="_blank" rel="noopener">Como chegar<\/a><\/p>/);
+  assert.match(envios, /<p class="nota-cartao__accoes"><a href="\/desistir\/">Como desistir<\/a> <a href="\/garantia\/">Garantia<\/a><\/p>/);
+  assert.doesNotMatch(envios, /\{\{|O levantamento na loja não tem custos/);
+  assert.equal((lojaPag.match(/<span class="cartao__seta" aria-hidden="true">/g) || []).length, (lojaPag.match(/<article class="cartao/g) || []).length);
+  // o rodapé alto: a marca e as colunas da Loja e da Ajuda (a das reparações saiu: «está aí a mais»)
+  const rodape = inicio.match(/<footer class="rodape">[\s\S]*?<\/footer>/)[0];
+  assert.deepEqual([...rodape.matchAll(/<div class="rodape__coluna">\s*<h2>([^<]+)<\/h2>/g)].map((m) => m[1]), ['Loja', 'Ajuda']);
+  assert.match(rodape, /<a href="\/loja\/apple\/">Apple<\/a>/);
+  assert.doesNotMatch(rodape, /\/reparacoes\//);
+  // a loja aberta ou fechada fica junto do horário (na página inicial e nos contactos)
+  assert.match(ler2('contactos/index.html'), /Horário<\/h3>\s*<p class="estado-loja" data-estado-loja hidden><\/p>/);
+  assert.match(inicio, /Horário<\/p><p class="estado-loja" data-estado-loja hidden><\/p>/);
+  // a página inicial (o Leandro e o Renato, 12 nov 2026): a capa a ocupar o ecrã, com o cabeçalho por
+  // cima (transparente, quatro ligações e a lupa); sem a faixa de cima (sem campanha nem aviso), sem a
+  // fila das categorias no cabeçalho e sem os cartões da reparação, da retoma e dos recondicionados
+  assert.match(inicio, /<html lang="pt-PT" class="na-capa">/);
+  assert.match(inicio, /<header class="topo topo--capa" data-topo>/);
+  assert.deepEqual([...semMenuDaLoja(inicio.match(/<nav class="topo__ligacoes"[\s\S]*?<\/nav>/)[0]).matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map((m) => [m[1], m[2]]),
+    [['/loja/', 'Loja'], ['/reparacoes/', 'Reparações'], ['/retoma/', 'Retoma'], ['/contactos/', 'Contactos']]);
+  assert.doesNotMatch(inicio, /class="faixa-topo"|topo__fila|class="mosaico|class="rapido|data-rapido|faixa-retoma|data-problemas/);
+  assert.match(inicio, /<section class="capa" aria-labelledby="capa-titulo">/);
+  assert.match(inicio, /<p class="capa__rotulo">Mais que tecnologia<\/p>\s*<h1 class="capa__titulo" id="capa-titulo">Sempre contigo<\/h1>/);
+  assert.equal((inicio.match(/<h1[\s>]/g) || []).length, 1, 'um só h1');
+  assert.match(inicio, /<a class="botao botao--ouro" href="\/loja\/">Ver a loja<svg/);
+  assert.match(inicio, /<figure class="capa__foto"><picture[^>]*>[^]*?fetchpriority="high"[^]*?<\/figure>/);
+  assert.deepEqual([...inicio.match(/<ul class="capa__vantagens">[\s\S]*?<\/ul>/)[0].matchAll(/<strong>([^<]+)<\/strong>/g)].map((m) => m[1]), ['Envio rápido', 'Garantia', 'Apoio ao cliente']);
+  assert.match(inicio, /<\/section>\s*<div class="contentor inicio">\s*<nav class="cat-fila"/);
   assert.match(ler2('reparacoes/index.html'), /data-problemas/);
   // a retoma: vender (em dinheiro ou por transferência) e retoma (desconto numa compra)
   const ret = ler2('retoma/index.html');
@@ -384,15 +514,15 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   // 2026): a nota do Google em primeiro, com as estrelas da nota e a ligação para as opiniões; cada
   // cartão leva ao sítio onde isso se explica. Nem a faixa de cima da loja, nem a do rodapé.
   assert.doesNotMatch(inicio, /confianca-faixa|Retoma do seu usado|rodape__garantias/);
-  // a escolha do modelo da capa fica fora da coluna do texto (no computador ocupa a largura do cartão)
-  assert.match(inicio, /<p class="mosaico__sub">[^<]*<\/p>\s*<\/div>\s*<form class="rapido"/);
   assert.match(inicio, /<section class="loja-casa"[\s\S]*?<\/section>\s*<section class="garantias" aria-labelledby="garantias-titulo">\s*<h2 class="visualmente-escondido" id="garantias-titulo">Porquê a LF Mobile<\/h2>/);
   const lis = inicio.match(/<section class="garantias"[\s\S]*?<\/section>/)[0].match(/<li>[\s\S]*?<\/li>/g);
-  assert.deepEqual(lis.map((li) => li.match(/<strong class="garantia__titulo">(.*?)<\/strong>/)[1]), ['5,0 no Google', 'Orçamento grátis', 'Envios Nacex em 24/48 h', 'Levantamento grátis']);
+  // os envios só na capa (nas três vantagens), não outra vez aqui (13 nov 2026, sem informação repetida)
+  assert.deepEqual(lis.map((li) => li.match(/<strong class="garantia__titulo">(.*?)<\/strong>/)[1]), ['5,0 no Google', 'Orçamento grátis', 'Levantamento grátis']);
+  assert.equal((inicio.match(/24\/48 h/g) || []).length, 1);
   assert.match(lis[0], /<a class="garantia" href="https:\/\/www\.google\.com\/maps\/place\/LF\+Mobile\/[^"]*!9m1!1b1[^"]*" target="_blank" rel="noopener">/);
   assert.match(lis[0], /<span class="estrelas" style="--nota: 5" aria-hidden="true">/);
   assert.match(lis[0], /<\/span><\/span>20 opiniões\.<\/span>/);
-  assert.deepEqual(lis.slice(1).map((li) => li.match(/href="([^"]*)"/)[1]), ['/reparacoes/', '/envios-e-devolucoes/', '/contactos/']);
+  assert.deepEqual(lis.slice(1).map((li) => li.match(/href="([^"]*)"/)[1]), ['/reparacoes/', '/contactos/']);
   for (const c of ['reparacoes/index.html', 'contactos/index.html', 'loja/index.html', 'envios-e-devolucoes/index.html']) {
     assert.doesNotMatch(ler2(c), /class="garantias|rodape__garantias|no Google<\/strong>/, c);
   }
@@ -465,10 +595,10 @@ teste('as consolas: a PlayStation tem os problemas dela (não os dos telemóveis
   assert.doesNotMatch(ps5, /modelo-peliculas/, 'películas não, numa consola');
   assert.match(ps5, /<use href="#ap-consola"\/>/);
   assert.match(ler2('reparacoes/playstation/index.html'), /reparar%20a%20minha%20PlayStation/);
-  // a grelha dos problemas é a dos telemóveis; a PlayStation aparece no rodapé
+  // a grelha dos problemas é a dos telemóveis; a PlayStation aparece no seletor das famílias
   const rep = ler2('reparacoes/index.html');
   assert.doesNotMatch(rep.match(/<ul class="problemas__grelha"[\s\S]*?<\/ul>/)[0], /data-problema="hdmi"/);
-  assert.match(rep, /<li><a href="\/reparacoes\/playstation\/">PlayStation<\/a><\/li>/);
+  assert.match(rep, /<a class="seletor__familia" href="\/reparacoes\/playstation\/"[^>]*>PlayStation<\/a>/);
   // a procura: «ps5» e «consola»
   const busca = JSON.parse(fs.readFileSync(path.join(pasta, '_site/assets', fs.readdirSync(path.join(pasta, '_site/assets')).find((x) => /^busca-[0-9a-f]+\.json$/.test(x))), 'utf8'));
   const m = busca.modelos.find((x) => x.n === 'PlayStation 5');
@@ -527,6 +657,8 @@ teste('o WhatsApp é um botão flutuante (fora da barra de cima), e não aparece
     assert.doesNotMatch(html.slice(html.indexOf('<header'), html.indexOf('</header>')), /wa\.me/, `${pagina}: o WhatsApp voltou à barra de cima`);
   }
   for (const pagina of ['carrinho/index.html', 'checkout/index.html', 'obrigado/index.html']) assert.doesNotMatch(ler(pagina), /data-whatsapp-flutuante/, pagina);
+  // o total por cima do botão de enviar (no telemóvel o resumo fica depois dele)
+  assert.match(ler('checkout/index.html'), /<p class="checkout__total" data-checkout-total hidden><span>Total<\/span><strong><\/strong><\/p>\s*<button class="botao botao--cheio botao--largo" type="submit" data-botao-checkout>/);
 });
 teste('os contactos têm o mapa desenhado dentro da página (sem o Google, sem cookies), com o crédito do OpenStreetMap', () => {
   const pasta = copia('mapa');
@@ -556,8 +688,44 @@ teste('a produção constrói com os dados legais preenchidos: aberta aos motore
   const index = fs.readFileSync(path.join(pasta, '_site/index.html'), 'utf8');
   assert.doesNotMatch(index, /noindex/);
   assert.match(index, /https:\/\/lfmobile\.pt\//);
+  // as películas de um modelo levam-no no fragmento (#modelo=), não num parâmetro: para o Google não são outras
+  // páginas (com ?modelo= eram 2416 endereços repetidos); os antigos ficam fora do rastreio
+  for (const f of todosHtml(pasta)) assert.doesNotMatch(fs.readFileSync(f, 'utf8'), /href="[^"]*\?modelo=/, f);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/reparacoes/iphone-13/index.html'), 'utf8'), /href="\/produtos\/[a-z0-9-]+\/#modelo=Apple%7CiPhone%2013"/);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/robots.txt'), 'utf8'), /^Disallow: \/\*\?modelo=$/m);
+  // o nome do site para o Google: «LF Mobile», com a forma colada como alternativa (só na página inicial)
+  assert.match(index, /"@type":"WebSite","@id":"https:\/\/lfmobile\.pt\/#site","name":"LF Mobile","alternateName":\["LFMobile"\],"url":"https:\/\/lfmobile\.pt\/"/);
   assert.ok(fs.existsSync(path.join(pasta, '_site/sitemap.xml')));
   for (const f of todosHtml(pasta)) assert.doesNotMatch(fs.readFileSync(f, 'utf8'), /por confirmar:/, f);
+  // o rodapé só com «© ano marca» (o Renato, 12 nov 2026: o nome, o NIF e a morada «não precisam de
+  // estar lá»); a identificação de quem vende fica nos Contactos e nos Termos
+  assert.match(index, /<p class="rodape__direitos">© \d{4} LF Mobile<\/p>/);
+  for (const f of todosHtml(pasta)) assert.doesNotMatch((fs.readFileSync(f, 'utf8').match(/<footer class="rodape">[\s\S]*?<\/footer>/) || [''])[0], /123456789|Nome de Teste/, f);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/contactos/index.html'), 'utf8'), /Nome de Teste[\s\S]{0,80}123456789/);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/termos-e-condicoes/index.html'), 'utf8'), /123456789/);
+  // fora do Google (noindex e fora do sitemap): as páginas legais e a dos envios. A Loja, as Reparações, a Retoma, os
+  // Contactos, o Sobre e as Perguntas ficam (o Renato, 13 nov 2026: as legais «não vale a pena» aparecerem na pesquisa)
+  const mapa = fs.readFileSync(path.join(pasta, '_site/sitemap.xml'), 'utf8');
+  for (const c of ['termos-e-condicoes', 'politica-de-privacidade', 'politica-de-cookies', 'resolucao-de-litigios', 'garantia', 'desistir', 'envios-e-devolucoes']) {
+    assert.match(fs.readFileSync(path.join(pasta, `_site/${c}/index.html`), 'utf8'), /<meta name="robots" content="noindex">/, c);
+    assert.ok(!mapa.includes(`/${c}/<`), `${c} não devia estar no sitemap`);
+  }
+  for (const c of ['', 'loja/', 'reparacoes/', 'retoma/', 'contactos/', 'sobre-nos/', 'perguntas-frequentes/']) {
+    assert.doesNotMatch(fs.readFileSync(path.join(pasta, `_site/${c}index.html`), 'utf8'), /name="robots"/, c);
+    assert.ok(mapa.includes(`<loc>https://lfmobile.pt/${c}</loc>`), `${c || '/'} devia estar no sitemap`);
+  }
+  // uma categoria ainda sem artigos (Tablets, nos dados de ensaio) fica com noindex e fora do mapa; uma com artigos, não
+  assert.match(fs.readFileSync(path.join(pasta, '_site/loja/tablets/index.html'), 'utf8'), /<meta name="robots" content="noindex">/);
+  assert.ok(!mapa.includes('/loja/tablets/<'));
+  assert.doesNotMatch(fs.readFileSync(path.join(pasta, '_site/loja/audio/index.html'), 'utf8'), /name="robots"/);
+  // a conta do cliente: fora do Google (noindex, fora do mapa), mas não no robots.txt — o Google tem de ler o noindex
+  assert.match(fs.readFileSync(path.join(pasta, '_site/conta/index.html'), 'utf8'), /<meta name="robots" content="noindex">/);
+  assert.ok(!mapa.includes('/conta/'), 'a conta não vai ao sitemap');
+  assert.doesNotMatch(fs.readFileSync(path.join(pasta, '_site/robots.txt'), 'utf8'), /conta/);
+  // uma categoria cujo título é só o nome leva o resumo no <title>; a descrição diz onde é a loja e como se recebe
+  const smart = fs.readFileSync(path.join(pasta, '_site/loja/smartwatches/index.html'), 'utf8');
+  assert.match(smart, /<title>Smartwatches — Relógios inteligentes para o dia a dia e o desporto \| LF Mobile<\/title>/);
+  assert.match(smart, /<meta name="description" content="Relógios inteligentes para o dia a dia e o desporto\. Na LF Mobile, em São Roque: envios para Portugal Continental e levantamento grátis na loja\.">/);
 });
 teste('em modo «online» (a ifthenpay): o botão «Encomendar e pagar», os três métodos sem nenhum escolhido, a página /pagar/, e os textos dizem a ifthenpay e os prazos', () => {
   const pasta = copia('online', (p) => json(p, 'content/site.json', (s) => { s.pagamentos.modo = 'online'; }));
@@ -638,11 +806,163 @@ teste('um marcador desconhecido numa página de texto pára a construção', () 
   assert.notEqual(r.codigo, 0);
   assert.match(r.saida, /inexistente/);
 });
+teste('a conta do cliente: a página /conta/, a ligação no cabeçalho, no menu do telemóvel e no «obrigado», o gancho próprio do script e a sessão na política de cookies', () => {
+  const pasta = copia('conta');
+  const r = construir(pasta);
+  assert.equal(r.codigo, 0, r.saida);
+  const conta = fs.readFileSync(path.join(pasta, '_site/conta/index.html'), 'utf8');
+  assert.match(conta, /<meta name="robots" content="noindex/);
+  assert.match(conta, /<title>A minha conta \| LF Mobile<\/title>/);
+  assert.match(conta, /<div class="contentor conta" data-area-cliente /);
+  assert.match(conta, /<section class="cartao-peliculas" data-conta-cartao hidden/, 'o cartão das películas');
+  // a conta inteira (14 nov 2026): o Google escondido até o Worker dizer o cliente, os dados, as garantias, a janela
+  assert.match(conta, /<div class="conta__google" data-conta-google hidden>[\s\S]*?<svg class="logo-google"[\s\S]*?Continuar com o Google/);
+  assert.match(conta, /<form class="formulario conta__dados" data-conta-dados-form novalidate hidden>/);
+  for (const n of ['nome', 'telefone', 'nif', 'morada', 'codigoPostal', 'localidade']) assert.match(conta, new RegExp(`<input id="dados-[a-z]+" name="${n}"`), n);
+  assert.match(conta, /data-conta-garantias hidden/);
+  assert.match(conta, /<dialog class="conta-janela" data-conta-janela/);
+  assert.match(conta, /data-conta-sair-todos>Sair em todos os aparelhos/);
+  assert.match(conta, /data-conta-apagar>Apagar a conta/);
+  // sair em todos e apagar a conta: dentro das «Definições da conta», fechadas (não à vista)
+  assert.match(conta, /<details class="conta__definicoes">\s*<summary>Definições da conta<\/summary>[\s\S]*?data-conta-sair-todos[\s\S]*?data-conta-apagar[\s\S]*?<\/details>/);
+  assert.match(conta, /<section class="conta__seccao" id="encomendas"/, 'o menu da conta leva a /conta/#encomendas');
+  assert.match(conta, /data-desistir-url="\/desistir\/"/);
+  // este site não carrega nada do Google: o endereço do Google só existe no script, para o clique
+  assert.doesNotMatch(conta, /<script[^>]+src="[^"]*google/i);
+  assert.doesNotMatch(conta, /<(iframe|img|link)[^>]+(google|gstatic)/i);
+  // o checkout: a nota de que veio preenchido, e o pedido aos dados da conta só com o sinal de que se entrou
+  assert.match(fs.readFileSync(path.join(pasta, '_site/checkout/index.html'), 'utf8'), /data-checkout-conta hidden>Preenchido com os dados da sua conta\./);
+  const carrinhoJs = fs.readFileSync(path.join(RAIZ, 'src/scripts/carrinho.js'), 'utf8');
+  assert.match(carrinhoJs, /localStorage\.getItem\('lfmobile:conta'\) === '1'/);
+  assert.match(carrinhoJs, /fetch\('\/conta\/api\/dados'/);
+  assert.match(conta, /<template data-icone-presente><svg/);
+  assert.match(conta, /<input id="conta-codigo"[^>]*inputmode="numeric" autocomplete="one-time-code"/);
+  assert.match(conta, /<input id="conta-email"[^>]*type="email" autocomplete="email"/);
+  // [data-conta] é o número do carrinho no cabeçalho (carrinho.js, desenharConta, que lhe troca o texto): a página da
+  // conta não o pode usar, senão os dois scripts apanham o elemento um do outro (13 nov 2026)
+  assert.doesNotMatch(conta.replace(/<header[\s\S]*?<\/header>/, ''), /data-conta[\s>]/);
+  assert.match(fs.readFileSync(path.join(RAIZ, 'src/scripts/conta.js'), 'utf8'), /querySelector\('\[data-area-cliente\]'\)/);
+  const index = fs.readFileSync(path.join(pasta, '_site/index.html'), 'utf8');
+  assert.match(index, /<a class="topo__botao topo__pessoa" href="\/conta\/" data-menu-conta-botao><svg[^>]*>[\s\S]*?<\/svg><span class="visualmente-escondido">A minha conta<\/span><\/a>/);
+  // o menu da conta (com sessão, site.js): quem entrou, a conta, as encomendas e sair — e nunca «apagar a conta»
+  const menuConta = /<div class="menu-conta" id="menu-conta" data-menu-conta-lista hidden>([\s\S]*?)<\/div>/.exec(index)?.[1] || '';
+  assert.match(menuConta, /data-menu-conta-email/);
+  assert.match(menuConta, /<a href="\/conta\/">[\s\S]*?A minha conta<\/span><\/a>/);
+  assert.match(menuConta, /<a href="\/conta\/#encomendas">[\s\S]*?As minhas encomendas<\/span><\/a>/);
+  assert.match(menuConta, /<button class="menu-conta__sair" type="button" data-menu-conta-sair>[\s\S]*?Sair<\/span><\/button>/);
+  assert.doesNotMatch(menuConta, /[Aa]pagar|todos os aparelhos/);
+  assert.match(index, /<li><a href="\/conta\/">As minhas encomendas/);
+  assert.match(fs.readFileSync(path.join(pasta, '_site/obrigado/index.html'), 'utf8'), /<a class="botao botao--contorno" href="\/conta\/">/);
+  assert.ok(!fs.readFileSync(path.join(pasta, '_site/sitemap.xml'), 'utf8').includes('/conta/'));
+  // o que a política de cookies promete é o que o site e o Worker usam
+  const cookies = fs.readFileSync(path.join(RAIZ, 'content/paginas/politica-de-cookies.md'), 'utf8');
+  assert.match(cookies, /«__Host-lf-sessao»/);
+  assert.match(cookies, /«lfmobile:conta-codigo»/);
+  assert.match(fs.readFileSync(path.join(RAIZ, 'worker/encomendas/conta.js'), 'utf8'), /export const COOKIE = '__Host-lf-sessao';/);
+  assert.match(fs.readFileSync(path.join(RAIZ, 'src/scripts/conta.js'), 'utf8'), /const CHAVE = 'lfmobile:conta-codigo';/);
+  assert.match(cookies, /«lfmobile:conta»/);
+  assert.match(cookies, /«lfmobile:conta-google»/);
+  assert.match(cookies, /«__Host-lf-google»/);
+  assert.match(fs.readFileSync(path.join(RAIZ, 'worker/encomendas/conta.js'), 'utf8'), /export const COOKIE_GOOGLE = '__Host-lf-google';/);
+  const contaJs = fs.readFileSync(path.join(RAIZ, 'src/scripts/conta.js'), 'utf8');
+  assert.match(contaJs, /const SINAL = 'lfmobile:conta';/);
+  assert.match(contaJs, /const CHAVE_GOOGLE = 'lfmobile:conta-google';/);
+});
 teste('uma ligação interna partida pára a construção', () => {
   const pasta = copia('ligacao', (p) => fs.appendFileSync(path.join(p, 'content/paginas/garantia.md'), '\n\n[Ligação partida](/nao-existe/)\n'));
   const r = construir(pasta);
   assert.notEqual(r.codigo, 0);
   assert.match(r.saida, /nao-existe/);
+});
+
+// o Worker do site (worker/www.js) passa /conta/api/… ao Worker das encomendas, pela service binding do wrangler.jsonc
+{
+  const nome = 'o Worker do site passa /conta/api/… ao Worker das encomendas (o cookie vai e vem) e diz 503 sem a ligação; o resto são os ficheiros';
+  try {
+    const { default: www } = await import('../worker/www.js');
+    const pedidos = [];
+    const env = {
+      ASSETS: { fetch: async () => new Response('ficheiro') },
+      ENCOMENDAS: { fetch: async (r) => { pedidos.push(r); const h = new Headers({ 'set-cookie': '__Host-lf-sessao=x; Path=/; HttpOnly; Secure; SameSite=Lax' }); h.append('set-cookie', '__Host-lf-google=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax'); return new Response('{"ok":true}', { headers: h }); } },
+    };
+    const r1 = await www.fetch(new Request('https://lfmobile.pt/conta/api/eu', { headers: { cookie: '__Host-lf-sessao=abc' } }), env);
+    assert.equal(await r1.text(), '{"ok":true}');
+    assert.match(r1.headers.get('set-cookie'), /^__Host-lf-sessao=x; Path=\//);
+    assert.deepEqual(r1.headers.getSetCookie().map((c) => c.split('=')[0]), ['__Host-lf-sessao', '__Host-lf-google'], 'os dois cookies passam (a entrada com o Google apaga o bilhete e dá a sessão)');
+    assert.equal(pedidos.length, 1);
+    assert.equal(pedidos[0].headers.get('cookie'), '__Host-lf-sessao=abc');
+    assert.equal(await (await www.fetch(new Request('https://lfmobile.pt/conta/'), env)).text(), 'ficheiro', 'a página da conta é um ficheiro do site');
+    assert.equal(pedidos.length, 1);
+    assert.equal((await www.fetch(new Request('https://lfmobile.pt/conta/api/eu'), { ASSETS: env.ASSETS })).status, 503);
+    assert.equal((await www.fetch(new Request('https://www.lfmobile.pt/conta/api/eu'), env)).status, 301, 'o www vai primeiro para o domínio');
+    const cfg = JSON.parse(fs.readFileSync(path.join(RAIZ, 'wrangler.jsonc'), 'utf8').replace(/^\s*\/\/.*$/gm, ''));
+    assert.deepEqual(cfg.services, [{ binding: 'ENCOMENDAS', service: 'lfmobile-encomendas' }]);
+    feitos++;
+    console.log(`  ✓ ${nome}`);
+  } catch (e) {
+    console.error(`  ✗ ${nome}\n${e.stack}`);
+    process.exitCode = 1;
+  }
+}
+
+/* Os parágrafos partidos no <main> de uma página: o texto que fica solto onde entra o Markdown das páginas de
+   texto (o artigo, a introdução, os passos, os cartões, as respostas e a abertura do «Sobre»), fora de um <p>,
+   de um título ou de uma lista (um parágrafo que perdeu o <p> e se cola ao de baixo), e um bloco dentro de um
+   <p> (o browser fecha o <p> antes dele). → as descrições */
+const DO_MARKDOWN = /(^|\s)(texto|texto__intro|passo__texto|nota-cartao|pergunta__resposta|sobre__abertura)(\s|$)/;
+const BLOCOS = new Set(['article', 'aside', 'blockquote', 'details', 'div', 'dl', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hr', 'nav', 'ol', 'p', 'pre', 'section', 'table', 'ul']);
+const COM_TEXTO = new Set([...BLOCOS, 'li', 'dd', 'dt', 'td', 'th', 'caption', 'figcaption', 'summary', 'legend', 'label', 'button']);
+const VAZIOS = new Set(['area', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr']);
+function paragrafosPartidos(html) {
+  const main = html.slice(html.indexOf('<main'), html.indexOf('</main>')).replace(/<!--[\s\S]*?-->|<(svg|script|style|template)\b[\s\S]*?<\/\1>/g, '');
+  const pilha = [];
+  const out = [];
+  for (const [, fecho, etiqueta, atributos, texto] of main.matchAll(/<(\/?)([a-zA-Z][\w-]*)([^>]*)>|([^<]+)/g)) {
+    if (texto !== undefined) {
+      if (!texto.trim()) continue;
+      for (let i = pilha.length - 1; i >= 0; i--) {
+        if (/^(a|button)$/.test(pilha[i].nome) && pilha[i].classe) break; // um botão ou uma ligação dos modelos
+        if (COM_TEXTO.has(pilha[i].nome)) {
+          if (DO_MARKDOWN.test(pilha[i].classe)) out.push(`texto fora de um parágrafo: «${texto.trim().slice(0, 60)}»`);
+          break;
+        }
+      }
+      continue;
+    }
+    const nome = etiqueta.toLowerCase();
+    if (fecho) {
+      const i = pilha.map((x) => x.nome).lastIndexOf(nome);
+      if (i >= 0) pilha.length = i;
+      continue;
+    }
+    if (BLOCOS.has(nome) && pilha.some((x) => x.nome === 'p')) out.push(`<${nome}> dentro de um <p>`);
+    if (!VAZIOS.has(nome) && !atributos.endsWith('/')) pilha.push({ nome, classe: /\sclass="([^"]*)"/.exec(atributos)?.[1] || '' });
+  }
+  return out;
+}
+teste('um parágrafo que é só um marcador fica num <p> (a identificação, os portes, o email…) e os de bloco não (o horário, as tabelas, os botões, as listas, o formulário, as garantias, o RAL, a privacidade, a figura)', () => {
+  const pasta = copia('marcadores-sozinhos');
+  const pagina = path.join(pasta, 'content/paginas/ensaio-marcadores.md');
+  // os marcadores que existem, pelo próprio gerador (um marcador que não existe pára-o e diz quais há); sem o
+  // GITHUB_ACTIONS, para esta paragem de propósito não deixar anotações ::error no CI
+  fs.writeFileSync(pagina, 'titulo: Ensaio dos marcadores\n---\n{{ensaio.inexistente}}\n');
+  const sonda = spawnSync(process.execPath, ['scripts/build.mjs', '--sem-imagens'], { cwd: pasta, encoding: 'utf8', env: { ...process.env, GITHUB_ACTIONS: '' } });
+  const saidaDaSonda = `${sonda.stdout}\n${sonda.stderr}`;
+  const marcadores = /o marcador «\{\{ensaio\.inexistente\}\}» não existe \(existem: ([^)]+)\)/.exec(saidaDaSonda)?.[1].split(', ') || [];
+  assert.ok(sonda.status !== 0 && marcadores.includes('empresa.identificacao') && marcadores.includes('avisoGarantia'), `o gerador não disse os marcadores que existem:\n${saidaDaSonda}`);
+  // uma página só dos testes, com cada marcador sozinho num parágrafo
+  fs.writeFileSync(pagina, `titulo: Ensaio dos marcadores\n---\n${marcadores.map((m) => `## Ensaio ${m}\n\n{{${m}}}\n`).join('\n')}`);
+  const paginas = fs.readdirSync(path.join(pasta, 'content/paginas')).filter((f) => f.endsWith('.md')).map((f) => `${f.slice(0, -3)}/index.html`);
+  // com os dados legais do conteúdo de ensaio (o nome e o NIF por dizer: os «[por confirmar: …]») e preenchidos
+  for (const [quando, mudar] of [['por dizer', () => {}], ['ditos', preencherDadosLegais]]) {
+    json(pasta, 'content/site.json', mudar);
+    const r = construir(pasta);
+    assert.equal(r.codigo, 0, `dados legais ${quando}: não construiu\n${r.saida}`);
+    const ensaio = fs.readFileSync(path.join(pasta, '_site/ensaio-marcadores/index.html'), 'utf8');
+    for (const m of ['empresa.identificacao', 'portes', 'email']) assert.match(ensaio, new RegExp(`Ensaio ${m.replace('.', '\\.')}</h2>\\s*<p>`), `dados legais ${quando}: o {{${m}}} sozinho não ficou num <p>`);
+    if (mudar === preencherDadosLegais) assert.ok(ensaio.includes('<p><strong>Nome de Teste</strong>'), 'a identificação sozinha não ficou num <p>');
+    for (const rel of paginas) assert.deepEqual(paragrafosPartidos(fs.readFileSync(path.join(pasta, '_site', rel), 'utf8')), [], `dados legais ${quando}: ${rel}`);
+  }
 });
 
 fs.rmSync(temporaria, { recursive: true, force: true });

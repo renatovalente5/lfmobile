@@ -25,7 +25,8 @@
   addEventListener('keydown', (e) => { if (!e.metaKey && !e.ctrlKey) delete raiz.dataset.entrada; }, { capture: true });
 
   // ---------------------------------------------------------------- a barra e o WhatsApp ao descer
-  // Ao descer, a barra ganha a sombra (html[data-rolado]); o botão flutuante do WhatsApp aparece um
+  // Ao descer (a partir de 12 px: na página inicial o logótipo e o fundo da barra mudam logo; antes eram
+  // 40 px, e no telemóvel demorava), a barra ganha a sombra (html[data-rolado]); o botão flutuante do WhatsApp aparece um
   // pouco mais abaixo (html[data-whatsapp], 200 a descer e 120 a subir). Dois limiares contra a
   // tremura de uma página parada na linha.
   const flutuante = $('[data-whatsapp-flutuante]');
@@ -35,7 +36,7 @@
       pedido = false;
       const y = scrollY;
       const agora = raiz.dataset.rolado === 'sim';
-      raiz.dataset.rolado = (y >= 40 ? true : y <= 8 ? false : agora) ? 'sim' : 'nao';
+      raiz.dataset.rolado = (y >= 12 ? true : y <= 4 ? false : agora) ? 'sim' : 'nao';
       if (flutuante) {
         const visivel = raiz.dataset.whatsapp === 'sim';
         raiz.dataset.whatsapp = (y >= 200 ? true : y <= 120 ? false : visivel) ? 'sim' : 'nao';
@@ -114,10 +115,11 @@
   $$('.faixa-topo[data-ate]').forEach((a) => {
     if (hojeLisboa() > a.dataset.ate) { const t = $('.faixa-topo__texto', a); if (t) t.hidden = true; }
   });
-  /* A loja aberta agora (computador): o horário da página (#horario-loja) e a hora de Lisboa. */
-  const estadoLoja = $('[data-estado-loja]');
+  /* A loja aberta agora: junto do horário (na página inicial e nos contactos) e na faixa de cima quando
+     há campanha; pelo horário da página (#horario-loja) e a hora de Lisboa. */
+  const estadosLoja = $$('[data-estado-loja]');
   const horario = (() => { try { return JSON.parse(($('#horario-loja') || {}).textContent || '[]'); } catch (_) { return []; } })();
-  if (estadoLoja && horario.length) {
+  if (estadosLoja.length && horario.length) {
     const DIAS = ['domingo', 'segunda', 'terça', 'quarta', 'quinta', 'sexta', 'sábado'];
     const agoraLisboa = () => {
       const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Lisbon', weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date()).map((x) => [x.type, x.value]));
@@ -157,9 +159,11 @@
         }
       }
       if (!texto) return;
-      estadoLoja.textContent = texto;
-      estadoLoja.dataset.aberta = aberto ? 'sim' : 'nao';
-      estadoLoja.hidden = false;
+      for (const el of estadosLoja) {
+        el.textContent = texto;
+        el.dataset.aberta = aberto ? 'sim' : 'nao';
+        el.hidden = false;
+      }
     };
     pintar();
     setInterval(pintar, 60000);
@@ -178,18 +182,106 @@
       if (a && !a.target && a.getAttribute('aria-disabled') !== 'true') d.close();
     });
   });
+  /* A procura no telemóvel ocupa o ecrã inteiro (CSS), e a parte que rola mede o que fica acima do teclado:
+     o Safari do iPhone não encolhe a página quando o teclado abre, só a parte visível (visualViewport). */
+  const visivel = window.visualViewport;
+  function medirVisivel(d) {
+    if (!visivel || d._medir) return;
+    d._medir = () => d.style.setProperty('--altura-visivel', `${Math.round(visivel.height)}px`);
+    d._medir();
+    visivel.addEventListener('resize', d._medir);
+  }
+  function largarVisivel(d) {
+    if (!visivel || !d._medir) return;
+    visivel.removeEventListener('resize', d._medir);
+    d._medir = null;
+    d.style.removeProperty('--altura-visivel');
+  }
   function abrir(id, origem) {
     const d = document.getElementById(id);
     if (!d || d.open) return;
+    d._rolar = window.scrollY;
     d.showModal();
     /* O foco vai para o corpo (tabindex=-1, sem anel): o Safari do iPhone mostrava o anel no primeiro
        elemento depois de um toque. A procura é a excepção: o campo recebe logo o foco (o teclado). */
     const campo = id === 'procurar' && $('input[type="search"]', d);
-    if (campo) campo.focus(); else { const corpo = d.querySelector('.menu__corpo, .gaveta__corpo, .folha-procura__corpo'); if (corpo) corpo.focus({ preventScroll: true }); }
+    if (campo) { medirVisivel(d); campo.focus({ preventScroll: true }); } else { const corpo = d.querySelector('.menu__corpo, .gaveta__corpo, .folha-procura__corpo'); if (corpo) corpo.focus({ preventScroll: true }); }
     d._origem = origem || null;
     if (id === 'carrinho' && window.LFCarrinho) window.LFCarrinho.desenharGaveta();
   }
-  dialogos.forEach((d) => d.addEventListener('close', () => { if (d._origem && document.contains(d._origem)) d._origem.focus(); }));
+  /* Ao fechar, a página fica onde estava: com o teclado aberto o Safari do iPhone pode tê-la mexido, e o foco que
+     volta ao botão de origem não a desloca. Sem animação de scroll (o html tem scroll-behavior: smooth). */
+  dialogos.forEach((d) => d.addEventListener('close', () => {
+    largarVisivel(d);
+    if (typeof d._rolar === 'number' && Math.abs(window.scrollY - d._rolar) > 1) {
+      const raiz = document.documentElement;
+      raiz.style.scrollBehavior = 'auto';
+      window.scrollTo(0, d._rolar);
+      raiz.style.scrollBehavior = '';
+    }
+    if (d._origem && document.contains(d._origem)) d._origem.focus({ preventScroll: true });
+  }));
+  // ---------------------------------------------------------------- o menu da conta (o ícone da pessoa)
+  /* Com sessão — o sinal «lfmobile:conta» que a página da conta põe ao entrar e tira ao sair ou num 401 —, o ícone
+     abre um menu pequeno: quem entrou, «A minha conta», «As minhas encomendas» e «Sair». Sem sessão, o ícone é a
+     ligação para entrar (como antes). É uma revelação (o botão com aria-expanded e a lista a seguir), não um
+     role=menu: são ligações de navegação. O nome e o email pedem-se à conta só quando se abre. */
+  const caixaConta = $('[data-menu-conta]');
+  if (caixaConta) {
+    const botao = $('[data-menu-conta-botao]', caixaConta);
+    const lista = $('[data-menu-conta-lista]', caixaConta);
+    const comSessao = () => { try { return localStorage.getItem('lfmobile:conta') === '1'; } catch (_) { return false; } };
+    let quem = null;
+    const fecharConta = (devolver) => {
+      if (lista.hidden) return;
+      lista.hidden = true;
+      botao.setAttribute('aria-expanded', 'false');
+      if (devolver) botao.focus();
+    };
+    const prepararConta = () => {
+      if (comSessao()) { botao.setAttribute('aria-expanded', String(!lista.hidden)); botao.setAttribute('aria-controls', lista.id); return; }
+      fecharConta(false);
+      botao.removeAttribute('aria-expanded');
+      botao.removeAttribute('aria-controls');
+      quem = null;
+    };
+    const lerQuem = () => {
+      quem = quem || fetch('/conta/api/dados', { credentials: 'same-origin', cache: 'no-store' }).then((r) => {
+        if (r.status === 401) { try { localStorage.removeItem('lfmobile:conta'); } catch (_) { /* sem armazenamento */ } location.assign(botao.href); return null; }
+        return r.ok ? r.json() : null;
+      }).then((j) => {
+        if (!j) return;
+        const nome = String((j.dados && j.dados.nome) || '').trim().split(/\s+/)[0];
+        $('[data-menu-conta-ola]', lista).textContent = nome ? `Olá, ${nome}` : 'Olá!';
+        $('[data-menu-conta-email]', lista).textContent = j.email || '';
+      }).catch(() => { quem = null; });
+    };
+    botao.addEventListener('click', (e) => {
+      prepararConta();
+      if (!comSessao()) return;                 // sem sessão: segue para entrar
+      e.preventDefault();
+      if (!lista.hidden) { fecharConta(false); return; }
+      lista.hidden = false;
+      botao.setAttribute('aria-expanded', 'true');
+      lerQuem();
+    });
+    document.addEventListener('click', (e) => { if (!caixaConta.contains(e.target)) fecharConta(false); });
+    // o Escape fecha onde quer que esteja o foco (no Safari um clique não dá o foco ao ícone: ouvir só no menu não chegava)
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !lista.hidden) { e.preventDefault(); fecharConta(true); } });
+    caixaConta.addEventListener('focusout', (e) => { if (e.relatedTarget && !caixaConta.contains(e.relatedTarget)) fecharConta(false); });
+    $('[data-menu-conta-sair]', lista).addEventListener('click', async (e) => {
+      e.currentTarget.disabled = true;
+      try { await fetch('/conta/api/sair', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}', credentials: 'same-origin' }); } catch (_) { /* o cookie acaba sozinho */ }
+      try { localStorage.removeItem('lfmobile:conta'); } catch (_) { /* sem armazenamento */ }
+      location.assign(botao.href);              // a página da conta mostra a entrada: vê-se que saiu
+    });
+    // entrou ou saiu noutro separador, ou nesta página (a conta avisa)
+    window.addEventListener('storage', (e) => { if (e.key === 'lfmobile:conta') prepararConta(); });
+    window.addEventListener('lfmobile:conta', prepararConta);
+    window.addEventListener('pageshow', prepararConta);
+    prepararConta();
+  }
+
   $$('[data-abrir]').forEach((b) => b.addEventListener('click', (e) => {
     if (b.dataset.abrir === 'carrinho' && /pagina-(carrinho|checkout)/.test(document.body.className)) return; // já está no carrinho
     e.preventDefault();
@@ -311,11 +403,23 @@
     desenhar();
   });
 
+  // ---------------------------------------------------------------- o menu da loja (computador)
+  /* Abre ao passar o rato ou com o Tab (o CSS); o Escape fecha-o, tirando o foco de lá. */
+  const menuLoja = $('[data-menu-loja]');
+  if (menuLoja) document.addEventListener('keydown', (e) => {
+    const li = menuLoja.parentElement;
+    if (e.key === 'Escape' && li.contains(document.activeElement)) { const a = $('a', li); if (a) a.focus(); document.activeElement.blur(); }
+  });
+
   // ---------------------------------------------------------------- loja: a categoria aberta à vista
   const filaChips = $('.chips ul');
   const aberta = filaChips && $('[aria-current]', filaChips);
   if (aberta) {
+    /* Vinda de outro separador (o lugar reposto pelo script em linha da loja), a fila fica deslizada como estava:
+       o separador tocado não foge de debaixo do dedo. */
+    const deslizada = raiz.dataset.lugarDaLoja;
     const centrar = () => {
+      if (deslizada !== undefined) { filaChips.scrollLeft = Number(deslizada) || 0; return; }
       if (filaChips.scrollWidth <= filaChips.clientWidth) return;
       const li = aberta.parentElement;
       filaChips.scrollLeft = li.offsetLeft - (filaChips.clientWidth - li.offsetWidth) / 2;
@@ -386,7 +490,7 @@
   /* A marca enche a lista dos modelos (agrupados pela família, como na capa), com «Outro modelo» no
      fim, que mostra o campo para o escrever; com «Outra marca» (ou uma marca sem modelos), só o
      campo. O modelo escolhido na lista fica também no campo escrito (escondido): é esse que vai para
-     o carrinho. Uma página que chega com ?modelo=Marca|Modelo (das reparações) já o traz escolhido,
+     o carrinho. Uma página que chega com #modelo=Marca|Modelo (das reparações) já o traz escolhido,
      e muda-se como outro qualquer. Sem JavaScript, fica só o campo escrito. */
   const modelosPorMarca = (() => { try { return JSON.parse(($('#dados-modelos') || {}).textContent || '{}'); } catch (_) { return {}; } })();
   const OUTRO_MODELO = '-outro-';
@@ -418,7 +522,7 @@
       const g = grupos();
       lista.innerHTML = g.length
         ? `<option value="">Escolha o modelo…</option>${g.map(([fam, l]) => `<optgroup label="${esc(fam)}">${l.map((m) => `<option value="${esc(m)}">${esc(m)}</option>`).join('')}</optgroup>`).join('')}<option value="${OUTRO_MODELO}">Outro modelo (escrever)</option>`
-        : '<option value="">Escolha primeiro a marca</option>';
+        : '<option value="">Primeiro, a marca</option>';
     };
     marca.addEventListener('change', () => {
       encher();
@@ -432,7 +536,12 @@
       nome.value = lista.value;
       mostrar();
     });
-    const pedido = new URLSearchParams(location.search).get('modelo');
+    /* O modelo vem no fragmento (#modelo=Marca|Modelo): para o Google não é outro endereço. Com ?modelo= eram
+       2416 endereços repetidos das fichas das películas, o triplo das páginas verdadeiras (13 nov 2026). O ?modelo=
+       das ligações antigas continua a servir. */
+    let doFragmento = '';
+    try { if (/^#modelo=/.test(location.hash)) doFragmento = decodeURIComponent(location.hash.slice(8)); } catch (_) { /* fragmento mal formado: fica sem modelo */ }
+    const pedido = doFragmento || new URLSearchParams(location.search).get('modelo');
     if (pedido && pedido.includes('|')) {
       const [m, n] = pedido.split('|');
       const escrito = String(n || '').trim().slice(0, 60);
@@ -494,36 +603,6 @@
       qtdInput.value = 1;
       mostrarTotal();
       abrir('carrinho', $('button[type="submit"]', form));
-    });
-  });
-  /* O botão do cartão (os artigos sem escolhas): junta um ao carrinho e abre a gaveta. */
-  document.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-juntar]');
-    if (!b || !window.LFCarrinho) return;
-    e.preventDefault();
-    await window.LFCarrinho.juntar({ produto: b.dataset.juntar, opcoes: [], qtd: 1 });
-    b.dataset.feito = '';
-    setTimeout(() => { delete b.dataset.feito; }, 1200);
-    abrir('carrinho', b);
-  });
-
-  // ---------------------------------------------------------------- a escolha rápida do modelo (capa)
-  /* A marca filtra os grupos da lista dos modelos; «Ver preços» abre a página do modelo escolhido
-     (sem modelo, a página das reparações). */
-  $$('form[data-rapido]').forEach((form) => {
-    const marca = $('[data-rapido-marca]', form);
-    const modelo = $('[data-rapido-modelo]', form);
-    const filtrar = () => {
-      $$('optgroup', modelo).forEach((g) => { g.hidden = g.dataset.marca !== marca.value; g.disabled = g.dataset.marca !== marca.value; });
-      const sel = modelo.selectedOptions[0];
-      if (sel && sel.parentElement.tagName === 'OPTGROUP' && sel.parentElement.disabled) modelo.value = '';
-    };
-    marca.addEventListener('change', filtrar);
-    filtrar();
-    modelo.addEventListener('change', () => { if (modelo.value) form.requestSubmit(); });
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      location.href = modelo.value ? `${form.dataset.rapido}${modelo.value}/` : `${form.dataset.rapido}#escolher`;
     });
   });
 

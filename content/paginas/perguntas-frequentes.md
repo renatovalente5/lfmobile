@@ -54,7 +54,7 @@ De vidro temperado, de privacidade, mate, para a câmara e de hidrogel, para qua
 
 No carrinho, em «Tem um cupão?». O desconto aparece no total antes de encomendar.
 
-## Não encontro o modelo que quero na loja.
+## E se não encontrar o modelo que quero na loja?
 
 Encomendamos para si. Diga-nos o modelo pelo WhatsApp e dizemos-lhe o preço e o prazo.
 

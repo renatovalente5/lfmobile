@@ -35,8 +35,8 @@
   },
   "avisos": "",
   "categoria": "recondicionados",
-  "destaque": true,
+  "destaque": false,
   "novidade": false,
-  "publicado": true,
+  "publicado": false,
   "ordem": 30
 }

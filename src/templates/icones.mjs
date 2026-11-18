@@ -10,10 +10,12 @@ const C = (corpo, extra = '') =>
 
 export const icones = {
   // a interface
+  pessoa: T('<circle cx="12" cy="8.2" r="3.7"/><path d="M4.8 19.6c.9-3.3 3.8-5.4 7.2-5.4s6.3 2.1 7.2 5.4"/>'),
   carrinho: T('<path d="M5.5 8h13l-1.1 11.2a1 1 0 0 1-1 .8H7.6a1 1 0 0 1-1-.8L5.5 8Z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/>'),
   menu: T('<path d="M4 7h16M4 12h16M4 17h16"/>'),
   fechar: T('<path d="M6 6l12 12M18 6 6 18"/>'),
   seta: T('<path d="M5 12h14M13 6l6 6-6 6"/>'),
+  sair: T('<path d="M14 4h3.5A2.5 2.5 0 0 1 20 6.5v11a2.5 2.5 0 0 1-2.5 2.5H14"/><path d="M10 16.5 5.5 12 10 7.5M5.5 12H15"/>'),
   setaEsq: T('<path d="M19 12H5M11 6l-6 6 6 6"/>'),
   baixo: T('<path d="m6 9 6 6 6-6"/>'),
   externo: T('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
@@ -51,6 +53,8 @@ export const icones = {
   // os aparelhos
   telemovel: T('<rect x="7" y="3" width="10" height="18" rx="2.2"/><path d="M11 17.8h2"/>'),
   tablet: T('<rect x="4.5" y="3" width="15" height="18" rx="2.2"/><path d="M11 17.8h2"/>'),
+  portatil: T('<rect x="5" y="5" width="14" height="10" rx="1.6"/><path d="M2.5 18.5h19"/>'),
+  casa: T('<path d="M4 11 12 4.5l8 6.5"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5.5h4V20"/>'),
   relogioPulso: T('<rect x="6.5" y="6.5" width="11" height="11" rx="3"/><path d="M9 6.5 9.6 3h4.8l.6 3.5M9 17.5l.6 3.5h4.8l.6-3.5"/>'),
   auriculares: T('<path d="M8 4.5a3 3 0 0 0-3 3v2.5a3 3 0 0 0 3 3h.5V4.5H8ZM16 4.5a3 3 0 0 1 3 3v2.5a3 3 0 0 1-3 3h-.5V4.5H16Z"/><path d="M8.5 13v6.5M15.5 13v6.5"/>'),
   ferramentas: T('<path d="M14.5 6.5a3.5 3.5 0 0 0 4.4 4.4L9 20.8a1.8 1.8 0 0 1-2.6-2.6l9.9-9.9a3.5 3.5 0 0 0-1.8-1.8Z"/><path d="m4 5 2.5 2.5M4 5l1.5-1.5L8 6"/>'),
