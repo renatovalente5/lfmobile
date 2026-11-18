@@ -423,6 +423,9 @@ function destinatariosComExtras() {
    o cartão ou o Multibanco seria falso. */
 const pagamentoOnline = site.pagamentos?.modo === 'online';
 const PAGAMENTO_EM_MODO_ENCOMENDA = 'Envia a encomenda no site e nós confirmamos consigo, por email ou WhatsApp, a disponibilidade, a entrega e a forma de pagamento. Só paga depois dessa confirmação.';
+/* Os métodos numa frase só, com o «ou»: a legal-comum junta a lista só com vírgulas («MB WAY, referência
+   Multibanco, cartão»), e é partilhada com os outros sites. */
+const METODOS_NOS_TERMOS = 'MB WAY, referência Multibanco ou cartão';
 /* Como se paga no site (os termos): onde, os prazos (worker/encomendas/prazos.js) e quando a encomenda
    fica sem efeito. */
 const PAGAMENTO_NO_SITE = `O MB WAY e a referência Multibanco pagam-se no próprio site; o cartão, na página segura da ifthenpay, que não nos dá acesso aos dados dele. O pedido MB WAY tem de ser aceite na app em 4 minutos (pode pedir outro), a referência Multibanco vale ${DIAS_MULTIBANCO} dias e, nos outros casos, tem ${PRAZO_MINUTOS} minutos para pagar; sem o pagamento nesse prazo, a encomenda fica sem efeito e nada é cobrado. Se um pagamento chegar duas vezes, devolvemos o que estiver a mais.`;
@@ -477,7 +480,7 @@ function resolverMarcadores(fonte, onde) {
     mapa: () => site.local?.mapa || ctx.url('/contactos/'),
     botoesDesistencia: () => guardar(botoesDesistencia(), true),
     comoSeFazAEncomenda: () => guardar(pagamentoOnline
-      ? pecaLegal('como-encomendar', COMO_SE_FAZ_A_ENCOMENDA({ canal: 'site', pagamentos: ['MB WAY', 'referência Multibanco', 'cartão'], urlTermos: ctx.url('/termos-e-condicoes/') }))
+      ? pecaLegal('como-encomendar', COMO_SE_FAZ_A_ENCOMENDA({ canal: 'site', pagamentos: [METODOS_NOS_TERMOS], urlTermos: ctx.url('/termos-e-condicoes/') }))
       : comoEncomendarSemPagamentoNoSite(), true),
     formularioLivreResolucao: () => guardar(pecaLegal('formulario-livre-resolucao', `<pre class="formulario-legal">${esc(formularioLivreResolucao({ nome: site.empresa.nome || `[${site.marca}]`, morada: site.empresa.morada ? moradaCompleta(site.empresa) : '[morada]', email: c.email || '[email]' }))}</pre>`), true),
     avisoRetoma: () => guardar(pecaLegal('retoma', `<p>${esc(AVISO_RETOMA({ tipos: ['eee', 'pilhas', 'baterias'], como: { eee: 'diga-nos nas observações da encomenda ou pelo WhatsApp, e entregue-o na loja ou junte-o à devolução', pilhas: 'basta trazê-las à loja', baterias: 'diga-nos ao comprar e entregue-a na loja' } }))}</p>`), true),
