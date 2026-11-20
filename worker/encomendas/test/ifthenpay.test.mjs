@@ -6,14 +6,14 @@ import { test, afterEach, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import worker from '../index.js';
 import * as I from '../ifthenpay.js';
-import { ULTIMA_PERGUNTA, ESPERA_MBWAY_MS, varrer, fimDaReferencia, expirar } from '../pagamento.js';
+import { ULTIMA_PERGUNTA, varrer, fimDaReferencia, expirar, pedidoMbwayDaEncomenda } from '../pagamento.js';
 import { alterarEncomenda } from '../encomenda.js';
 import { gravarCupao, usosDe } from '../cupoes.js';
 import { DIAS_MULTIBANCO, MAX_PEDIDOS } from '../prazos.js';
 import { catalogoBase, envFalso, envIfthenpay, redeFalsa, pedir, pedidoValido, online, bearer, CHAVES } from './ajuda.mjs';
 
 let rede;
-beforeEach(() => { ULTIMA_PERGUNTA.clear(); ESPERA_MBWAY_MS.valor = 0; });
+beforeEach(() => { ULTIMA_PERGUNTA.clear(); });
 afterEach(() => { if (rede) rede.repor(); rede = null; });
 const comecar = async (o) => { const x = await online(o); rede = x.rede; x.rede.chamadas.length = 0; return x; };
 const emails = () => rede.resend();
@@ -353,14 +353,57 @@ test('/pagar: a referência que vale é a mesma; já paga diz «paga»; fora do 
   assert.equal(r.status, 404);
 });
 
-test('/pagar com o MB WAY aceite na app mas ainda fora da lista de pagamentos: não sai outro pedido (seria um segundo pagamento)', async () => {
+test('/pagar com o MB WAY aceite na app mas ainda fora da lista de pagamentos: fica «paga» já, e não sai outro pedido (seria um segundo pagamento)', async () => {
   const x = await comecar({ metodo: 'MBWAY' });
   x.ifp.mbway.set((await x.ler()).pagamento.mbway.requestId, '000');
   rede.chamadas.length = 0;
   const r = await pagarDeNovo(x, { metodo: 'MBWAY' });
-  assert.equal(r.status, 409);
-  assert.match(r.json.erro, /foi aceite: estamos a confirmá-lo/);
+  assert.equal(r.status, 200, r.texto);
+  assert.equal(r.json.estado, 'paga');
   assert.equal(rede.ifthenpay().filter((c) => c.caminho === '/spg/payment/mbway').length, 0);
+});
+
+test('a página, MB WAY aceite na app e ainda fora da lista (20 nov 2026: 9 s de atraso): fica «paga» logo, com o valor do pedido; a lista depois não muda nada nem repete emails', async () => {
+  const x = await comecar({ metodo: 'MBWAY' });
+  const enc = await x.ler();
+  x.ifp.mbway.set(enc.pagamento.mbway.requestId, '000');   // aceite na app; a lista de pagamentos ainda vazia
+  rede.chamadas.length = 0;
+  const r = await ver(x);
+  assert.equal(r.json.estado, 'paga');
+  assert.equal(rede.ifthenpay().filter((c) => c.caminho === '/v2/payments/read').length, 1, 'uma leitura, sem esperas nem repetições');
+  const depois = await x.ler();
+  assert.equal(depois.pagamento.metodo_pago, 'MBWAY');
+  assert.equal(depois.pagamento.pago_cents, depois.total_cents);
+  assert.equal(depois.pagamento.recebido_cents, depois.total_cents, 'o reembolso pelo painel já sabe quanto entrou');
+  assert.equal(depois.pagamento.requestId_pago, enc.pagamento.mbway.requestId, 'é com ele que se reembolsa');
+  assert.equal(depois.historico.at(-1).estado, 'paga');
+  assert.equal(emails().length, 2);
+  // a lista apanha-o; a varredura e o callback já não mudam nada
+  x.ifp.pagar(x.pid, { metodo: 'MBWAY', cents: depois.total_cents, requestId: enc.pagamento.mbway.requestId });
+  rede.chamadas.length = 0;
+  assert.equal((await callback(x.env, { key: CHAVES.ANTI, orderId: x.pid, requestId: enc.pagamento.mbway.requestId })).status, 200);
+  await varrer(x.env);
+  const fim = await x.ler();
+  assert.equal(fim.versao, depois.versao, 'nada a gravar');
+  assert.equal(emails().length, 0);
+});
+
+test('o callback do MB WAY antes da lista: pergunta o estado DESTE pedido (200 e «paga»); um requestId que não é desta encomenda não conta', async () => {
+  const x = await comecar({ metodo: 'MBWAY' });
+  const enc = await x.ler();
+  x.ifp.mbway.set('pedido-de-outra-loja', '000');
+  rede.chamadas.length = 0;
+  let r = await callback(x.env, { key: CHAVES.ANTI, orderId: x.pid, requestId: 'pedido-de-outra-loja' });
+  assert.equal(r.status, 409, 'só se pergunta pelos pedidos desta encomenda');
+  assert.equal(rede.ifthenpay().filter((c) => c.caminho === '/spg/payment/mbway/status').length, 0);
+  r = await callback(x.env, { key: CHAVES.ANTI, orderId: x.pid, requestId: enc.pagamento.mbway.requestId });
+  assert.equal(r.status, 409, 'ainda à espera na app');
+  x.ifp.mbway.set(enc.pagamento.mbway.requestId, '000');
+  r = await callback(x.env, { key: CHAVES.ANTI, orderId: x.pid, requestId: enc.pagamento.mbway.requestId });
+  assert.equal(r.status, 200);
+  assert.equal((await x.ler()).estado, 'paga');
+  assert.equal(emails().length, 2);
+  assert.equal(pedidoMbwayDaEncomenda((await x.ler()).pagamento, 'pedido-de-outra-loja'), false);
 });
 
 test('/pagar com a encomenda já paga (o MB WAY aceite à última hora): não pede outro, diz «paga»', async () => {

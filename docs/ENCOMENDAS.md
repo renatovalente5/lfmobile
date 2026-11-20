@@ -118,6 +118,9 @@ sem ela, ou errada, 404):
 disse; `ultimo_falhou` quando a ifthenpay não criou o último pedido; `metodo_pago` depois de pago.) Com a
 encomenda «pendente», esta rota pergunta à ifthenpay (no máximo de 1,5 em 1,5 s no MB WAY e de 15 em
 15 s nos outros, por encomenda; o travão vive em memória) — é assim que a página vê o pagamento entrar.
+No MB WAY pergunta-se o estado do pedido (`/spg/payment/mbway/status`, com a nossa chave): «pago» deixa a
+encomenda paga logo, sem esperar pela lista de pagamentos (`/v2/payments/read`), que a 20 nov 2026 só o
+mostrou 9 s depois; o pedido é desta encomenda e pediu o total dela (`confirmar`, `mbwayAceite`).
 O `?s=` da Stripe saiu (400).
 
 ## 4. Onde ficam as encomendas: o objecto de cada uma, e a cópia no KV (`ORDERS`, só o Worker escreve)

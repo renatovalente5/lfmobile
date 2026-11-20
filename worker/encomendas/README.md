@@ -23,8 +23,9 @@ Publicado em `https://lfmobile-encomendas.renato-lima-valente-dcb.workers.dev` (
   contrato no §8 do `docs/ENCOMENDAS.md`).
 - `GET /ifthenpay/callback` — a campainha da ifthenpay: um GET **sem assinatura** (só a chave
   anti-phishing), que nunca marca nada por si — confirma sempre com `/v2/payments/read` (o valor
-  conferido); 200 ao que está tratado, 409 quando a ifthenpay ainda não confirma (que repitam), 500
-  com um email por mandar.
+  conferido) ou, num MB WAY que a lista ainda não tem, com o estado DESSE pedido (o `requestId` só serve para
+  perguntar, e só se for um pedido desta encomenda); 200 ao que está tratado, 409 quando a ifthenpay ainda
+  não confirma (que repitam), 500 com um email por mandar.
 - A **varredura** (cron de 10 em 10 minutos): pergunta à ifthenpay pelas encomendas por pagar que
   ninguém está a ver, e dá por expiradas as que passaram do prazo (o uso do cupão volta). A loja não
   depende dos callbacks estarem activos.

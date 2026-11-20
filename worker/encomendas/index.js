@@ -309,8 +309,13 @@ async function pagar(request, env, cors) {
     let estado = 'pendente';
     try { estado = (await estadoMbway(env, { requestId: pg.mbway.requestId })).estado; } catch (err) { console.warn('/pagar: o estado do MB WAY falhou em', e, err && err.message); }
     if (estado === 'pendente') return json({ erro: 'O pedido anterior ainda está na app MB WAY: aceite-o ou recuse-o primeiro.' }, 409, cors);
-    // aceite na app, mas a lista de pagamentos ainda não o tem: outro pedido seria um segundo pagamento
-    if (estado === 'pago') return json({ erro: 'O pagamento MB WAY foi aceite: estamos a confirmá-lo. Aguarde uns segundos.' }, 409, cors);
+    // aceite na app: a encomenda fica paga já (pagamento.js, confirmar), e nunca sai outro pedido (seria um
+    // segundo pagamento)
+    if (estado === 'pago') {
+      const conf = await confirmar(env, e, { mbwayAceite: pg.mbway.requestId }).catch((err) => { console.warn('/pagar: a confirmação do MB WAY aceite falhou em', e, '—', err && err.message); return null; });
+      if (conf && conf.pago) return json({ estado: (conf.enc || enc).estado, proxima: urlDePagar(env, enc) }, 200, cors);
+      return json({ erro: 'O pagamento MB WAY foi aceite: estamos a confirmá-lo. Aguarde uns segundos.' }, 409, cors);
+    }
   }
   const { enc: depois, pedido } = await pedirERegistar(env, enc, r);
   if (pedido.erro) return json({ erro: ERRO_DO_PEDIDO[r.metodo] }, 502, cors);

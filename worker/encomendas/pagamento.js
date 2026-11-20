@@ -179,8 +179,10 @@ export async function mandarAvisos(env, numero, avisos, enc, { origem = 'ifthenp
 
 /* PERGUNTAR À IFTHENPAY SE ESTA ENCOMENDA ESTÁ PAGA, e gravar o que ela disser. Nunca lança por não estar
    paga («ainda não pagou» é o normal de um Multibanco); lança se não se conseguir perguntar (quem chama
-   decide: o callback pede que repitam, a varredura tenta na passagem seguinte). → { enc, pago, falhou } */
-export async function confirmar(env, numero, { origem = 'ifthenpay', reenviarFalhados = false } = {}) {
+   decide: o callback pede que repitam, a varredura tenta na passagem seguinte). → { enc, pago, falhou }
+   `mbwayAceite`: o requestId de um pedido MB WAY cujo estado quem chama ACABOU de perguntar à ifthenpay e veio
+   «pago» (estadoMbway, com a nossa chave MB WAY). */
+export async function confirmar(env, numero, { origem = 'ifthenpay', reenviarFalhados = false, mbwayAceite = null } = {}) {
   const enc = await lerEncomenda(env, numero);
   if (!enc || !enc.pagamento || !enc.pagamento.id) return { enc, pago: false };
   const pg = enc.pagamento;
@@ -192,6 +194,15 @@ export async function confirmar(env, numero, { origem = 'ifthenpay', reenviarFal
       const v2 = I.conferir(I.pagosDaLista(await I.listarMultibanco(env, { orderId: pg.id })), { cents: enc.total_cents });
       if (v2.pago) { console.warn('pagamento visto pelo /multibanco/reference/list e NÃO pelo /v2/payments/read:', numero); v = v2; }
     } catch (e) { console.warn('a lista do Multibanco falhou em', numero, e.message); }
+  }
+  // O MB WAY ACEITE NA APP, antes de a lista de pagamentos o ter (20 nov 2026, o pagamento de prova: o estado do
+  // pedido disse «pago» às 19:13:45 e a lista só às 19:13:54; o cliente ficou à espera, e o callback das 19:13:52
+  // levou um 409, que a ifthenpay só repete 5 minutos depois). O estado vem da ifthenpay, pedido com a nossa chave,
+  // e o pedido é desta encomenda e deste valor (pedirAIfthenpay pede o total): vale como pago. Quando a lista o
+  // tiver, a varredura e o callback já não mudam nada (aplicarPagamento só junta o que faltar).
+  if (!v.pago && mbwayAceite && pedidoMbwayDaEncomenda(pg, mbwayAceite)) {
+    v = { pago: true, cents: enc.total_cents, metodo: 'MBWAY', requestId: mbwayAceite, referencia: pg.id, recebido_cents: enc.total_cents, n: 1 };
+    console.log('MB WAY aceite na app, ainda fora da lista de pagamentos:', numero);
   }
   if (!v.pago) return { enc, pago: false };
   const em = agoraISO();
@@ -296,6 +307,12 @@ export async function callback(url, env, ctx) {
   let r;
   try {
     r = await confirmar(env, numero, { reenviarFalhados: true });
+    // Um MB WAY que a lista ainda não tem: pergunta-se o estado DESTE pedido (o requestId do callback só serve para
+    // perguntar, e só se for um pedido MB WAY desta encomenda; quem diz «pago» é a ifthenpay). Sem isto, o 409 fazia
+    // a ifthenpay repetir 5 minutos depois, e quem fechou a página esperava por ela (ou pela varredura).
+    if (!r.pago && c.requestId && pedidoMbwayDaEncomenda(enc.pagamento, c.requestId) && (await I.estadoMbway(env, { requestId: c.requestId })).estado === 'pago') {
+      r = await confirmar(env, numero, { reenviarFalhados: true, mbwayAceite: c.requestId });
+    }
   } catch (e) {
     console.error('callback: a ifthenpay não respondeu à confirmação de', numero, '—', e && e.message);
     return new Response('por confirmar', { status: 503 });
@@ -309,8 +326,8 @@ export async function callback(url, env, ctx) {
    O que a página /pagar/ pergunta (GET /encomenda), de 1,5 em 1,5 s no MB WAY e de 20 em 20 s no
    Multibanco: aqui pergunta-se à ifthenpay no máximo a esse ritmo, por encomenda (o travão vive em memória,
    não no KV; a documentação deles avisa que o abuso da API pode trancar a conta). O MB WAY tem uma pergunta
-   própria e mais barata (o estado do pedido: aceite, recusado, expirado); só com «pago» se vai confirmar
-   — até quatro vezes, porque a lista de pagamentos pode ainda não o ter. */
+   própria e mais barata (o estado do pedido: aceite, recusado, expirado); com «pago», a encomenda fica paga
+   logo (confirmar, mbwayAceite), sem esperar pela lista de pagamentos. */
 export const ULTIMA_PERGUNTA = new Map();
 function podePerguntar(chave, ms, agora = Date.now()) {
   if (agora - (ULTIMA_PERGUNTA.get(chave) || 0) < ms) return false;
@@ -318,8 +335,11 @@ function podePerguntar(chave, ms, agora = Date.now()) {
   if (ULTIMA_PERGUNTA.size > 500) for (const [k, t] of ULTIMA_PERGUNTA) if (agora - t > 3600000) ULTIMA_PERGUNTA.delete(k);
   return true;
 }
-const dormir = (ms) => new Promise((ok) => setTimeout(ok, ms));
-export const ESPERA_MBWAY_MS = { valor: 700 };   // os testes põem 0
+/** Um pedido MB WAY feito para esta encomenda (o último ou um anterior: cada um pediu o total dela). */
+export function pedidoMbwayDaEncomenda(pg, requestId) {
+  if (!pg || !requestId) return false;
+  return (pg.mbway && pg.mbway.requestId === requestId) || (pg.pedidos || []).some((p) => p && p.metodo === 'MBWAY' && p.requestId === requestId);
+}
 
 export async function verNaPagina(env, enc) {
   if (!enc || enc.modo !== 'online' || enc.estado !== 'pendente' || !enc.pagamento || !env.IFTHENPAY_BACKOFFICE_KEY) return enc;
@@ -330,12 +350,8 @@ export async function verNaPagina(env, enc) {
       if (!podePerguntar(`mbway:${numero}`, 1500)) return enc;
       const s = await I.estadoMbway(env, { requestId: pg.mbway.requestId });
       if (s.estado === 'pago') {
-        for (let i = 0; i < 4; i++) {
-          const r = await confirmar(env, numero);
-          if (r.enc) enc = r.enc;
-          if (r.pago) return enc;
-          await dormir(ESPERA_MBWAY_MS.valor);
-        }
+        const r = await confirmar(env, numero, { mbwayAceite: pg.mbway.requestId });
+        if (r.enc) enc = r.enc;
       } else if (s.estado === 'recusado' || s.estado === 'expirado') {
         // o fim deste pedido grava-se (uma vez): a página mostra-o, e um pedido novo pode sair
         const pedido = pg.mbway.requestId;
