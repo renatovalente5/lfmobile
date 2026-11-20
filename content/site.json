@@ -79,7 +79,7 @@
     "levantamento": "O levantamento é na loja, na Rua das Marcadas, 253, em São Roque, no horário de abertura: fica pronto no próprio dia em que a encomenda é confirmada, e avisamos quando estiver."
   },
   "pagamentos": {
-    "modo": "encomenda"
+    "modo": "online"
   },
   "garantias": {
     "recondicionados": 18
