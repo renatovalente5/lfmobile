@@ -117,12 +117,16 @@ os pagamentos para fora da ifthenpay. Os passos estão no topo do script.
 2. **O email do dono** — `STORE_EMAIL` no toml (recebe só o que lhe pede alguma coisa: «Nova
    encomenda», «Encomenda paga» e um pagamento numa encomenda anulada; o «expirou» e o «falhou» vão só
    ao cliente; é o reply-to dos emails ao cliente). Vazio, o dono não recebe nada.
-3. **A ifthenpay** (modo «online», desde 11 nov 2026 em vez da Stripe; a adesão foi aprovada a 18 nov 2026) —
+3. ~~A ifthenpay~~ — ligada a 20 nov 2026: as chaves vieram no PDF da adesão (reencaminhado pelo Leandro), o
+   script abaixo pôs os segredos e activou os três callbacks (sonda «ok»), e o botão do painel pôs o modo
+   «online» (commit 616a220). A chave MB WAY só se prova com um pagamento real: o estado do MB WAY responde
+   igual a uma chave inventada. Se uma chave mudar,
    `node scripts/ligar-ifthenpay.mjs` faz o que se segue de uma vez, a partir das chaves em
    `_cliente/segredos/ifthenpay/` (backoffice, mbway, multibanco, cartao; a anti-phishing faz-se lá): os três
    segredos pelo stdin, o callback de cada método (`POST /v2/callback/activation`, documentado em
    https://ifthenpay.com/docs/en/api/callback/: `paymentMethod` é `MB`, `MBWAY` ou `CCARD`; responde em texto
-   «OK: Callback is activated with success»; não há maneira de ler o que ficou registado) e a saúde com a sonda.
+   a começar por «OK», em português na conta a sério: «OK: Callback ativado com sucesso»; não há maneira de ler
+   o que ficou registado) e a saúde com a sonda.
    Os três segredos:
    - `IFTHENPAY_ACCOUNTS`: `MBWAY|<chave MB WAY>;MB|<chave Multibanco>;CCARD|<chave CCARD>` (só os
      métodos que a conta tiver; o site mostra só esses);
