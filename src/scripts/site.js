@@ -428,8 +428,8 @@
     if (document.fonts) document.fonts.ready.then(centrar);
   }
 
-  // ---------------------------------------------------------------- filas de artigos: as setas
-  $$('.fila').forEach((f) => {
+  // ---------------------------------------------------------------- filas de artigos (e a das categorias): as setas
+  $$('.fila, .cat-fila').forEach((f) => {
     const pista = $('[data-fila]', f);
     const ant = $('[data-fila-anterior]', f);
     const seg = $('[data-fila-seguinte]', f);

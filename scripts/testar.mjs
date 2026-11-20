@@ -826,7 +826,7 @@ teste('a conta do cliente: a página /conta/, a ligação no cabeçalho, no menu
   // sair em todos e apagar a conta: dentro das «Definições da conta», fechadas (não à vista)
   assert.match(conta, /<details class="conta__definicoes">\s*<summary>Definições da conta<\/summary>[\s\S]*?data-conta-sair-todos[\s\S]*?data-conta-apagar[\s\S]*?<\/details>/);
   assert.match(conta, /<section class="conta__seccao" id="encomendas"/, 'o menu da conta leva a /conta/#encomendas');
-  assert.match(conta, /data-desistir-url="\/desistir\/"/);
+  assert.doesNotMatch(conta, /desistir-url/, 'a conta já não leva «Desistir da compra» (20 nov 2026)');
   // este site não carrega nada do Google: o endereço do Google só existe no script, para o clique
   assert.doesNotMatch(conta, /<script[^>]+src="[^"]*google/i);
   assert.doesNotMatch(conta, /<(iframe|img|link)[^>]+(google|gstatic)/i);

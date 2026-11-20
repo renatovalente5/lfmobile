@@ -102,10 +102,14 @@ export function inicio(ctx) {
      fundo, ou o desenho do aparelho. As que não têm filhas (Apple, Samsung, Áudio, Capas…): as mães (Telemóveis,
      Acessórios) estão no menu, e na fila repetiam as filhas. */
   const cats = categoriasSemFilhas(ctx);
+  // as setas (as da fila dos destaques, site.js) só aparecem no computador e quando a fila não cabe (20 nov 2026:
+  // com as categorias novas deixou de caber, e a página inteira deslizava para o lado)
   const filaCats = `<nav class="cat-fila" aria-label="Categorias da loja">
-  <ul>${cats.map((k) => `<li><a href="${ctx.url(`/loja/${k.slug}/`)}"><span class="cat-fila__poco">${imagemDaCategoria(ctx, k.slug)}</span><span class="cat-fila__nome">${esc(k.nome)}</span></a></li>`).join('')}
+  <ul data-fila>${cats.map((k) => `<li><a href="${ctx.url(`/loja/${k.slug}/`)}"><span class="cat-fila__poco">${imagemDaCategoria(ctx, k.slug)}</span><span class="cat-fila__nome">${esc(k.nome)}</span></a></li>`).join('')}
   <li><a href="${ctx.url('/reparacoes/')}"><span class="cat-fila__poco cat-fila__poco--escuro"><span class="cat-fila__icone">${icones.ferramentas}</span></span><span class="cat-fila__nome">Reparações</span></a></li>
   </ul>
+  <button class="fila__seta cat-fila__seta cat-fila__seta--ant" type="button" data-fila-anterior aria-label="Categorias anteriores" tabindex="-1">${icones.setaEsq}</button>
+  <button class="fila__seta cat-fila__seta cat-fila__seta--seg" type="button" data-fila-seguinte aria-label="Mais categorias" tabindex="-1">${icones.seta}</button>
 </nav>`;
 
   /* OS DESTAQUES: os artigos marcados no painel (até doze); sem nenhum, os primeiros pela ordem. */
@@ -777,7 +781,7 @@ export function conta(ctx) {
   const zap = ctx.site.contactos.whatsapp ? ctx.whatsapp('Olá! Tenho uma dúvida sobre a encomenda ') : '';
   const recond = Number.isInteger(ctx.site.garantias?.recondicionados) ? ctx.site.garantias.recondicionados : 18;
   const campo = (id, nome, rotulo, extra = '') => `<div class="campo"><label for="${id}">${rotulo}</label><input id="${id}" name="${nome}" ${extra}></div>`;
-  const conteudo = `<div class="contentor conta" data-area-cliente data-contactos-url="${ctx.url('/contactos/')}" data-desistir-url="${ctx.url('/desistir/')}" data-localidade="${esc(ctx.site.local?.localidade || '')}"${zap ? ` data-whatsapp="${esc(zap)}"` : ''}>
+  const conteudo = `<div class="contentor conta" data-area-cliente data-contactos-url="${ctx.url('/contactos/')}" data-localidade="${esc(ctx.site.local?.localidade || '')}"${zap ? ` data-whatsapp="${esc(zap)}"` : ''}>
   <p class="conta__carregar" data-conta-carregar role="status">A abrir a sua conta…</p>
   <section class="conta__entrar" data-conta-entrar hidden aria-labelledby="conta-titulo-entrar">
     <h1 class="titulo-pagina" id="conta-titulo-entrar">A minha conta</h1>
@@ -974,7 +978,7 @@ export function contactos(ctx) {
     <div class="contactos-loja__dados">
       <h2 class="contactos-loja__titulo" id="loja-titulo">A loja</h2>
       ${moradaHtml(ctx)}
-      ${e.nome ? `<p class="contactos-loja__vendedor">${esc(e.nome)}${e.tipo ? `, ${esc(e.tipo)}` : ''}${e.nif ? ` · NIF ${esc(e.nif)}` : ''}</p>` : ''}
+      ${e.nome ? `<p class="contactos-loja__vendedor">${esc(e.nome)}${e.tipo ? `, ${esc(e.tipo)}` : ''}${e.nif ? `\u00A0· NIF\u00A0${esc(e.nif)}` : ''}</p>` : ''}
       <h3 class="contactos-loja__rotulo">Horário</h3>
       <p class="estado-loja" data-estado-loja hidden></p>
       ${horarioHtml(ctx)}

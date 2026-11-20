@@ -1,6 +1,6 @@
 // PENTE FINO DA CONTA DO CLIENTE NO BROWSER (16 nov 2026; 99 provas no Chromium e no WebKit). Não corre na CI: precisa
 // dos dois Workers locais e do Playwright. Encomendas novas, para emails novos, a cada corrida; os travões (5 por minuto
-// por IP: código, entrar, checkout, desistir, Google) respeitam-se aqui, por isso demora uns 8 minutos por motor.
+// por IP: código, entrar, checkout, Google) respeitam-se aqui, por isso demora uns 8 minutos por motor.
 //
 // 1. O Worker das encomendas, primeiro (na pasta worker/encomendas):
 //    wrangler dev --config wrangler.toml --port 8791 --var ENCOMENDAS_LOCAL:1
@@ -324,67 +324,31 @@ async function correr() {
     certo(await cabe(p1), 'cabe na largura (computador)');
     await foto(p1, 'B1-conta', true);
   }
-  grupo('B · a ficha: garantias e desistir');
+  grupo('B · a ficha: garantias, sem desistir');
   {
+    // sem «Desistir da compra» na conta desde 20 nov 2026 (o Renato): desiste-se pelo WhatsApp ou por email
     await irConta(p1, `?e=${O1}`);
     await p1.waitForSelector('[data-conta-ficha]:not([hidden])');
     const g = await p1.$$eval('.conta__garantia', (x) => x.map((e) => e.textContent));
     certo(g.join() === `Garantia até ${longa(maisMeses(entregaO1, 36))}`, 'a levantada: «Garantia até …» (3 anos da entrega)', g);
-    const prazo = await texto(p1, '[data-conta-desistir]');
-    const ate14 = longa(new Date(entregaO1.getTime() + 14 * 86400e3));
-    certo(prazo.includes(`Pode desistir até ${ate14}.`) && await visivel(p1, '[data-conta-desistir-botao]'), `pode desistir até ${ate14} (14 dias)`, prazo);
-    let pedidosDes = 0;
-    p1.on('request', (q) => { if (q.url().endsWith('/conta/api/desistir')) pedidosDes++; });
-    // pelo teclado (no Safari um clique não dá o foco ao botão, e então não há para onde o devolver)
-    await p1.focus('[data-conta-desistir-botao]');
-    await p1.keyboard.press('Enter');
-    await p1.waitForSelector('[data-conta-janela][open] #desistir-nota');
-    const cx = await caixa(p1, '[data-conta-janela][open]');
-    certo(Math.abs(cx.esq - cx.dir) <= 2 && Math.abs(cx.cima - cx.baixo) <= 2, 'a janela no meio do ecrã', cx);
-    await p1.keyboard.press('Escape');
-    await esperar(300);
-    certo(pedidosDes === 0 && !(await visivel(p1, '[data-conta-janela][open]')) && await p1.evaluate(() => document.activeElement?.matches?.('[data-conta-desistir-botao]')), 'Escape fecha sem pedir nada, e o foco volta ao botão');
-    await p1.click('[data-conta-desistir-botao]');
-    await p1.waitForSelector('[data-conta-janela][open] #desistir-nota');
-    await fecharJanela(p1, 'nao');
-    certo(pedidosDes === 0, '«Cancelar» não pede nada');
-    await p1.click('[data-conta-desistir-botao]');
-    await p1.waitForSelector('[data-conta-janela][open] #desistir-nota');
-    await p1.fill('#desistir-nota', 'Mudei de ideias <b>já</b>');
-    const t = Date.now() - 300;
-    await vez('desistir');
-    await fecharJanela(p1, 'sim');
-    await p1.waitForSelector('.conta__desistir--pedido');
-    const depois = await texto(p1, '[data-conta-desistir]');
-    certo(/Pediu para desistir a \d+ de \w+ de \d{4}\./.test(depois) && pedidosDes === 1, 'confirmado: «Pediu para desistir a …», um pedido só', depois);
-    let novos = [];
-    for (let i = 0; i < 30 && novos.length < 2; i++) { novos = emailsDepois(t); if (novos.length < 2) await esperar(200); }
-    const aoCliente = novos.find((x) => /Recebemos o seu pedido para desistir/.test(x));
-    const aLoja = novos.find((x) => /O CLIENTE PEDIU PARA DESISTIR/.test(x));
-    certo(aoCliente && /, às \d{2}:\d{2}\./.test(aoCliente) && /Escreveu: «Mudei de ideias <b>já<\/b>»/.test(aoCliente) && aLoja && /Mudei de ideias/.test(aLoja) && !/anule a encomenda/.test(aLoja), 'os dois emails: o recibo com a hora e o que escreveu; o da loja sem «anule» (levantada)', novos.map((x) => x.slice(0, 200)));
-    await foto(p1, 'B2-desistiu', true);
-    await p1.reload({ waitUntil: 'networkidle' });
-    await p1.waitForSelector('.conta__desistir--pedido');
-    const g2 = await p1.$$eval('.conta__garantia', (x) => x.map((e) => e.textContent));
-    certo(g2.join() === g.join(), 'depois do pedido, a garantia não muda de data (conta da entrega)', { antes: g, depois: g2 });
-    const fichaPainel = await painel(`/encomendas/${O1}`);
-    certo(fichaPainel.j?.estado === 'levantada' && fichaPainel.j?.desistencias?.length === 1, 'no Worker: o pedido fica na encomenda e o estado não muda', fichaPainel.j && { estado: fichaPainel.j.estado, desistencias: fichaPainel.j.desistencias });
+    const semDesistir = async () => !(await p1.$('[data-conta-desistir], [data-conta-desistir-botao]')) && !/desistir/i.test(await texto(p1, '[data-conta-ficha]'));
+    certo(await semDesistir(), 'a levantada: sem «Desistir da compra» nem «Pode desistir até»');
+    await foto(p1, 'B2-ficha', true);
     // a registada, a enviada, a anulada
     await irConta(p1, `?e=${O2}`);
-    certo((await texto(p1, '[data-conta-desistir]')).includes('Pode desistir até 14 dias depois de receber a encomenda.') && (await p1.$$('.conta__garantia')).length === 0, 'a registada: pode desistir (antes de receber) e não tem garantia a contar');
+    certo(await semDesistir() && (await p1.$$('.conta__garantia')).length === 0, 'a registada: sem desistir, e sem garantia a contar');
     await irConta(p1, `?e=${O3}`);
-    const ate21 = longa(new Date(Date.now() + 21 * 86400e3));
-    certo((await texto(p1, '[data-conta-desistir]')).includes(`Pode desistir até ${ate21}.`) && (await p1.$$('.conta__garantia')).length === 1, `a enviada: até ${ate21} (mais uma semana) e com garantia`, await texto(p1, '[data-conta-desistir]'));
+    certo(await semDesistir() && (await p1.$$('.conta__garantia')).length === 1, 'a enviada: sem desistir, com garantia');
     await irConta(p1, `?e=${O4}`);
-    certo(!(await p1.$('[data-conta-desistir]')) && (await p1.$$('.conta__garantia')).length === 0, 'a anulada: sem desistir e sem garantia');
+    certo(await semDesistir() && (await p1.$$('.conta__garantia')).length === 0, 'a anulada: sem desistir e sem garantia');
     // a de outra pessoa, e um número que não existe
     for (const [q, n] of [[`?e=${O5}`, 'de outra pessoa'], ['?e=LF-20261116-XXXXXX', 'que não existe'], ['?e=lixo<script>', 'com lixo']]) {
       await irConta(p1, q);
       const f = await texto(p1, '[data-conta-falha]');
       certo(/Não encontrámos esta encomenda na sua conta/.test(f) && !(await visivel(p1, '[data-conta-ficha]')), `a encomenda ${n}: «Não encontrámos…»`, f);
     }
-    const api = await p1.evaluate(async (o) => ({ outra: (await fetch(`/conta/api/encomenda?e=${o}`)).status, desistir: (await fetch('/conta/api/desistir', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ e: o }) })).status }), O5);
-    certo(api.outra === 404 && api.desistir === 404, 'pela API: a encomenda de outra pessoa não se lê nem se desiste (404)', api);
+    const api = await p1.evaluate(async (o) => ({ outra: (await fetch(`/conta/api/encomenda?e=${o}`)).status }), O5);
+    certo(api.outra === 404, 'pela API: a encomenda de outra pessoa não se lê (404)', api);
   }
   grupo('B · os meus dados e o checkout');
   {

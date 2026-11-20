@@ -2,8 +2,8 @@
    ENTRAR: com o Google (a página do Google e volta; sem o script deles aqui) ou com o email e um código que vai por email.
    LÁ DENTRO: «Olá, nome», o cartão das películas (com o código QR para mostrar na loja), as encomendas, as garantias
    que ainda correm, os meus dados (que preenchem o checkout), e sair em todos os aparelhos ou apagar a conta.
-   NA FICHA de cada encomenda (/conta/?e=<número>): em que ponto está e o caminho que fez, a garantia de cada artigo, e
-   «Desistir da compra» enquanto o prazo corre.
+   NA FICHA de cada encomenda (/conta/?e=<número>): em que ponto está e o caminho que fez, e a garantia de cada artigo
+   (sem «Desistir da compra» desde 20 nov 2026: o Renato não o quer na conta; desiste-se pelo WhatsApp ou por email).
    Fala com /conta/api/… no próprio domínio (o Worker das encomendas, pelo worker/www.js): a sessão é um cookie que este
    script não lê (HttpOnly); quem diz se há sessão é o /conta/api/eu. «lfmobile:conta» no localStorage só diz que se
    entrou (o checkout pede os dados à conta só então). O pedido do código e o do Google ficam no sessionStorage do
@@ -469,47 +469,7 @@
       </li>`;
     }).join('')}</ol>`;
   }
-  /* DESISTIR DA COMPRA: enquanto o prazo corre (14 dias depois de receber; antes de receber, sempre). Fica registado na
-     encomenda e vai um email ao cliente (a confirmação) e à loja. */
-  function blocoDesistir(enc) {
-    const d = enc.desistir || {};
-    const pedidos = Array.isArray(d.pedidos) ? d.pedidos : [];
-    if (pedidos.length) return `<div class="conta__desistir conta__desistir--pedido" data-conta-desistir><p><strong>Pediu para desistir a ${esc(dataLonga(pedidos.at(-1)))}.</strong> Vamos entrar em contacto consigo para combinar a devolução.</p></div>`;
-    if (!d.pode) return '';
-    const prazo = d.ate ? `Pode desistir até ${esc(dataLonga(d.ate))}.` : 'Pode desistir até 14 dias depois de receber a encomenda.';
-    return `<div class="conta__desistir" data-conta-desistir>
-      <p class="conta__nota">${prazo} <a href="${esc(raiz.dataset.desistirUrl || `${base}desistir/`)}">Como funciona</a></p>
-      <button class="botao botao--contorno" type="button" data-conta-desistir-botao>Desistir da compra</button>
-    </div>`;
-  }
-  async function pedirDesistencia(enc) {
-    const r = await abrirJanela({
-      titulo: 'Desistir da compra?',
-      texto: `<p>Encomenda ${esc(enc.encomenda)}. Vamos entrar em contacto consigo para combinar a devolução.</p>
-        <div class="campo"><label for="desistir-nota">Quer dizer porquê? <span class="campo__opcional">(opcional)</span></label><textarea id="desistir-nota" rows="3" maxlength="500"></textarea></div>`,
-      botoes: [{ t: 'Cancelar', valor: 'nao', foco: true }, { t: 'Confirmar a desistência', valor: 'sim', classe: 'botao--cheio' }],
-    });
-    if (r !== 'sim') return;
-    const nota = String(($('#desistir-nota', janela) || {}).value || '').trim();
-    const caixa = $('[data-conta-desistir]');
-    try {
-      const x = await api('/desistir', { e: enc.encomenda, ...(nota ? { nota } : {}), conta: contaAtual });
-      if (x.status === 401) { mostrarEntrar(x.j.google); return; }
-      if (!x.ok) { dizerFalha(x.j.erro || 'Não conseguimos registar o pedido. Tente outra vez.'); return; }
-      enc.desistir = x.j.desistir;
-      caixa.outerHTML = blocoDesistir(enc);
-      const novo = $('[data-conta-desistir]');
-      // o email da confirmação não saiu: a página diz-o (fica como comprovativo; a loja vê o aviso no painel)
-      if (x.j.recibo === 'falhou') novo.insertAdjacentHTML('beforeend', '<p class="conta__nota">Não conseguimos enviar o email de confirmação. Esta página fica como comprovativo; se precisar, fale connosco pelo WhatsApp.</p>');
-      novo.setAttribute('tabindex', '-1');
-      novo.focus();
-    } catch (_) { dizerFalha('Sem ligação. Veja a internet e tente outra vez.'); }
-  }
-
-  let fichaAtual = null;
-  raiz.addEventListener('click', (e) => { if (e.target.closest('[data-conta-desistir-botao]') && fichaAtual) pedirDesistencia(fichaAtual); });
   function pintarFicha(enc) {
-    fichaAtual = enc;
     contaAtual = String(enc.conta || '');
     const levant = enc.entrega === 'levantamento';
     const gs = Array.isArray(enc.garantias) ? enc.garantias : [];
@@ -538,7 +498,6 @@
           <h2 class="conta__subtitulo">Entrega</h2>
           <p class="conta__entrega">${levant ? `Na loja${raiz.dataset.localidade ? `, em ${esc(raiz.dataset.localidade)}` : ''}. <a href="${esc(raiz.dataset.contactosUrl || `${base}contactos/`)}">Morada e horário</a>` : `Envio para ${esc(enc.morada || 'a morada da encomenda')}.`}</p>
           ${zap ? `<a class="botao botao--whatsapp-suave botao--largo conta__ajuda" href="${esc(zap + encodeURIComponent(enc.encomenda))}" target="_blank" rel="noopener">${icone('whatsapp')}<span>Dúvidas? Falar no WhatsApp</span></a>` : ''}
-          ${blocoDesistir(enc)}
         </div>
       </div>`;
     document.title = document.title.replace(/^[^|]*\|/, `Encomenda ${enc.encomenda} |`);

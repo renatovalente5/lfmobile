@@ -127,7 +127,7 @@ export function cartaoProduto(ctx, p, { tamanhos = '(min-width: 1200px) 260px, (
   <div class="cartao__corpo">
     ${marca ? `<p class="cartao__marca">${esc(marca)}</p>` : ''}
     <${titulo} class="cartao__nome"><a class="cartao__ligacao" href="${ctx.url(`/produtos/${p.slug}/`)}">${esc(p.nome)}</a></${titulo}>
-    ${specs.length ? `<p class="cartao__specs">${specs.map(esc).join(' · ')}</p>` : ''}
+    ${specs.length ? `<p class="cartao__specs">${specs.map((s) => esc(s).replace(/(\d) (?=[A-Za-z%€])/g, '$1\u00A0')).join('\u00A0· ')}</p>` : ''}
     <div class="cartao__pe">
       <div class="cartao__precos">${preco(ctx, p)}${dispTexto && disp !== 'esgotado' ? `<span class="cartao__disp">${esc(dispTexto)}</span>` : ''}</div>
       <span class="cartao__seta" aria-hidden="true">${icones.seta}</span>

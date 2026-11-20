@@ -405,7 +405,7 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .gaveta__acoes { display: grid; gap: 10px; margin-top: auto; }
 .gaveta__zonas { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .gaveta__zonas label { font-weight: 700; }
-.gaveta__zonas select { flex: 1; min-height: 44px; padding: 8px 12px; border: 1px solid var(--linha-campo); border-radius: var(--raio-m); background: var(--papel); }
+.gaveta__zonas select { flex: 1; min-width: 0; min-height: 44px; padding: 8px 12px; border: 1px solid var(--linha-campo); border-radius: var(--raio-m); background: var(--papel); }
 @media (prefers-reduced-motion: no-preference) {
   .menu[open] .menu__corpo { animation: daEsquerda .25s ease-out; }
   .gaveta[open] .gaveta__corpo { animation: daDireita .25s ease-out; }
@@ -482,10 +482,17 @@ html.na-capa { background: #040404; }
    para cima e para baixo dentro de si (o Renato, 12 nov 2026: «este carrossel só devia mexer para o
    lado»). overflow-y: hidden tira-lhe esse eixo (o gesto vertical vai para a página); o overscroll
    contido não deixa o fim da fila puxar o browser para trás. */
-.cat-fila { margin: 26px 0 8px; }
+.cat-fila { position: relative; margin: 26px 0 8px; }
 .cat-fila ul { display: flex; gap: 14px; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; padding: 4px 2px 10px; scrollbar-width: none; scroll-snap-type: x proximity; }
 .cat-fila ul::-webkit-scrollbar { display: none; }
-@media (min-width: 1100px) { .cat-fila ul { justify-content: space-between; overflow: visible; } }
+/* No computador as bolas espalham-se quando cabem; quando não cabem (são cada vez mais categorias), a fila desliza
+   como no telemóvel, com as setas por cima das pontas. Antes era `overflow: visible`: a 20 nov 2026, com 13 bolas, a
+   página inteira ficava 392 px mais larga do que o ecrã a 1280 px. */
+@media (min-width: 1100px) { .cat-fila ul { justify-content: space-between; } }
+.cat-fila__seta { position: absolute; top: 46px; z-index: 1; transform: translateY(-50%); box-shadow: 0 2px 10px rgba(17, 17, 19, .14); }
+.cat-fila__seta--ant { left: -8px; }
+.cat-fila__seta--seg { right: -8px; }
+.cat-fila__seta:disabled { visibility: hidden; }
 .cat-fila li { flex: none; scroll-snap-align: start; }
 .cat-fila a { display: grid; justify-items: center; gap: 8px; width: 104px; text-decoration: none; }
 /* no telemóvel, bolas um pouco mais pequenas e a fila até à beira do ecrã (como a dos destaques): vê-se a ponta
@@ -540,13 +547,18 @@ html.na-capa { background: #040404; }
 /* abaixo dos 360 px «RECONDICIONADO» só cabe com o cartão um pouco menos almofadado e sem espaço entre as letras
    (a letra fica nos 12 px, o mínimo) */
 @media (max-width: 359.98px) { .cartao__corpo { padding-left: 12px; padding-right: 12px; } .cartao__marca { letter-spacing: 0; } }
-.cartao__nome { font-size: .98rem; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* o nome até 3 linhas (4 no telemóvel, em duas colunas): com 2, «Película de Hidrogel Privacidade» e «… Privacidade
+   Cerâmica Matte» ficavam iguais (20 nov 2026) */
+.cartao__nome { font-size: .98rem; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+@media (max-width: 699.98px) { .cartao__nome { -webkit-line-clamp: 4; } }
 .cartao__ligacao { text-decoration: none; }
 .cartao__ligacao:focus-visible { outline: none; }
 .cartao__ligacao::after { content: ''; position: absolute; inset: 0; z-index: 1; }
 .cartao__specs { font-size: .8rem; color: var(--tinta-3); line-height: 1.35; }
 .cartao__pe { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: auto; padding-top: 8px; }
 .cartao__precos { display: grid; gap: 2px; min-width: 0; }
+/* «Confirmar disponibilidade» por cima do preço: debaixo dele, subia o preço desse cartão em relação aos da mesma fila */
+.cartao__precos .cartao__disp { order: -1; }
 .cartao__disp { font-size: .76rem; color: var(--tinta-3); font-weight: 600; }
 /* A seta do cartão: o cartão inteiro leva à ficha, onde se compra (13 nov 2026; antes, o carrinho com «+» ou o
    «Escolher», conforme o artigo). Uma só forma em todos os cartões; no computador, escurece com o cartão. */
@@ -566,8 +578,8 @@ html.na-capa { background: #040404; }
 .problemas { margin-top: 56px; }
 .problemas__grelha { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 @media (min-width: 560px) { .problemas__grelha { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-@media (min-width: 900px) { .problemas__grelha { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 12px; } }
-.problema { display: grid; justify-items: center; align-content: center; gap: 8px; min-height: 104px; height: 100%; padding: 14px 6px; border-radius: var(--raio-m); border: 1px solid var(--linha); background: var(--papel); text-decoration: none; text-align: center; transition: border-color .15s, background-color .15s, color .15s; }
+@media (min-width: 900px) { .problemas__grelha { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; } }
+.problema { display: grid; justify-items: center; align-content: start; gap: 8px; min-height: 104px; height: 100%; padding: 14px 6px; border-radius: var(--raio-m); border: 1px solid var(--linha); background: var(--papel); text-decoration: none; text-align: center; transition: border-color .15s, background-color .15s, color .15s; }
 .problema__icone { display: inline-flex; width: 42px; height: 42px; align-items: center; justify-content: center; border-radius: 12px; background: var(--cinza); color: var(--tinta); transition: background-color .15s, color .15s; }
 .problema__icone .icone { width: 24px; height: 24px; }
 /* as palavras compridas partem com hífen («(micro-soldadura)»), as curtas nunca (pelo menos 5 letras de cada lado) */
@@ -709,7 +721,9 @@ html.js .problema-painel + .problema-painel { margin-top: 0; }
 .loja-corpo > .loja__vazia { grid-column: 1 / -1; }
 @media (min-width: 900px) { .loja-corpo > [data-loja-vazia] { grid-column: 2; } }
 .filtros { display: none; }
-@media (min-width: 900px) { .filtros { display: grid; gap: 4px; position: sticky; top: calc(var(--topo) + 16px); } .filtros__topo, .filtros__pe .filtros__ver { display: none; } }
+/* no computador os filtros são uma coluna sempre à vista: sem «Filtrar ×» (o .filtros__topo de baixo, igual em peso e
+   escrito depois, ganhava-lhe; o «×» não fazia nada) */
+@media (min-width: 900px) { .filtros { display: grid; gap: 4px; position: sticky; top: calc(var(--topo) + 16px); } .filtros .filtros__topo, .filtros__pe .filtros__ver { display: none; } }
 .filtros[data-aberto] { display: flex; flex-direction: column; position: fixed; inset: 0; z-index: 70; background: var(--papel); padding: 0 var(--margem) 16px; overflow: auto; }
 .filtros__topo { display: flex; align-items: center; justify-content: space-between; min-height: var(--topo); border-bottom: 1px solid var(--linha); margin-bottom: 8px; }
 .filtros__titulo { font-weight: 800; font-size: 1.1rem; }
@@ -821,15 +835,15 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .info-legal li { list-style: disc; margin-left: 1.2em; }
 
 /* ---------------------------------------------------------------- reparações: a capa e a escolha */
-.rep-capa { background: radial-gradient(70% 90% at 100% 0%, #2B2418 0%, rgba(43, 36, 24, 0) 60%), var(--escuro); color: var(--branco); padding: clamp(28px, 5vw, 56px) 0; }
+.rep-capa { overflow: clip; background: radial-gradient(70% 90% at 100% 0%, #2B2418 0%, rgba(43, 36, 24, 0) 60%), var(--escuro); color: var(--branco); padding: clamp(28px, 5vw, 56px) 0; }
 .rep-capa__grelha { display: grid; gap: 26px; }
 @media (min-width: 1000px) { .rep-capa__grelha { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); align-items: start; gap: 48px; } }
 .rep-capa__texto { display: grid; gap: 14px; align-content: start; }
 .rep-capa__titulo { font-size: clamp(2rem, 1.4rem + 2.4vw, 3.1rem); font-weight: 800; letter-spacing: -.035em; line-height: 1.04; }
 .rep-capa__sub { color: rgba(255, 255, 255, .78); font-size: 1.05rem; max-width: 46ch; }
 .rep-capa__pontos { display: grid; gap: 8px; margin-top: 4px; }
-.rep-capa__pontos li { display: flex; gap: 10px; align-items: center; font-weight: 600; color: rgba(255, 255, 255, .9); }
-.rep-capa__pontos .icone { color: var(--ouro); }
+.rep-capa__pontos li { display: flex; gap: 10px; align-items: flex-start; font-weight: 600; color: rgba(255, 255, 255, .9); }
+.rep-capa__pontos .icone { color: var(--ouro); flex: none; margin-top: .2em; }
 .seletor { display: grid; gap: 14px; padding: clamp(16px, 2.5vw, 24px); border-radius: var(--raio-g); background: var(--papel); color: var(--tinta); box-shadow: 0 30px 60px rgba(0, 0, 0, .35); scroll-margin-top: calc(var(--topo) + 16px); }
 .seletor__titulo { font-weight: 800; font-size: 1.1rem; letter-spacing: -.01em; }
 .seletor__marcas { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 4px; border-radius: 999px; background: var(--cinza); }
@@ -863,7 +877,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .passos-faixa { margin-top: 56px; }
 .passos-faixa__lista { display: grid; gap: 12px; margin-top: 18px; }
 @media (min-width: 760px) { .passos-faixa__lista { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; } }
-.passos-faixa__lista li { display: grid; gap: 6px; padding: 20px; border-radius: var(--raio); border: 1px solid var(--linha); }
+.passos-faixa__lista li { display: grid; align-content: start; gap: 6px; padding: 20px; border-radius: var(--raio); border: 1px solid var(--linha); }
 .passos-faixa__lista strong { font-size: 1.05rem; }
 .passos-faixa__lista li > span:last-child { color: var(--tinta-2); font-size: .94rem; }
 .passos-faixa__n { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; border-radius: 999px; background: var(--tinta); color: var(--branco); font-weight: 800; font-size: .88rem; margin-bottom: 4px; }
@@ -1077,6 +1091,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .linha__modelo { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; padding: 2px 9px; border-radius: 999px; background: var(--ouro-fundo); color: var(--ouro-texto); font-size: .8rem; font-weight: 700; }
 .linha__indisponivel { font-size: .86rem; color: var(--vermelho); }
 .linha__fundo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.linha__fundo > .linha__preco { margin-left: auto; }
 .linha__fundo .quantidade { height: 40px; }
 .linha__fundo .quantidade button { width: 38px; }
 .linha__preco { font-weight: 800; }
@@ -1121,9 +1136,13 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
    cavalo da borda (a mesma coisa da escolha do modelo, acima) */
 .checkout__bloco { display: block; padding: 22px; border-radius: var(--raio-g); border: 1px solid var(--linha); }
 .checkout__bloco > legend { float: left; width: 100%; padding: 0; margin: 0 0 14px; font-size: 1.05rem; font-weight: 800; }
-.checkout__bloco > legend + * { clear: both; }
-.checkout__bloco > :not(legend) + :not(legend) { margin-top: 14px; }
+/* TUDO o que vem depois do título fica por baixo dele, não só o primeiro: o primeiro pode estar escondido (o
+   «Preenchido com os dados da sua conta»), e o campo do nome subia para o lado do título, com 43 px de largura e
+   meio fora do cartão (o Renato, 20 nov 2026). O espaço entre as peças também não conta com as escondidas. */
+.checkout__bloco > legend ~ * { clear: both; }
+.checkout__bloco > :not(legend, [hidden]) ~ :not(legend) { margin-top: 14px; }
 .checkout__bloco .opcao-entrega { margin-bottom: 4px; }
+.checkout__bloco > [data-so-envio]:not([hidden]) { display: grid; gap: 14px; }
 .checkout__resumo .linha { grid-template-columns: 56px minmax(0, 1fr); padding: 12px 0; }
 .checkout__resumo .linha__foto img { width: 56px; height: 56px; padding: 4px; }
 .obrigado__cartao { max-width: 640px; margin: 24px auto; padding: 32px 24px; border-radius: var(--raio-g); background: var(--cinza); text-align: center; display: grid; gap: 14px; justify-items: center; }
@@ -1210,8 +1229,6 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .conta__dados-lista dd { margin: 0; overflow-wrap: anywhere; }
 .conta__dados { max-width: 640px; }
 .conta__garantia { display: block; margin-top: 2px; color: var(--verde-escuro) !important; font-weight: 600 !important; }
-.conta__desistir { display: grid; gap: 10px; justify-items: start; padding-top: 14px; border-top: 1px solid var(--linha); }
-.conta__desistir--pedido p { color: var(--tinta-2); }
 /* a janela (perguntar antes de sair de todo o lado, apagar, desistir; e o código QR do cartão) */
 /* (o dialog de cima tira a margem a todos, para os de ecrã inteiro: esta janela centra-se com a margem automática) */
 .conta-janela { width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); margin: auto; overflow: auto; padding: 0; border: 0; border-radius: var(--raio-g); background: var(--papel); color: var(--tinta); box-shadow: var(--sombra); }
@@ -1361,7 +1378,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 
 /* ---------------------------------------------------------------- páginas de texto, sobre, perguntas */
 .texto { max-width: 72ch; }
-.texto > * + * { margin-top: 14px; }
+.texto > * + *, .texto .ral > * + * { margin-top: 14px; }
 .texto h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: -.01em; margin-top: 36px; }
 .texto h3 { font-size: 1.1rem; font-weight: 700; margin-top: 24px; }
 .texto p, .texto li { color: var(--tinta-2); }
@@ -1443,11 +1460,14 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 /* ---------------------------------------------------------------- rodapé */
 /* O rodapé alto (memória rodape-com-logotipo): a marca à esquerda (o logótipo, a frase e as redes) e as
    colunas com títulos (a Loja e a Ajuda); a linha legal em baixo. */
+/* uma página mais baixa do que o ecrã (a 404) acaba no cinzento do rodapé, não numa faixa branca */
+html:has(.contentor.erro) { background: var(--cinza); }
+html:has(.contentor.erro) body { background: var(--papel); }
 .rodape { margin-top: 64px; background: var(--cinza); padding: 0 0 max(24px, env(safe-area-inset-bottom)); }
 .rodape__corpo { max-width: var(--largura); margin: 0 auto; padding: 40px var(--margem) 0; display: grid; gap: 32px; }
 .rodape__nav { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
 @media (min-width: 760px) { .rodape__corpo { grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); } .rodape__nav { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; } }
-.rodape__marca { display: grid; gap: 14px; justify-items: start; }
+.rodape__marca { display: grid; gap: 14px; justify-items: start; align-content: start; }
 .rodape__logo-img { height: 58px; width: auto; }
 .rodape__frase { color: var(--tinta-2); max-width: 30ch; }
 .rodape__coluna h2 { font-size: .76rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); margin-bottom: 12px; }

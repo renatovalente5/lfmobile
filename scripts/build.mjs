@@ -379,8 +379,9 @@ function identificacao() {
 
 function botoesDesistencia() {
   const texto = `Olá! Quero desistir da compra (direito de livre resolução).\n\nArtigo: \nEncomenda n.º: \nRecebido em: \nNome: \nMorada: `;
-  // a conta do cliente (14 nov 2026): a ficha da encomenda tem «Desistir da compra», e o recibo vai logo por email
-  const b = [`<a class="botao botao--cheio" href="${ctx.url('/conta/')}">Desistir na minha conta</a>`];
+  // sem «Desistir na minha conta» desde 20 nov 2026: o Renato tirou o botão da conta do cliente (o botão de desistir
+  // da Directiva 2023/2673 ainda não está na lei portuguesa: no EUR-Lex, 0 medidas de Portugal)
+  const b = [];
   if (numero) b.push(`<a class="botao botao--whatsapp" href="${ctx.whatsapp(texto)}">Desistir pelo WhatsApp</a>`);
   if (site.contactos.email) b.push(`<a class="botao botao--contorno" href="mailto:${esc(site.contactos.email)}?subject=${encodeURIComponent('Desistência da compra (livre resolução)')}&amp;body=${encodeURIComponent(texto)}">Desistir por email</a>`);
   return `<div class="botoes">${b.join('')}</div><p class="nota">Respondemos a confirmar que recebemos a sua desistência.</p>`;

@@ -1,6 +1,6 @@
 titulo: Política de privacidade
 descricao: Que dados pessoais tratamos, para quê e por quanto tempo: as encomendas, os pedidos de orçamento e de retoma, e o que este site guarda no seu browser.
-atualizado: 2026-11-16
+atualizado: 2026-11-20
 ---
 ## Responsável pelo tratamento dos dados
 
@@ -30,7 +30,6 @@ Para ver as suas encomendas no site, entra com o email e um código de 6 algaris
 - **Entrar com o Google:** só se escolher. Vai à página do Google, que nos diz o seu email (já confirmado por ele); não recebemos a sua palavra-passe nem mais nada da sua conta Google. Este site não carrega nada do Google.
 - **Os seus dados** (nome, telemóvel, NIF e morada), se os gravar: servem para preencher as suas encomendas. Apagam-se dois anos depois da última vez que entrou, ou quando apagar a conta.
 - **O cartão das películas:** as películas de hidrogel compradas no site contam a partir das encomendas. As compradas na loja e as ofertas entregues guardamo-las ligadas ao seu email, com a data, durante 3 anos depois da última (fundamento: execução do contrato, a oferta).
-- **Desistir da compra na conta:** o pedido fica registado na encomenda, com a data e o que escrever, e enviamos-lhe a confirmação por email (fundamento: obrigação legal).
 
 Pode **apagar a conta** em «A minha conta»: saem os dados, as sessões e as películas marcadas na loja. As encomendas ficam, porque a lei nos obriga a guardá-las, e fica a data das ofertas já entregues, para a mesma oferta não se dar duas vezes.
 
