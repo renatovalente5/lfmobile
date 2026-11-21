@@ -32,7 +32,7 @@ const PAGINAS = [
   ['loja-peliculas', '/loja/peliculas/'], ['loja-kids', '/loja/kids/'], ['loja-procura', '/loja/?q=iphone'],
   ['produto-pelicula', '/produtos/pelicula-vidro-temperado/'], ['produto-hidrogel', '/produtos/pelicula-hidrogel/'],
   ['produto-recondicionado', '/produtos/iphone-14-pro-max-256gb-recondicionado/'], ['produto-capas', '/produtos/capas/'],
-  ['produto-misterio', '/produtos/encomendas-misterio/'], ['produto-a17', '/produtos/samsung-galaxy-a17/'],
+  ['produto-cor', '/produtos/fones-p9/'], ['produto-a17', '/produtos/samsung-galaxy-a17/'],
   ['produto-relogio', '/produtos/huawei-watch-d2/'],
   ['reparacoes', '/reparacoes/'], ['reparacoes-iphone', '/reparacoes/iphone/'], ['reparacoes-iphone-15', '/reparacoes/iphone-15/'],
   ['reparacoes-ps5', '/reparacoes/playstation-5/'], ['reparacoes-pc', '/reparacoes/computadores/'],

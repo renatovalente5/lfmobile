@@ -161,12 +161,5 @@
     "resumo": "O que faz falta ao dia a dia do telemóvel.",
     "peso": 0.2,
     "grupo": "acessorios"
-  },
-  {
-    "slug": "encomendas-misterio",
-    "nome": "Encomendas mistério",
-    "titulo": "Encomendas mistério",
-    "resumo": "Encomendas perdidas ou devolvidas, vendidas ao quilo. Nem a loja nem o cliente sabem o que vem dentro nem o estado.",
-    "peso": 1
   }
 ]
