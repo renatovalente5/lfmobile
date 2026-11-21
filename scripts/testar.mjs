@@ -143,6 +143,11 @@ teste('as regras novas: a lista dos modelos, as reparações e as campanhas avis
 teste('markdown e euros', () => {
   assert.match(markdown('## Título\n\nTexto com **negrito**.\n\n- um\n- dois'), /<h2 id="titulo">Título<\/h2>/);
   assert.match(markdown('<script>x</script>'), /&lt;script&gt;/);
+  // as descrições dos artigos (o painel): a mudança de linha fica e «-Texto» é uma lista; as páginas .md juntam a linha partida
+  assert.equal(markdown('Uma linha\nOutra linha', undefined, { quebras: true }), '<p>Uma linha<br>Outra linha</p>');
+  assert.equal(markdown('Ideal para:\n- Telemóvel\n-Relógio\n• Fones', undefined, { quebras: true }), '<p>Ideal para:</p>\n<ul><li>Telemóvel</li><li>Relógio</li><li>Fones</li></ul>');
+  assert.equal(markdown('-20% hoje', undefined, { quebras: true }), '<p>-20% hoje</p>');
+  assert.equal(markdown('Uma linha\nOutra linha'), '<p>Uma linha Outra linha</p>');
   assert.equal(euros(12.5).replace(/\u00a0/g, ' '), '12,50 €');
   assert.equal(euros(300).replace(/\u00a0/g, ' '), '300 €');
 });

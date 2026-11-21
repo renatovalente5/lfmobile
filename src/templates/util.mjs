@@ -45,14 +45,18 @@ function idDoTitulo(t, ids) {
   ids.add(id);
   return id;
 }
-export function markdown(src, url = (u) => u) {
+/* quebras: nas descrições dos artigos (escritas no painel), uma mudança de linha fica uma mudança de linha (<br>) e
+   «-Texto» ou «• Texto» também começam uma lista, como quem escreve as vê na caixa de texto (15 dos 39 artigos saíam
+   num parágrafo só, 21 nov 2026). Nas páginas de texto (os .md), uma linha partida continua o parágrafo. A
+   pré-visualização do painel (comoNoSite, em lfmobile-painel/estatico/js/ecras/comum.js) faz o mesmo. */
+export function markdown(src, url = (u) => u, { quebras = false } = {}) {
   const ids = new Set();
   const linhas = src.replace(/\r/g, '').split('\n');
   const out = [];
   let para = [];
   let lista = null;
   let quadro = null;
-  const fecharPara = () => { if (para.length) { out.push(`<p>${inline(para.join(' '), url)}</p>`); para = []; } };
+  const fecharPara = () => { if (para.length) { out.push(`<p>${quebras ? para.map((l) => inline(l, url)).join('<br>') : inline(para.join(' '), url)}</p>`); para = []; } };
   const fecharLista = () => { if (lista) { out.push(`<${lista.tipo}>${lista.itens.map((i) => `<li>${inline(i, url)}</li>`).join('')}</${lista.tipo}>`); lista = null; } };
   const fecharQuadro = () => {
     if (!quadro) return;
@@ -69,10 +73,10 @@ export function markdown(src, url = (u) => u) {
     const h = t.match(/^(#{2,4})\s+(.*)$/);
     // cada título leva um id (o texto sem acentos), para se poder ligar a ele: /politica-de-privacidade/#opinioes
     if (h) { fecharPara(); fecharLista(); out.push(`<h${h[1].length} id="${idDoTitulo(h[2], ids)}">${inline(h[2], url)}</h${h[1].length}>`); continue; }
-    const li = t.match(/^(-|\d+\.)\s+(.*)$/);
+    const li = t.match(/^(-|\d+\.)\s+(.*)$/) || (quebras ? t.match(/^([-•])\s*(\p{L}.*)$/u) : null);
     if (li) {
       fecharPara();
-      const tipo = li[1] === '-' ? 'ul' : 'ol';
+      const tipo = /^\d/.test(li[1]) ? 'ol' : 'ul';
       if (lista && lista.tipo !== tipo) fecharLista();
       (lista ||= { tipo, itens: [] }).itens.push(li[2]);
       continue;

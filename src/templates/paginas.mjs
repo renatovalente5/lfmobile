@@ -538,7 +538,7 @@ export function produto(ctx, p) {
       <h1 class="produto__nome">${esc(p.nome)}</h1>
       ${specs.length ? `<ul class="produto__specs">${specs.map((t) => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}
       <div class="produto__preco">${preco(ctx, p, { grande: true })}${promocaoNota(ctx, p)}</div>
-      <div class="produto__resumo">${markdown(p.descricao, ctx.url)}</div>
+      <div class="produto__resumo">${markdown(p.descricao, ctx.url, { quebras: true })}</div>
       ${listas}
       ${comprar}
       ${notas}
