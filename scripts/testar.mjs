@@ -780,8 +780,49 @@ teste('a produção constrói com os dados legais preenchidos: aberta aos motore
   assert.doesNotMatch(fs.readFileSync(path.join(pasta, '_site/robots.txt'), 'utf8'), /conta/);
   // uma categoria cujo título é só o nome leva o resumo no <title>; a descrição diz onde é a loja e como se recebe
   const smart = fs.readFileSync(path.join(pasta, '_site/loja/smartwatches/index.html'), 'utf8');
-  assert.match(smart, /<title>Smartwatches — Relógios inteligentes para o dia a dia e o desporto \| LF Mobile<\/title>/);
+  // o resumo junto ao nome, até ~65 caracteres com « | LF Mobile» (22 nov 2026: tinha 78)
+  assert.match(smart, /<title>Smartwatches — Relógios inteligentes para o dia a dia \| LF Mobile<\/title>/);
   assert.match(smart, /<meta name="description" content="Relógios inteligentes para o dia a dia e o desporto\. Na LF Mobile, em São Roque: envios para Portugal Continental e levantamento grátis na loja\.">/);
+});
+teste('o SEO (22 nov 2026): o preço no título do artigo, descrições até 158 caracteres cortadas ao fim de uma palavra e sem repetidas, os portes no Offer, e a chave do IndexNow na produção', () => {
+  const pasta = copia('seo-22nov', (p) => {
+    json(p, 'content/site.json', preencherDadosLegais);
+    // dois artigos com o mesmo resumo (como o Leandro escreveu nas películas de privacidade), e um resumo comprido
+    json(p, 'content/produtos/pelicula-vidro.json', (x) => { x.resumo = 'Cortada à medida do seu telemóvel e aplicada na hora, na loja.'; x.preco = 12.5; });
+    json(p, 'content/produtos/pelicula-hidrogel.json', (x) => { x.resumo = 'Cortada à medida do seu telemóvel e aplicada na hora, na loja.'; });
+    json(p, 'content/produtos/fones-p9.json', (x) => { x.resumo = 'Som, conforto e estilo, sem gastar uma fortuna, com uma bateria que chega para o dia inteiro e um estojo que carrega sem fios em qualquer base.'; });
+  });
+  const r = construir(pasta, '--producao');
+  assert.equal(r.codigo, 0, r.saida);
+  const ler = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  const desc = (h) => h.match(/<meta name="description" content="([^"]*)">/)[1].replace(/&quot;/g, '"');
+  const fones = ler('produtos/fones-p9/index.html');
+  assert.match(fones, /<title>Auscultadores P9 — 59,90\s€ \| LF Mobile<\/title>/, `o preço no título: ${fones.match(/<title>[^<]*<\/title>/)[0]}`);
+  const d = desc(fones);
+  assert.ok(d.length <= 158 && d.endsWith('…') && !/\s…$/.test(d), d);
+  const escalao = JSON.parse(fs.readFileSync(path.join(pasta, 'content/site.json'), 'utf8')).entrega.portes.continente[0];
+  assert.ok(fones.includes(`"shippingDetails":{"@type":"OfferShippingDetails","shippingRate":{"@type":"MonetaryAmount","value":${escalao.preco},"currency":"EUR"},"shippingDestination":{"@type":"DefinedRegion","addressCountry":"PT"},"deliveryTime":{"@type":"ShippingDeliveryTime","handlingTime":{"@type":"QuantitativeValue","minValue":0,"maxValue":1,"unitCode":"DAY"},"transitTime":{"@type":"QuantitativeValue","minValue":1,"maxValue":2,"unitCode":"DAY"}}}`),
+    `os portes do 1.º escalão no Offer: ${(fones.match(/"shippingDetails":\{[^<]*/) || ['(sem portes)'])[0].slice(0, 500)}`);
+  const [a, b] = [desc(ler('produtos/pelicula-vidro/index.html')), desc(ler('produtos/pelicula-hidrogel/index.html'))];
+  assert.notEqual(a, b, 'dois artigos com o mesmo resumo não ficam com a mesma descrição');
+  assert.ok(a.startsWith('Película') && b.startsWith('Película'), `${a} / ${b}`);
+  // todas as páginas do mapa: descrição até 158, título até 65 com « | LF Mobile», e nenhum repetido
+  const mapa = ler('sitemap.xml');
+  const titulos = new Map(); const descricoes = new Map();
+  for (const [, loc] of mapa.matchAll(/<loc>https:\/\/lfmobile\.pt([^<]*)<\/loc>/g)) {
+    const h = ler(path.join(loc, 'index.html'));
+    const t = h.match(/<title>([^<]*)<\/title>/)[1]; const ds = desc(h);
+    assert.ok(ds.length <= 158, `${loc}: descrição com ${ds.length}`);
+    assert.ok(t.length <= 66 || /^LF Mobile — /.test(t), `${loc}: título com ${t.length} («${t}»)`);
+    assert.ok(!titulos.has(t), `título repetido: ${loc} e ${titulos.get(t)}`); titulos.set(t, loc);
+    assert.ok(!descricoes.has(ds), `descrição repetida: ${loc} e ${descricoes.get(ds)}`); descricoes.set(ds, loc);
+  }
+  // a chave do IndexNow, só no site a sério
+  const chave = fs.readdirSync(path.join(pasta, '_site')).find((x) => /^[0-9a-f]{32}\.txt$/.test(x));
+  assert.ok(chave && ler(chave) === chave.slice(0, 32), 'o ficheiro da chave');
+  const previa = copia('seo-previa');
+  assert.equal(construir(previa).codigo, 0);
+  assert.ok(!fs.readdirSync(path.join(previa, '_site')).some((x) => /^[0-9a-f]{32}\.txt$/.test(x)), 'na pré-visualização, sem a chave');
 });
 teste('em modo «online» (a ifthenpay): o botão «Encomendar e pagar», os três métodos sem nenhum escolhido, a página /pagar/, e os textos dizem a ifthenpay e os prazos', () => {
   const pasta = copia('online', (p) => json(p, 'content/site.json', (s) => { s.pagamentos.modo = 'online'; }));
@@ -951,6 +992,13 @@ teste('uma ligação interna partida pára a construção', () => {
     assert.equal(pedidos.length, 1);
     assert.equal((await www.fetch(new Request('https://lfmobile.pt/conta/api/eu'), { ASSETS: env.ASSETS })).status, 503);
     assert.equal((await www.fetch(new Request('https://www.lfmobile.pt/conta/api/eu'), env)).status, 301, 'o www vai primeiro para o domínio');
+    // sem «/» no fim, ou com «/index.html»: 301 (permanente) para a morada com «/»; os ficheiros e a raiz não mexem
+    for (const [de, para] of [['/loja', '/loja/'], ['/reparacoes/iphone-13?x=1', '/reparacoes/iphone-13/?x=1'], ['/index.html', '/'], ['/loja/index.html', '/loja/']]) {
+      const r = await www.fetch(new Request(`https://lfmobile.pt${de}`), env);
+      assert.equal(r.status, 301, de);
+      assert.equal(r.headers.get('location'), `https://lfmobile.pt${para}`, de);
+    }
+    for (const u of ['/', '/loja/', '/sitemap.xml', '/robots.txt', '/assets/site-1.css']) assert.equal(await (await www.fetch(new Request(`https://lfmobile.pt${u}`), env)).text(), 'ficheiro', u);
     const cfg = JSON.parse(fs.readFileSync(path.join(RAIZ, 'wrangler.jsonc'), 'utf8').replace(/^\s*\/\/.*$/gm, ''));
     assert.deepEqual(cfg.services, [{ binding: 'ENCOMENDAS', service: 'lfmobile-encomendas' }]);
     feitos++;

@@ -1,6 +1,6 @@
 titulo: Sobre a LF Mobile
 tituloSeo: Sobre a LF Mobile, em São Roque
-descricao: Reparamos telemóveis de todas as marcas, e vendemos e compramos iPhone e Samsung, em São Roque, Oliveira de Azeméis. Reparações desde 2020 e loja aberta desde setembro de 2026.
+descricao: Reparamos telemóveis de todas as marcas, e vendemos e compramos iPhone e Samsung, em São Roque, Oliveira de Azeméis. Reparações desde 2020.
 foto: loja-fachada
 modelo: sobre
 ---

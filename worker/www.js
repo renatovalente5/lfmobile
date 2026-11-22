@@ -30,6 +30,14 @@ export default {
       if (!env.ENCOMENDAS) return new Response(JSON.stringify({ erro: 'A conta não está disponível agora. Tente daqui a pouco.' }), { status: 503, headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' } });
       return env.ENCOMENDAS.fetch(request);
     }
+    /* Uma página sem «/» no fim (ou com «/index.html»): 301 para a morada com «/», a do canónico e das ligações
+       internas. Os ficheiros do site faziam 307, temporário, e o Google não juntava as duas moradas (a revisão do SEO,
+       22 nov 2026). Um ficheiro (com ponto no nome) segue para os ficheiros. */
+    const ultimo = url.pathname.slice(url.pathname.lastIndexOf('/') + 1);
+    if (ultimo === 'index.html' || (ultimo !== '' && !ultimo.includes('.'))) {
+      url.pathname = ultimo === 'index.html' ? url.pathname.slice(0, -ultimo.length) : `${url.pathname}/`;
+      return Response.redirect(url.toString(), 301);
+    }
     const res = await env.ASSETS.fetch(request);
     if (!url.pathname.startsWith('/assets/video/') || res.status !== 200) return res;
     return porIntervalos(request, env, res);

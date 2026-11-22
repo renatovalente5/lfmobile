@@ -1,0 +1,32 @@
+# AVISAR O BING (IndexNow) das páginas que mudaram, depois de o «Publicar o site na Cloudflare» acabar bem
+# (22 nov 2026, a revisão do SEO). À parte do publicar.yml de propósito: o painel ensaia o publicar.yml passo a passo,
+# e um aviso a partir do ensaio falaria de páginas de faz-de-conta. O que faz e porquê: scripts/indexnow.mjs.
+name: Avisar o Bing (IndexNow)
+
+on:
+  workflow_run:
+    workflows: ['Publicar o site na Cloudflare']
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  avisar:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0 # a data do commit da publicação anterior sai do histórico do git
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+      - name: Avisar o Bing das páginas que mudaram
+        run: node scripts/indexnow.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_CRIADO: ${{ github.event.workflow_run.created_at }}

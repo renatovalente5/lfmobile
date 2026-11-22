@@ -100,12 +100,18 @@ export function retoma(ctx) {
   ${c.whatsapp ? `<aside class="convite" aria-label="Fale connosco"><p class="convite__titulo">Tem outro aparelho para vender? Pergunte-nos.</p><div class="convite__botoes"><a class="botao botao--whatsapp" href="${ctx.whatsapp('Olá! Quero vender um aparelho (retoma): ')}" target="_blank" rel="noopener">${icones.whatsapp}<span>Falar no WhatsApp</span></a></div></aside>` : ''}
 </div>
 <script type="application/json" id="dados-retoma">${JSON.stringify(dados).replace(/</g, '\\u003c')}</script>`;
+  const descricao = `Simule a retoma do seu iPhone ou Samsung Galaxy e veja o valor na hora. Entregue na loja da ${ctx.site.marca}, em ${ctx.site.local.localidade}${porEnvio ? ', ou envie-o,' : ''} e receba o valor.`;
   return {
     caminho: '/retoma/',
     titulo: 'Retoma: quanto vale o seu iPhone ou Samsung?',
-    descricao: `Simule a retoma do seu iPhone ou Samsung Galaxy e veja o valor na hora. Entregue na loja da ${ctx.site.marca}, em ${ctx.site.local.localidade}${porEnvio ? ', ou envie-o,' : ''} e receba o valor.`,
+    descricao,
     classe: 'pagina-retoma',
-    jsonld: [m.ld],
+    // a retoma como serviço da loja (o Google junta-a ao negócio: «LF Mobile · Retoma de telemóveis»), 22 nov 2026
+    jsonld: [m.ld, {
+      '@context': 'https://schema.org', '@type': 'Service', name: 'Retoma de telemóveis', serviceType: 'Compra de telemóveis usados',
+      description: descricao,
+      provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' }, url: ctx.absoluto('/retoma/'),
+    }],
     conteudo,
   };
 }

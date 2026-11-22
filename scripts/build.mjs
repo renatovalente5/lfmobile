@@ -20,7 +20,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { esc, euros, hojeEmLisboa, markdown, numeroWhatsApp, numeroLegivel, custoChamada, notaChamada, moradaCompleta } from '../src/templates/util.mjs';
+import { esc, euros, hojeEmLisboa, markdown, numeroWhatsApp, numeroLegivel, custoChamada, notaChamada, moradaCompleta, resumir } from '../src/templates/util.mjs';
 import { pagina } from '../src/templates/layout.mjs';
 import * as R from '../src/lib/regras.mjs';
 import * as paginas from '../src/templates/paginas.mjs';
@@ -30,6 +30,7 @@ import { retoma as paginaRetoma } from '../src/templates/retoma.mjs';
    _ferramentas/legal-comum/instalar.mjs; não se edita aqui). */
 import { livroCss, destinatariosHtml, CATALOGO_DESTINATARIOS, frasesPrivacidade, prazos as PRAZOS_LEGAIS, verificarIdentificacao, verificarPromocao, verificarProduto, AVISO_RETOMA, COMO_SE_FAZ_A_ENCOMENDA, BOTAO_ENCOMENDA, formularioLivreResolucao, ralHtml, textoGarantia, VERSAO as LEGAL_COMUM_VERSAO } from '../legal-comum/index.mjs';
 import { pecaLegal, categoriasComArtigos } from '../src/templates/componentes.mjs';
+import { CHAVE_INDEXNOW } from './indexnow.mjs';
 // os prazos do pagamento no site: os mesmos números no Worker e nos termos
 import { PRAZO_MINUTOS, DIAS_MULTIBANCO } from '../worker/encomendas/prazos.js';
 
@@ -556,6 +557,25 @@ saidas.push(paginas.erro404(ctx));
 
 if (erros.length) parar(`A publicação parou: ${erros.length} ${erros.length === 1 ? 'problema' : 'problemas'}.`, erros, { tecnico: true });
 
+// ---------------------------------------------------------------- o que vai para o Google: mapa, títulos e descrições
+const FORA_DO_MAPA = new Set(['/404.html', '/carrinho/', '/checkout/', '/pagar/', '/obrigado/', '/conta/']);
+// as categorias da loja sem artigos publicados ficam fora do mapa (a página existe, mas vazia não se anuncia)
+const categoriasVazias = new Set(categorias.filter((k) => !categoriasComArtigos(ctx).some((x) => x.slug === k.slug)).map((k) => `/loja/${k.slug}/`));
+const vaiAoGoogle = (s) => !FORA_DO_MAPA.has(s.caminho) && s.indexar !== false && !categoriasVazias.has(s.caminho);
+/* AS DESCRIÇÕES (22 nov 2026, a revisão do SEO): todas cabem nos ~158 caracteres do resultado, cortadas ao fim de uma
+   palavra; e duas páginas do Google com a mesma descrição (dois artigos com o mesmo resumo escrito no painel) levam o
+   nome de cada uma à frente. Títulos repetidos não se mudam sozinhos: avisa-se. */
+for (const s of saidas) if (typeof s.descricao === 'string') s.descricao = resumir(s.descricao);
+const nomeCurto = (s) => String(s.titulo || '').split(/ [—|] /)[0].trim();
+const porTexto = (campo) => {
+  const m = new Map();
+  for (const s of saidas.filter(vaiAoGoogle)) { const k = s[campo]; if (k) m.set(k, [...(m.get(k) || []), s]); }
+  return [...m.values()].filter((l) => l.length > 1);
+};
+for (const grupo of porTexto('descricao')) for (const s of grupo) if (!s.descricao.startsWith(nomeCurto(s))) s.descricao = resumir(`${nomeCurto(s)}: ${s.descricao}`);
+for (const grupo of porTexto('titulo')) avisos.push(`Google: o título «${grupo[0].titulo}» está em ${grupo.length} páginas (${grupo.map((x) => x.caminho).join(', ')}).`);
+for (const grupo of porTexto('descricao')) avisos.push(`Google: a descrição «${grupo[0].descricao.slice(0, 60)}…» está em ${grupo.length} páginas (${grupo.map((x) => x.caminho).join(', ')}).`);
+
 for (const s of saidas) {
   const html = pagina(ctx, s);
   const destino = s.caminho.endsWith('.html') ? path.join(SAIDA, s.caminho) : path.join(SAIDA, s.caminho, 'index.html');
@@ -564,10 +584,7 @@ for (const s of saidas) {
 }
 
 // ---------------------------------------------------------------- robots, sitemap, _headers
-const FORA_DO_MAPA = new Set(['/404.html', '/carrinho/', '/checkout/', '/pagar/', '/obrigado/', '/conta/']);
-// as categorias da loja sem artigos publicados ficam fora do mapa (a página existe, mas vazia não se anuncia)
-const categoriasVazias = new Set(categorias.filter((k) => !categoriasComArtigos(ctx).some((x) => x.slug === k.slug)).map((k) => `/loja/${k.slug}/`));
-const indexaveis = saidas.filter((s) => !FORA_DO_MAPA.has(s.caminho) && s.indexar !== false && !categoriasVazias.has(s.caminho));
+const indexaveis = saidas.filter(vaiAoGoogle);
 let lastmod = {};
 try {
   // a data da última alteração de cada página sai do git (o conteúdo de que ela é feita), com a hora
@@ -593,6 +610,8 @@ ${indexaveis.map((s) => `  <url><loc>${ctx.absoluto(s.caminho)}</loc><lastmod>${
 // fichas) ficam fora do rastreio; as ligações novas levam o modelo no fragmento (13 nov 2026).
 // Pré-visualização: fechada aos motores de busca, mas aberta aos robôs que fazem a pré-visualização
 // das ligações no WhatsApp e no Facebook (sem isto, partilhar o link mostra-se sem imagem).
+// a chave do IndexNow, pública por desenho (scripts/indexnow.mjs): só no site a sério
+if (producao) fs.writeFileSync(path.join(SAIDA, `${CHAVE_INDEXNOW}.txt`), CHAVE_INDEXNOW);
 fs.writeFileSync(path.join(SAIDA, 'robots.txt'), producao
   ? `User-agent: *\nAllow: /\nDisallow: /checkout/\nDisallow: /pagar/\nDisallow: /obrigado/\nDisallow: /*?modelo=\n\nSitemap: ${ctx.absoluto('/sitemap.xml')}\n`
   : 'User-agent: facebookexternalhit\nAllow: /\n\nUser-agent: WhatsApp\nAllow: /\n\nUser-agent: *\nDisallow: /\n');

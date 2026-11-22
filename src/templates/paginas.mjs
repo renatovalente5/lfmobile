@@ -1,7 +1,7 @@
 // As páginas do site. Cada função devolve { caminho, titulo, descricao, conteudo, ... } e o
 // build.mjs veste-a com a moldura (layout.mjs). As reparações estão em reparacoes.mjs e a retoma em
 // retoma.mjs.
-import { esc, euros, precoDe, markdown, inline, textoSimples, numeroWhatsApp, numeroLegivel, notaChamada, dataPorExtenso } from './util.mjs';
+import { esc, euros, precoDe, markdown, inline, textoSimples, resumir, numeroWhatsApp, numeroLegivel, notaChamada, dataPorExtenso } from './util.mjs';
 import { icones } from './icones.mjs';
 import { usarAparelho, spriteAparelhos } from './aparelhos.mjs';
 import { numeroPortugues, opcoesDe, temSuplementos, estadoDe, disponibilidadeDe, compravel, enviavel, linhasDe, GARANTIAS_USADOS, ESTADOS, categoriasDoArtigo } from '../lib/regras.mjs';
@@ -228,9 +228,43 @@ const LUGAR_DA_LOJA = "(function(){try{var k='lfmobile:lugar-da-loja',v=JSON.par
    está; quando é só o nome («Apple», «Smartwatches»), junta-se-lhe o resumo, para o resultado não ser «Apple | LF
    Mobile». À descrição curta do painel junta-se onde é a loja e como se recebe, enquanto couber nos ~158 caracteres
    que o Google mostra. */
+/* OS PORTES DE UM ARTIGO SOZINHO, para o Google (OfferShippingDetails; o resultado do artigo pode dizer «Entrega
+   5,90 €»): o escalão do peso dele (ou o da categoria) para a zona com morada (Portugal Continental), e o prazo da
+   Nacex — 24 a 48 horas úteis depois de a encomenda estar confirmada e paga (até um dia para a preparar). Um artigo
+   que só se levanta na loja, ou sem peso, não diz portes. 22 nov 2026. */
+function portesDoArtigo(ctx, p, preco) {
+  if (!enviavel(p)) return null;
+  const entrega = ctx.site.entrega || {};
+  const zona = (entrega.zonas || []).find((z) => z.morada);
+  const escaloes = zona && entrega.portes ? entrega.portes[zona.id] : null;
+  if (!Array.isArray(escaloes) || !escaloes.length) return null;
+  const cat = ctx.categorias.find((k) => k.slug === p.categoria);
+  const kg = typeof p.peso === 'number' ? p.peso : typeof cat?.peso === 'number' ? cat.peso : null;
+  const escalao = kg === null ? null : escaloes.find((e) => kg <= e.ate);
+  if (!escalao) return null;
+  const gratis = entrega.portes.gratisAPartirDe;
+  const valor = typeof gratis === 'number' && typeof preco === 'number' && preco >= gratis ? 0 : escalao.preco;
+  const dias = (min, max) => ({ '@type': 'QuantitativeValue', minValue: min, maxValue: max, unitCode: 'DAY' });
+  return {
+    '@type': 'OfferShippingDetails',
+    shippingRate: { '@type': 'MonetaryAmount', value: valor, currency: 'EUR' },
+    shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'PT' },
+    deliveryTime: { '@type': 'ShippingDeliveryTime', handlingTime: dias(0, 1), transitTime: dias(1, 2) },
+  };
+}
+
 function tituloDaCategoria(c) {
   const resumo = textoSimples(c.resumo || '').replace(/[.\s]+$/, '');
-  return c.titulo === c.nome && resumo ? `${c.titulo} — ${resumo}` : c.titulo;
+  if (!(c.titulo === c.nome && resumo)) return c.titulo;
+  /* Com « | LF Mobile», até ~65 caracteres (o Google corta o resto): o resumo até à última vírgula que caiba, ou à
+     última palavra que caiba (sem acabar em «a», «de», «para»…). 22 nov 2026: «Localizadores — Para encontrar as
+     chaves, a carteira ou o passaporte | LF Mobile» tinha 80. */
+  const MAX = 52 - c.titulo.length;
+  if (resumo.length <= MAX) return `${c.titulo} — ${resumo}`;
+  const virgula = resumo.slice(0, MAX + 1).lastIndexOf(',');
+  let corte = virgula > 12 ? resumo.slice(0, virgula) : resumo.slice(0, resumo.slice(0, MAX + 1).lastIndexOf(' '));
+  corte = corte.replace(/(\s+(a|o|as|os|e|de|do|da|dos|das|em|no|na|para|com|ao|à|um|uma))+$/i, '').trim();
+  return corte.length > 10 ? `${c.titulo} — ${corte}` : c.titulo;
 }
 function descricaoDaCategoria(ctx, c) {
   const base = textoSimples(c.resumo || c.titulo);
@@ -320,7 +354,7 @@ export function campanha(ctx, c) {
   return {
     caminho,
     titulo: c.titulo,
-    descricao: `${c.faixa}. Na ${ctx.site.marca}, em ${ctx.site.local.localidade}, e no site.`.slice(0, 160),
+    descricao: resumir(`${c.faixa}. Na ${ctx.site.marca}, em ${ctx.site.local.localidade}, e no site.`),
     classe: 'pagina-campanha',
     jsonld: [m.ld],
     conteudo,
@@ -574,16 +608,21 @@ ${p.pedeModelo === true ? `<script type="application/json" id="dados-modelos">${
       itemCondition: CONDICAO[estado],
       seller: { '@id': ctx.absoluto('/#loja') },
       hasMerchantReturnPolicy: { '@type': 'MerchantReturnPolicy', applicableCountry: 'PT', returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow', merchantReturnDays: 14, returnMethod: 'https://schema.org/ReturnByMail', returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility' },
+      ...(portesDoArtigo(ctx, p, v.atual) ? { shippingDetails: portesDoArtigo(ctx, p, v.atual) } : {}),
       ...(v.ate ? { priceValidUntil: v.ate } : {}),
       ...(v.anterior && /^\d{4}-\d{2}-\d{2}$/.test(p.promocaoDesde || '') ? { validFrom: p.promocaoDesde } : {}),
       ...(p.referencia ? { sku: p.referencia } : {}),
     };
   }
   if (p.referencia) ldProduto.sku = p.referencia;
+  /* O título leva o preço (22 nov 2026: «Capas para telemóvel» era o título do artigo E o da categoria; e o preço no
+     resultado do Google diz logo o que se procura). */
+  const precoNoTitulo = v.atual !== null ? ` — ${temSuplementos(p) ? 'desde ' : ''}${euros(v.atual)}` : '';
   return {
     caminho,
-    titulo: p.nome,
-    descricao: `${p.resumo}${v.atual !== null ? ` ${temSuplementos(p) ? 'Desde ' : ''}${euros(v.atual)}.` : ''} Na ${ctx.site.marca}, em ${ctx.site.local.localidade}.`.slice(0, 160),
+    // com « | LF Mobile» até ~66 caracteres: num nome comprido o preço fica só na página
+    titulo: `${p.nome}${precoNoTitulo} | ${ctx.site.marca}`.length <= 66 ? `${p.nome}${precoNoTitulo}` : p.nome,
+    descricao: resumir(`${p.resumo}${v.atual !== null ? ` ${temSuplementos(p) ? 'Desde ' : ''}${euros(v.atual)}.` : ''} Na ${ctx.site.marca}, em ${ctx.site.local.localidade}.`),
     tipo: 'product',
     partilha: ctx.manifesto.partilha[p.slug],
     jsonld: [m.ld, ldProduto],

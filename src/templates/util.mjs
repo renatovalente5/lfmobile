@@ -89,6 +89,16 @@ export function markdown(src, url = (u) => u, { quebras = false } = {}) {
   return out.join('\n');
 }
 
+/* Um texto que cabe no que o Google mostra (a descrição: ~158 caracteres), cortado ao fim de uma palavra e com
+   reticências — o `.slice(0, 160)` de antes cortava a meio («…pelo WhatsA», 22 nov 2026). */
+export function resumir(texto, max = 158) {
+  const t = String(texto || '').replace(/\s+/g, ' ').trim();
+  if (t.length <= max) return t;
+  const corte = t.slice(0, max - 1);
+  const ate = corte.lastIndexOf(' ');
+  return `${(ate > max * 0.6 ? corte.slice(0, ate) : corte).replace(/[\s,;:—–-]+$/, '')}…`;
+}
+
 /* O primeiro parágrafo de um markdown, em texto simples (para a descrição da página nos
    motores de busca): sem títulos, sem marcas de lista, sem negrito nem ligações. */
 export function textoSimples(src) {

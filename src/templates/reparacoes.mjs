@@ -12,7 +12,7 @@
 // valor, metes pedir orçamento»); o diagnóstico, a mão de obra e a oxidação estão nas tabelas da /reparacoes/.
 // Melhor do que a iServices: tudo numa página (escolher o nível não abre outra), várias reparações de
 // uma vez com o total, e a película já com o modelo escolhido.
-import { esc, euros, numeroWhatsApp } from './util.mjs';
+import { esc, euros, numeroWhatsApp, resumir } from './util.mjs';
 import { icones, iconeReparacao } from './icones.mjs';
 import { usarAparelho, spriteAparelhos } from './aparelhos.mjs';
 import { migalhas, imagem, cartaoProduto, notaPorConfirmar, convite } from './componentes.mjs';
@@ -26,6 +26,23 @@ const doAparelho = (x) => (x?.tipo === 'consola' ? 'da' : 'do');
 const oMeu = (x) => (x?.tipo === 'consola' ? 'a minha' : 'o meu');
 /* «Reparação iPhone 15», mas «Reparação de portátil»: os computadores não são modelos com nome. */
 const reparacaoDe = (x) => (x.tipo === 'computador' ? `de ${x.nome.toLowerCase()}` : x.nome);
+
+/* A DESCRIÇÃO PARA O GOOGLE com uma lista de nomes: «antes» + os nomes que couberem + «depois», sem passar dos ~158
+   caracteres que o resultado mostra (22 nov 2026: as das famílias tinham até 246, e as dos modelos cortavam a meio de
+   uma palavra). */
+function frasesQueCabem(antes, nomes, depois, max = 158) {
+  let usados = [];
+  for (const n of nomes) {
+    const prova = [...usados, n];
+    if (`${antes}${prova.join(', ')}${prova.length < nomes.length ? ' e outros' : ''}. ${depois}`.length > max) break;
+    usados = prova;
+  }
+  if (!usados.length) return resumir(`${antes.replace(/[:\s]+$/, '')}. ${depois}`, max);
+  const lista = usados.length < nomes.length ? `${usados.join(', ')} e outros` : usados.join(', ').replace(/, ([^,]*)$/, ' e $1');
+  return `${antes}${lista}. ${depois}`;
+}
+/* Um modelo com preços do Leandro (não só o diagnóstico e o software, que são de toda a loja). */
+const temPrecosProprios = (reps) => reps.some((r) => r.preco !== null && !r.precoGeral && !r.porConfirmar);
 
 /* O preço de uma reparação, como se diz na lista: «129,90 €», «desde 129,90 €», «Grátis» ou
    «Pedir orçamento» (o Leandro, 22 nov 2026: sem o valor dele, «pedir orçamento»; o diagnóstico deixou
@@ -162,8 +179,9 @@ export function reparacoes(ctx) {
 </div>`;
   return {
     caminho: '/reparacoes/',
-    titulo: 'Reparação de telemóveis de todas as marcas — preços por modelo',
-    descricao: `Reparação de telemóveis de todas as marcas, tablets, relógios, consolas PlayStation e computadores em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}. Veja o preço do seu modelo ou peça o orçamento.`,
+    // até ~65 caracteres com « | LF Mobile»; o concelho é o que se escreve no Google (22 nov 2026: tinha 74)
+    titulo: `Reparação de telemóveis em ${ctx.site.local.concelho}`,
+    descricao: `Reparação de telemóveis de todas as marcas, tablets, relógios, consolas e computadores em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}. Veja o preço ou peça o orçamento.`,
     classe: 'pagina-reparacoes',
     jsonld: [m.ld, {
       '@context': 'https://schema.org', '@type': 'Service', name: 'Reparação de telemóveis, tablets, relógios, consolas e computadores', provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },
@@ -198,7 +216,8 @@ export function familia(ctx, f) {
     titulo: f.tipo === 'computador' ? 'Reparação de computadores — portáteis e fixos' : `Reparação ${f.nome} — escolha o modelo`,
     descricao: f.tipo === 'computador'
       ? `Reparação de portáteis e computadores fixos em ${ctx.site.local.localidade}: limpeza e pasta térmica, formatação, placa gráfica e montagem de PC gaming. Orçamento pelo WhatsApp.`
-      : `Reparação de ${f.nome} em ${ctx.site.local.localidade}: ${lista.slice(0, 6).map((x) => x.nome).join(', ')} e outros. ${f.tipo === 'consola' ? 'Porta HDMI, limpeza, comandos' : 'Ecrã, bateria'} e mais, com o preço de cada modelo.`,
+      : frasesQueCabem(`Reparação de ${f.nome} em ${ctx.site.local.localidade}: `, lista.map((x) => x.nome),
+        lista.some((x) => temPrecosProprios(reparacoesDoModelo(ctx.dados.reparacoes, x, { mostrarPorConfirmar: !ctx.producao }))) ? 'Veja o preço do seu modelo.' : 'Peça o orçamento pelo WhatsApp.'),
     classe: 'pagina-familia',
     jsonld: [m.ld],
     conteudo,
@@ -295,10 +314,12 @@ ${spriteAparelhos()}`;
   const comPreco = ctx.producao ? reps.filter((r) => r.preco !== null && !r.porConfirmar) : [];
   return {
     caminho,
-    titulo: `Reparação ${reparacaoDe(x)} — ${x.tipo === 'consola' ? 'porta HDMI, limpeza e mais' : x.tipo === 'computador' ? 'limpeza, formatação e mais' : 'ecrã, bateria e mais'}`,
-    descricao: (x.tipo === 'computador'
-      ? `Reparação ${reparacaoDe(x)} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ${reps.filter((r) => !r.gratis && r.id !== 'diagnostico').map((r) => (/^PC/.test(r.nome) ? r.nome : r.nome.toLowerCase())).join(', ').replace(/, ([^,]*)$/, ' e $1')}. Orçamento pelo WhatsApp.`
-      : `Reparação ${doAparelho(x)} ${x.nome} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ${reps.slice(0, 5).map((r) => r.nome.toLowerCase()).join(', ')}. Veja o preço ou peça o orçamento pelo WhatsApp.`).slice(0, 160),
+    // o título com « | LF Mobile» até ~65 caracteres: num nome comprido («iPad Pro 12,9″ (6.ª geração)») sai o «— ecrã, bateria e mais»
+    titulo: ((t) => (`${t} | ${ctx.site.marca}`.length <= 65 ? t : `Reparação ${reparacaoDe(x)}`))(`Reparação ${reparacaoDe(x)} — ${x.tipo === 'consola' ? 'porta HDMI, limpeza e mais' : x.tipo === 'computador' ? 'limpeza, formatação e mais' : 'ecrã, bateria e mais'}`),
+    descricao: x.tipo === 'computador'
+      ? frasesQueCabem(`Reparação ${reparacaoDe(x)} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: `, reps.filter((r) => !r.gratis && r.id !== 'diagnostico').map((r) => (/^PC/.test(r.nome) ? r.nome : r.nome.toLowerCase())), 'Orçamento pelo WhatsApp.')
+      : frasesQueCabem(`Reparação ${doAparelho(x)} ${x.nome} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: `, reps.filter((r) => r.id !== 'diagnostico').map((r) => r.nome.toLowerCase()),
+        temPrecosProprios(reps) ? 'Veja o preço ou peça o orçamento pelo WhatsApp.' : 'Peça o orçamento pelo WhatsApp.'),
     classe: 'pagina-modelo',
     jsonld: [m.ld, {
       '@context': 'https://schema.org', '@type': 'Service', name: `Reparação ${x.nome}`, provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },

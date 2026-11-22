@@ -24,7 +24,7 @@ fs.mkdirSync(SAIDA, { recursive: true });
 
 const CARRINHO = { v: 2, linhas: [
   { produto: 'pelicula-vidro-temperado', opcoes: [], qtd: 1, modelo: 'iPhone 15 Pro Max' },
-  { produto: 'inpods-3', opcoes: [], qtd: 2 },
+  { produto: 'inpods-4', opcoes: [], qtd: 2 },
 ], zona: 'levantamento', cupao: null };
 
 const PAGINAS = [
@@ -35,6 +35,7 @@ const PAGINAS = [
   ['produto-cor', '/produtos/fones-p9/'], ['produto-a17', '/produtos/samsung-galaxy-a17/'],
   ['produto-relogio', '/produtos/huawei-watch-d2/'],
   ['reparacoes', '/reparacoes/'], ['reparacoes-iphone', '/reparacoes/iphone/'], ['reparacoes-iphone-15', '/reparacoes/iphone-15/'],
+  ['reparacoes-galaxy-s24', '/reparacoes/galaxy-s24/'], ['loja-acessorios', '/loja/acessorios/'],
   ['reparacoes-ps5', '/reparacoes/playstation-5/'], ['reparacoes-pc', '/reparacoes/computadores/'],
   ['retoma', '/retoma/'], ['contactos', '/contactos/'], ['sobre', '/sobre-nos/'], ['faq', '/perguntas-frequentes/'],
   ['envios', '/envios-e-devolucoes/'], ['garantia', '/garantia/'], ['termos', '/termos-e-condicoes/'],
