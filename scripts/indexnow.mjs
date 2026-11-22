@@ -32,8 +32,9 @@ async function desdeQuando() {
 }
 
 async function principal() {
-  const desde = await desdeQuando();
-  if (desde === null) { aviso('não se soube a publicação anterior; não se avisou nada.'); return; }
+  // DESDE=<data ISO>: à mão, para avisar as páginas que mudaram desde uma data (ex.: depois de mudar o próprio mapa)
+  const desde = process.env.DESDE ? new Date(process.env.DESDE) : await desdeQuando();
+  if (desde === null || (desde instanceof Date && Number.isNaN(+desde))) { aviso('não se soube a publicação anterior; não se avisou nada.'); return; }
   const r = await fetch(`https://${DOMINIO}/sitemap.xml?_=${Date.now()}`);
   if (!r.ok) { aviso(`o mapa do site respondeu ${r.status}; não se avisou nada.`); return; }
   const urls = [...(await r.text()).matchAll(/<url>\s*<loc>([^<]+)<\/loc>(?:\s*<lastmod>([^<]+)<\/lastmod>)?/g)]

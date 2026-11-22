@@ -590,14 +590,18 @@ try {
   // a data da última alteração de cada página sai do git (o conteúdo de que ela é feita), com a hora
   const data = (ficheirosFonte) => execFileSync('git', ['log', '-1', '--format=%cI', '--', ...ficheirosFonte], { cwd: RAIZ, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
   for (const s of indexaveis) {
-    let fontes = ['content/site.json'];
-    if (s.caminho === '/') fontes = ['content/inicio.json', 'content/produtos', 'content/reparacoes.json', 'content/site.json'];
-    else if (s.caminho.startsWith('/produtos/')) fontes = [`content/produtos/${s.caminho.split('/')[2]}.json`];
-    else if (s.caminho.startsWith('/loja/')) fontes = ['content/produtos', 'content/categorias.json'];
-    else if (s.caminho.startsWith('/reparacoes/')) fontes = ['content/reparacoes.json', 'content/aparelhos.json'];
-    else if (s.caminho === '/retoma/') fontes = ['content/retoma.json', 'content/aparelhos.json'];
-    else if (s.caminho.startsWith('/campanhas/')) fontes = ['content/campanhas.json'];
-    else if (existe(`content/paginas${s.caminho.replace(/\/$/, '')}.md`)) fontes = [`content/paginas${s.caminho.replace(/\/$/, '')}.md`, 'content/site.json'];
+    /* O conteúdo da página E o modelo que a desenha (22 nov 2026: os títulos, as descrições e os dados estruturados de
+       todas as páginas mudaram em src/templates, e o mapa dizia que nada tinha mudado). O cabeçalho e o rodapé
+       (layout.mjs) não contam: são iguais em todas as páginas, e o Google não os quer no lastmod. */
+    const P = 'src/templates/paginas.mjs';
+    let fontes = ['content/site.json', P];
+    if (s.caminho === '/') fontes = ['content/inicio.json', 'content/produtos', 'content/reparacoes.json', 'content/site.json', P];
+    else if (s.caminho.startsWith('/produtos/')) fontes = [`content/produtos/${s.caminho.split('/')[2]}.json`, P];
+    else if (s.caminho.startsWith('/loja/')) fontes = ['content/produtos', 'content/categorias.json', P];
+    else if (s.caminho.startsWith('/reparacoes/')) fontes = ['content/reparacoes.json', 'content/aparelhos.json', 'src/templates/reparacoes.mjs'];
+    else if (s.caminho === '/retoma/') fontes = ['content/retoma.json', 'content/aparelhos.json', 'src/templates/retoma.mjs'];
+    else if (s.caminho.startsWith('/campanhas/')) fontes = ['content/campanhas.json', P];
+    else if (existe(`content/paginas${s.caminho.replace(/\/$/, '')}.md`)) fontes = [`content/paginas${s.caminho.replace(/\/$/, '')}.md`, 'content/site.json', P];
     lastmod[s.caminho] = data(fontes) || hoje;
   }
 } catch { lastmod = {}; }
