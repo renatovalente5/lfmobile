@@ -163,7 +163,8 @@ export const TAMANHOS = Object.freeze({
   inicioCurto: 60, inicioTitulo: 120, inicioTexto: 600,
   transportadora: 40, escaloes: 6,
   modeloNome: 60, modelos: 1200, capacidades: 8, outrasMarcas: 30, modelosDaMarca: 60,
-  tipoNome: 40, tipoTitulo: 80, tipoResumo: 200, sintomas: 8, sintoma: 120, niveis: 3, nivelNome: 40, nivelTexto: 160,
+  tipoNome: 40, tipoTitulo: 80, tipoResumo: 200, sintomas: 8, sintoma: 120, niveis: 3, nivelNome: 40, nivelTexto: 160, tipoPergunta: 60,
+  servicos: 4, servicoTitulo: 80, servicoLinhas: 20, servicoNome: 120, servicoTexto: 200, servicoNotas: 6, servicoNota: 300,
   pergunta: 120, perguntaAjuda: 240, respostas: 6, resposta: 60, respostaAjuda: 80, perguntas: 12, opcoesRetoma: 6, opcaoRetoma: 80,
   campanhas: 20, campanhaNome: 60, campanhaFaixa: 140, campanhaTitulo: 120, campanhaTexto: 600,
 });
@@ -941,13 +942,19 @@ export const capacidadeTexto = (gb) => (gb >= 1024 && gb % 1024 === 0 ? `${gb / 
 
 /* { confirmado: bool,
      tipos: [{ id, nome, titulo, icone, resumo, sintomas: [texto], familias: [id], excluir?: [modelo],
-               niveis?: [{ id, nome, texto }], foto?, orcamento?: bool, gratis?: bool }],
-     precos: { <modelo>: { <tipo>: preço | { <nível>: preço } } } }
-   O preço de um tipo com níveis (o ecrã: compatível e original) é por nível; sem níveis, um número.
-   Sem preço, a página diz «Orçamento grátis». «orcamento»: o preço só se sabe depois de ver (os
-   líquidos); «gratis»: o diagnóstico. CONFIRMADO: os preços que vieram do mercado (referências, 9
-   nov 2026) só aparecem na pré-visualização, marcados «por confirmar»; no site a sério só depois
-   de o dono os confirmar no painel. */
+               niveis?: [{ id, nome, texto }], pergunta?, preco?, foto?, orcamento?: bool, gratis?: bool }],
+     precos: { <modelo>: { <tipo>: preço | { <nível>: preço } } },
+     servicos?: [{ id, titulo, linhas: [{ nome, preco: número | null, texto? }], notas?: [texto] }] }
+   O preço de um tipo com níveis (o ecrã: compatível, de qualidade original e original) é por nível; sem níveis, um
+   número. «preco» no tipo: o mesmo preço em todos os modelos que não têm o seu (o diagnóstico e o
+   software, iguais em toda a loja: a tabela do Leandro de 22 nov 2026); «pergunta»: o título da
+   escolha do nível (sem ela, «Que ecrã?»). Sem preço, a página diz «Pedir orçamento». «orcamento»: o
+   preço só se sabe depois de ver (os líquidos); «gratis»: grátis em todos (o diagnóstico até 22 nov
+   2026). «servicos»: as tabelas da página das reparações (diagnóstico e mão de obra, oxidação), com o
+   preço ou «Sob orçamento» (null). O painel não muda os tipos nem as tabelas: só os preços dos modelos.
+   CONFIRMADO: os preços que vieram do mercado (referências, 9 nov 2026) só aparecem na
+   pré-visualização, marcados «por confirmar»; no site a sério só depois de o dono os confirmar no
+   painel. */
 export function problemasDasReparacoes(valor, { aparelhos = null, fotos = null, producao = false } = {}) {
   const ficheiro = FICHEIROS.reparacoes;
   const out = [];
@@ -958,6 +965,7 @@ export function problemasDasReparacoes(valor, { aparelhos = null, fotos = null, 
   const d = l.obj;
   if (l.ilegivel || !eObjecto(d) || !Array.isArray(d.tipos)) { bloqueia('forma', undefined, 'As reparações não se conseguem ler: sem elas a página das reparações não se gera. Só o Renato as pode corrigir.'); return out; }
   if (!ausente(d.confirmado) && typeof d.confirmado !== 'boolean') avisa('confirmado', 'confirmado', '«Confirmo os preços» tem de ser sim ou não.');
+  const precoBom = (x) => typeof x === 'number' && Number.isFinite(x) && x >= LIMITES.reparacao[0] && x <= LIMITES.reparacao[1] && duasCasas(x);
   const familias = aparelhos ? new Set(aparelhos.familias.map((f) => f.id)) : null;
   const tipos = new Map();
   d.tipos.forEach((t, i) => {
@@ -986,12 +994,17 @@ export function problemasDasReparacoes(valor, { aparelhos = null, fotos = null, 
         else { const m = `${n.nome} ${n.texto || ''}`.match(RE_ALEGACOES); if (m) bloqueia(`${t.id}.niveis.${j}:alegacao`, `${onde}.niveis.${j}`, `O nível «${n.nome}» da reparação ${rotulo}: «${m[0]}» é uma palavra que a lei só deixa usar com prova. Tire-a.`); }
       });
     }
+    if (!vazio(t.pergunta) && (typeof t.pergunta !== 'string' || t.pergunta.length > TAMANHOS.tipoPergunta || RE_CONTROLO_LINHA.test(t.pergunta) || RE_PARTE_A_PAGINA.test(t.pergunta))) avisa(`${t.id}.pergunta`, `${onde}.pergunta`, `A pergunta da escolha da reparação ${rotulo} é uma linha curta (até ${TAMANHOS.tipoPergunta} caracteres).`);
+    if (!ausente(t.preco)) {
+      const idsNiveis = Array.isArray(t.niveis) ? t.niveis.filter((n) => eObjecto(n) && slugValido(n.id)).map((n) => n.id) : [];
+      if (t.gratis === true || t.orcamento === true) avisa(`${t.id}.preco:gratis`, `${onde}.preco`, `A reparação ${rotulo} tem um preço para todos os modelos e diz-se grátis ou depois do diagnóstico: o preço não aparece.`);
+      else if (idsNiveis.length ? !(eObjecto(t.preco) && Object.keys(t.preco).length && Object.entries(t.preco).every(([k, x]) => idsNiveis.includes(k) && precoBom(x))) : !precoBom(t.preco)) avisa(`${t.id}.preco`, `${onde}.preco`, `O preço de todos os modelos da reparação ${rotulo} não está como devia: não aparece.`);
+    }
     if (!vazio(t.foto) && (!nomeDeFotoValido(t.foto) || (fotos && !fotos.has(t.foto)))) avisa(`${t.id}.foto`, `${onde}.foto`, `A fotografia da reparação ${rotulo} já não está na biblioteca: não aparece.`);
   });
   const precos = d.precos;
   if (!ausente(precos) && !eObjecto(precos)) bloqueia('precos:forma', 'precos', 'Os preços das reparações não estão gravados como deve ser. Só o Renato os pode corrigir.');
   else if (eObjecto(precos)) {
-    const precoBom = (x) => typeof x === 'number' && Number.isFinite(x) && x >= LIMITES.reparacao[0] && x <= LIMITES.reparacao[1] && duasCasas(x);
     for (const [mid, porTipo] of Object.entries(precos)) {
       const modelo = aparelhos ? aparelhos.porId.get(mid) : null;
       if (aparelhos && !modelo) { avisa(`precos.${mid}:modelo`, `precos.${mid}`, `Há preços para o modelo «${mid}», que não está na lista dos modelos: não aparecem.`); continue; }
@@ -1012,10 +1025,24 @@ export function problemasDasReparacoes(valor, { aparelhos = null, fotos = null, 
       }
     }
   }
+  if (!ausente(d.servicos)) {
+    if (!Array.isArray(d.servicos) || d.servicos.length > TAMANHOS.servicos) avisa('servicos', 'servicos', `As tabelas dos serviços são até ${TAMANHOS.servicos}: não aparecem.`);
+    else d.servicos.forEach((s, i) => {
+      const onde = `servicos.${i}`;
+      if (!eObjecto(s) || !slugValido(s.id) || !temTexto(s.titulo) || s.titulo.length > TAMANHOS.servicoTitulo || RE_CONTROLO_LINHA.test(s.titulo) || !Array.isArray(s.linhas) || !s.linhas.length || s.linhas.length > TAMANHOS.servicoLinhas) { avisa(`${onde}:forma`, onde, `A tabela dos serviços ${i + 1} não está como devia: não aparece.`); return; }
+      s.linhas.forEach((x, j) => {
+        if (!eObjecto(x) || !temTexto(x.nome) || x.nome.length > TAMANHOS.servicoNome || RE_CONTROLO_LINHA.test(x.nome) || RE_PARTE_A_PAGINA.test(x.nome) || (!ausente(x.preco) && !precoBom(x.preco))
+          || (!ausente(x.texto) && (typeof x.texto !== 'string' || x.texto.length > TAMANHOS.servicoTexto || RE_CONTROLO_LINHA.test(x.texto) || RE_PARTE_A_PAGINA.test(x.texto)))) avisa(`${onde}.linhas.${j}`, `${onde}.linhas.${j}`, `A linha ${j + 1} da tabela «${s.titulo.trim()}» não está como devia.`);
+      });
+      if (!ausente(s.notas) && (!Array.isArray(s.notas) || s.notas.length > TAMANHOS.servicoNotas || !s.notas.every((x) => temTexto(x) && x.length <= TAMANHOS.servicoNota && !RE_CONTROLO_LINHA.test(x) && !RE_PARTE_A_PAGINA.test(x)))) avisa(`${onde}.notas`, `${onde}.notas`, `As notas da tabela «${s.titulo.trim()}» são até ${TAMANHOS.servicoNotas} frases.`);
+      const m = JSON.stringify(s).match(RE_ALEGACOES);
+      if (m) bloqueia(`${onde}:alegacao`, onde, `A tabela «${s.titulo.trim()}»: «${m[0]}» é uma palavra que a lei só deixa usar com prova. Tire-a.`);
+    });
+  }
   const temPrecos = eObjecto(precos) && Object.values(precos).some((x) => eObjecto(x) && Object.keys(x).length);
   if (temPrecos && d.confirmado !== true) {
     avisa(producao ? 'confirmado:producao' : 'confirmado:previa', 'confirmado', producao
-      ? 'Os preços das reparações ainda não estão confirmados: o site mostra «Orçamento grátis» em vez deles até os confirmar.'
+      ? 'Os preços das reparações ainda não estão confirmados: o site mostra «Pedir orçamento» em vez deles até os confirmar.'
       : 'Os preços das reparações ainda não estão confirmados: na pré-visualização aparecem marcados «por confirmar», e no site a sério só depois de os confirmar.', { lembrete: true });
   }
   return out;
@@ -1027,21 +1054,50 @@ export function tiposDeReparacao(valor) {
   if (!eObjecto(d) || !Array.isArray(d.tipos)) return [];
   const vistos = new Set();
   const out = [];
+  const precoBom = (x) => typeof x === 'number' && Number.isFinite(x) && x >= LIMITES.reparacao[0] && x <= LIMITES.reparacao[1] && duasCasas(x);
   for (const t of d.tipos) {
     if (!eObjecto(t) || !slugValido(t.id) || vistos.has(t.id) || !temTexto(t.nome) || !temTexto(t.resumo) || !Array.isArray(t.familias)) continue;
     vistos.add(t.id);
+    const niveis = Array.isArray(t.niveis) ? t.niveis.filter((n) => eObjecto(n) && slugValido(n.id) && temTexto(n.nome)).slice(0, TAMANHOS.niveis).map((n) => ({ id: n.id, nome: n.nome.trim(), texto: temTexto(n.texto) ? n.texto.trim() : '' })) : [];
+    // o preço de todos os modelos (null: cada modelo tem o seu); com níveis, só os níveis que existem
+    let precoGeral = null;
+    if (t.gratis !== true && t.orcamento !== true) {
+      if (niveis.length && eObjecto(t.preco)) {
+        const o = Object.fromEntries(niveis.filter((n) => precoBom(t.preco[n.id])).map((n) => [n.id, t.preco[n.id]]));
+        if (Object.keys(o).length) precoGeral = o;
+      } else if (!niveis.length && precoBom(t.preco)) precoGeral = t.preco;
+    }
     out.push({
       id: t.id, nome: t.nome.trim(), titulo: temTexto(t.titulo) ? t.titulo.trim() : t.nome.trim(), resumo: t.resumo.trim(),
       icone: ICONES_REPARACAO.includes(t.icone) ? t.icone : 'diagnostico',
       sintomas: linhasDe(t.sintomas).slice(0, TAMANHOS.sintomas),
       familias: t.familias.filter((f) => typeof f === 'string'),
       excluir: Array.isArray(t.excluir) ? t.excluir.filter((x) => typeof x === 'string') : [],
-      niveis: Array.isArray(t.niveis) ? t.niveis.filter((n) => eObjecto(n) && slugValido(n.id) && temTexto(n.nome)).slice(0, TAMANHOS.niveis).map((n) => ({ id: n.id, nome: n.nome.trim(), texto: temTexto(n.texto) ? n.texto.trim() : '' })) : [],
+      niveis,
+      pergunta: temTexto(t.pergunta) && t.pergunta.length <= TAMANHOS.tipoPergunta && !RE_CONTROLO_LINHA.test(t.pergunta) ? t.pergunta.trim() : '',
+      precoGeral,
       foto: nomeDeFotoValido(t.foto) ? t.foto : '',
       orcamento: t.orcamento === true, gratis: t.gratis === true,
     });
   }
   return out;
+}
+/* As tabelas dos serviços da página das reparações (diagnóstico e mão de obra, oxidação), já limpas:
+   → [{ id, titulo, linhas: [{ nome, preco: número | null (sob orçamento), texto }], notas: [texto] }] */
+export function servicosDasReparacoes(valor) {
+  const d = lerJson(valor).obj;
+  if (!eObjecto(d) || !Array.isArray(d.servicos)) return [];
+  const precoBom = (x) => typeof x === 'number' && Number.isFinite(x) && x >= LIMITES.reparacao[0] && x <= LIMITES.reparacao[1] && duasCasas(x);
+  const linha = (t, max) => temTexto(t) && t.length <= max && !RE_CONTROLO_LINHA.test(t) && !RE_PARTE_A_PAGINA.test(t);
+  return d.servicos.slice(0, TAMANHOS.servicos)
+    .filter((s) => eObjecto(s) && slugValido(s.id) && linha(s.titulo, TAMANHOS.servicoTitulo) && Array.isArray(s.linhas) && !RE_ALEGACOES.test(JSON.stringify(s)))
+    .map((s) => ({
+      id: s.id, titulo: s.titulo.trim(),
+      linhas: s.linhas.slice(0, TAMANHOS.servicoLinhas).filter((x) => eObjecto(x) && linha(x.nome, TAMANHOS.servicoNome))
+        .map((x) => ({ nome: x.nome.trim(), preco: precoBom(x.preco) ? x.preco : null, texto: linha(x.texto, TAMANHOS.servicoTexto) ? x.texto.trim() : '' })),
+      notas: (Array.isArray(s.notas) ? s.notas : []).filter((x) => linha(x, TAMANHOS.servicoNota)).map((x) => x.trim()).slice(0, TAMANHOS.servicoNotas),
+    }))
+    .filter((s) => s.linhas.length);
 }
 /* As reparações de um modelo, com o preço de cada nível (null = orçamento). `mostrarPorConfirmar`:
    na pré-visualização os preços por confirmar aparecem (marcados); em produção não.
@@ -1054,7 +1110,8 @@ export function reparacoesDoModelo(valor, modelo, { mostrarPorConfirmar = true }
   const doModelo = usar && eObjecto(d) && eObjecto(d.precos) && eObjecto(d.precos[modelo.id]) ? d.precos[modelo.id] : {};
   const precoBom = (x) => typeof x === 'number' && Number.isFinite(x) && x >= LIMITES.reparacao[0] && x <= LIMITES.reparacao[1] && duasCasas(x);
   return tipos.filter((t) => t.familias.includes(modelo.familia) && !t.excluir.includes(modelo.id)).map((t) => {
-    const v = doModelo[t.id];
+    // o preço do modelo; sem ele, o de todos os modelos (o diagnóstico, o software)
+    const v = ausente(doModelo[t.id]) || doModelo[t.id] === '' ? (usar ? t.precoGeral ?? undefined : undefined) : doModelo[t.id];
     let niveis;
     if (t.niveis.length) niveis = t.niveis.map((n) => ({ ...n, preco: eObjecto(v) && precoBom(v[n.id]) ? v[n.id] : null }));
     else niveis = [{ id: 'unico', nome: t.nome, texto: '', preco: precoBom(v) ? v : null }];

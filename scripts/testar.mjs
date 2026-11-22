@@ -331,7 +331,58 @@ teste('as reparações: a página geral, a da família e a do modelo, com os pre
   assert.match(m, /por confirmar: preços de referência/);
   assert.match(m, /data-por-confirmar="sim"/);
   assert.match(ler2('reparacoes/galaxy-s24/index.html'), /59,90/);
-  assert.match(ler2('reparacoes/iphone-15-pro/index.html'), /Orçamento grátis/);
+  assert.match(ler2('reparacoes/iphone-15-pro/index.html'), /Pedir orçamento/);
+});
+teste('as reparações com o preço de todos os modelos (o diagnóstico e o software), os níveis só com preço, e as tabelas dos serviços (o Leandro, 22 nov 2026)', () => {
+  const pasta = copia('reparacoes-servicos', (p) => json(p, 'content/reparacoes.json', (r) => {
+    const t = (id) => r.tipos.find((x) => x.id === id);
+    const dg = t('diagnostico');
+    delete dg.gratis;
+    dg.niveis = [{ id: 'normal', nome: 'Diagnóstico', texto: 'Vemos o que tem.' }, { id: 'urgente', nome: 'Diagnóstico urgente', texto: 'Em até 2 horas.' }];
+    dg.pergunta = 'Normal ou urgente?';
+    dg.preco = { normal: 14.9, urgente: 24.9 };
+    t('ecra').niveis.splice(1, 0, { id: 'qualidade-original', nome: 'Ecrã de qualidade original', texto: 'Peça compatível, com a qualidade da original.' });
+    t('bateria').niveis = [{ id: 'compativel', nome: 'Bateria compatível' }, { id: 'qualidade-original', nome: 'Bateria de qualidade original' }, { id: 'original', nome: 'Bateria original' }];
+    for (const v of Object.values(r.precos)) if (typeof v.bateria === 'number') v.bateria = { compativel: v.bateria };
+    r.precos['iphone-13'].bateria = { 'qualidade-original': 59.9 };
+    r.precos['iphone-13'].ecra = { compativel: 69.9, 'qualidade-original': 119.9 };
+    r.servicos = [{ id: 'diagnostico-e-mao-de-obra', titulo: 'Diagnóstico e mão de obra', linhas: [{ nome: 'Diagnóstico', preco: 14.9 }, { nome: 'Microsoldadura', preco: null }, { nome: 'Mão de obra básica', preco: 15.9, texto: 'Até 30 minutos.' }], notas: ['Os orçamentos são válidos durante 15 dias.'] }];
+  }));
+  assert.equal(construir(pasta).codigo, 0);
+  const ler2 = (rel) => fs.readFileSync(path.join(pasta, '_site', rel), 'utf8');
+  const m = ler2('reparacoes/iphone-13/index.html');
+  const rep = (id) => m.match(new RegExp(String.raw`<div class="rep" id="${id}"[\s\S]*?</label>\s*(<fieldset[\s\S]*?</fieldset>)?\s*</div>`))[0];
+  // o diagnóstico: o preço de todos, com a escolha e a pergunta dele
+  assert.match(rep('diagnostico'), /desde 14,90/);
+  assert.match(rep('diagnostico'), /<legend>Normal ou urgente\?<\/legend>/);
+  assert.match(rep('diagnostico'), /24,90/);
+  assert.doesNotMatch(m, /Grátis|grátis/);
+  // a bateria com um nível só: a linha diz qual, sem repetir «Bateria»
+  assert.match(rep('bateria'), /Troca da bateria <span class="rep__nivel">\(de qualidade original\)<\/span>/);
+  assert.doesNotMatch(rep('bateria'), /<fieldset/);
+  // o ecrã: só os dois níveis com preço, sem «Pergunte-nos» para o original
+  assert.match(rep('ecra'), /<legend>Que ecrã\?<\/legend>/);
+  assert.equal((rep('ecra').match(/<label class="nivel">/g) || []).length, 2);
+  assert.doesNotMatch(m, /Pergunte-nos|nivel--sem/);
+  // sem preço do Leandro: «Pedir orçamento»
+  assert.match(ler2('reparacoes/iphone-15-pro/index.html'), /Pedir orçamento/);
+  // as tabelas na página das reparações
+  const t = ler2('reparacoes/index.html').match(/<section class="servicos" id="servicos"[\s\S]*?<\/section>/)[0];
+  assert.match(t, /<h3 class="servicos__titulo" id="servicos-diagnostico-e-mao-de-obra">Diagnóstico e mão de obra<\/h3>/);
+  assert.match(t, /<th scope="row">Mão de obra básica<small>Até 30 minutos\.<\/small><\/th><td>15,90\s€<\/td>/);
+  assert.match(t, /<td class="servicos__sob">Sob orçamento<\/td>/);
+  assert.match(t, /<li>Os orçamentos são válidos durante 15 dias\.<\/li>/);
+  // as regras: o preço de todos com o «grátis» avisa; um nível que não existe no preço de todos avisa
+  const R2 = (r) => R.problemasDasReparacoes(JSON.stringify(r)).filter((x) => !x.lembrete).map((x) => x.chave);
+  const base = JSON.parse(fs.readFileSync(path.join(pasta, 'content/reparacoes.json'), 'utf8'));
+  assert.deepEqual(R2(base), []);
+  const b1 = structuredClone(base); b1.tipos.find((x) => x.id === 'diagnostico').gratis = true;
+  assert.ok(R2(b1).includes('reparacoes:diagnostico.preco:gratis'));
+  const b2 = structuredClone(base); b2.tipos.find((x) => x.id === 'diagnostico').preco = { rapido: 9.9 };
+  assert.ok(R2(b2).includes('reparacoes:diagnostico.preco'));
+  const b3 = structuredClone(base); b3.servicos[0].linhas[0].nome = 'Diagnóstico ecológico';
+  assert.ok(R2(b3).includes('reparacoes:servicos.0:alegacao'));
+  assert.deepEqual(R.servicosDasReparacoes(JSON.stringify(b3)), []);
 });
 teste('as reparações de outras marcas: «Outras» abre as marcas, a família e o modelo têm página, e as películas juntam as sugestões sem repetir', () => {
   const pasta = copia('reparacoes-marcas', (p) => {
@@ -522,7 +573,7 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   assert.match(inicio, /<section class="loja-casa"[\s\S]*?<\/section>\s*<section class="garantias" aria-labelledby="garantias-titulo">\s*<h2 class="visualmente-escondido" id="garantias-titulo">Porquê a LF Mobile<\/h2>/);
   const lis = inicio.match(/<section class="garantias"[\s\S]*?<\/section>/)[0].match(/<li>[\s\S]*?<\/li>/g);
   // os envios só na capa (nas três vantagens), não outra vez aqui (13 nov 2026, sem informação repetida)
-  assert.deepEqual(lis.map((li) => li.match(/<strong class="garantia__titulo">(.*?)<\/strong>/)[1]), ['5,0 no Google', 'Orçamento grátis', 'Levantamento grátis']);
+  assert.deepEqual(lis.map((li) => li.match(/<strong class="garantia__titulo">(.*?)<\/strong>/)[1]), ['5,0 no Google', 'Preço antes de reparar', 'Levantamento grátis']);
   assert.equal((inicio.match(/24\/48 h/g) || []).length, 1);
   assert.match(lis[0], /<a class="garantia" href="https:\/\/www\.google\.com\/maps\/place\/LF\+Mobile\/[^"]*!9m1!1b1[^"]*" target="_blank" rel="noopener">/);
   assert.match(lis[0], /<span class="estrelas" style="--nota: 5" aria-hidden="true">/);
@@ -542,7 +593,7 @@ teste('as estrelas seguem a nota do Google (4,6 → 4,6 estrelas), e sem a liga�
   assert.equal(construir(pasta2).codigo, 0);
   const g2 = fs.readFileSync(path.join(pasta2, '_site/index.html'), 'utf8').match(/<section class="garantias"[\s\S]*?<\/section>/)[0];
   assert.doesNotMatch(g2, /no Google|estrelas/);
-  assert.match(g2, /<strong class="garantia__titulo">Orçamento grátis<\/strong>/);
+  assert.match(g2, /<strong class="garantia__titulo">Preço antes de reparar<\/strong>/);
 });
 teste('a revisão de 11 nov: a promoção agendada ainda não se mostra, as películas só nos telemóveis, a peça do ecrã na linha, e as categorias vazias fora do mapa', () => {
   const amanha2 = (() => { const x = new Date(`${hojeEmLisboa()}T12:00:00Z`); x.setUTCDate(x.getUTCDate() + 14); return x.toISOString().slice(0, 10); })();
@@ -569,7 +620,7 @@ teste('a revisão de 11 nov: a promoção agendada ainda não se mostra, as pel�
   assert.match(ler2('reparacoes/iphone-13/index.html'), /modelo-peliculas/);
   // o ecrã com um nível só (o compatível): a linha diz qual é
   assert.match(ler2('reparacoes/iphone-13/index.html'), /<span class="rep__nome">Substituição do ecrã <span class="rep__nivel">\(compatível\)<\/span><\/span>/);
-  assert.match(ler2('reparacoes/index.html'), /Ecrã compatível ou original, conforme o modelo/);
+  assert.match(ler2('reparacoes/index.html'), /Microsoldadura e reparação da placa/);
   // o mapa do site: as categorias com artigos sim, a vazia não (a página existe na mesma)
   const mapa = ler2('sitemap.xml');
   assert.doesNotMatch(mapa, /\/loja\/vazia\//);
@@ -614,7 +665,7 @@ teste('em produção, os preços das reparações e os valores da retoma por con
   assert.equal(construir(pasta, '--producao').codigo, 0);
   const m = fs.readFileSync(path.join(pasta, '_site/reparacoes/iphone-13/index.html'), 'utf8');
   assert.doesNotMatch(m, /129,90|69,90/);
-  assert.match(m, /Orçamento grátis/);
+  assert.match(m, /Pedir orçamento/);
   const dados = (html) => JSON.parse(html.match(/<script type="application\/json" id="dados-retoma">(.*?)<\/script>/)[1]);
   assert.deepEqual(dados(fs.readFileSync(path.join(pasta, '_site/retoma/index.html'), 'utf8')).valores, {});
   const conf = copia('reparacoes-confirmadas', (p) => {

@@ -103,7 +103,7 @@
     "slug": "acessorios",
     "nome": "Acessórios",
     "titulo": "Acessórios para telemóvel",
-    "resumo": "Cabos, capas, películas, braceletes, powerbanks e localizadores.",
+    "resumo": "Cabos, capas, braceletes, powerbanks e localizadores.",
     "peso": 0.2
   },
   {
@@ -127,8 +127,7 @@
     "nome": "Películas",
     "titulo": "Películas para qualquer telemóvel",
     "resumo": "Escolha o tipo e diga-nos o modelo do seu telemóvel.",
-    "peso": 0.1,
-    "grupo": "acessorios"
+    "peso": 0.1
   },
   {
     "slug": "braceletes",

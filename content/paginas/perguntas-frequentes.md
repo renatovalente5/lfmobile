@@ -4,11 +4,11 @@ modelo: perguntas
 ---
 ## Quanto custa a reparação?
 
-Escolha o seu modelo nas [reparações](/reparacoes/) e vê o preço de cada uma. Confirmamos o preço no diagnóstico, antes de reparar.
+Escolha o seu modelo nas [reparações](/reparacoes/) e veja o preço de cada uma; se não tiver preço, peça-nos o orçamento. Confirmamos o preço no diagnóstico, antes de reparar.
 
-## O orçamento é mesmo gratuito?
+## Quanto custa o diagnóstico?
 
-Sim. Vemos o equipamento, dizemos o que tem e quanto custa, e só avançamos com o seu acordo. Pode pedir o orçamento nas [reparações](/reparacoes/), pelo WhatsApp ou na loja.
+Está nas [reparações](/reparacoes/#servicos), com os outros serviços. Se fizer a reparação, o diagnóstico é descontado; se não a fizer, paga só o diagnóstico.
 
 ## Quanto tempo demora uma reparação?
 

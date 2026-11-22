@@ -5,16 +5,18 @@
 //                           dos problemas, cada um com a explicação e os sintomas;
 //   /reparacoes/<família>/  os modelos de uma família (iPhone, Galaxy S…), para quem chega do Google
 //                           ou do rodapé;
-//   /reparacoes/<modelo>/   as reparações daquele modelo com o preço (ou «Orçamento grátis»), os
-//                           níveis (o ecrã compatível ou original) e a marcação pelo WhatsApp com
-//                           tudo escrito; por baixo, as películas para aquele modelo.
+//   /reparacoes/<modelo>/   as reparações daquele modelo com o preço (ou «Pedir orçamento»), os
+//                           níveis (o ecrã compatível, de qualidade original ou original) e a marcação
+//                           pelo WhatsApp com tudo escrito; por baixo, as películas para aquele modelo.
+// Os preços são só os que o Leandro deu (22 nov 2026: «Outras [reparações] que tenha no site e eu não tenha
+// valor, metes pedir orçamento»); o diagnóstico, a mão de obra e a oxidação estão nas tabelas da /reparacoes/.
 // Melhor do que a iServices: tudo numa página (escolher o nível não abre outra), várias reparações de
 // uma vez com o total, e a película já com o modelo escolhido.
 import { esc, euros, numeroWhatsApp } from './util.mjs';
 import { icones, iconeReparacao } from './icones.mjs';
 import { usarAparelho, spriteAparelhos } from './aparelhos.mjs';
 import { migalhas, imagem, cartaoProduto, notaPorConfirmar, convite } from './componentes.mjs';
-import { reparacoesDoModelo } from '../lib/regras.mjs';
+import { reparacoesDoModelo, servicosDasReparacoes } from '../lib/regras.mjs';
 
 const nomeMarca = (ctx, id) => (ctx.aparelhos.marcas.find((m) => m.id === id) || {}).nome || '';
 const familiaDe = (ctx, id) => ctx.aparelhos.familias.find((f) => f.id === id);
@@ -26,10 +28,11 @@ const oMeu = (x) => (x?.tipo === 'consola' ? 'a minha' : 'o meu');
 const reparacaoDe = (x) => (x.tipo === 'computador' ? `de ${x.nome.toLowerCase()}` : x.nome);
 
 /* O preço de uma reparação, como se diz na lista: «129,90 €», «desde 129,90 €», «Grátis» ou
-   «Orçamento grátis». */
+   «Pedir orçamento» (o Leandro, 22 nov 2026: sem o valor dele, «pedir orçamento»; o diagnóstico deixou
+   de ser grátis nesse dia, por isso o orçamento já não se diz grátis). */
 export function precoDaReparacao(r) {
   if (r.gratis) return 'Grátis';
-  if (r.preco === null) return r.orcamento ? 'Depois do diagnóstico' : 'Orçamento grátis';
+  if (r.preco === null) return r.orcamento ? 'Depois do diagnóstico' : 'Pedir orçamento';
   return `${r.desde ? 'desde ' : ''}${euros(r.preco)}`;
 }
 
@@ -65,7 +68,7 @@ export function seletorDeModelo(ctx, { id = 'escolher', destino = 'reparacoes', 
     ${ctx.aparelhos.modelos.map((m) => `<li data-familia="${esc(m.familia)}" data-marca="${esc(m.marca)}" data-nome="${esc(m.nome.toLowerCase())}"><a href="${ctx.url(`/${destino}/${m.id}/`)}">${usarAparelho(m.desenho, 'aparelho--mini')}<span>${esc(m.nome)}</span></a></li>`).join('')}
   </ul>
   <p class="seletor__vazio" data-seletor-vazio hidden>Não encontramos esse modelo.</p>
-  <p class="seletor__outro">Outra marca ou modelo? <a href="${ctx.whatsapp('Olá! Queria um orçamento para reparar o meu telemóvel. Marca e modelo: ')}" target="_blank" rel="noopener">Pergunte-nos pelo WhatsApp</a>: o orçamento é grátis.</p>
+  <p class="seletor__outro">Outra marca ou modelo? <a href="${ctx.whatsapp('Olá! Queria um orçamento para reparar o meu telemóvel. Marca e modelo: ')}" target="_blank" rel="noopener">Peça-nos o orçamento pelo WhatsApp</a>.</p>
 </div>`;
 }
 
@@ -106,9 +109,31 @@ const passos = (ctx) => `<section class="passos-faixa" aria-labelledby="passos-t
   <ol class="passos-faixa__lista">
     <li><span class="passos-faixa__n">1</span><strong>Veja o preço</strong><span>Escolha o modelo e a reparação aqui no site.</span></li>
     <li><span class="passos-faixa__n">2</span><strong>Marque ou passe na loja</strong><span>Pelo WhatsApp, com tudo já escrito, ou em ${esc(ctx.site.local.localidade)}.</span></li>
-    <li><span class="passos-faixa__n">3</span><strong>Diagnóstico grátis</strong><span>Confirmamos o problema e o preço antes de reparar.</span></li>
+    <li><span class="passos-faixa__n">3</span><strong>Diagnóstico</strong><span>Confirmamos o problema e o preço antes de reparar.</span></li>
   </ol>
 </section>`;
+
+/* AS TABELAS DOS SERVIÇOS (as do Leandro, 22 nov 2026: «Orçamento de Diagnóstico e Mão de Obra» e «Orçamento
+   Limpeza de Oxidação»), iguais em toda a loja: o nome, o preço ou «Sob orçamento», e as notas por baixo. Os
+   preços de cada modelo estão na página dele; o diagnóstico e o software também lá aparecem. */
+function tabelasDosServicos(ctx) {
+  const servicos = servicosDasReparacoes(ctx.dados.reparacoes);
+  if (!servicos.length) return '';
+  return `<section class="servicos" id="servicos" aria-labelledby="servicos-titulo">
+  <h2 class="titulo-seccao" id="servicos-titulo">Diagnóstico e outros serviços</h2>
+  <div class="servicos__grelha">
+    ${servicos.map((s) => `<div class="servicos__cartao">
+      <h3 class="servicos__titulo" id="servicos-${esc(s.id)}">${esc(s.titulo)}</h3>
+      <table class="servicos__tabela" aria-labelledby="servicos-${esc(s.id)}">
+        <tbody>
+          ${s.linhas.map((x) => `<tr><th scope="row">${esc(x.nome)}${x.texto ? `<small>${esc(x.texto)}</small>` : ''}</th><td${x.preco === null ? ' class="servicos__sob"' : ''}>${x.preco === null ? 'Sob orçamento' : euros(x.preco)}</td></tr>`).join('\n          ')}
+        </tbody>
+      </table>
+      ${s.notas.length ? `<ul class="servicos__notas">${s.notas.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : ''}
+    </div>`).join('\n    ')}
+  </div>
+</section>`;
+}
 
 // ---------------------------------------------------------------- /reparacoes/
 export function reparacoes(ctx) {
@@ -119,10 +144,10 @@ export function reparacoes(ctx) {
     <div class="rep-capa__texto">
       <p class="rotulo rotulo--claro">Reparações</p>
       <h1 class="rep-capa__titulo">Reparação de telemóveis, com o preço à vista.</h1>
-      <p class="rep-capa__sub">Telemóveis de todas as marcas, tablets, relógios, consolas PlayStation e computadores. Escolha o seu modelo e veja quanto custa. Diagnóstico e orçamento grátis, na loja ou pelo WhatsApp.</p>
+      <p class="rep-capa__sub">Telemóveis de todas as marcas, tablets, relógios, consolas PlayStation e computadores. Escolha o seu modelo e veja quanto custa.</p>
       <ul class="rep-capa__pontos">
-        <li>${icones.certo}Orçamento grátis e sem compromisso</li>
-        <li>${icones.certo}Ecrã compatível ou original, conforme o modelo</li>
+        <li>${icones.certo}Orçamento pelo WhatsApp</li>
+        <li>${icones.certo}Microsoldadura e reparação da placa</li>
         <li>${icones.certo}Na loja, em ${esc(ctx.site.local.localidade)}</li>
       </ul>
     </div>
@@ -132,12 +157,13 @@ export function reparacoes(ctx) {
 <div class="contentor">
   ${grelhaDosProblemas(ctx, { titulo: 'O que se passa com o seu telemóvel?', texto: 'Escolha o problema para ver o que fazemos.' })}
   ${passos(ctx)}
+  ${tabelasDosServicos(ctx)}
   ${convite(ctx, { titulo: 'Não encontra o seu caso? Pergunte-nos.', texto: 'Olá! Queria um orçamento para uma reparação.' })}
 </div>`;
   return {
     caminho: '/reparacoes/',
     titulo: 'Reparação de telemóveis de todas as marcas — preços por modelo',
-    descricao: `Reparação de telemóveis de todas as marcas, tablets, relógios, consolas PlayStation e computadores em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}. Veja o preço do seu modelo; orçamento grátis.`,
+    descricao: `Reparação de telemóveis de todas as marcas, tablets, relógios, consolas PlayStation e computadores em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}. Veja o preço do seu modelo ou peça o orçamento.`,
     classe: 'pagina-reparacoes',
     jsonld: [m.ld, {
       '@context': 'https://schema.org', '@type': 'Service', name: 'Reparação de telemóveis, tablets, relógios, consolas e computadores', provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },
@@ -158,7 +184,7 @@ export function familia(ctx, f) {
   <header class="cabeca">
     <p class="rotulo">${esc(nomeMarca(ctx, f.marca))}</p>
     <h1 class="titulo-pagina">${f.tipo === 'computador' ? 'Reparação de computadores' : `Reparação ${esc(f.nome)}`}</h1>
-    <p class="cabeca__sub">${f.tipo === 'computador' ? 'Portáteis e computadores fixos, de qualquer marca. Escolha o seu para ver as reparações; o orçamento é grátis.' : 'Escolha o seu modelo para ver as reparações e os preços.'}</p>
+    <p class="cabeca__sub">${f.tipo === 'computador' ? 'Portáteis e computadores fixos, de qualquer marca. Escolha o seu para ver as reparações e pedir o orçamento.' : 'Escolha o seu modelo para ver as reparações e os preços.'}</p>
   </header>
   <ul class="modelos-grelha modelos-grelha--${esc(f.tipo)}">
     ${lista.map((x) => `<li><a class="modelo-cartao" href="${ctx.url(`/reparacoes/${x.id}/`)}">${usarAparelho(x.desenho)}<span class="modelo-cartao__nome">${esc(x.nome)}</span>${x.ano ? `<span class="modelo-cartao__ano">${x.ano}</span>` : ''}</a></li>`).join('')}
@@ -171,7 +197,7 @@ export function familia(ctx, f) {
     caminho,
     titulo: f.tipo === 'computador' ? 'Reparação de computadores — portáteis e fixos' : `Reparação ${f.nome} — escolha o modelo`,
     descricao: f.tipo === 'computador'
-      ? `Reparação de portáteis e computadores fixos em ${ctx.site.local.localidade}: limpeza e pasta térmica, formatação, placa gráfica e montagem de PC gaming. Orçamento grátis.`
+      ? `Reparação de portáteis e computadores fixos em ${ctx.site.local.localidade}: limpeza e pasta térmica, formatação, placa gráfica e montagem de PC gaming. Orçamento pelo WhatsApp.`
       : `Reparação de ${f.nome} em ${ctx.site.local.localidade}: ${lista.slice(0, 6).map((x) => x.nome).join(', ')} e outros. ${f.tipo === 'consola' ? 'Porta HDMI, limpeza, comandos' : 'Ecrã, bateria'} e mais, com o preço de cada modelo.`,
     classe: 'pagina-familia',
     jsonld: [m.ld],
@@ -190,23 +216,25 @@ export function modelo(ctx, x) {
   const lista = reps.map((r) => {
     const niveisComPreco = r.niveis.filter((n) => n.preco !== null);
     const escolherNivel = r.niveis.length > 1 && niveisComPreco.length > 1;
-    /* Com um nível só com preço (o ecrã compatível, na maioria dos modelos), a linha diz qual é: o preço
-       de um ecrã não diz nada sem a peça (revisão de 11 nov 2026: só o resumo, depois de marcar, o dizia). */
+    /* Com um nível só com preço (o ecrã de qualidade original nos iPhone), a linha diz qual é: o preço
+       de um ecrã não diz nada sem a peça (revisão de 11 nov 2026: só o resumo, depois de marcar, o dizia).
+       «Ecrã de qualidade original» diz-se «(de qualidade original)»: o nome da reparação já lá está. */
     const nivelUnico = !escolherNivel && r.niveis.length > 1 && niveisComPreco.length === 1 ? niveisComPreco[0].nome : '';
+    const semONome = (t) => (t.toLowerCase().startsWith(`${r.nome.toLowerCase()} `) ? t.slice(r.nome.length + 1) : t);
     return `<div class="rep" id="${esc(r.id)}" data-rep="${esc(r.id)}" data-nome="${esc(r.nome)}">
       <label class="rep__cabeca">
         <input type="checkbox" name="reparacao" value="${esc(r.id)}" data-preco="${r.preco ?? ''}" data-gratis="${r.gratis ? 'sim' : ''}"${!escolherNivel && r.niveis.length > 1 && niveisComPreco.length === 1 ? ` data-nivel="${esc(niveisComPreco[0].nome)}"` : ''}>
         <span class="rep__icone">${iconeReparacao(r.icone)}</span>
-        <span class="rep__texto"><span class="rep__nome">${esc(r.titulo)}${nivelUnico ? ` <span class="rep__nivel">(${esc(nivelUnico.replace(/^ecrã\s+/i, ''))})</span>` : ''}</span><span class="rep__resumo">${esc(r.resumo)}</span></span>
+        <span class="rep__texto"><span class="rep__nome">${esc(r.titulo)}${nivelUnico ? ` <span class="rep__nivel">(${esc(semONome(nivelUnico))})</span>` : ''}</span><span class="rep__resumo">${esc(r.resumo)}</span></span>
         <span class="rep__preco${r.preco === null && !r.gratis ? ' rep__preco--orcamento' : ''}">${esc(precoDaReparacao(r))}</span>
         <span class="rep__marca" aria-hidden="true">${icones.certo}</span>
       </label>
       ${escolherNivel ? `<fieldset class="rep__niveis" data-niveis hidden>
-        <legend>Que ${esc(r.nome.toLowerCase())}?</legend>
-        ${r.niveis.map((n, i) => `<label class="nivel${n.preco === null ? ' nivel--sem' : ''}">
-          <input type="radio" name="nivel-${esc(r.id)}" value="${esc(n.id)}" data-preco="${n.preco ?? ''}" data-nome-nivel="${esc(n.nome)}"${n.preco !== null && n.preco === r.preco && !r.niveis.slice(0, i).some((y) => y.preco === r.preco) ? ' checked' : ''}${n.preco === null ? ' disabled' : ''}>
+        <legend>${esc(r.pergunta || `Que ${r.nome.toLowerCase()}?`)}</legend>
+        ${niveisComPreco.map((n, i) => `<label class="nivel">
+          <input type="radio" name="nivel-${esc(r.id)}" value="${esc(n.id)}" data-preco="${n.preco}" data-nome-nivel="${esc(n.nome)}"${n.preco === r.preco && !niveisComPreco.slice(0, i).some((y) => y.preco === r.preco) ? ' checked' : ''}>
           <span class="nivel__texto"><strong>${esc(n.nome)}</strong>${n.texto ? `<span>${esc(n.texto)}</span>` : ''}</span>
-          <span class="nivel__preco">${n.preco === null ? 'Pergunte-nos' : euros(n.preco)}</span>
+          <span class="nivel__preco">${euros(n.preco)}</span>
         </label>`).join('')}
       </fieldset>` : ''}
     </div>`;
@@ -229,7 +257,7 @@ export function modelo(ctx, x) {
     <div class="modelo-cabeca__texto">
       <p class="rotulo">${marca === f.nome ? esc(f.nome) : `${esc(marca)} · ${esc(f.nome)}`}</p>
       <h1 class="titulo-pagina">Reparação ${esc(reparacaoDe(x))}</h1>
-      <p class="cabeca__sub">Escolha o que quer reparar: pode juntar mais do que uma. O diagnóstico e o orçamento são grátis.</p>
+      <p class="cabeca__sub">Escolha o que quer reparar: pode juntar mais do que uma.</p>
       ${porConfirmar ? notaPorConfirmar(ctx, 'preços de referência do mercado, a confirmar pela loja') : ''}
     </div>
   </header>
@@ -269,8 +297,8 @@ ${spriteAparelhos()}`;
     caminho,
     titulo: `Reparação ${reparacaoDe(x)} — ${x.tipo === 'consola' ? 'porta HDMI, limpeza e mais' : x.tipo === 'computador' ? 'limpeza, formatação e mais' : 'ecrã, bateria e mais'}`,
     descricao: (x.tipo === 'computador'
-      ? `Reparação ${reparacaoDe(x)} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ${reps.filter((r) => !r.gratis).map((r) => (/^PC/.test(r.nome) ? r.nome : r.nome.toLowerCase())).join(', ').replace(/, ([^,]*)$/, ' e $1')}. Diagnóstico e orçamento grátis.`
-      : `Reparação ${doAparelho(x)} ${x.nome} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ${reps.slice(0, 5).map((r) => r.nome.toLowerCase()).join(', ')}. Veja o preço e marque pelo WhatsApp; diagnóstico grátis.`).slice(0, 160),
+      ? `Reparação ${reparacaoDe(x)} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ${reps.filter((r) => !r.gratis && r.id !== 'diagnostico').map((r) => (/^PC/.test(r.nome) ? r.nome : r.nome.toLowerCase())).join(', ').replace(/, ([^,]*)$/, ' e $1')}. Orçamento pelo WhatsApp.`
+      : `Reparação ${doAparelho(x)} ${x.nome} em ${ctx.site.local.localidade}, ${ctx.site.local.concelho}: ${reps.slice(0, 5).map((r) => r.nome.toLowerCase()).join(', ')}. Veja o preço ou peça o orçamento pelo WhatsApp.`).slice(0, 160),
     classe: 'pagina-modelo',
     jsonld: [m.ld, {
       '@context': 'https://schema.org', '@type': 'Service', name: `Reparação ${x.nome}`, provider: { '@id': ctx.absoluto('/#loja') }, areaServed: { '@type': 'Country', name: 'Portugal' },

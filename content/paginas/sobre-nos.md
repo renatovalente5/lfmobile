@@ -14,6 +14,6 @@ Telemóveis de todas as marcas, tablets, relógios, consolas PlayStation e compu
 
 {{morada}}.
 
-## Orçamento gratuito
+## Preço antes de reparar
 
-Dizemos o que tem e quanto custa antes de reparar.
+Dizemos o que tem e quanto custa, e só reparamos com o seu acordo.

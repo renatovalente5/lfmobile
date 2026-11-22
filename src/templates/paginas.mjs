@@ -147,7 +147,7 @@ export function inicio(ctx) {
   <h2 class="visualmente-escondido" id="garantias-titulo">Porquê a ${esc(ctx.site.marca)}</h2>
   <ul class="garantias__lista">
     ${g.nota && g.ligacao ? garantia(g.ligacao, icones.estrela, `${esc(String(g.nota).replace('.', ','))} no Google`, `${estrelas}${g.opinioes ? `${g.opinioes} opiniões.` : 'Ver as opiniões.'}`, true) : ''}
-    ${garantia(ctx.url('/reparacoes/'), icones.ferramentas, 'Orçamento grátis', 'Dizemos o preço antes de reparar.')}
+    ${garantia(ctx.url('/reparacoes/'), icones.ferramentas, 'Preço antes de reparar', 'Dizemos o que tem e quanto custa.')}
     ${garantia(ctx.url('/contactos/'), icones.loja, 'Levantamento grátis', `Na loja, em ${esc(ctx.site.local.localidade)}.`)}
   </ul>
 </section>`;

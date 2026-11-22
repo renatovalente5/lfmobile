@@ -114,11 +114,11 @@
     const comPreco = lista.filter((x) => x.preco !== null);
     const soma = comPreco.reduce((s, x) => s + x.preco, 0);
     const semPreco = lista.some((x) => x.preco === null && !x.gratis);
-    totalEl.innerHTML = `<span>Total${semPreco ? ' (sem o orçamento)' : ''}</span><span>${comPreco.length ? euros(Math.round(soma * 100) / 100) : 'Orçamento grátis'}</span>`;
+    totalEl.innerHTML = `<span>Total${semPreco ? ' (sem o orçamento)' : ''}</span><span>${comPreco.length ? euros(Math.round(soma * 100) / 100) : 'Pedir orçamento'}</span>`;
     totalEl.hidden = false;
     if (barra) {
       barra.hidden = false;
-      barraTexto.innerHTML = `${lista.length === 1 ? esc(lista[0].nome) : `${lista.length} reparações`}<small>${comPreco.length ? `${euros(Math.round(soma * 100) / 100)}${semPreco ? ' + orçamento' : ''}` : 'Orçamento grátis'}</small>`;
+      barraTexto.innerHTML = `${lista.length === 1 ? esc(lista[0].nome) : `${lista.length} reparações`}<small>${comPreco.length ? `${euros(Math.round(soma * 100) / 100)}${semPreco ? ' + orçamento' : ''}` : 'Pedir orçamento'}</small>`;
     }
   }
   form.addEventListener('change', pintar);

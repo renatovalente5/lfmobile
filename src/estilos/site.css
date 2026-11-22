@@ -357,6 +357,9 @@ dialog::backdrop { background: rgba(12, 12, 13, .45); -webkit-backdrop-filter: b
 .menu__rotulo { font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--tinta-3); margin: 0 0 6px; }
 /* a loja numa grelha de duas colunas: cabe num ecrã de telemóvel sem rolar */
 .menu__grelha { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 20px; }
+/* sozinha na última fila (o «Toda a loja», com um número ímpar de categorias), ocupa as duas colunas: um buraco ao
+   lado parecia uma categoria em falta (o Leandro, 21 nov 2026, desenhou-lhe um quadrado por cima) */
+.menu__grelha > li:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .menu__grelha a { display: flex; align-items: center; gap: 10px; min-height: 50px; padding: 0 12px; border-radius: var(--raio-m); background: var(--cinza); text-decoration: none; font-weight: 700; font-size: .95rem; line-height: 1.2; }
 .menu__grelha .icone { flex: none; width: 1.25em; height: 1.25em; color: var(--ouro-texto); }
 .menu__grelha a[aria-current="page"] { background: var(--tinta); color: var(--branco); }
@@ -887,6 +890,19 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .passos-faixa__lista strong { font-size: 1.05rem; }
 .passos-faixa__lista li > span:last-child { color: var(--tinta-2); font-size: .94rem; }
 .passos-faixa__n { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; border-radius: 999px; background: var(--tinta); color: var(--branco); font-weight: 800; font-size: .88rem; margin-bottom: 4px; }
+/* as tabelas dos serviços (diagnóstico e mão de obra, oxidação): lado a lado a partir de 900 px */
+.servicos { margin-top: 56px; scroll-margin-top: calc(var(--topo) + 16px); }
+.servicos__grelha { display: grid; gap: 16px; margin-top: 18px; }
+@media (min-width: 900px) { .servicos__grelha { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; } }
+.servicos__cartao { padding: 20px; border-radius: var(--raio); border: 1px solid var(--linha); min-width: 0; }
+.servicos__titulo { font-size: 1.1rem; margin: 0 0 6px; }
+.servicos__tabela { width: 100%; border-collapse: collapse; font-size: .94rem; }
+.servicos__tabela tr + tr { border-top: 1px solid var(--linha); }
+.servicos__tabela th { text-align: left; font-weight: 600; padding: 10px 12px 10px 0; vertical-align: top; }
+.servicos__tabela th small { display: block; margin-top: 2px; font-weight: 400; font-size: .84rem; line-height: 1.4; color: var(--tinta-2); }
+.servicos__tabela td { text-align: right; font-weight: 800; padding: 10px 0; vertical-align: top; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.servicos__tabela td.servicos__sob { font-weight: 600; color: var(--tinta-2); }
+.servicos__notas { margin: 14px 0 0; padding: 14px 0 0; border-top: 1px solid var(--linha); display: grid; gap: 6px; font-size: .86rem; line-height: 1.45; color: var(--tinta-2); }
 
 /* a página de uma família: os modelos em cartões */
 .familia-pagina { padding-bottom: 32px; }
