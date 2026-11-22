@@ -133,7 +133,9 @@
       const lista = escolhidas();
       const linhas = [marcar.dataset.mensagem];
       if (lista.length) {
-        for (const x of lista) linhas.push(`Reparação: ${x.nome}${x.nivel ? ` (${x.nivel})` : ''}${x.gratis ? ' — grátis' : x.preco === null ? ' — orçamento' : ` — ${euros(x.preco)}`}`);
+        // «Ecrã de qualidade original», não «Ecrã (Ecrã de qualidade original)»: o nível que já diz o nome fica sozinho (22 nov 2026)
+        const oQue = (x) => (!x.nivel ? x.nome : x.nivel.toLowerCase().startsWith(x.nome.toLowerCase()) ? x.nivel : `${x.nome} (${x.nivel})`);
+        for (const x of lista) linhas.push(`Reparação: ${oQue(x)}${x.gratis ? ' — grátis' : x.preco === null ? ' — orçamento' : ` — ${euros(x.preco)}`}`);
         const comPreco = lista.filter((x) => x.preco !== null);
         if (comPreco.length > 1) linhas.push(`Total no site: ${euros(Math.round(comPreco.reduce((s, x) => s + x.preco, 0) * 100) / 100)}`);
         if (porConfirmar) linhas.push('(preços de referência do site)');
