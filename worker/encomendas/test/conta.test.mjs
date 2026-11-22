@@ -491,7 +491,10 @@ test('desistir da compra: antes de receber pode sempre; depois, 14 dias (no envi
     await marcar(env, enc.encomenda, 'paga'); await marcar(env, enc.encomenda, 'pronta'); await marcar(env, enc.encomenda, 'levantada');
     f = await pedir(worker, env, 'GET', `/conta/api/encomenda?e=${enc.encomenda}`, { cabecalhos: { Cookie: cookie } });
     assert.equal(f.json.desistir.pode, true);
-    const repor = comRelogio(15 * 86400_000);
+    // 25 dias e não 15: o prazo acaba no 14.º dia, mas passa ao dia útil seguinte se cair num fim de semana ou
+    // feriado (levantada a 22 nov 2026, um domingo: o 14.º dia é domingo, 6 dez, e o prazo vai até segunda, 7 dez —
+    // com 15 dias o teste falhava nesse dia, e o Worker estava certo)
+    const repor = comRelogio(25 * 86400_000);
     try {
       assert.equal(prazoDeDesistir(noPainel, Date.now()).pode, true, 'a registada (sem entrega) pode sempre');
       const tarde = await desistir(enc.encomenda);

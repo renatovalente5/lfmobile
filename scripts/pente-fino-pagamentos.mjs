@@ -47,16 +47,20 @@ function certo(cond, nome, detalhe) {
 const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /* O travão do checkout: 5 por minuto, por IP (aqui, todos do localhost). */
+/* O travão do Worker (5 por minuto por IP) conta o /checkout E o /pagar (a página /pagar/ pede o pagamento logo ao
+   abrir) e o /cupao: cada encomenda gasta duas vezes. As vezes contam-se pelos pedidos que a página faz (o «request»
+   de cada página, mais abaixo); antes de uma encomenda espera-se até haver lugar para as duas (22 nov 2026: só se
+   contava o /checkout, e a 3.ª encomenda dentro de um minuto levava 429 e o ensaio parava no «computador»). */
 const vezes = [];
-async function vez() {
+const contarVez = (r) => { if (r.method() === 'POST' && /^https:\/\/localhost:8791\/(checkout|pagar|cupao)(\?|$)/.test(r.url())) vezes.push(Date.now()); };
+async function vez(precisa = 2) {
   for (;;) {
     while (vezes.length && Date.now() - vezes[0] > 61500) vezes.shift();
-    if (vezes.length < 5) break;
+    if (vezes.length + precisa <= 5) break;
     const espera = 61500 - (Date.now() - vezes[0]) + 300;
     console.log(`    … o travão do checkout: ${Math.ceil(espera / 1000)} s`);
     await esperar(espera);
   }
-  vezes.push(Date.now());
 }
 
 const json = async (url, init) => { const r = await fetch(url, init); return { estado: r.status, dados: await r.json().catch(() => null) }; };
@@ -101,6 +105,7 @@ for (const motor of MOTORES) {
   const b = await pw[motor].launch();
   const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, ignoreHTTPSErrors: true, locale: 'pt-PT' });
   const p = await ctx.newPage();
+  p.on('request', contarVez);
   const erros = [];
   p.on('pageerror', (e) => erros.push(String(e)));
   const foto = (n) => p.screenshot({ path: path.join(S, `${motor}-${n}.png`), fullPage: false });
@@ -171,6 +176,7 @@ for (const motor of MOTORES) {
   await foto('5-cartao-cancelado');
   const escolha = p.locator('[data-pagar-escolha]');
   if (!(await escolha.evaluate((d) => d.open))) await p.click('[data-pagar-escolha-titulo]');
+  await vez(1); // outro /pagar na mesma encomenda
   await p.click('[data-pagar-metodo="MB"]');
   await p.waitForSelector('[data-pagar-bloco="mb"]:not([hidden])', { timeout: 10000 });
   const e4 = await encomenda(m4.e, m4.c);
