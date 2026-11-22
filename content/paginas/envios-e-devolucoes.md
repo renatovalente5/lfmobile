@@ -17,6 +17,6 @@ indexar: não
 
 ## Devoluções
 
-Tem 14 dias depois de receber o artigo para desistir da compra, sem dar justificação. Um artigo com defeito está coberto pela garantia.
+Tem 14 dias depois de receber o artigo para desistir da compra. Um artigo com defeito está coberto pela garantia.
 
-[Como desistir](/desistir/) [Garantia](/garantia/)
+[Desistência](/desistir/) [Garantia](/garantia/)

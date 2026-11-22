@@ -530,7 +530,7 @@ teste('a arrumação: Apple e Samsung juntam os artigos da marca, os serviços j
   assert.match(envios, /<p class="portes__titulo">Portes<\/p><dl class="portes"><div><dt>Até \d/);
   assert.match(envios, /<div><dt>Mais de [\d,]+ kg<\/dt><dd>A combinar<\/dd><\/div><\/dl>/);
   assert.match(envios, /<p class="nota-cartao__accoes"><a href="https:\/\/www\.google\.com\/maps\/[^"]*" target="_blank" rel="noopener">Como chegar<\/a><\/p>/);
-  assert.match(envios, /<p class="nota-cartao__accoes"><a href="\/desistir\/">Como desistir<\/a> <a href="\/garantia\/">Garantia<\/a><\/p>/);
+  assert.match(envios, /<p class="nota-cartao__accoes"><a href="\/desistir\/">Desistência<\/a> <a href="\/garantia\/">Garantia<\/a><\/p>/);
   assert.doesNotMatch(envios, /\{\{|O levantamento na loja não tem custos/);
   assert.equal((lojaPag.match(/<span class="cartao__seta" aria-hidden="true">/g) || []).length, (lojaPag.match(/<article class="cartao/g) || []).length);
   // o rodapé alto: a marca e as colunas da Loja e da Ajuda (a das reparações saiu: «está aí a mais»)

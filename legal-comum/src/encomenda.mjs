@@ -93,7 +93,7 @@ export function AVISO_RETOMA({ tipos = [], como } = {}) {
 }
 
 export const LIVRE_RESOLUCAO =
-  'Tem 14 dias para desistir da compra sem dar justificação, a contar do dia em que recebe o bem (ou, nos serviços, do dia do contrato). Basta dizer-nos por email ou enviar o formulário de livre resolução; devolve o bem em 14 dias e nós reembolsamos tudo, incluindo os portes normais de envio, em 14 dias e pelo mesmo meio de pagamento (Decreto-Lei n.º 24/2014, arts. 10.º a 13.º).';
+  'Tem 14 dias para desistir da compra, a contar do dia em que recebe o bem (ou, nos serviços, do dia do contrato). Para desistir, diga-nos por email ou envie o formulário de livre resolução; devolve o bem em 14 dias e nós reembolsamos tudo, incluindo os portes normais de envio, em 14 dias e pelo mesmo meio de pagamento (Decreto-Lei n.º 24/2014, arts. 10.º a 13.º).';
 
 /** Só estas excepções se aplicam aos sites típicos; escolher cor, tamanho ou modelo do catálogo não é uma delas. */
 export const LIVRE_RESOLUCAO_EXCEPCOES = Object.freeze([

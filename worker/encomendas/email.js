@@ -85,13 +85,15 @@ function entregaFrase(enc, cat) {
 
 const ligacaoDaEncomenda = (env, enc) => (enc.chave ? `${siteUrl(env)}/obrigado/?e=${encodeURIComponent(enc.encomenda)}&c=${encodeURIComponent(enc.chave)}` : null);
 
+/* (22 nov 2026, o Renato) O prazo e onde estão as condições, sem empurrar o cliente para desistir: nada de
+   «sem dar justificação» nem «veja como». */
 function desistenciaTexto(env) {
   const site = siteUrl(env);
-  return `Tem 14 dias depois de receber o artigo para desistir da compra, sem dar justificação: veja como em ${site}/desistir/. Os termos e condições estão em ${site}/termos-e-condicoes/.`;
+  return `O prazo para desistir da compra é de 14 dias depois de receber o artigo. As condições estão em ${site}/desistir/. Os termos e condições estão em ${site}/termos-e-condicoes/.`;
 }
 function desistenciaHtml(env) {
   const site = siteUrl(env);
-  return `Tem 14 dias depois de receber o artigo para desistir da compra, sem dar justificação: ${ligacao(`${site}/desistir/`, 'veja como')}. Leia os ${ligacao(`${site}/termos-e-condicoes/`, 'termos e condições')}.`;
+  return `O prazo para desistir da compra é de 14 dias depois de receber o artigo. ${ligacao(`${site}/desistir/`, 'Veja as condições')}. Leia os ${ligacao(`${site}/termos-e-condicoes/`, 'termos e condições')}.`;
 }
 function contactosTexto(env) {
   return [marcaDe(env), telefoneComNota(env.STORE_PHONE), env.STORE_EMAIL].filter(Boolean).join(' · ');

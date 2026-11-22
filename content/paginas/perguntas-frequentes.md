@@ -40,7 +40,7 @@ Só para Portugal Continental. Portes: {{portes}}
 
 ## Posso devolver um artigo?
 
-Sim, tem 14 dias depois de o receber para desistir da compra, sem dar justificação. [Como desistir](/desistir/).
+Sim, tem 14 dias depois de o receber para desistir da compra. [Veja as condições](/desistir/).
 
 ## Compram telemóveis usados?
 

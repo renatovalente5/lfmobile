@@ -61,7 +61,9 @@ test('os artigos, os portes e o total como o site os mostra; o aviso dos 14 dias
   assert.match(r.texto, /Total: 190,70 €/);
   assert.match(r.texto, /Envio para Rua das Flores, 10, 3720-100 Oliveira de Azeméis\./);
   assert.match(r.texto, new RegExp(cat.prazo.slice(0, 30).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), 'o prazo vem do catálogo');
-  assert.match(r.texto, /Tem 14 dias depois de receber o artigo para desistir da compra, sem dar justificação/);
+  assert.match(r.texto, /O prazo para desistir da compra é de 14 dias depois de receber o artigo\. As condições estão em /);
+  // (22 nov 2026, o Renato) sem empurrar o cliente para desistir
+  assert.doesNotMatch(r.texto + r.html, /justifica|motivo|veja como|vê como/i);
   assert.match(r.texto, /https:\/\/renatovalente5\.github\.io\/lfmobile\/desistir\//);
   assert.match(r.texto, /https:\/\/renatovalente5\.github\.io\/lfmobile\/termos-e-condicoes\//);
   assert.match(r.html, /href="https:\/\/renatovalente5\.github\.io\/lfmobile\/desistir\/"/);

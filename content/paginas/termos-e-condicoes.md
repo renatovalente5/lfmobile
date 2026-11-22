@@ -1,6 +1,6 @@
 titulo: Termos e condições
 descricao: As condições das compras feitas no site da LF Mobile: quem vende, preços, portes, como se faz a encomenda, pagamento, prazos, desistência e garantia.
-atualizado: 2026-11-11
+atualizado: 2026-11-22
 ---
 ## Quem vende
 
@@ -48,7 +48,7 @@ O risco de perda ou dano dos artigos passa para si quando os recebe (ou quando o
 
 ## Direito de livre resolução (desistir da compra)
 
-Tem 14 dias a contar do dia em que recebe o artigo para desistir da compra, sem ter de dar qualquer justificação. Basta dizer-nos, por qualquer meio, que desiste: pelo WhatsApp, por email ou na página [Desistir de uma compra](/desistir/), onde está também o modelo de formulário.
+Tem 14 dias a contar do dia em que recebe o artigo para desistir da compra. Para desistir, diga-nos pelo WhatsApp, por email ou na página [Desistir de uma compra](/desistir/), onde está também o modelo de formulário.
 
 Devolvemos tudo o que pagou, incluindo os portes de envio de valor mais baixo, no prazo de 14 dias a contar da comunicação, pelo mesmo meio de pagamento que usou. Podemos esperar pelo artigo (ou pela prova de que o enviou) antes de reembolsar. O artigo deve ser devolvido no prazo de 14 dias a contar da comunicação, completo e sem uso que vá além do necessário para o verificar; se o valor do artigo tiver diminuído por um uso que foi além disso, pode ser responsável por essa diminuição. Os custos da devolução ficam a seu cargo.
 

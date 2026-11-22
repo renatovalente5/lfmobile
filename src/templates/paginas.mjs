@@ -920,7 +920,7 @@ function seccoes(html) {
     return m ? { id: m[1] || '', titulo: m[2], corpo: m[3].trim() } : { id: '', titulo: '', corpo: x };
   }) };
 }
-/* Um parágrafo só de ligações, no fim de um cartão, vira os botões do fundo dele («Como chegar», «Como desistir»). */
+/* Um parágrafo só de ligações, no fim de um cartão, vira os botões do fundo dele («Como chegar», «Desistência»). */
 const comAccoes = (corpo) => corpo.replace(/<p>((?:\s*<a [^>]*>[^<]*<\/a>\s*)+)<\/p>\s*$/, (_, ls) => `<p class="nota-cartao__accoes">${ls.trim()}</p>`);
 function comoPassos(html) {
   const { intro, lista } = seccoes(html);
