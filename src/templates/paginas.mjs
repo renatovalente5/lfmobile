@@ -3,7 +3,7 @@
 // retoma.mjs.
 import { esc, euros, precoDe, markdown, inline, textoSimples, resumir, numeroWhatsApp, numeroLegivel, notaChamada, dataPorExtenso } from './util.mjs';
 import { icones } from './icones.mjs';
-import { usarAparelho, spriteAparelhos } from './aparelhos.mjs';
+import { usarAparelho, spriteAparelhos, desenhoCategoria } from './aparelhos.mjs';
 import { numeroPortugues, opcoesDe, temSuplementos, estadoDe, disponibilidadeDe, compravel, enviavel, linhasDe, GARANTIAS_USADOS, ESTADOS, categoriasDoArtigo } from '../lib/regras.mjs';
 import { imagem, temRecorte, preco, cartaoProduto, migalhas, botaoSeta, desconto, promocaoAte, cabecaDePagina, convite, promocaoNota, horarioHtml, moradaHtml, estadoRotulo, especificacoes, categoriasComArtigos, categoriasDeCima, filhasDe, categoriasSemFilhas, campanhaDe, fila } from './componentes.mjs';
 import { BOTAO_ENCOMENDA } from '../../legal-comum/index.mjs';
@@ -38,14 +38,19 @@ export const garantiaTexto = (ctx, p) => {
   return null;
 };
 
-/* O desenho de uma categoria quando não há recorte de nenhum artigo dela. */
-const DESENHO_CATEGORIA = { apple: 'iphone-ilha', samsung: 'galaxy', recondicionados: 'iphone-entalhe', tablets: 'tablet', smartwatches: 'relogio' };
-const ICONE_CATEGORIA = { audio: 'auriculares', peliculas: 'pelicula', acessorios: 'caixa' };
+/* O desenho de uma categoria quando não há recorte de nenhum artigo dela: o de um aparelho (os telemóveis, o tablet,
+   o relógio, o portátil) ou o da categoria (aparelhos.mjs, CATEGORIAS), desenhado a partir do que a loja vende: a
+   coluna, a máquina de café, a capa, o cartão localizador… Seis tinham a mesma caixa, e o Renato, a 24 nov 2026,
+   pediu desenhos mais adequados ao que ele vende. Uma categoria nova, ainda sem desenho, leva o saco da loja. */
+const DESENHO_CATEGORIA = { telemoveis: 'galaxy', apple: 'iphone-ilha', samsung: 'galaxy', recondicionados: 'iphone-entalhe', tablets: 'tablet', smartwatches: 'relogio', computadores: 'portatil' };
+const DESENHO_DA_CATEGORIA = { 'outras-marcas': 'marcas', gadgets: 'coluna', 'outros-gadgets': 'coluna', audio: 'auscultadores', casa: 'cafe', kids: 'comando', acessorios: 'carregador', 'outros-acessorios': 'carregador', cabos: 'cabo', capas: 'capa', powerbanks: 'powerbank', braceletes: 'bracelete', localizadores: 'localizador' };
 function imagemDaCategoria(ctx, slug) {
   const p = produtosDe(ctx, slug).find((x) => temRecorte(ctx, x.fotos[0]));
   if (p) return imagem(ctx, p.fotos[0], { tamanhos: '120px', alt: '', recorte: true, classe: 'cat-fila__img' });
-  if (DESENHO_CATEGORIA[slug]) return usarAparelho(DESENHO_CATEGORIA[slug], 'cat-fila__desenho');
-  return `<span class="cat-fila__icone">${icones[ICONE_CATEGORIA[slug]] || icones.caixa}</span>`;
+  if (DESENHO_CATEGORIA[slug]) return usarAparelho(DESENHO_CATEGORIA[slug], `cat-fila__desenho${slug === 'computadores' ? ' cat-fila__desenho--largo' : ''}`);
+  // as películas têm sempre o recorte (o desenho da película no telemóvel); sem ele, o ícone
+  if (slug === 'peliculas') return `<span class="cat-fila__icone">${icones.pelicula}</span>`;
+  return desenhoCategoria(DESENHO_DA_CATEGORIA[slug], 'cat-fila__desenho cat-fila__desenho--quadrado');
 }
 
 /* AS MARCAS que a capa mostra em baixo, à direita (como na imagem do Leandro, pela ordem dele): só
