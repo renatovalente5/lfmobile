@@ -465,7 +465,9 @@ teste('as categorias em dois níveis: a mãe junta as filhas, a loja tem a fila 
   // a fila redonda da página inicial: as que não têm filhas (sem as mães)
   const inicio = ler('index.html');
   const redonda = [...inicio.match(/<nav class="cat-fila"[\s\S]*?<\/nav>/)[0].matchAll(/<span class="cat-fila__nome">([^<]+)<\/span>/g)].map((m) => m[1]);
-  assert.deepEqual(redonda, ['Apple', 'Samsung', 'Recondicionados', 'Smartwatches', 'Áudio', 'Películas', 'Reparações']);
+  assert.deepEqual(redonda, ['Apple', 'Samsung', 'Recondicionados', 'Smartwatches', 'Áudio', 'Películas']);
+  // só a loja: as Reparações saíram da fila (25 nov 2026)
+  assert.doesNotMatch(inicio.match(/<nav class="cat-fila"[\s\S]*?<\/nav>/)[0], /\/reparacoes\//);
 });
 teste('as regras das categorias-mãe: a mãe tem de existir e não pode ter mãe', () => {
   const base = [{ slug: 'a', nome: 'A', titulo: 'A' }, { slug: 'b', nome: 'B', titulo: 'B', grupo: 'a' }];

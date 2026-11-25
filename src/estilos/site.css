@@ -505,16 +505,19 @@ html.na-capa { background: #040404; }
 .cat-fila__seta:disabled { visibility: hidden; }
 .cat-fila li { flex: none; scroll-snap-align: start; }
 .cat-fila a { display: grid; justify-items: center; gap: 8px; width: 104px; text-decoration: none; }
+/* a primeira e a última crescem com o nome: um nome mais largo do que a bola («Outros acessórios») sai para os lados
+   e, na ponta da fila, ficava colado à borda do ecrã (25 nov 2026, quando as Reparações saíram do fim) */
+.cat-fila li:first-child a, .cat-fila li:last-child a { width: max-content; min-width: 104px; }
 /* no telemóvel, bolas um pouco mais pequenas e a fila até à beira do ecrã (como a dos destaques): vê-se a ponta
    da seguinte e percebe-se que desliza */
 @media (max-width: 479.98px) {
   .cat-fila ul { gap: 12px; margin: 0 calc(-1 * var(--margem)); padding-left: var(--margem); padding-right: var(--margem); scroll-padding-inline: var(--margem); }
   .cat-fila a { width: 96px; }
+  .cat-fila li:first-child a, .cat-fila li:last-child a { min-width: 96px; }
   .cat-fila__poco { width: 72px; height: 72px; }
   .cat-fila__nome { font-size: .76rem; }
 }
 .cat-fila__poco { display: grid; place-items: center; width: 84px; height: 84px; border-radius: 999px; background: var(--cinza); overflow: hidden; transition: background-color .15s, transform .15s; }
-.cat-fila__poco--escuro { background: var(--escuro); color: var(--ouro-claro); }
 .cat-fila__poco picture, .cat-fila__img { display: grid; place-items: center; width: 100%; height: 100%; }
 .cat-fila__poco img { width: 64%; height: 64%; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(17, 17, 19, .15)); }
 .cat-fila__desenho { width: 30px; height: auto; }
@@ -524,7 +527,7 @@ html.na-capa { background: #040404; }
 .cat-fila__icone { display: inline-flex; }
 .cat-fila__icone .icone { width: 30px; height: 30px; }
 .cat-fila__nome { font-size: .8rem; font-weight: 700; text-align: center; line-height: 1.25; white-space: nowrap; letter-spacing: -.01em; }
-@media (hover: hover) { .cat-fila a:hover .cat-fila__poco { background: var(--cinza-2); transform: translateY(-2px); } .cat-fila a:hover .cat-fila__poco--escuro { background: var(--escuro-3); } }
+@media (hover: hover) { .cat-fila a:hover .cat-fila__poco { background: var(--cinza-2); transform: translateY(-2px); } }
 
 /* ---------------------------------------------------------------- filas de artigos */
 .fila { margin-top: 44px; }
