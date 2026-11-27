@@ -1,0 +1,44 @@
+{
+  "nome": "Smartwatch Watch 11 Pro",
+  "nomeCurto": "Smartwatch Watch 11 Pro",
+  "fotos": [
+    "smartwatch-watch-11-pro-b6831035",
+    "smartwatch-watch-11-pro-9bf644b8",
+    "smartwatch-watch-11-pro-93c8a9b3",
+    "smartwatch-watch-11-pro-3a7a9524"
+  ],
+  "resumo": "Smartwatch Watch 11 Pro",
+  "descricao": "O Smartwatch Watch 11 Pro combina um design moderno e elegante com funcionalidades práticas para o teu dia a dia. Ideal para quem procura um smartwatch versátil, que permite acompanhar a atividade física, consultar notificações e manter-se ligado diretamente no pulso.",
+  "preco": 59.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Design compacto e moderno",
+    "Conectividade com Android ou iOS"
+  ],
+  "opcoes": [
+    {
+      "nome": "Cor",
+      "valores": [
+        {
+          "nome": "Preto",
+          "suplemento": 0
+        },
+        {
+          "nome": "Prateado",
+          "suplemento": 0
+        },
+        {
+          "nome": "Dourado",
+          "suplemento": 0
+        }
+      ]
+    }
+  ],
+  "pedeModelo": false,
+  "categoria": "smartwatches",
+  "destaque": true,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}
