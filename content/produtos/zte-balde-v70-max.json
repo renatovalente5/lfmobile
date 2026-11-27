@@ -1,0 +1,41 @@
+{
+  "nome": "ZTE Balde V70 Max",
+  "nomeCurto": "ZTE Balde V70 Max",
+  "marca": "ZTE",
+  "fotos": [
+    "zte-balde-v70-max-f8d968b8",
+    "zte-balde-v70-max-53934053"
+  ],
+  "resumo": "ZTE Balde V70 Max",
+  "descricao": "ZTE Blade V70 Max com 4 GB de RAM e 256 GB de armazenamento interno. Apresenta um elegante acabamento Galactic Gray, moderno e sofisticado.",
+  "preco": 159.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Memório Interna: 256 GB",
+    "Sistema Operativo: Android 15",
+    "Memória RAM: 4 GB"
+  ],
+  "opcoes": [
+    {
+      "nome": "Cor:",
+      "valores": [
+        {
+          "nome": "Lake Green",
+          "suplemento": 0
+        },
+        {
+          "nome": "Galatic Grey",
+          "suplemento": 0
+        }
+      ]
+    }
+  ],
+  "pedeModelo": false,
+  "peso": 0.5,
+  "categoria": "outras-marcas",
+  "destaque": false,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}
