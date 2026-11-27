@@ -68,6 +68,11 @@ html:not(:has(.topo:focus-within)) { scroll-padding-top: calc(var(--topo) + 16px
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 html:has(dialog[open]), html:has(.filtros[data-aberto]) { overflow: hidden; }
 body { margin: 0; background: var(--papel); color: var(--tinta); font: 400 1rem/1.6 var(--sans); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; font-variant-numeric: lining-nums; }
+
+/* A página acaba na última linha do rodapé: nada de faixa nem espaço vazio por baixo dele. Nas páginas curtas o
+   rodapé fica no fundo do ecrã e o espaço que sobra fica dentro da página. */
+body { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; }
+body > main { flex: 1 0 auto; }
 img, svg, video { display: block; max-width: 100%; }
 img { height: auto; }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: .16em; }
