@@ -1,6 +1,7 @@
 {
   "nome": "Smartwatch Watch 11 Pro",
   "nomeCurto": "Smartwatch Watch 11 Pro",
+  "marca": "Howear",
   "fotos": [
     "smartwatch-watch-11-pro-b6831035",
     "smartwatch-watch-11-pro-9bf644b8",
@@ -36,6 +37,7 @@
     }
   ],
   "pedeModelo": false,
+  "peso": 0.17,
   "categoria": "smartwatches",
   "destaque": true,
   "novidade": true,
