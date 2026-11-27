@@ -1,0 +1,42 @@
+{
+  "nome": "Smartwatch Ultra 11 Pro",
+  "nomeCurto": "Smartwatch Ultra 11 Pro",
+  "marca": "Howear",
+  "fotos": [
+    "smartwatch-ultra-11-pro-39cd0fc2",
+    "smartwatch-ultra-11-pro-620b3dde",
+    "smartwatch-ultra-11-pro-6c46b99e",
+    "smartwatch-ultra-11-pro-44e4286a"
+  ],
+  "resumo": "Smartwatch Ultra 11 Pro",
+  "descricao": "O Smartwatch Ultra 11 Pro é perfeito para quem procura um relógio moderno e elegante para o dia a dia.",
+  "preco": 59.9,
+  "estado": "novo",
+  "disponibilidade": "disponivel",
+  "caracteristicas": [
+    "Design  moderno",
+    "Conectividade com Android ou iOS"
+  ],
+  "opcoes": [
+    {
+      "nome": "Cor",
+      "valores": [
+        {
+          "nome": "Preto",
+          "suplemento": 0
+        },
+        {
+          "nome": "Prateado",
+          "suplemento": 0
+        }
+      ]
+    }
+  ],
+  "pedeModelo": false,
+  "peso": 0.17,
+  "categoria": "smartwatches",
+  "destaque": true,
+  "novidade": true,
+  "publicado": true,
+  "ordem": 500
+}
